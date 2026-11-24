@@ -6,9 +6,9 @@ sin tope de gasto para montarlo, pero midiendo. El código del juego no se ha to
 
 | Área | Guía (skill) | Juez de área (medido el 23/11) | Entorno |
 |---|---|---|---|
-| **Corazón · Batallas**, con su taller | `ministerio-batallas` | lógica 48 s + navegador 12 min | «AQVILA Batallas taller» |
-| **Cerebro** (ramas Ciudades y Política) | `ministerio-cerebro` | lógica 63 s; sin juez de navegador propio todavía | el de siempre |
-| **Músculo** (mapa, menús, manejo, fluidez) | `ministerio-musculo` | lógica 10 s; sin juez de navegador propio todavía | el de siempre |
+| **Corazón · Batallas**, con su taller | `ministerio-batallas` | lógica 48 s + navegador 12 min (`juez-guerra`) + 5,5 min (sus pasos de `jueces.mjs`, MIN4) | «AQVILA Batallas taller» |
+| **Cerebro** (ramas Ciudades y Política) | `ministerio-cerebro` | lógica 63 s + navegador 2 min (MIN4): **3,6 min en total** | el de siempre |
+| **Músculo** (mapa, menús, manejo, fluidez) | `ministerio-musculo` | lógica 10 s + navegador 8 min (MIN4, con la batalla de preparación) | el de siempre |
 | **Taller de Arte** común | `arte` | `arte.mjs` y `fichas.mjs`, segundos | «AQVILA Batallas taller» |
 | **Taller de Sonido** (director de sonido, 23/11) | `sonido` (+ `sonido-efectos`, `sonido-musica`) | `juez-sonido.mjs`, 3 s | «AQVILA Batallas taller» (OpenGameArt abierto) |
 
@@ -79,8 +79,10 @@ con sus vídeos `capturas-tarea/PIL-*`. Son del taller de Batallas; se unen cuan
 el §1 los minutos de jueces por tarea, los archivos vetados tocados, los conflictos al unir, las paradas esperando al
 usuario y el gasto frente a lo declarado.
 
-**Límites conocidos**: (1) Cerebro y Músculo no tienen juez de navegador propio: cierran con lógica y capturas, y lo que
-se rompa en pantalla se ve al subir (propuesta MIN4). (2) Casi toda la economía y los menús viven en archivos comunes
+**Límites conocidos**: (1) Desde MIN4 (23/11) cada área pasa sus pasos de pantalla con `jueces.mjs --area <área>`
+(lo llama `juez-area.mjs`; capturas en `gobierno/capturas-area/<área>/`, fuera de git). Cada paso dice de qué área es y a
+cuál prepara: Músculo pasa la batalla del recorrido como preparación porque «Recargar sin red» la necesita. Reparto de los
+24 pasos: 5 de Cerebro, 10 de Músculo, 7 de Batallas y 2 comunes. Los jueces completos siguen dando las mismas 43. (2) Casi toda la economía y los menús viven en archivos comunes
 (`js/game.js`, `js/data.js`, `js/ui.js`): ahí sigue habiendo una sola sesión a la vez; el reparto no lo arregla, lo ordena.
 
 ## 4. Reglas contra cuellos de botella

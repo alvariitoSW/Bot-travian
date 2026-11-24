@@ -432,7 +432,8 @@ function volverAlMapa() { UI.deMapa = false; setTab('map'); if (UI.map) UI.map.r
 function setTab(t) {
   if (UI.fundar) cerrarFundar(true);
   UI.tab = t; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
-  const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
+  const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D
+  if (!c3 && UI.cityV && UI.cityV.enPlano) UI.cityV.plano(false, null, true);   // CV1: al salir de la ciudad, el plano se apaga (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
   if (c3) { UI.cityV.resize(); renderCity3D(); }
   if (t !== 'city') UI.deMapa = false;
@@ -467,7 +468,7 @@ function bienesCu(mercado) {
 }
 function renderCuentas(forzar) { const e = $('cuentas'); if (!e || e.hidden || !S() || (UI.cuDown && !forzar)) return; const h = cuentasHtml(); if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
 /* K12a: HOJA INFERIOR única (menú, ajustes, mercado, rutas, pueblo…). #hoja es el panel y #hscrim el telón que oscurece. Cuerpo = HOJAS[id].html() */
-const CREDITOS = 'Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Hastatus y galo de las batallas: cuerpo y esqueleto de MakeHuman 1.3.2, movimientos de Quaternius (Universal Animation Library), licencia CC0 1.0<br>Falangita, oficial de la falange y hastatus: modelos generados con Meshy (meshy.ai), licencia CC BY 4.0 (creativecommons.org/licenses/by/4.0)<br>Sonido grabado: OpenGameArt (rubberduck, Kenney, artisticdude) y Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, HowardV, IENBA, marconi68, Morshuman, Archeos, RepDac3, DeqstersLab, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia), licencia CC0 1.0<br>Voces de los soldados: síntesis de AQVILA con Piper (Open Home Foundation) y la voz española es_ES-sharvard-medium, entrenada con el Corpus Sharvard de Vincent Aubanel, Maria Luisa García Lecumberri y Martin Cooke (Univ. de Edimburgo), licencia CC BY 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
+const CREDITOS = 'Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Hastatus y galo de las batallas: cuerpo y esqueleto de MakeHuman 1.3.2, movimientos de Quaternius (Universal Animation Library), licencia CC0 1.0<br>Falangita, oficial de la falange y hastatus: modelos generados con Meshy (meshy.ai), licencia CC BY 4.0 (creativecommons.org/licenses/by/4.0)<br>Centurión, triario, vélite, galo grande (y v2a, v2b), galo rápido (y B), galo lancero y jefe galo: modelos generados por el usuario con Meshy (meshy.ai, herramienta), licencia CC BY-SA 3.0 (creativecommons.org/licenses/by-sa/3.0)<br>Sonido grabado: OpenGameArt (rubberduck, Kenney, artisticdude) y Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, HowardV, IENBA, marconi68, Morshuman, Archeos, RepDac3, DeqstersLab, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia), licencia CC0 1.0<br>Voces de los soldados: síntesis de AQVILA con Piper (Open Home Foundation) y la voz española es_ES-sharvard-medium, entrenada con el Corpus Sharvard de Vincent Aubanel, Maria Luisa García Lecumberri y Martin Cooke (Univ. de Edimburgo), licencia CC BY 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
 const HOJA_ALT = [420, 600, 770];
 const ICO_AJ = svgIco('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'), ICO_MERC = svgIco('<path d="M4 8h15l-3-3M20 16H5l3 3"/>'), ICO_RUTA = svgIco('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>'),
   ICO_PUEB = svgIco('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M18 14c2 1 3 3 3 6"/>'), ICO_CRON = svgIco('<path d="M7 4h11v13a3 3 0 0 1-3 3H6M7 4a2 2 0 0 0-2 2v2h2M7 4v12a3 3 0 0 1-3 3 2 2 0 0 0 2 1M10 9h5M10 13h5"/>'),
@@ -1211,6 +1212,7 @@ function renderCity3D() {
   const s = S(), c = s.cities[UI.city], m = cityMeta(c); UI.metaK = metaKey(m);
   if (UI.cityV) UI.cityV.meta = m;
   $('ctop').innerHTML = '<button class="vb" data-act="cvistas" aria-label="Cambiar la vista de la ciudad" title="Cambiar la vista">' + ICO_VER + '</button>' +
+    '<button class="vo plano" data-act="cplano" aria-label="Vista de plano de la ciudad">' + (UI.cityV && UI.cityV.enPlano ? 'De cerca' : 'Plano') + '</button>' +
     (UI.vistas ? '<button class="vo" data-act="cview" data-v="ciudad">Ciudad entera</button><button class="vo" data-act="cview" data-v="calle">Calle</button><button class="vo" data-act="cview" data-v="ejercito">Tropas</button>' : '');
   const fb = $('fichab'), sd = UI.bsel ? selDe(c) : null; if (UI.bsel && !sd) UI.bsel = null; if (sd) { fb.hidden = false; fb.innerHTML = fichaHtml(c, sd); } else { fb.hidden = true; fb.innerHTML = ''; }
   cityPantalla(); pintaLinea();
@@ -1768,6 +1770,7 @@ document.addEventListener('click', function (e) {
     case 'derr': { const k = UI.city + ':' + v; if (UI.derr !== k) { UI.derr = k; renderCity3D(); break; } UI.derr = null; const r = G.derribarPieza(UI.city, +v); if (r.ok) { UI.bsel = null; toast('🧱 Pieza derribada.', 'good'); } else toast(r.motivo + '.', 'bad'); renderCity3D(); tickUI(); break; }
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.vistas = false; UI.cityV.view(v); renderCity3D(); } break;
     case 'barra': if (v === 'senado') UI.senT = 'hoy'; UI.codice = null; UI.vistas = false; UI.bsel = null; UI.cityList = false; setTab({ ciudad: 'city', senado: 'senado', saber: 'saber', tropas: 'army', mapa: 'map', imperio: 'imperio' }[v] || 'city'); break;
+    case 'cplano': if (UI.cityV && UI.cityV.listo) { UI.cityV.plano(!UI.cityV.enPlano); UI.vistas = false; renderCity3D(); } break;
     case 'cvistas': UI.vistas = !UI.vistas; renderCity3D(); break;
     case 'cbuild': construir3(); break;
     case 'fundar': closeModal(); UI.abrirFundar(v, G.fundando() ? alFundarModo : undefined); break;
@@ -1861,7 +1864,7 @@ const finCarga = () => { if (cuenta.u && cuenta.c) CG.todoListo(); };
 CG.fase('Dibujando el mapa', 45); CG.menuListo();
 loadIndex().then(idx => { const ks = Object.keys(idx); cuenta.t += ks.length; cuenta.i++; return Promise.all(ks.map(k => preload([k]).then(unoMas, unoMas))); }).then(() => { UI.dirty = true; cuenta.u = true; finCarga(); }, () => { cuenta.u = true; finCarga(); });
 loadStaticIndex().then(idx => { const ks = Object.keys(idx).filter(k => !k.startsWith('__')); cuenta.t += ks.length + 1; cuenta.i++; return Promise.all([...ks.map(k => preloadStatic([k]).then(unoMas, unoMas)), loadGroundTextures().then(unoMas, unoMas)]); }).then(() => {
-  try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ onPick: tocarCiudad }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
+  try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ onPick: tocarCiudad, onPlano: () => { if (UI.tab === 'city') renderCity3D(); } }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
   cuenta.c = true; finCarga();
 }, () => { cuenta.c = true; finCarga(); });
