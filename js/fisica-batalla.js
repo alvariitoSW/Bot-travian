@@ -42,6 +42,8 @@ export const RADIO = { infante: 0.25, piquero: 0.25, falangita: 0.25, jinete: 0.
 export const ALTO = { infante: 1.8, piquero: 1.8, falangita: 1.8, jinete: 2.5, elefante: 3.6 };
 /* masa por tipo: un jinete o un elefante apartan a los hombres; un hombre no aparta a un elefante */
 export const MASA = { infante: 1, piquero: 1, falangita: 1, jinete: 4, elefante: 20 };
+export const MASA_BESTIA = 10;   /* FE3: desde esta masa (en hombres) una pica no hace recular: el elefante */
+export const ANCHO_BESTIA = 1.8; /* FE3: lo menos que se apartan dos elefantes de costado (m, de centro a centro) */
 export const MASA_CAIDO = 2, TOPE_CAIDO = 2.5;   /* el caído se arrastra: pesa como dos hombres */
 export const RADIO_CAIDO = { infante: 0.35, piquero: 0.35, falangita: 0.35, jinete: 0.8, elefante: 1.6 };   /* el caído: estorbo bajo */
 /* el escudo del infante: una caja de pie delante del cuerpo, algo a su izquierda (scutum, aspís) */
@@ -234,7 +236,11 @@ export function crearFisica(op = {}) {
           const rs = ra + R[j], rl = rs > DMAX_PAR ? rs : DMAX_PAR;
           let vx = (X[j] + FX[j]) - (X[i] + FX[i]), vz = (Z[j] + FZ[j]) - (Z[i] + FZ[i]);
           if (vx * vx + vz * vz >= rl * rl * (1 + 1e-9)) continue;   /* lejos, sin raíz (sin parMax, parMin solo acorta la distancia mínima) */
-          const pm = parMin ? parMin(L[i], L[j]) : undefined, min = pm === undefined ? rs : DMAX_PAR ? Math.min(pm, DMAX_PAR) : Math.min(rs, pm); let d = Math.hypot(vx, vz);
+          let pm = parMin ? parMin(L[i], L[j]) : undefined;
+          /* FE3: dos bestias juntas: su círculo (el largo) es más ancho que su cuerpo; de costado guardan lo que digan las reglas
+             (y al menos ANCHO_BESTIA): si no, se empujaban de lado, y la que se desbocaba apartaba de golpe a su vecina */
+          if (M[i] >= MASA_BESTIA && M[j] >= MASA_BESTIA) { const dr = Math.hypot(X[j] - X[i], Z[j] - Z[i]); if (dr < rs) pm = Math.max(ANCHO_BESTIA, pm === undefined ? dr : Math.min(pm, dr)); }
+          const min = pm === undefined ? rs : DMAX_PAR ? Math.min(pm, DMAX_PAR) : Math.min(rs, pm); let d = Math.hypot(vx, vz);
           if (d >= min) continue;
           if (d < 1e-6) { const g = (i * 2.399 + j) % 6.283; vx = Math.cos(g); vz = Math.sin(g); d = 0; } else { vx /= d; vz /= d; }
           const ib = 1 / M[j], wa = ia / (ia + ib), o = min - d;
@@ -257,7 +263,7 @@ export function crearFisica(op = {}) {
     GC.haz(nC, CX, CZ, CFX, CFZ); const I = GC.items, n = Math.ceil((1.3 + 1.6 + largoC) / CELDA), densa = GC.densa;
     for (let i = 0, nL = L.length; i < nL; i++) {
       if (L[i].salta) continue;
-      const ra = R[i], k = ra > 0.5 ? n : Math.ceil((1 + largoC) / CELDA), wa = fijoC ? 1 : (1 / M[i]) / (1 / M[i] + 1 / MASA_CAIDO);
+      const ra = R[i], k = ra > 0.5 ? n : Math.ceil((1 + largoC) / CELDA), wa = M[i] >= MASA_BESTIA ? 0 : fijoC ? 1 : (1 / M[i]) / (1 / M[i] + 1 / MASA_CAIDO);   /* FE3: la bestia no se aparta de un caído: lo arrastra o pasa por encima */
       for (let pase = 0, movido = true; pase < 2 && movido; pase++) {   /* la 2.ª pasada, solo si la 1.ª movió algo (si no, daría lo mismo) */
         movido = false;
         const ax = X[i] + FX[i], az = Z[i] + FZ[i], cx = Math.floor(ax / CELDA), cz = Math.floor(az / CELDA);
@@ -386,12 +392,15 @@ export function crearFisica(op = {}) {
     const o = L - m.t + 0.02; let ret = Math.min(o, RESBALA); const e = Math.min(TOPE_EMPUJE, (o - EMPUJA_DESDE) / 2);
     const n = Math.hypot(D[0], D[2]) || 1, ux = D[0] / n, uz = D[2] / n;
     /* si el asta ya no resbala más (de golpe: la pica baja o el rival da un paso), el rival recula ya lo que sobra */
+    /* FE3: una pica no hace recular a una bestia de MASA_BESTIA o más (el elefante): lo que no recula, lo resbala el asta
+       (se para en la piel; romperse lo deciden las reglas) y el empuje vuelve entero al piquero. Entre hombres y con jinetes, igual que antes */
+    const km = masa(m.h) >= MASA_BESTIA * masa(h) ? 0 : 1;
     if (o > RESBALA) {
-      const b = m.h, x0 = b.fx || 0, z0 = b.fz || 0; b.fx = x0 + ux * (o - RESBALA); b.fz = z0 + uz * (o - RESBALA); b.vx = b.vx || 0; b.vz = b.vz || 0; tope(b);
+      const b = m.h, x0 = b.fx || 0, z0 = b.fz || 0; b.fx = x0 + ux * (o - RESBALA) * km; b.fz = z0 + uz * (o - RESBALA) * km; b.vx = b.vx || 0; b.vz = b.vz || 0; tope(b);
       /* si el rival ya está a tope y no recula todo, el asta resbala lo que falta (solo entonces pasa de 0,5) */
       const hecho = (b.fx - x0) * ux + (b.fz - z0) * uz; ret = Math.min(o, Math.max(ret, o - hecho));
     }
-    if (e > 0) { apunta(m.h, ux * e, uz * e); apunta(h, -ux * e, -uz * e); }
+    if (e > 0) { apunta(m.h, ux * e * km, uz * e * km); apunta(h, -ux * e, -uz * e); }
     return { ret, h: m.h, en: m.en };
   }
   /* cada hombre se lleva el mayor empujón del fotograma (no la suma: varias picas, o la misma dibujada dos veces) */

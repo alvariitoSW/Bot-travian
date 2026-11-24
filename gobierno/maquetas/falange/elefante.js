@@ -11,7 +11,23 @@ import { THREE } from '../../../js/gfx/models.js';
 import { cargaArte, vacio, crearTropa, crearTropaNueva, crearSombras, figura, sigue, clipMarcha, muerte, dado, V_PIE, V_ELEFANTE, G_RAPIDO, G_ELEFANTE } from './rival.js';
 import { frameOf, frameOnce } from '../../../js/gfx/units.js';
 
-const CAP_E = 5, CAP_P = 16, ALZA = 1.2;   /* segundos que dura el alzarse */
+const CAP_E = 5, CAP_P = 16;
+export const ALZA = 1.2;   /* segundos que dura el alzarse */
+/* FE3: el cabeceo del elefante vivo y cuánto sube su cuerpo (sin THREE: lo mide también gobierno/maquetas/falange/mide-fe3.mjs).
+   Antes, en la lucha, la bestia entera subía y bajaba ±10 cm cada 2 s con el cabeceo, y la clavada, 15 cm: botaba como una pelota.
+   Ahora el cuerpo solo sube al alzarse (de dolor o al desbocarse), girando sobre las patas de atrás; en la lucha y clavada,
+   solo cabecea (1,7° como mucho), sin despegarse del suelo. Empieza desde 0, sin salto al cambiar de estado.
+   est: estado de la lógica; T: reloj del dibujo; t0: cuando entró en ese estado.
+   → { pitch (rad, negativo = se alza), y (lo que sube el cuerpo, m), alza (true mientras se alza) } */
+export function cabeceo(est, T, t0) {
+  let pitch = 0, alza = false; const t = T - t0;
+  if (est === 'ensartada') {
+    const u = t / (ALZA * 1.4); alza = u < 1;
+    pitch = alza ? -0.35 * Math.sin(Math.PI * u) : -0.015 * (1 - Math.cos(2.1 * (t - ALZA * 1.4)));   /* se alza de dolor y luego tiembla la cabeza */
+  } else if (est === 'lucha') pitch = 0.03 * Math.sin(3.3 * t);   /* empuja y pisa: cabecea, no bota */
+  else if (est === 'desbocada') { const u = t / ALZA; if (u < 1) { pitch = -0.45 * Math.sin(Math.PI * u); alza = true; } }
+  return { pitch, y: alza ? Math.sin(-pitch) * 1.9 : 0, alza };
+}
 const CAP_T = 48;                           /* FE1: trozos de pica que se dibujan */
 /* FE1: la punta rota de una sarisa: hoja de hierro (z 0–0,27), manguito, 1,6 m de asta (más clara y algo más gruesa que la sarisa,
    para que se lea a 390 px) y la astilla. Una llamada para todos.
@@ -62,24 +78,24 @@ export async function montaRival(ctx) {
             const clavada = h.est === 'ensartada' || (!h.vivo && d.est === 'ensartada');
             if (h.vivo) sigue(d, h, dt, V_ELEFANTE, G_ELEFANTE, { rumbo: h.est === 'carga' || h.est === 'desbocada' || h.est === 'huye', umbral: 1.5, yaw: alzado ? d.yaw0 : h.est === 'lucha' || clavada ? -g : undefined });
             const y = H(d.x, d.z); let fr, pitch = 0;
-            let roll = 0;
+            let roll = 0, alzaY = 0;   /* FE3: alzaY, lo que sube el cuerpo (solo al alzarse) */
             if (!h.vivo) {
               if (d.tMuere < 0) d.tMuere = T; const vel = clavada ? 0.45 : 1; fr = frameOnce(CE.death, (T - d.tMuere) * vel);   /* FE1: la ensartada cae despacio */
               /* FE2: la ensartada se vence: hinca la cabeza al doblar las manos y se va de costado (cada una hacia un lado) */
               if (clavada) { const k = Math.min(1, (T - d.tMuere) * vel / CE.death.dur), lado = h.i % 2 ? 1 : -1; pitch = 0.14 * Math.sin(Math.PI * Math.min(1, k * 1.5)); roll = lado * 0.5 * k * k * (3 - 2 * k); }
             }
             else if (clavada) {
-              /* FE1: clavada en las puntas: se alza de dolor una vez, barrita y se queda, cabeceando */
-              const u = (T - d.t0) / (ALZA * 1.4); pitch = u < 1 ? -0.35 * Math.sin(Math.PI * u) : -0.06 - 0.04 * Math.sin(T * 2.1 + d.fase);
-              fr = u < 1 ? frameOf(CE.attack_melee2, T - d.t0) : frameOf(CE.idle, (T + d.fase) * 0.5);
-            } else if (h.est === 'lucha') { pitch = 0.05 * Math.sin(T * 3.3 + d.fase); fr = frameOf(CE.attack_melee, T + d.fase); }   /* FE1: empuja y pisa */
+              /* FE1: clavada en las puntas: se alza de dolor una vez, barrita y se queda, cabeceando (FE3: sin botar) */
+              const c = cabeceo('ensartada', T, d.t0); pitch = c.pitch; alzaY = c.y;
+              fr = c.alza ? frameOf(CE.attack_melee2, T - d.t0) : frameOf(CE.idle, (T + d.fase) * 0.5);
+            } else if (h.est === 'lucha') { const c = cabeceo('lucha', T, d.t0); pitch = c.pitch; fr = frameOf(CE.attack_melee, T + d.fase); }   /* FE1: empuja y pisa */
             else if (h.est === 'carga' && T - tBarrito < CE.attack_melee2.dur) fr = frameOnce(CE.attack_melee2, T - tBarrito);
             else if (h.est === 'desbocada') {
-              const u = (T - d.t0) / ALZA; if (u < 1) pitch = -0.45 * Math.sin(Math.PI * u);
+              const c = cabeceo('desbocada', T, d.t0); pitch = c.pitch; alzaY = c.y;
               fr = frameOf(CE.run, T + d.fase);
             } else if (h.est === 'carga') fr = frameOf(CE.run, T + d.fase);
             else fr = clipMarcha(CE, d.v, V_ELEFANTE, T + d.fase);
-            ele.pon(i, d.x, y + (h.vivo ? Math.sin(-pitch) * 1.9 : 0), d.z, d.yaw, fr, { pitch, roll, esc: d.esc });
+            ele.pon(i, d.x, y + (h.vivo ? alzaY : 0), d.z, d.yaw, fr, { pitch, roll, esc: d.esc });
             sombras.pon(i, d.x, y, d.z, d.yaw, h.vivo ? 2.2 : 3.2, h.vivo ? 4.2 : 4.6);
           } else {
             if (ip >= CAP_P) continue; const i = ip++;
