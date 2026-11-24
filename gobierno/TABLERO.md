@@ -638,3 +638,5 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 
 ## Carril K — Concurso
 - 🟨 K10 Arte de la batalla: R1 (P1 estandarte) **gusta** (falta elegir A/B/C); R2 (tarjeta + barra) **descartada** (las barras tapan el campo; reformular con menos marco); **faltan R1b (P1 con reglas nuevas), R3 (P3 avisos) y R4 (P5 mapa de maniobra)**. Parte: `partes/2026-11-13-K10.md`. — **CM2 (18/11)**: estos restos ya no son tarea suelta; se resuelven dentro de L10 (R1 y R4 en UB3, R3 en PA2).
+
+  - 🔶 UN2 **Unir falange (FU3–FU3c), FU5 y TH1 a la rama del juego** (de paso para sus pases; sesión `session_01QiKC36bYBA5YQMDT3o7NyX`).
