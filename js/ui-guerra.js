@@ -901,10 +901,10 @@
       pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true;
     }
     function avanza(dt) { T += dt; R.paso(B, dt); if (vz) vz.t = B.t; eventos(); ambiente(dt); banda(dt); preguntas(dt); colocar(dt); mover(dt); proyectiles(dt); }
-    let raf = 0, cerrado = false, tFin = 0, retardo0 = false, antes = 0, acum = 0, cuadros = 0, lentos = 0, tHud = 0;
+    let raf = 0, cerrado = false, tFin = 0, retardo0 = false, antes = 0, acum = 0, cuadros = 0, lentos = 0, muyLentos = 0, tHud = 0;
     function cuadro(ahora) {
       if (cerrado) return; raf = requestAnimationFrame(cuadro);
-      const real = Math.min(0.1, (ahora - antes) / 1000 || 0); antes = ahora;
+      const crudo = ahora - antes, real = Math.min(0.1, crudo / 1000 || 0); antes = ahora;
       if (!lista) return;
       if (!pausa) {
         if (B.fase !== 'fin') { acum += real; while (acum >= 0.05) { avanza(0.05); acum -= 0.05; } }
@@ -914,6 +914,9 @@
       if (ahora - tHud > 200) { tHud = ahora; pintarCartas(); if (ahora > cintaHasta) $('cinta').classList.remove('ve'); if (ahora > dialogoHasta) $('dialogo').classList.remove('ve'); }
       /* si el móvil no puede, se baja la nitidez antes que la fluidez */
       if (cuadros < 240) { cuadros++; if (real > 0.04) lentos++; if (cuadros === 240 && lentos > 120 && dpr > 1) { dpr = Math.max(1, dpr * 0.6); renderer.setPixelRatio(dpr); medir(); } }
+      /* JG1: dos fotogramas seguidos de más de 0,4 s (render por software, móvil muy justo): nitidez 1 ya, sin esperar los 240.
+         Si no, cada fotograma tarda segundos y los toques no llegan (colgaba juez-guerra al pulsar «Escudos») */
+      if (dpr > 1 && crudo > 400) { if (++muyLentos >= 2) { dpr = 1; renderer.setPixelRatio(dpr); medir(); } } else muyLentos = 0;
     }
 
     function soltarSoldados() { for (const S of soldados.values()) { try { SOLD.soltarSoldado(S); } catch (e) { /* ya suelto */ } } soldados.clear(); }

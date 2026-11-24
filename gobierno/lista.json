@@ -54,6 +54,7 @@
       "captura": "gobierno/capturas-tarea/CDe2-arriba.jpg",
       "tareas": [
         "CI1b",
+        "E4b",
         "CI3a",
         "CD0b",
         "CD1",
@@ -177,7 +178,8 @@
       "captura": "gobierno/capturas-tarea/ES1-7-resultado.png",
       "tareas": [
         "CE10",
-        "CE12"
+        "CE12",
+        "CG10"
       ],
       "falta": "Con la regla de «tres de cuatro, sin plazo», tomar Cartago ya no acaba la partida: lo cambia CE10; CE12 equilibra los cuatro caminos."
     },
@@ -492,7 +494,9 @@
       "CM1",
       "CM2",
       "MIN2",
-      "CM3"
+      "CM3",
+      "CM4",
+      "RAM1"
     ]
   }
 }
