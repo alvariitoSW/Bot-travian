@@ -38,7 +38,25 @@ function textura(file, datos) {
   esperas.push(new Promise(ok => { const im = new Image(); im.onload = () => { t.image = im; t.needsUpdate = true; ok(); }; im.onerror = () => { console.warn('Falta la textura ' + file); ok(); }; im.src = ASSETS + file; }));
   return t;
 }
-const pieza = k => RS.esPieza(k) ? RS.pieza(k) : getStatic(k);
+const pieza = k => griegas.get(k) || (RS.esPieza(k) ? RS.pieza(k) : getStatic(k));
+
+/* CD7: templo y bouleuterion griegos hechos con Meshy (assets/edificios-griegos, tools/aligerar_edificios_griegos.mjs).
+   Solo en ciudades de cultura 'grie'; si no cargan, quedan las piezas de 0 A.D. Lector de .glb mínimo: una malla en flotantes y su textura. */
+const GRIEGAS = { grie_templo_m: 'assets/edificios-griegos/templo.glb', grie_bouleuterion: 'assets/edificios-griegos/curia.glb' };
+const griegas = new Map();
+async function piezaGLB(clave, url) {
+  const buf = await (await fetch(url)).arrayBuffer(), dv = new DataView(buf); let off = 12, js = null, bin = 0;
+  while (off + 8 <= buf.byteLength) { const n = dv.getUint32(off, true), t = dv.getUint32(off + 4, true); if (t === 0x4E4F534A) js = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, off + 8, n))); else if (t === 0x004E4942) bin = off + 8; off += 8 + n; }
+  const TIPO = { 5126: Float32Array, 5125: Uint32Array, 5123: Uint16Array }, NC = { SCALAR: 1, VEC2: 2, VEC3: 3 };
+  const acc = i => { const a = js.accessors[i], v = js.bufferViews[a.bufferView], T = TIPO[a.componentType], n = NC[a.type], o = bin + (v.byteOffset || 0) + (a.byteOffset || 0); if (!v.byteStride) return new T(buf, o, a.count * n); const r = new T(a.count * n); for (let k = 0; k < a.count; k++) r.set(new T(buf, o + k * v.byteStride, n), k * n); return r; };      // con o sin entrelazar
+  const pr = js.meshes[0].primitives[0], geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(acc(pr.attributes.POSITION), 3)); geo.setAttribute('normal', new THREE.BufferAttribute(acc(pr.attributes.NORMAL), 3)); geo.setAttribute('uv', new THREE.BufferAttribute(acc(pr.attributes.TEXCOORD_0), 2));
+  geo.setIndex(new THREE.BufferAttribute(acc(pr.indices), 1)); geo.computeBoundingBox(); geo.computeBoundingSphere();
+  const im = js.images[js.textures[js.materials[pr.material].pbrMetallicRoughness.baseColorTexture.index].source], v = js.bufferViews[im.bufferView];
+  const tex = new THREE.Texture(await createImageBitmap(new Blob([new Uint8Array(buf, bin + (v.byteOffset || 0), v.byteLength)], { type: im.mimeType }))); tex.flipY = false; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.needsUpdate = true;
+  const b = geo.boundingBox; griegas.set(clave, { key: clave, parts: [{ geo, tex, file: 'meshy_' + clave, mode: 0, maps: {} }], bb: [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z] });
+}
+const cargarGriegas = () => Promise.all(Object.entries(GRIEGAS).map(([k, u]) => piezaGLB(k, u).catch(e => console.warn('Sin pieza griega ' + k, e))));
 const romaS = () => RS.ROMA_SIGLO && cul === 'roma';          // CI1: piezas de la Roma de 280–146 a.C. solo en la cultura romana
 
 /* ---------- material de edificio (copiado de ciudad2, piel romana): Lambert + AO + tinte de muro y teja por ejemplar ---------- */
@@ -142,7 +160,10 @@ function tinte(a, b) {                                   // muro y teja de cada 
 const CASAS_C = { roma: ['casa', 'casa_b', 'casa_c', 'casa_d'], grie: ['grie_casa', 'grie_casa_b', 'grie_casa_c', 'grie_casa_d', 'grie_casa_e'], cart: ['cart_casa', 'cart_casa_b', 'cart_casa_c'] };
 const ESC_C = { roma: 1, grie: 1.06, cart: 1.17 };            // las casas griegas y púnicas de 0 A.D. son algo menores
 const TEMPLO_C = { grie: ['grie_templo', 1.09], cart: ['cart_templo', 1.02] };
-const TEMPLO_PZ = ['grie_templo', 'cart_templo'];
+const TEMPLO_PZ = ['grie_templo', 'cart_templo', 'grie_templo_m', 'grie_bouleuterion'];
+/* CD7: en las ciudades griegas, templo y curia (bouleuterion) de Meshy si cargaron; si no, lo de siempre */
+const GRIE_M = { templo: ['grie_templo_m', 1.09], curia: ['grie_bouleuterion', 1.0] };
+function piezaGriega(tipo, d) { const g = cul === 'grie' && GRIE_M[tipo]; return g && L[g[0]] && L[g[0]].niv ? [g[0], g[1], d[2], d[3]] : null; }
 const TINTE_O = { galos: { m: [0.97, 1.03, 0.94], t: [0.96, 1.02, 0.95] }, iberos: { m: [1.04, 0.97, 0.86], t: [1.03, 0.96, 0.88] }, etruscos: { m: [1.03, 0.96, 0.92], t: [1.04, 0.95, 0.9] }, campanos: { m: [1.02, 1.0, 0.94], t: [1.0, 0.98, 0.94] }, mamertinos: { m: [1.0, 0.97, 0.93], t: [1.0, 0.97, 0.94] } };
 let cul = 'roma', tinteO = null;
 function tinteBase(a, b) {                               // muro y teja por cultura (grie y cart: la función tinte() de gobierno/maquetas/ciudad2)
@@ -266,7 +287,7 @@ const ahora = () => performance.now() / 1000;
 
 export async function montar() {
   const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta', 'prop_mesa', 'prop_cesto', 'prop_sacos', 'prop_vaso', 'prop_caja', 'prop_cajas', 'prop_paja_grande', 'prop_puesto_cart', 'arco', ...CASAS_C.grie, ...CASAS_C.cart, 'grie_templo', 'cart_templo'];
-  await Promise.all([preloadStatic(claves), loadGroundTextures(), UN.preload(['ciudadana', 'sacerdote'])]);
+  await Promise.all([preloadStatic(claves), cargarGriegas(), loadGroundTextures(), UN.preload(['ciudadana', 'sacerdote'])]);
   const T = texturasMundo();
   U.uRuido.value = texturaRuido(); ponerCamara(); ponerLuz(); { const cl = crearCielo(SOL, HORIZ, U); cieloU = cl.userData.luz; scene.add(cl); }
   G.T = T;
@@ -278,6 +299,7 @@ export async function montar() {
   /* casas: cuatro piezas reales, con versiones ligeras de lejos */
   for (const k of ['casa', 'casa_b', 'casa_c', 'casa_d']) L[k] = lote(k, 220, { ligeras: [[3, 0], [6, 0]], cortes: [0.09, 0.05] });
   for (const k of [...CASAS_C.grie, ...CASAS_C.cart]) if (pieza(k)) L[k] = lote(k, k === 'cart_casa' ? 440 : 220, { ligeras: [[3, 0], [6, 0]], cortes: [0.09, 0.05] });
+  for (const k in GRIEGAS) if (pieza(k)) L[k] = lote(k, 4);          // CD7
   for (const k of ['grie_templo', 'cart_templo']) if (pieza(k)) L[k] = lote(k, 4, tris1(k) > 4000 ? { ligeras: [[0, 0.012]], cortes: [0.12] } : {});
   for (const t in PZ) { const k = PZ[t][0]; if (!L[k]) L[k] = lote(k, t === 'fuente' ? 24 : 12, tris1(k) > 4000 ? { ligeras: [[0, 0.012]], cortes: [0.12], sinTeja: t === 'fuente' } : { sinTeja: t === 'fuente' }); }
   L.muro = lote('muro', 48, { sinTeja: true, ligeras: [[3, 0], [4, 0]], cortes: [0.11, 0.06] }); L.torre = lote('torre', 40, { sinTeja: true, ligeras: [[3, 0], [4, 0]], cortes: [0.11, 0.06] }); L.puerta = lote('puerta', 10, { sinTeja: true, ligeras: [[3, 0], [4, 0]], cortes: [0.11, 0.06] });
@@ -430,7 +452,7 @@ function piezaRS(tipo) { if (!romaS()) return null; if (tipo === 'templo' && pla
 function edificios() {
   contornoSucio = true;      // E5: el contorno se rehace con las matrices nuevas
   const por = {}; for (const t in PZ) por[PZ[t][0]] = []; for (const k of TEMPLO_PZ) por[k] = []; for (const k of ['rs_templo', 'rs_dique', 'rs_tabernas']) por[k] = [];
-  const pon = (tipo, x, z, ang, sy, piel, dy = 0) => { let d = PZ[tipo]; if (!d) return; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0], TEMPLO_C[cul][1], d[2], d[3]]; d = piezaRS(tipo) || d; const y = tipo === 'muelle' ? NIVEL_RIO + 1.4 : suelo(x, z, tipo === 'fuente' || tipo === 'compitum' ? 2 : 7) - d[3]; por[d[0]].push({ m: matriz(x, y + dy, z, Math.PI / 2 - ang + d[2], d[1], d[1] * sy, d[1]), ...piel }); };
+  const pon = (tipo, x, z, ang, sy, piel, dy = 0) => { let d = PZ[tipo]; if (!d) return; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0], TEMPLO_C[cul][1], d[2], d[3]]; d = piezaRS(tipo) || d; d = piezaGriega(tipo, d) || d; const y = tipo === 'muelle' ? NIVEL_RIO + 1.4 : suelo(x, z, tipo === 'fuente' || tipo === 'compitum' ? 2 : 7) - d[3]; por[d[0]].push({ m: matriz(x, y + dy, z, Math.PI / 2 - ang + d[2], d[1], d[1] * sy, d[1]), ...piel }); };
   if (E.foro && ahora() >= esperaSurco) { const f = E.foro; pon('foro', f.x - Math.cos(f.ang) * 8, f.z - Math.sin(f.ang) * 8, f.ang, 1, PIEL_U); }
   for (const e of E.edificios) { const pr = e.obra ? 1 - e.obra / (e.total + 0.6) : 1; pon(e.tipo, e.x, e.z, e.ang, e.ruina ? 0.55 : 0.3 + 0.7 * pr, e.ruina ? { muro: [0.3, 0.27, 0.24], teja: [0.22, 0.2, 0.19, 0] } : e.obra ? { muro: [0.86, 0.82, 0.76], teja: [0.8, 0.76, 0.72, 0.3] } : PIEL_U); }
   for (const o of obrasF) if (o.nuevo) pon(o.pieza, o.x, o.z, o.ang, 0.12 + 0.88 * o.av, { muro: [0.86, 0.82, 0.76], teja: [0.8, 0.76, 0.72, 0.3] });      // obra nueva: crece con el avance
@@ -671,7 +693,7 @@ function ponerTono() {
 }
 /* contorno: malla temporal solo con la pieza elegida (misma geometría y matriz que su ejemplar en el lote); invisible en el dibujo normal */
 function quitarContorno() { for (const m of contornoMallas) { scene.remove(m); m.dispose(); } contornoMallas = []; if (fxContorno) { fxContorno.selectedObjects = []; fxContorno.enabled = false; } }
-function loteDe(tipo) { let d = PZ[tipo]; if (!d) return null; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0]]; d = (E && piezaRS(tipo)) || d; const l = L[d[0]]; return l && l.niv ? l : null; }
+function loteDe(tipo) { let d = PZ[tipo]; if (!d) return null; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0]]; d = (E && piezaRS(tipo)) || d; d = (E && piezaGriega(tipo, d)) || d; const l = L[d[0]]; return l && l.niv ? l : null; }
 function ponerContorno(pos, sel) {
   quitarContorno(); if (!pos || !composer || !E) return;
   const tipo = typeof sel === 'string' ? (sel === 'foro' ? 'foro' : CI.PIEZA_DE[sel]) : null, lotes1 = tipo ? [loteDe(tipo)] : Object.keys(PZ).map(loteDe), vistos = new Set();

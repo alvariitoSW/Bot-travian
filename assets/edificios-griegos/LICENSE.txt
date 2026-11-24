@@ -1,0 +1,13 @@
+Edificios griegos de AQVILA (CD7, 24/11/2026): templo griego (templo.glb) y bouleuterion (curia.glb).
+Se usan solo en las ciudades de cultura griega (Siracusa, Akragas, Tarento…). La lista con sus datos está en edificios.json.
+
+Los generó el usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago; la salida es del usuario.
+Tareas de Meshy: templo 01a20a6f-e84a-7256-b8d7-996b733a8557, curia 01a20a6f-ec38-74b9-b649-c746e6abd64f (refinadas).
+Se pidieron como templo toscano y Curia Hostilia romanos (CD1); salieron con aspecto griego y aquí sirven como edificios griegos.
+Meshy es la herramienta y se cita como tal. Crédito: «Meshy».
+El usuario los publica con licencia CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+
+Aligerados en AQVILA con tools/aligerar_edificios_griegos.mjs. Los modelos originales no están en el repositorio.
+Cambios: una sola malla y un solo material; solo la textura de color, reducida a 1024×1024 (JPEG); malla simplificada con
+meshoptimizer; base en el suelo, centrados y con el lado largo de la planta a 24 (templo) y 22 (curia) unidades del juego.
+Estos archivos se comparten con CC BY-SA 3.0.
