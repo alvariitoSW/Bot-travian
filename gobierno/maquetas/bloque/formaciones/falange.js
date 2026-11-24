@@ -76,7 +76,7 @@ export function combate(m = {}) {
   }
 
   const C = {
-    S, crudo: A, mando: M,
+    S, crudo: A, mando: M, motor: A.motor || (A.F && A.F.motor) || null,   /* FU3b: caeRival, caeFalangita, cohesion (para falangita.js) */
     paso(dt) { if (!modoFA1) M.paso(dt); A.paso(dt); sincroniza(); },
     /* la raya que espera el mando: perpendicular al frente pedido, del ancho del muro, centrada en (x, z) */
     frente({ x, z, ang }) { modoFA1 = false; const w = tuyo.ancho / 2, Dx = Math.cos(ang), Dz = Math.sin(ang); return M.frente({ x: x - Dx * w, z: z - Dz * w }, { x: x + Dx * w, z: z + Dz * w }); },
