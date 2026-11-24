@@ -420,6 +420,13 @@
       }
       if (finos.length > CERCA_N) { finos.sort((p, q) => p.dc - q.dc); for (let i = CERCA_N; i < finos.length; i++) finos[i].nv = 1; }
     }
+    /* PIL3: el pilum que suelta f vuela al frente y se hinca en el suelo, a 10–22 m (en esta batalla la figura no sabe a quién tira). Solo se ve */
+    let pila = null;
+    function tirarPila(f, sc) {
+      if (!pila) { pila = SOLD.crearPila(escena, 1); salidas.push(() => pila.soltar()); }
+      const fx = Math.sin(f.yaw), fz = Math.cos(f.yaw), x0 = f.x - fz * 0.2 * sc + fx * 0.35 * sc, z0 = f.z + fx * 0.2 * sc + fz * 0.35 * sc, r = 10 + Math.random() * 12, w = (Math.random() - 0.5) * 3;
+      pila.lanza(x0, 1.75 * sc, z0, f.x + fx * r - fz * w, 0, f.z + fz * r + fx * w, T, true);
+    }
     function pintarFiguras() {
       const sm = sombras.instanceMatrix.array; niveles();
       for (const f of figs) {
@@ -452,13 +459,15 @@
         a[o + 4] = (-cy * sr + sy * sp * cr) * sc; a[o + 5] = cp * cr * sc; a[o + 6] = (sy * sr + cy * sp * cr) * sc; a[o + 7] = 0;
         a[o + 8] = s * cp; a[o + 9] = -sp * sc; a[o + 10] = c * cp; a[o + 11] = 0; a[o + 12] = px; a[o + 13] = 0; a[o + 14] = pz; a[o + 15] = 1; }
         if (!nueva) m.fr.array[f.slot] = fr || 0;
-        else if (ii >= 0) { const k = tr.s.j.clips[nc] ? nc : 'quieto', c = tr.s.j.clips[k], dur = (c.n - 1) / c.fps, tt = nm === 's' ? np : nm === 'c' ? (np - Math.floor(np)) * dur : Math.min(1, Math.max(0, np)) * dur;
-          tr.vars(ii, f.vr); tr.pose(ii, k, tt, tr.muestra(k, tt)); }
+        else if (ii >= 0) { const n0 = nc === 'lanzar' && tr.s.j.clips.lanzar2 && ((tr.s.j.muestra || {}).lanzar2 || []).length === 3 ? 'lanzar2' : nc;      /* PIL3: el lanzamiento nuevo en quien lo trae */
+          const k = tr.s.j.clips[n0] ? n0 : 'quieto', c = tr.s.j.clips[k], dur = (c.n - 1) / c.fps, tt = nm === 's' ? np : nm === 'c' ? (np - Math.floor(np)) * dur : Math.min(1, Math.max(0, np)) * dur;
+          tr.vars(ii, f.vr); tr.pose(ii, k, tt, tr.muestra(k, tt));
+          if (SOLD && SOLD.crearPila) { const su = k === 'lanzar2' ? SOLD.soltarDe(tr.s) : null; if (su != null && f.tl != null && f.tl < su && tt >= su && f.dc < 160) tirarPila(f, sc); f.tl = su != null ? tt : null; } }
         const q = f.idx * 16, e = f.est === 0 || f.est === 3 ? (f.key === 'equites' || f.key === 'numidas' ? 1.5 : 1) : 0;
         sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x - Math.sin(f.yaw) * (f.ox || 0); sm[q + 13] = 0.03; sm[q + 14] = f.z - Math.cos(f.yaw) * (f.ox || 0); sm[q + 15] = 1;
       }
       for (const m of mallas.values()) { if (m.nv) { for (const t of m.nv) t.malla.instanceMatrix.needsUpdate = true; continue; } m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
-      sombras.instanceMatrix.needsUpdate = true;
+      sombras.instanceMatrix.needsUpdate = true; if (pila) pila.paso(T);
     }
 
     /* ---------- campo: suelo, cielo, árboles, estandartes, polvo ---------- */

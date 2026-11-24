@@ -176,7 +176,8 @@ for (const nombre of Object.keys(RIVALES)) {
   ok(fila.perdedor.gana <= 0.1, `${nombre}: el bot perdedor pierde ${(100 - fila.perdedor.gana * 100).toFixed(0)} % (≥ 90 %)`);
   ok(fila.ganador.T >= 40 && fila.ganador.T <= 180, `${nombre}: con el ganador la lucha dura ${fila.ganador.T.toFixed(0)} s de media (40–180)`);
   console.log(`      ${nombre}: el mediano (acierta 6 de 10) gana ${(fila.mediano.gana * 100).toFixed(0)} %: ${fila.mediano.gana > fila.perdedor.gana && fila.mediano.gana < fila.ganador.gana ? 'entre el perdedor y el ganador' : 'NO queda entre los dos'} (sin vara)`);
-  if (fila.siempre) ok(fila.siempre.bajas >= 2 * fila.ganador.bajas, `${nombre}: «siempre bajadas» sufre ${fila.siempre.bajas.toFixed(1)} bajas, ganador ${fila.ganador.bajas.toFixed(1)} (≥ 2×)`);
+  /* FE1: los elefantes ya no se espantan y la lucha mata a los dos bots por igual; alzar ante la salva sigue ahorrando hombres */
+  if (fila.siempre) ok(fila.siempre.bajas >= fila.ganador.bajas + 1.5, `${nombre}: «siempre bajadas» sufre ${fila.siempre.bajas.toFixed(1)} bajas, ganador ${fila.ganador.bajas.toFixed(1)} (al menos 1,5 más)`);
 }
 for (const f of tabla) console.log(`      ${f.rival}: ganadas por el ganador fuera de 40–180 s: ${f.ganador.fuera} de ${N}; causas ${JSON.stringify(f.ganador.causas)} (sin vara)`);
 /* ganador y causa con los nombres del contrato */
@@ -271,6 +272,57 @@ for (const nombre of Object.keys(RIVALES)) {
       const txt = `real con ${nombre}: ganador gana ${(fila.ganador.gana * 100).toFixed(0)} % en ${fila.ganador.T.toFixed(0)} s, perdedor gana ${(fila.perdedor.gana * 100).toFixed(0)} %; causas ganador ${JSON.stringify(fila.ganador.causas)}, perdedor ${JSON.stringify(fila.perdedor.causas)}`;
       if (PENDIENTE_MOTOR.includes(nombre) && !v.every(Boolean)) console.log('PENDIENTE (motor) ' + txt); else ok(v.every(Boolean), txt);
     }
+  }
+}
+
+/* ---------- FE1: la falange contra elefantes, con js/falange.js real ---------- */
+{
+  const real = await import(pathToFileURL(RAIZ + 'js/falange.js').href);
+  const FL = (await import(pathToFileURL(RAIZ + 'js/falange-rivales.js').href)).FIN_LUCHA;
+  ok(real.FIN_LUCHA === 0.15 && FL === real.FIN_LUCHA, `FE1: FIN_LUCHA es una sola constante (${real.FIN_LUCHA}), exportada por el motor y por los rivales`);
+  /* 1. una carga contra cinco filas bajadas: se rompen picas, y la pica rota deja de contar */
+  {
+    let rotas = 0, conRotas = 0, unicas = true, n = 0;
+    for (let s = 1; s <= 20; s++) {
+      const vistas = new Set(); let primera = 0, tCh = null;
+      const F = real.crearFalange({ semilla: s, rival: RIVALES.elefantes, avisa: (t, d) => {
+        if (t === 'choque') tCh = F.S.T;
+        if (t === 'picaRota') { if (vistas.has(d.h.i)) unicas = false; vistas.add(d.h.i); if (tCh !== null && F.S.T - tCh < 0.05) primera++; }
+      } });
+      for (let i = 0; i < 5; i++) F.fila(i, true);
+      while (tCh === null && F.S.T < 60) F.paso(1 / 30);
+      F.paso(1 / 30); n++; rotas += primera; if (primera) conRotas++;
+    }
+    ok(conRotas === n && rotas / n >= 4, `FE1: en el impacto contra 5 filas se parten ${(rotas / n).toFixed(1)} picas de media (≥ 4), en ${conRotas} de ${n} partidas`);
+    ok(unicas, 'FE1: una pica rota no se rompe dos veces');
+    const F = real.crearFalange({ semilla: 9, rival: RIVALES.elefantes }); for (let i = 0; i < 5; i++) F.fila(i, true);
+    const S = F.S, b = S.riv.bestias[0]; b.columna = 5; b.est = 'carga'; S.riv.carga = 1;
+    for (const h of S.fal) if (h.f >= 4 && h.f <= 6) h.picaRota = true;
+    const r = RIVALES.elefantes.choque(S, b);
+    ok(b.est === 'lucha' && b.vida === 30 - 0 && r === 'entra', `FE1: con las picas de sus columnas rotas, la bestia no recibe herida de picas y entra (${r}, vida ${b.vida})`);
+  }
+  /* 2-4. 50 partidas con el bot ganador y 50 con el que nunca baja: ensartadas, nadie huye antes del 15 %, todas terminan */
+  {
+    let ensartadas = 0, partidasEns = 0, espantos = 0, huyeAntes = 0, terminan = 0, rompeRivalMal = 0, rompeFalMal = 0, porCoh = 0, porBajas = 0, rotas = 0;
+    for (const b of ['ganador', 'perdedor']) for (let s = 1; s <= 50; s++) {
+      let ens = 0;
+      const fab = m => real.crearFalange({ semilla: m.semilla, rival: m.rival, avisa: (t, d) => { if (t === 'ensarta') ens++; if (t === 'espanta') espantos++; m.avisa(t, d); } });
+      const vig = S => {
+        if (S.ganador) return;
+        for (const e of S.riv.bestias) if (e.vivo && ['huye', 'espantada', 'retira'].includes(e.est)) huyeAntes++;
+        for (const h of S.fal) if (h.vivo && h.huye) huyeAntes++;
+      };
+      const r = juega('elefantes', s, BOTS.elefantes[b], 1 / 30, vig, fab), S = r.S, riv = S.riv;
+      if (S.ganador) terminan++;
+      if (b === 'ganador') { ensartadas += ens; if (ens) partidasEns++; rotas += riv.rotas; }
+      if (S.ganador === 'falange' && riv.bestias.filter(e => e.vivo && !e.fuera && !e.desbocada).length > Math.floor(riv.n0 * 0.15)) rompeRivalMal++;
+      if (S.ganador === 'rival') { if (S.U.enPie <= 96 * 0.15) porBajas++; else if (S.coh < 40 || S.U.animo <= 0.12) porCoh++; else rompeFalMal++; }
+    }
+    ok(partidasEns >= 1, `FE1: con el bot ganador, ${ensartadas} bestias ensartadas en ${partidasEns} de 50 partidas (≥ 1); ${(rotas / 50).toFixed(1)} picas rotas por partida`);
+    ok(!espantos && !huyeAntes, `FE1: ningún elefante se espanta (${espantos}) ni nadie huye antes del final (${huyeAntes} muestras)`);
+    ok(!rompeRivalMal, `FE1: el rival solo rompe con el 15 % de su manada o menos en lucha (${rompeRivalMal} fuera)`);
+    ok(!rompeFalMal, `FE1: tu muro solo rompe con el 15 % de sus hombres (${porBajas}) o por la cohesión (${porCoh}); fuera de eso, ${rompeFalMal}`);
+    ok(terminan === 100, `FE1: las 100 partidas terminan antes de 300 s (${terminan})`);
   }
 }
 

@@ -45,11 +45,18 @@ prueba('60 meses tardan menos de 8 s', () => { const t = Date.now(); const F = R
 
 /* ---------- CN2a: catálogo único, costes en 5 recursos, mejoras, siembra y fundación automática ---------- */
 const RES = ['madera', 'piedra', 'hierro', 'grano', 'oro'], suma = c => RES.reduce((t, r) => t + c[r], 0);
-prueba('cada pieza tiene coste de 5 claves y 3 mejoras crecientes', () => { assert.equal(Object.keys(R.EDIF).length, 20); assert.deepEqual([...R.ORDEN].sort(), Object.keys(R.EDIF).sort());
+prueba('cada pieza tiene coste de 5 claves y 3 mejoras crecientes', () => { assert.equal(Object.keys(R.EDIF).length, 30); assert.deepEqual([...R.ORDEN].sort(), Object.keys(R.EDIF).sort());
   for (const [k, D] of Object.entries(R.EDIF)) { assert.deepEqual(Object.keys(D.coste), RES, k); assert.equal(D.mejoras.length, 3, k); let ant = suma(D.coste); assert.ok(ant > 0, k);
     for (const m of D.mejoras) { assert.deepEqual(Object.keys(m.coste), RES, k); assert.ok(suma(m.coste) > ant, k + ' mejora creciente'); ant = suma(m.coste); } } });
+prueba('CDe1-C: las diez obras nuevas existen, se llaman Baños y no «termas», y llevan familia y servicio con el id de necesidades', () => {
+  const ids = ['termas', 'acueducto', 'cloaca', 'medico', 'jardin', 'parque', 'curia', 'comicio', 'astillero', 'faro'];
+  for (const id of ids) { const D = R.EDIF[id]; assert.ok(D && D.bid === null && D.nombre && D.que && D.w > 0 && D.d > 0 && D.obra > 0, id); assert.ok(R.ORDEN.includes(id), id); }
+  assert.equal(R.EDIF.termas.nombre, 'Baños'); assert.ok(!/termas/i.test(Object.values(R.EDIF).map(D => D.nombre + ' ' + D.que).join(' ')));
+  assert.equal(R.EDIF.astillero.terreno, 'costa'); assert.equal(R.EDIF.faro.terreno, 'costa');
+  const E3 = R.crear(1); R.fundar(E3, 172, -196); const s = R.mejorSitio(E3, 'termas'), r = R.colocar(E3, 'termas', s[0], s[1], true); assert.ok(r.ok, 'baños colocados');
+  const nb = R.notaSitio(E3, 'cloaca', s[0] + 40, s[1]); assert.ok(!nb.vale || /casa/.test(nb.efecto.txt), 'efecto de cloaca: ' + JSON.stringify(nb.efecto)); });
 prueba('PIEZA_DE es biyectiva con los bid; niveles de mejora', () => { const bids = Object.values(R.EDIF).map(D => D.bid).filter(Boolean); assert.equal(bids.length, 13); assert.equal(Object.keys(R.PIEZA_DE).length, 13);
-  for (const [k, D] of Object.entries(R.EDIF)) if (D.bid) assert.equal(R.PIEZA_DE[D.bid], k); else assert.ok(['fuente', 'granero', 'taller', 'compitum', 'dique', 'salinas', 'zanja'].includes(k));
+  for (const [k, D] of Object.entries(R.EDIF)) if (D.bid) assert.equal(R.PIEZA_DE[D.bid], k); else assert.ok(['fuente', 'granero', 'taller', 'compitum', 'dique', 'salinas', 'zanja', 'termas', 'acueducto', 'cloaca', 'medico', 'jardin', 'parque', 'curia', 'comicio', 'astillero', 'faro'].includes(k));
   assert.equal(R.PIEZA_DE.puerto, 'muelle'); assert.deepEqual(R.NIVEL_MEJORA, [1, 3, 6, 10]);
   assert.deepEqual([0, 1, 2, 3, 4, 6, 7, 10].map(R.MEJORA_DE_NIVEL), [-1, 0, 1, 1, 2, 2, 3, 3]); });
 prueba('el coste de mejora I de la granja = niveles 1 y 2 de D.BUILD (40,40,20,10 x1.5 y x2.25)', () => { const c = R.EDIF.granja.mejoras[0].coste; assert.deepEqual(c, { madera: 150, piedra: 150, hierro: 75, grano: 40, oro: 0 }); assert.deepEqual(R.EDIF.granja.coste, { madera: 40, piedra: 40, hierro: 20, grano: 10, oro: 0 }); });

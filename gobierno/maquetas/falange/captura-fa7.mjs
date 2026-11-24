@@ -15,9 +15,9 @@ const H = { width: 844, height: 390 }, V = { width: 390, height: 844 };
 /* nombre, tamaño, rival, bot, vista, cómo avanzar: ['hasta', tipo, max, extra] o ['salta', seg] */
 const FOTOS = [
   ['h-elefantes-carga', H, 'elefantes', 'gana', 'hombro', ['hasta', 'barrito', 120, 3]],
-  ['h-elefantes-estrellan', H, 'elefantes', 'gana', 'choque', ['hasta', 'espanta', 120, 0.5]],
+  ['h-elefantes-estrellan', H, 'elefantes', 'gana', 'choque', ['hasta', 'embiste', 120, 0.5]],
   ['h-elefantes-hueco', H, 'elefantes', 'pierde', 'hombro', ['hasta', 'hueco', 120, 0.6]],
-  ['v-elefantes-estrellan', V, 'elefantes', 'gana', 'hombro', ['hasta', 'espanta', 120, 0.5]],
+  ['v-elefantes-estrellan', V, 'elefantes', 'gana', 'hombro', ['hasta', 'embiste', 120, 0.5]],
   ['h-caballeria-rodea', H, 'caballeria', 'gana', 'alto', ['hasta', 'flanco', 60, 5]],
   ['h-caballeria-frena', H, 'caballeria', 'gana', 'choque', ['hasta', 'flancoParado', 120, 0.4]],
   ['h-caballeria-entra', H, 'caballeria', 'pierde', 'alto', ['hasta', 'flancoEntra', 120, 1]],

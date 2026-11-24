@@ -222,5 +222,24 @@ t('CG6b: a pie, el manípulo sigue a su centurión a su paso (mover con vel) y e
   assert.ok(Z.aPie('hastati') && Z.aPie('galos') && !Z.aPie('jinetes') && !Z.aPie('elefantes') && !Z.aPie('equites'));
 });
 
+t('LP7: vuelveDePie pone las bajas (a escala), rompe al que rompió a pie y mueve tu manípulo; la batalla solo recibe hombres', () => {
+  const S = Z.crear({ semilla: 3, manipulos: [{ lado: 0, tropa: 'hastati', x: 0, y: -40, mando: 'jugador' }, { lado: 1, tropa: 'galos', x: 0, y: 40, mando: 'jugador' }, { lado: 1, tropa: 'galos', x: 40, y: 40, mando: 'jugador' }] });
+  const u = S.man[0], g = S.man[1], g2 = S.man[2], n0 = u.n, ng = g.n, x0 = u.x, y0 = u.y, a0 = u.a;
+  /* allí: tu bloque de 120 pierde 30 y avanza 10 m girando 0,2 a su derecha; su centro (a escala 1,5) queda al 15 % y rompe */
+  const r = { ganador: 'tuyo', bloques: { tuyo: { hombres: 120, enPie: 90, roto: false }, centro: { hombres: 100, enPie: 15, roto: true }, alas1: { hombres: 50, enPie: 50, roto: false } }, pose: { x: 0, z: -10, ang: 0.2 } };
+  const o = Z.vuelveDePie(S, { tuyo: 0, mapa: { tuyo: { id: 0, esc: 1 }, centro: { id: 1, esc: 1.5 }, alas1: { id: 2, esc: 1 } }, r });
+  assert.equal(u.n, n0 - 30); assert.equal(g.n, ng - Math.min(ng, Math.round(85 * 1.5))); assert.equal(g2.n, g2.n0);
+  assert.deepEqual(o.bajas, [30, ng - g.n]); assert.ok(o.rotos.includes(1) || g.estado === 'caida');
+  assert.ok(g.estado === 'roto' || g.estado === 'caida', g.estado); assert.ok(u.estado === 'firme' || u.estado === 'duda');
+  /* adelante en su marco: (cos a, sin a); 10 m */
+  assert.ok(Math.abs(u.x - (x0 + Math.cos(a0) * 10)) < 1e-9 && Math.abs(u.y - (y0 + Math.sin(a0) * 10)) < 1e-9, u.x + ',' + u.y);
+  assert.ok(Math.abs(u.a - (a0 - 0.2)) < 1e-12);
+  assert.ok(S.reg.some(e => e.tipo === 'apie' && /victoria/.test(e.texto)));
+  /* sin resultado (sales sin luchar), nada cambia */
+  const S2 = Z.crear({ semilla: 3, manipulos: [{ lado: 0, tropa: 'hastati', x: 0, y: -40, mando: 'jugador' }, { lado: 1, tropa: 'galos', x: 0, y: 40, mando: 'jugador' }] });
+  const o2 = Z.vuelveDePie(S2, { tuyo: 0, mapa: { tuyo: { id: 0, esc: 1 } }, r: { bloques: { tuyo: { hombres: 120, enPie: 120 } }, pose: { x: 0, z: 0, ang: 0 } } });
+  assert.deepEqual(o2.bajas, [0, 0]); assert.equal(S2.man[0].n, S2.man[0].n0);
+});
+
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);

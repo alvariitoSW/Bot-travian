@@ -9,7 +9,12 @@
            nivel     'facil' | 'normal' | 'dificil' (por defecto 'normal')
            avisa     función (tipo, datos) hacia pantalla y sonido; en Node, nada
            motor     opcional: el módulo de LP1 (import * as BL from './bloque.js'); mueve tu manípulo (ver PUENTE)
-           bloque    opcional, con motor: un B de LP1 ya creado para tu manípulo }
+           bloque    opcional, con motor: un B de LP1 ya creado para tu manípulo
+           LP7 (bajar a pie desde la batalla grande; sin estas tres, todo como siempre):
+           fuerzas   { tuyo, centro, amigas: [i, d], alas: [i, d], reserva, tiradores }: hombres de cada bloque. 0 = no está
+                     (se queda en S.amigas / S.ene con estado 'fuera', fuera de S.bloques). Lo que falte, el de serie
+           lejos     metros entre tu primera fila y la suya al empezar (por defecto 70; los demás bloques, igual de corridos)
+           fin       FIN_LUCHA de js/falange.js (0,15): todos luchan hasta que les queda ese tanto por uno, sin miedo por bajas }
    C = { S, paso(dt), orden(n), frente({ x, z, ang }), dibujaFrente(a, b), ordenUtil(), bot(modo), resumen(), trabado() }
 
    EJES (los de js/falange.js): metros; ang = 0 mira a −z; frente = (sen ang, −cos ang); derecha = (cos ang, sen ang);
@@ -194,24 +199,31 @@ export function crearCombate(m = {}) {
   const azar = azarSemilla(semilla * 7919 + NIVELES.indexOf(nivel) * 31 + 3);
   const S = { T: 0, nivel, ganador: null, causa: null, bloques: [], salva: null, flanco: null, cuenta: { flanqueado: 0, salvas: 0, salvasTestudo: 0, pilum: 0, relevos: 0, cargas: 0, fintas: 0, retiradas: 0, muertosSuelta: 0, rotaRetira: 0, retiradasGalas: 0 } };
   let id = 0, kIlumina = null, tBot = -9, tGiro = -9;
+  /* LP7: fuerzas reales, distancia y final al 15 % (ver el contrato). F(k, i) = hombres pedidos o null (el de serie) */
+  const FU = m.fuerzas || {}, FIN = m.fin == null ? null : m.fin, DZ = 70 - (m.lejos == null ? 70 : Math.max(12, m.lejos));
+  const F = (k, i) => { const v = i == null ? FU[k] : (FU[k] || [])[i]; return v == null ? null : Math.max(0, Math.round(v)); };
+  const n0 = v => v == null ? undefined : v;
 
   function crea(tipo, papel, bando, x, z, ang, n) {
     const T = TIPOS[tipo], hombres = n || T.hombres;
-    const b = { id: id++, tipo, papel, bando, x, z, ang, ancho: T.ancho, fondo: T.fondo, T, U: crearUnidad({ hombres, nombre: papel }),
+    const b = { id: id++, tipo, papel, bando, x, z, ang, ancho: T.ancho, fondo: T.fondo, T, U: crearUnidad({ hombres, nombre: papel, fin: FIN, miedo: FIN == null }),
       coh: 100, fila: 0, relevos: T.relevos, orden: null, tOrden: 0, tRelevo: -1, tImpacto: -9, cargaAl: false, pilum: bando === 'r' ? 1 : 0,
       estado: 'forma', obj: null, v: 0, contactos: [], tContacto: -9, retiradas: tipo === 'manipulo' ? RETIRADAS : 0, reformas: bando === 'g' ? P.reformas : 0, tReforma: -1, golpes: 0, cedido: false, agotada: false };
     S.bloques.push(b); return b;
   }
   /* el despliegue (LP0 §4, boceto 1): tu manípulo al centro, dos amigas, los galos a 70 m con su reserva y sus tiradores */
-  const tuyo = crea('manipulo', 'tuyo', 'r', 0, 0, 0);
-  const amigas = [crea('manipulo', 'amiga', 'r', -36, 2, 0), crea('manipulo', 'amiga', 'r', 36, 2, 0)];
+  const tuyo = crea('manipulo', 'tuyo', 'r', 0, 0, 0, n0(F('tuyo')));
+  const amigas = [crea('manipulo', 'amiga', 'r', -36, 2, 0, n0(F('amigas', 0))), crea('manipulo', 'amiga', 'r', 36, 2, 0, n0(F('amigas', 1)))];
   const lado0 = azar() < 0.5 ? -1 : 1;
   const ene = {
-    centro: crea('galos', 'centro', 'g', 0, -70, Math.PI),
-    alas: [crea('galos', 'ala', 'g', -36, -70, Math.PI, 120), crea('galos', 'ala', 'g', 36, -70, Math.PI, 120)],
-    reserva: crea('nobles', 'reserva', 'g', lado0 * 6, -92, Math.PI, P.reserva),
-    tiradores: crea('tiradores', 'tiradores', 'g', 0, -58, Math.PI),
+    centro: crea('galos', 'centro', 'g', 0, -70 + DZ, Math.PI, n0(F('centro'))),
+    alas: [crea('galos', 'ala', 'g', -36, -70 + DZ, Math.PI, F('alas', 0) ?? 120), crea('galos', 'ala', 'g', 36, -70 + DZ, Math.PI, F('alas', 1) ?? 120)],
+    reserva: crea('nobles', 'reserva', 'g', lado0 * 6, -92 + DZ, Math.PI, F('reserva') ?? P.reserva),
+    tiradores: crea('tiradores', 'tiradores', 'g', 0, -58 + DZ, Math.PI, n0(F('tiradores'))),
   };
+  /* LP7: el que no está (0 hombres pedidos) sale de S.bloques y queda 'fuera' (vivo() lo da por perdido) */
+  for (const [b, v] of [[amigas[0], F('amigas', 0)], [amigas[1], F('amigas', 1)], [ene.alas[0], F('alas', 0)], [ene.alas[1], F('alas', 1)], [ene.reserva, F('reserva')], [ene.tiradores, F('tiradores')]])
+    if (v === 0) { b.estado = 'fuera'; b.x += 2000; S.bloques.splice(S.bloques.indexOf(b), 1); }
   /* cada partida, su suerte: la fuerza de cada banda galo varía ±VAR con la semilla */
   for (const b of S.bloques) b.atkNivel = b.bando === 'g' ? P.fuerza * (b.papel === 'ala' ? P.alas : 1) * (1 - VAR + azar() * 2 * VAR) : 1;
   S.tuyo = tuyo; S.amigas = amigas; S.ene = ene;
@@ -642,7 +654,7 @@ export function crearCombate(m = {}) {
     S.T += dt;
     piensa();
     mueveTuyo(dt);
-    for (const b of amigas) amiga(b, dt);
+    for (const b of amigas) if (b.estado !== 'fuera') amiga(b, dt);
     for (const b of S.bloques) {
       if (b.bando !== 'g' || b.estado === 'fuera') continue;
       if (b.U.roto) mueveHuida(b, dt); else mueve(b, dt);

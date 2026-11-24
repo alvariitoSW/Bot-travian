@@ -3,7 +3,8 @@
    tiene sus hombres: un hueco en la formación y un hombre que anda hacia él a su paso, sin saltos.
    Tu manípulo no: sus hombres son los del bloque de LP1 (S.B.hombres), que ya andan solos hacia su hueco.
    Cuando un bloque pierde hombres, caen los de delante (se quedan en el suelo) y los de atrás cierran filas.
-   Contrato: crearTropas({ S }) → { figs, caidos, paso(dt, T), asienta(), lanzan(b, T) }
+   Contrato: crearTropas({ S }) → { figs, caidos, paso(dt, T), asienta(), lanzan(b, T), ofs }
+     ofs: Map bloque → { x, z }: cuánto se dibuja apartado ese bloque entero (LP5a, lo pone fisica.js). f.tx, f.tz: el sitio de las reglas
      figs[]   hombres en pie: { bando 'r'|'g', x, z, yaw, clip, t, semilla, talla, b }  (yaw: mira hacia (sen yaw, cos yaw))
      caidos[] hombres caídos: los mismos campos, con clip 'morir' (se quedan donde cayeron) */
 
@@ -15,9 +16,13 @@ const hash = k => { const v = Math.sin(k * 127.1 + 311.7) * 43758.5453; return v
 const HUECO = { manipulo: [1.0, 1.2, 0.08], galos: [1.3, 1.35, 0.38], nobles: [1.2, 1.3, 0.25], tiradores: [1.7, 1.8, 0.5] };
 const DUR = { golpear: 1.55, lanzar: 1.85, cubrirse: 1.25, morir: 2.4, encajar: 0.35 };
 const CAIDOS_MAX = 700;
+const FRENA = 0.88;   /* LP5a: el que va contra alguien afloja hasta 1 − FRENA de su paso (lo mismo que fisica.js FRENA) */
 
 export function crearTropas({ S }) {
   const figs = [], caidos = [];
+  /* LP5a: cuánto se dibuja apartado cada bloque entero (lo pone la física cuando las reglas meten un bloque en otro):
+     sus hombres van a su sitio más esto, y las filas no se deforman */
+  const ofs = new Map(), CERO = { x: 0, z: 0 }, ofsDe = b => ofs.get(b) || CERO;
   let semillas = 1;
   const nuevo = (b, extra) => ({ bando: b.bando, b, x: 0, z: 0, yaw: Math.PI - b.ang, clip: 'quieto', t: 0, v: 0, semilla: semillas++ * 1.37, talla: 0.95 + 0.1 * hash(semillas * 3.1), pausa: 0, esp: null, ...extra });
 
@@ -44,7 +49,7 @@ export function crearTropas({ S }) {
   }
 
   function cae(f, T) {
-    f.vivo = false; f.clip = 'morir'; f.t = 0; f.yaw += (hash(f.semilla) - 0.5) * 1.2;
+    f.vivo = false; f.clip = 'morir'; f.t = 0; f.yawCae = f.yaw + (hash(f.semilla) - 0.5) * 1.2;   /* LP5a: gira hacia ahí mientras cae (sin salto) */
     const i = figs.indexOf(f); if (i >= 0) figs.splice(i, 1);
     caidos.push(f); if (caidos.length > CAIDOS_MAX) caidos.shift();
   }
@@ -81,6 +86,27 @@ export function crearTropas({ S }) {
     if (clip === 'cubrirse') f.t = Math.min(f.t, DUR.cubrirse - 0.05);
   }
 
+  /* LP5a: da un paso de m metros hacia (ux, uz). Si la física le dice que va contra alguien (f.bn: hacia dónde está el
+     estorbo y cuánto estorba, de 0 a 1), quita lo que iría contra él y resbala de lado; de frente, rodea por un lado fijo */
+  function anda(f, ux, uz, m) {
+    const b = f.bn; if (b) m *= 1 - FRENA * b.k;
+    let sx = ux * m, sz = uz * m;
+    if (b && b.k > 0.05) {
+      const dot = sx * b.x + sz * b.z;
+      if (dot > 0) {
+        sx -= b.x * dot * b.k; sz -= b.z * dot * b.k;
+        if (Math.abs(ux * b.z - uz * b.x) < 0.5 && b.k > 0.5) { const lado = hash(f.semilla * 13) < 0.5 ? -1 : 1, r = m * 0.6 * b.k; sx += -b.z * lado * r; sz += b.x * lado * r; }
+      }
+    }
+    f.x += sx; f.z += sz; f.px = sx; f.pz = sz; return Math.hypot(sx, sz);
+  }
+  /* LP5a: el sitio que dan las reglas, suavizado (f.tx, f.tz). Las reglas lo mueven a saltitos (20 veces por segundo) y
+     la pantalla va a 30–60: sin suavizar, el hombre anda y se para a cada fotograma (tiembla). τ = SUAVE s */
+  const SUAVE = 0.1;
+  function sigue(f, x, z, dt) {
+    if (f.tx === undefined || Math.hypot(x - f.tx, z - f.tz) > 3) { f.tx = x; f.tz = z; return; }   /* un salto de las reglas (huecos nuevos): sin suavizar */
+    const k = 1 - Math.exp(-dt / SUAVE); f.tx += (x - f.tx) * k; f.tz += (z - f.tz) * k;
+  }
   /* gira hacia ang con tope de vel rad/s */
   const giraA = (f, ang, vel, dt) => { const d = angDif(ang, f.yaw), m = vel * dt; f.yaw += Math.abs(d) <= m ? d : Math.sign(d) * m; };
 
@@ -89,8 +115,12 @@ export function crearTropas({ S }) {
     if (B) for (const f of figs.slice()) {
       if (f.b !== tuyo) continue; const h = f.h;
       if (!h.vivo) { cae(f, T); continue; }
-      const v = Math.hypot(h.x - f.x, h.z - f.z) / Math.max(dt, 1e-3); f.v += (v - f.v) * Math.min(1, dt * 6);
-      f.x = h.x; f.z = h.z;
+      /* LP5a: anda hacia su hombre de LP1 (no se pega a él): así, si la física lo aparta, vuelve a su paso, sin saltos */
+      const hv = Math.hypot(h.x - (f.hx ?? h.x), h.z - (f.hz ?? h.z)) / Math.max(dt, 1e-3); f.hx = h.x; f.hz = h.z;
+      const o = ofsDe(tuyo); sigue(f, h.x, h.z, dt);
+      const dx = f.tx + o.x - f.x, dz = f.tz + o.z - f.z, d = Math.hypot(dx, dz), m0 = Math.min(d, Math.min(5, hv + 0.6 + d * 2.5) * dt);
+      const m = d > 1e-4 ? anda(f, dx / d, dz / d, m0) : (f.px = f.pz = 0);
+      const v = m / Math.max(dt, 1e-3); f.v += (v - f.v) * Math.min(1, dt * 6);
       giraA(f, h.yaw, 4, dt);
       animacion(f, tuyo, h.fila, dt, T);
     }
@@ -107,23 +137,24 @@ export function crearTropas({ S }) {
       const huye = b.estado === 'huye' || b.estado === 'fuera', corre = huye || b.orden === 'cargar' || b.estado === 'reforma';
       const vmax = corre ? 4.0 : 2.4;
       for (const f of V.men) {
-        const p = hueco(b, f), dx = p.x - f.x, dz = p.z - f.z, d = Math.hypot(dx, dz);
+        const p = hueco(b, f), o = ofsDe(b); sigue(f, p.x, p.z, dt);
+        const dx = f.tx + o.x - f.x, dz = f.tz + o.z - f.z, d = Math.hypot(dx, dz);
         const quiere = d < 0.05 ? 0 : Math.min(vmax, d * 1.6 + (d > 0.4 ? 0.8 : 0));
         f.v += (quiere - f.v) * Math.min(1, dt * 4);
-        const m = Math.min(d, f.v * dt); if (d > 1e-4) { f.x += dx / d * m; f.z += dz / d * m; }
+        const m = Math.min(d, f.v * dt); if (d > 1e-4) anda(f, dx / d, dz / d, m); else f.px = f.pz = 0;
         const mira = huye ? Math.atan2(dx, dz) : (d > 1.0 && f.v > 0.8 ? Math.atan2(dx, dz) : Math.PI - b.ang);
         giraA(f, mira, 3.5, dt);
         animacion(f, b, p.fila, dt, T);
       }
     }
-    for (const f of caidos) if (f.t < DUR.morir) f.t += dt;
+    for (const f of caidos) if (f.t < DUR.morir) { f.t += dt; if (f.yawCae !== undefined) giraA(f, f.yawCae, 0.8, dt); }
   }
 
   /* tras saltar en el tiempo (capturas): todos en su hueco y mirando al frente */
   function asienta() {
-    for (const b of S.bloques) if (b.vis) for (const f of b.vis.men) { const p = hueco(b, f); f.x = p.x; f.z = p.z; f.yaw = b.estado === 'huye' ? -b.ang : Math.PI - b.ang; f.v = 0; }
-    for (const f of figs) if (f.h) { f.x = f.h.x; f.z = f.h.z; f.yaw = f.h.yaw; }
-    for (const f of caidos) f.t = DUR.morir;
+    for (const b of S.bloques) if (b.vis) for (const f of b.vis.men) { const p = hueco(b, f), o = ofsDe(b); f.tx = p.x; f.tz = p.z; f.x = p.x + o.x; f.z = p.z + o.z; f.yaw = b.estado === 'huye' ? -b.ang : Math.PI - b.ang; f.v = 0; }
+    for (const f of figs) if (f.h) { const o = ofsDe(f.b); f.tx = f.h.x; f.tz = f.h.z; f.x = f.h.x + o.x; f.z = f.h.z + o.z; f.yaw = f.h.yaw; }
+    for (const f of caidos) { f.t = DUR.morir; if (f.yawCae !== undefined) f.yaw = f.yawCae; }
   }
-  return { figs, caidos, paso, asienta, lanzan, DUR };
+  return { figs, caidos, paso, asienta, lanzan, DUR, ofs };
 }

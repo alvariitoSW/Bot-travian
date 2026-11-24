@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Banco de campos AG1</title>
+<style>
+html,body{margin:0;height:100%;background:#1b1a17;overflow:clip;font:700 8px/1.1 system-ui,sans-serif;color:#f1ead9}
+canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+#rotulos{position:fixed;z-index:5;inset:0;overflow:clip;pointer-events:none}
+#rotulos div{position:absolute;left:0;top:0;padding:1px 4px 2px;border-radius:5px;background:rgba(16,15,13,.74);white-space:nowrap;text-align:center;will-change:transform}
+#rotulos small{display:block;font-weight:500;font-size:7px;color:#e9c063}
+#pie{position:fixed;z-index:5;left:6px;bottom:6px;padding:2px 6px;border-radius:5px;background:rgba(16,15,13,.74);font-size:9px}
+</style>
+</head>
+<body>
+<div id="rotulos"></div><div id="pie"></div>
+<script type="module">
+/* Banco de pruebas AG1-B: un relieve hecho a mano con los cinco suelos y los cinco campos puestos con js/gfx/campos.js.
+   Parámetros: ?est=0..3 (0 primavera, 1 verano, 2 otoño, 3 invierno) &mejoras=0|1 &mes=0..11 (opcional, manda sobre est) &etiquetas=0|1.
+   Norte arriba, sur abajo (sur = +z). Filas de arriba abajo: ladera al norte (x2), llano (x2), ladera al sur (x2), hondonada baja, ribera. */
+import { THREE } from '../../../js/gfx/models.js';
+import * as Campos from '../../../js/gfx/campos.js';
+import * as Agro from '../../../js/agricultura.js';
+const Q = new URLSearchParams(location.search), est = +(Q.get('est') || 0), conMej = Q.get('mejoras') === '1', mes = Q.get('mes');
+const NIVEL_RIO = 1.8, RIO_Z = 215, LADO = 44;
+/* relieve: altura según z (norte→sur), con un leve ondular en x para que no sea una mesa */
+const PERFIL = [[-240, 3], [-176, 7], [-88, 20], [0, 20], [88, 8], [100, 3.6], [132, 3.6], [176, 3.0], [205, 1.0], [222, 0.2], [260, 0.5]];
+function altura(x, z) { let i = 0; while (i < PERFIL.length - 2 && z > PERFIL[i + 1][0]) i++; const [z0, h0] = PERFIL[i], [z1, h1] = PERFIL[i + 1], t = Math.max(0, Math.min(1, (z - z0) / (z1 - z0))); return h0 + (h1 - h0) * t + 0.25 * Math.sin(x * 0.045 + z * 0.03); }
+const distRio = (x, z) => Math.abs(z - RIO_Z);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 0.92; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#b9c6cf');
+scene.add(new THREE.HemisphereLight('#b6c6de', '#927252', 1.45)); const sol = new THREE.DirectionalLight('#ffdfb4', 3.3); sol.position.set(-120, 220, 160); scene.add(sol);
+/* terreno: hierba apagada con el color mezclado según la altura; el río es un plano azul al nivel del agua */
+{ const NX = 70, NZ = 112, X0 = 20, X1 = 250, Z0 = -240, Z1 = 260, P = [], K = [], I = [];
+  for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) { const x = X0 + (X1 - X0) * i / NX, z = Z0 + (Z1 - Z0) * j / NZ, h = altura(x, z), t = Math.max(0, Math.min(1, h / 22)); P.push(x, h, z); const rib = h < NIVEL_RIO + 1.6 ? 1 : 0; K.push(0.47 + 0.10 * t - 0.12 * rib, 0.52 + 0.04 * t - 0.04 * rib, 0.31 - 0.04 * t - 0.06 * rib); }
+  for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) { const a = j * (NX + 1) + i; I.push(a, a + NX + 1, a + 1, a + 1, a + NX + 1, a + NX + 2); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(K, 3)); g.setIndex(I); g.computeVertexNormals(); scene.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })));
+  const ag = new THREE.Mesh(new THREE.PlaneGeometry(X1 - X0, 80), new THREE.MeshLambertMaterial({ color: '#4f86a6' })); ag.rotation.x = -Math.PI / 2; ag.position.set((X0 + X1) / 2, NIVEL_RIO, RIO_Z + 20); scene.add(ag); }
+/* E y CI mínimos, solo lo que lee campos.js; las celdas fuera del banco están «ocupadas» para que no salgan más cuadros */
+const CI = { X0: -1000, Z0: -1000, C: 4, N: 500, cercado: () => false }, ocup = new Uint8Array(CI.N * CI.N), dVia = new Float32Array(CI.N * CI.N).fill(99);
+for (let j = 0; j < CI.N; j++) for (let i = 0; i < CI.N; i++) { const x = CI.X0 + (i + 0.5) * CI.C, z = CI.Z0 + (j + 0.5) * CI.C; if (x < 42 || x > 226 || z < -200) ocup[j * CI.N + i] = 1; }
+const hs = (a, b, s) => { let x = Math.imul(a * 374761393 + b * 668265263, 1274126177) ^ (s | 0); x = Math.imul(x ^ (x >>> 13), 1103515245); return ((x ^ (x >>> 16)) >>> 0) / 4294967296; };
+let semilla = 1; for (; semilla < 5000; semilla++) { let ok = true; for (let j = -4; j <= 3 && ok; j++) for (let i = 1; i <= 4; i++) if (hs(i, j, semilla) < 0.18) { ok = false; break; } if (ok) break; }
+const E = { semilla, fundada: true, foro: { x: 0, z: 0, ang: 0 }, ocup, dVia, edificios: [], arboles: [], vias: [], parcelas: [], muralla: { fase: 0 } };
+Campos.iniciar({ scene, altura, distRio, NIVEL_RIO, CI, uPlano: null });
+/* forzar: en cada fila, un campo distinto por columna, siempre entre los que encajan en ese suelo (así se ven los cinco campos) */
+Campos.opciones({ mejoras: conMej ? 'todas' : 'ninguna', mes: mes === null ? null : +mes, forzar: (su, i, j) => { const l = Agro.consejo(su); return l[(i - 1 + (j < 0 ? -j - 1 : j)) % l.length].campo; } });
+Campos.poner(E, est, 0);
+/* olivos y cipreses de campos.js (en el juego los dibuja city3d con los modelos de 0 A.D.; aquí, copas sencillas) */
+{ const arb = Campos.arbolesExtra(), olivos = arb.filter(a => a.pieza === 'olivo'), cip = arb.filter(a => a.pieza === 'cipres');
+  const copa = (n, col, f) => { const m = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshLambertMaterial({ color: col }), Math.max(1, n)); m.count = n; return m; };
+  const mo = copa(olivos.length, '#7d8a5a'), mt = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.25, 0.4, 2.2, 5), new THREE.MeshLambertMaterial({ color: '#5a4630' }), Math.max(1, olivos.length)), M = new THREE.Matrix4(), q = new THREE.Quaternion(), P = new THREE.Vector3(), S = new THREE.Vector3(), c = new THREE.Color();
+  mt.count = olivos.length; olivos.forEach((a, i) => { const y = altura(a.x, a.z), e = a.esc; P.set(a.x, y + 3.2 * e, a.z); S.set(2.3 * e, 1.7 * e, 2.3 * e); M.compose(P, q, S); mo.setMatrixAt(i, M); c.setRGB(0.40 + 0.12 * a.tono, 0.48 + 0.08 * a.tono, 0.30); mo.setColorAt(i, c); P.set(a.x, y + 1.0 * e, a.z); S.set(e, e, e); M.compose(P, q, S); mt.setMatrixAt(i, M); }); scene.add(mo, mt);
+  if (cip.length) { const mc = new THREE.InstancedMesh(new THREE.ConeGeometry(1.1, 7, 6), new THREE.MeshLambertMaterial({ color: '#34502f' }), cip.length); cip.forEach((a, i) => { P.set(a.x, altura(a.x, a.z) + 3.5 * a.esc, a.z); S.set(a.esc, a.esc, a.esc); M.compose(P, q, S); mc.setMatrixAt(i, M); }); scene.add(mc); } }
+/* cámara cenital ligeramente inclinada (como la vista «desde arriba» de la ciudad) */
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 10, 2000), T = new THREE.Vector3(+(Q.get('cx') || 132), 6, +(Q.get('cz') || -4)), tilt = 14 * Math.PI / 180, D = +(Q.get('d') || 560);      /* cx, cz, d: para acercarse a un cuadro al inspeccionar */
+cam.position.set(T.x, T.y + D * Math.cos(tilt), T.z + D * Math.sin(tilt)); cam.lookAt(T);
+r.render(scene, cam);
+/* rótulos: nombre del campo y del suelo en cada cuadro */
+const NOM = { trigo: 'Trigo', olivar: 'Olivar', vina: 'Viña', huerto: 'Huerto', pasto: 'Pasto' };
+const cont = document.getElementById('rotulos'); const V = new THREE.Vector3();
+if (Q.get('etiquetas') !== '0') for (const p of Campos.parcelas()) { const d = document.createElement('div'), su = Agro.SUELOS[p.suelo].nombre; d.innerHTML = NOM[p.campo] + (p.x < 100 ? '<small>' + su + '</small>' : ''); V.set(p.x, altura(p.x, p.z), p.z).project(cam); d.style.transform = `translate(${((V.x + 1) / 2 * innerWidth - 36).toFixed(0)}px,${((1 - V.y) / 2 * innerHeight - 8).toFixed(0)}px)`; cont.appendChild(d); }
+const info = r.info.render; document.getElementById('pie').textContent = ['primavera', 'verano', 'otoño', 'invierno'][est] + (conMej ? ' · con mejoras' : '') + ' · ' + Campos.parcelas().length + ' campos';
+window.__banco = { listo: true, triangulos: info.triangles, llamadas: info.calls, parcelas: Campos.parcelas(), Campos, scene, r, cam };
+</script>
+</body>
+</html>

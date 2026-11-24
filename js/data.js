@@ -72,22 +72,27 @@
     templo: { n: 'Templo', fam: 'politica', i: '🔥', solar: 1, cost: { materiales: 210, denarios: 80 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
   };
   /* CD1b: familias del menú «Construir» (CD0 §2). Licencia de juego: es una agrupación para el jugador. */
+  /* CDe1: las necesidades de barrio (js/necesidades.js) se calculan y avisan en el diario; sus castigos (gente que se va, votos, revuelta sin impuestos)
+     se encienden cuando la pantalla del barrio (CD5b) deje ver qué falta y remediarlo (CDe2). Licencia de juego. */
+  D.NEC_CASTIGOS = false;
   D.FAMILIAS = [['principales', 'Principales'], ['infra', 'Infraestructura'], ['politica', 'Política y culto'], ['militar', 'Militar'], ['produccion', 'Producción'], ['viviendas', 'Viviendas'], ['puerto', 'Puerto']];
   D.FAMILIA_PIEZA = { fuente: 'infra', granero: 'principales', taller: 'produccion', salinas: 'produccion', zanja: 'infra', dique: 'infra', compitum: 'viviendas' };   // piezas de ciudad.js sin edificio de D.BUILD
-  /* CD1b: fichas del menú que aún no se pueden construir (el coste y la obra los pone CDe1). Fuera de D.BUILD a propósito: game.js y el bot recorren D.BUILD.
-     Acueducto: Aqua Appia, 312 a.C. (Frontino 1.5). Cloaca: Cloaca Máxima (Livio 1.38). Médico: primer médico griego en Roma, 219 a.C. (Plinio 29.12).
-     Curia, comicio, astillero y faro: sedes y obras de la República. Baños, jardín y parque: licencia de juego. */
-  D.OBRAS_PRONTO = {
-    termas: { n: 'Baños', fam: 'infra', d: 'Aseo y salud para el barrio', pronto: true },
-    acueducto: { n: 'Acueducto', fam: 'infra', d: 'Trae agua de lejos a la ciudad', pronto: true },
-    cloaca: { n: 'Cloaca', fam: 'infra', d: 'Evacúa las aguas sucias', pronto: true },
-    medico: { n: 'Médico', fam: 'infra', d: 'Cura a los enfermos del barrio', pronto: true },
-    jardin: { n: 'Jardín', fam: 'infra', d: 'Verde y calma para las casas', pronto: true },
-    parque: { n: 'Parque', fam: 'infra', d: 'Paseo público entre árboles', pronto: true },
-    curia: { n: 'Curia', fam: 'politica', d: 'Sede del Senado de la ciudad', pronto: true },
-    comicio: { n: 'Comicio', fam: 'politica', d: 'Plaza donde vota el pueblo', pronto: true },
-    astillero: { n: 'Astillero', fam: 'puerto', d: 'Construye y repara naves', pronto: true },
-    faro: { n: 'Faro', fam: 'puerto', d: 'Guía a los barcos de noche', pronto: true }
+  /* CDe1-C: las diez obras que eran «Pronto» ya se construyen: viven en EDIF de ciudad.js y su familia está en D.FAMILIA_PIEZA.
+     Vacío a propósito: ciudad-menu.js lo recorre y tolera que no haya fichas. Acueducto: Aqua Appia, 312 a.C. (Frontino 1.5). Cloaca: Cloaca Máxima (Livio 1.38).
+     Médico: primer médico griego en Roma, 219 a.C. (Plinio 29.12). Baños, jardín y parque: licencia de juego. */
+  D.OBRAS_PRONTO = {};
+  /* CDe1-C: las diez obras de ciudad nuevas (sus números viven en EDIF de js/ciudad.js) y su familia en el menú. Nombre visible: «Baños», nunca «termas»
+     (balneae, ya en Plauto; las grandes termas son de Agripa, 25 a.C.). El id interno termas se queda: lo traduce js/necesidades.js. */
+  D.OBRAS = {
+    termas: { n: 'Baños', fam: 'infra' }, acueducto: { n: 'Acueducto', fam: 'infra' }, cloaca: { n: 'Cloaca', fam: 'infra' }, medico: { n: 'Médico', fam: 'infra' },
+    jardin: { n: 'Jardín', fam: 'infra' }, parque: { n: 'Parque', fam: 'infra' }, curia: { n: 'Curia', fam: 'politica' }, comicio: { n: 'Comicio', fam: 'politica' },
+    astillero: { n: 'Astillero', fam: 'puerto' }, faro: { n: 'Faro', fam: 'puerto' }
+  };
+  for (const id in D.OBRAS) D.FAMILIA_PIEZA[id] = D.OBRAS[id].fam;
+  /* CDe1-C: reglas y cargos de la ciudad nueva que tienen ficha de historia en registro.js (ministros, necesidades, revuelta, plan del Senado). */
+  D.SISTEMAS = {
+    ministros: { n: 'Ministros' }, censor: { n: 'Censor' }, edil: { n: 'Edil' }, cuestor: { n: 'Cuestor' }, pontifice: { n: 'Pontífice' }, legado: { n: 'Legado' },
+    publicanos: { n: 'Publicano de minas' }, necesidades: { n: 'Necesidades del barrio' }, revuelta: { n: 'Revuelta de la plebe' }, planSenado: { n: 'Plan del Senado' }
   };
   /* Templos (F5): cada ciudad puede dedicar su templo a un dios. Los dones son por nivel de templo. Licencia de juego:
      los romanos no «elegían» un dios por ciudad, pero Marte, Ceres y Neptuno eran divinidades reales de Roma (Livio 2.41 para el templo de Ceres, 493 a.C.; Marte, Campo de Marte; Neptuno, Circo Flaminio). Dones inventados. */
@@ -309,6 +314,10 @@
     elefantes: { n: 'Elefantes de guerra', g: '🐘', cls: 'ele', atk: 13, def: 9, spd: 42, mor: 50, hp: 8, mass: 4, up: 2 },
     general: { n: 'General', lic: 'Un mismo modelo y valores para todos los generales', g: '★', cls: 'gen', atk: 17, def: 16, spd: 68, mor: 100, hp: 3, up: 0 }
   };
+
+  /* CDe1-A: paga de cada tropa por estación (3 meses), igual que MIN.pagaTropa: grano = up × 3, denarios = up × 3 × MANT_TROPA.
+     Es un dato derivado para la pantalla: el cobro ya se hace cada mes en game.js (grano: up por hombre; denarios: up × MANT_TROPA). Licencia de juego. */
+  for (const k in D.UNITS) { const up = D.UNITS[k].up || 0; D.UNITS[k].paga = { grano: Math.round(up * 3 * 100) / 100, denarios: Math.round(up * 3 * D.MANT_TROPA * 100) / 100 }; }
 
   D.FACTIONS = {
     roma: { n: 'Roma', col: '#b3261e' },
