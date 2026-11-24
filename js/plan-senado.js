@@ -8,7 +8,7 @@
   'use strict';
   const D = root.DATA || (typeof require !== 'undefined' ? require('./data.js') : null);
   const MIN = root.MINISTROS || (typeof require !== 'undefined' ? require('./ministros.js') : null);
-  const P = { MIN_EST: 4, MAX_EST: 8, POR_EST: 3, MAX_OBRAS: 16, VOTOS_EST: 3, ABANDONO: -3, JUICIO: { bien: 0.8, mal: 0.5, premio: 2, castigo: -3 } };
+  const P = { MIN_EST: 4, MAX_EST: 8, POR_EST: 3, MAX_OBRAS: 16, VOTOS_EST: 3, ABANDONO: -3, HISTORIAL: 8, JUICIO: { bien: 0.67, mal: 0.5, premio: 2, castigo: -3 } };
   P.PRIORIDADES = {
     crecer: { n: 'Crecer', bando: 'ter' }, defender: { n: 'Defender', bando: 'mil' },
     plebe: { n: 'Contentar a la plebe', bando: 'pue' }, riqueza: { n: 'Enriquecerse', bando: 'mer' }
@@ -294,7 +294,7 @@
   const guardarHistorial = (p, plan, juicio) => {
     const vivas = plan.obras.filter(o => !o.perdida);
     p.historial.push({ id: plan.id, e0: plan.e0, estaciones: plan.estaciones, hechas: vivas.filter(o => o.hecha).length, total: vivas.length, juicio });
-    while (p.historial.length > 4) p.historial.shift();
+    while (p.historial.length > P.HISTORIAL) p.historial.shift();
   };
   const cancelarEncargos = (s, plan) => {
     const ids = plan.obras.map(o => o.id), e = s.ministros && s.ministros.encargos;

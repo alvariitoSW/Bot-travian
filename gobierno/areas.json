@@ -338,7 +338,9 @@
         "gobierno/maquetas/piezas/",
         "assets/iconos/",
         "assets/personajes/",
-        "assets/laminas/"
+        "assets/laminas/",
+        "assets/edificios-griegos/",
+        "tools/aligerar_edificios_griegos.mjs"
       ],
       "taller": [],
       "juez": {

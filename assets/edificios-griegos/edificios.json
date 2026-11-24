@@ -1,0 +1,16 @@
+{
+  "templo": {
+    "archivo": "templo.glb",
+    "kb": 419,
+    "triangulos": 3432,
+    "meshy": "01a20a6f-e84a-7256-b8d7-996b733a8557",
+    "largo": 24
+  },
+  "curia": {
+    "archivo": "curia.glb",
+    "kb": 415,
+    "triangulos": 4014,
+    "meshy": "01a20a6f-ec38-74b9-b649-c746e6abd64f",
+    "largo": 22
+  }
+}

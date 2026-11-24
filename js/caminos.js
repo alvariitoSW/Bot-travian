@@ -20,11 +20,13 @@
   CAM.necesarios = function (n) { n = n == null ? 4 : n; return Math.ceil(n * 2 / 3); };
   // Cifras de juego (las ajusta CE12). Todas licencia de juego.
   const CIFRAS = {
-    armas: { plazas: 8 },
-    comercio: { denarios: 3000, rutas: 4, acuerdos: 3 },
-    politica: { favorPrinceps: 80, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 2 },
+    // CE12 (24/11, medido con test/equilibrio-caminos.mjs; ver gobierno/estudios/CE12-cifras.md): plazas 8→6, acuerdos 3→5,
+    // príncipe 80→75, sostener ciudad 6→12. Con Urbs 3, tesoro 2500, rutas 3 o comercio 6 meses, ciudad y comercio se lograban en el primer o segundo año.
+    armas: { plazas: 6, plazasCorta: 3 },   // CE12: en la partida corta (Italia) la partida acaba al caer la capital rival
+    comercio: { denarios: 3000, rutas: 4, acuerdos: 5 },
+    politica: { favorPrinceps: 75, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 2 },
     ciudad: { cubiertos: 0.8, nivelUrbe: 4 },
-    sostener: { armas: 0, comercio: 12, politica: 6, ciudad: 6 },
+    sostener: { armas: 0, comercio: 12, politica: 6, ciudad: 12 },
     gracia: 3
   };
   CAM.CIFRAS = CIFRAS;
@@ -66,8 +68,12 @@
       total = 1;
       cubiertos = (bi ? lista(bi.falta).length === 0 : (num(c.barrio) || 1) >= 4) ? 1 : 0;
     }
+    // CE12 (decidido por la coordinación, 24/11): si Cartago no está en el mapa (partida corta), cuenta la capital rival del modo.
+    const modo = obj(s.modo) && D && D.MODOS ? D.MODOS[s.modo.id] : null;
+    const corta = !cities.carthago && !!(modo && modo.capitalRival && cities[modo.capitalRival]);
+    const objetivo = corta ? modo.capitalRival : 'carthago';
     return {
-      cartago: !!(cities.carthago && cities.carthago.owner === 'roma'), plazas,
+      cartago: !!(cities[objetivo] && cities[objetivo].owner === 'roma'), corta, objetivo: corta ? ((D.CITIES[objetivo] && D.CITIES[objetivo].n) || objetivo) : null, plazas,
       denarios: num(s.res && s.res.denarios) + num(s.alm && s.alm.denarios),
       rutas: obj(s.mercado) ? lista(mer.rutas).length : lista(s.rutas).length,   // mercado.js migra las rutas viejas sin borrarlas: no contar dos veces
       acuerdos, cargo, favorSenado, bandos, planesBien,
@@ -127,12 +133,15 @@
     { tema: 'Ganar con 3 de 4, sin plazo, con caminos que se pierden', cita: 'Decisión del usuario, 18/11', dictamen: 'licencia de juego' }
   ];
 
+  // CE12: en la partida corta el hito de las plazas es menor y el de Cartago lee la capital rival.
+  function metaDe(h, f) { return h.id === 'plazas' && f.corta ? CIFRAS.armas.plazasCorta : h.meta; }
   CAM.evaluar = function (foto) {
     const f = obj(foto) || {};
     const caminos = CAM.DATOS.map((c) => {
       const hitos = c.hitos.map((h) => {
-        const v = num(CAM.VALOR[c.id][h.id](f));
-        return { id: h.id, n: h.n, v, meta: h.meta, ok: v >= h.meta, avance: Math.max(0, Math.min(1, v / h.meta)) };
+        const v = num(CAM.VALOR[c.id][h.id](f)), meta = metaDe(h, f);
+        const n = h.id === 'cartago' && f.corta && f.objetivo ? f.objetivo + ' tomada' : h.n;
+        return { id: h.id, n, v, meta, ok: v >= meta, avance: Math.max(0, Math.min(1, v / meta)) };
       });
       const avance = hitos.reduce((a, h) => a + h.avance, 0) / hitos.length;
       return { id: c.id, n: c.n, i: c.i, avance, cumple: hitos.every((h) => h.ok), hitos };

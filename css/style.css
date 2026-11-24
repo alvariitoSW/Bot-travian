@@ -1924,3 +1924,7 @@ body.encalles #cbar, body.encalles #tabs3 { display: none !important; }
 #menu .mav p { margin: 0 0 5px; } #menu .mav b { color: var(--gold); font-weight: 650; }
 #menu .mav .mprog { height: 6px; border-radius: 99px; background: #ffffff1f; overflow: clip; } #menu .mav .mprog i { display: block; height: 100%; background: var(--gold); }
 #menu .nv-v small { color: var(--tinta2); font-size: 12px; }
+/* CDe4: «Calles» redondo, encima de «Construir» (no se sale a 390 px) */
+#cbar { display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 8px; }
+#kbtn { width: 52px; height: 52px; min-width: 0; padding: 0; gap: 1px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid rgba(255, 240, 200, .6); box-shadow: 0 6px 18px rgba(0, 0, 0, .6); }
+#kbtn svg { width: 20px; height: 20px; } #kbtn b { font-size: 9.5px; font-weight: 750; letter-spacing: 0; line-height: 1; }
