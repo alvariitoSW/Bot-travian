@@ -40,8 +40,10 @@ import { AGARRE } from './falange.js';
 
 export const RADIO = { infante: 0.25, piquero: 0.25, falangita: 0.25, jinete: 0.45, elefante: 1.3 };
 export const ALTO = { infante: 1.8, piquero: 1.8, falangita: 1.8, jinete: 2.5, elefante: 3.6 };
-/* masa por tipo: un jinete o un elefante apartan a los hombres; un hombre no aparta a un elefante */
-export const MASA = { infante: 1, piquero: 1, falangita: 1, jinete: 4, elefante: 20 };
+/* masa por tipo, en hombres armados (≈ 90 kg con su equipo). FE3, masas de verdad (ficha gobierno/historia/FE3-masas.md, probable):
+   caballo de la época (≈ 1,40 m a la cruz) con su jinete ≈ 500–550 kg → 6; elefante de guerra ≈ 4 t → 45 (el africano de bosque de
+   Cartago, 2,5–3 t; el indio de Pirro y los seléucidas, 4–5 t). Un jinete o un elefante apartan a los hombres; un hombre no aparta a un elefante */
+export const MASA = { infante: 1, piquero: 1, falangita: 1, jinete: 6, elefante: 45 };
 export const MASA_BESTIA = 10;   /* FE3: desde esta masa (en hombres) una pica no hace recular: el elefante */
 export const ANCHO_BESTIA = 1.8; /* FE3: lo menos que se apartan dos elefantes de costado (m, de centro a centro) */
 export const MASA_CAIDO = 2, TOPE_CAIDO = 2.5;   /* el caído se arrastra: pesa como dos hombres */
@@ -51,6 +53,8 @@ export const ESCUDO = { ancho: 0.65, grueso: 0.08, y0: 0.25, y1: 1.35, delante: 
 export const CON_ESCUDO = { infante: true, piquero: true };
 export const MIN_DIST = 0.45;     /* la vara: dos hombres dibujados nunca más cerca que esto */
 export const TOPE = 1.2;          /* lo más que se aparta un hombre de su sitio de las reglas (tope duro; lo normal lo frena el muelle) */
+/* FE3: lo pesado se deja apartar menos de su sitio: TOPE / √masa (hombre 1,2 m; jinete 0,49; elefante 0,18) */
+export const topeDe = m => m > 1 ? TOPE / Math.sqrt(m) : TOPE;
 export const K_MUELLE = 9, C_FRENO = 7;   /* muelle hacia el sitio (ω = 3/s) con amortiguación algo por encima de la crítica (6) y rozamiento: no rebota */
 export const V_MAX = 8;           /* m/s: más que esto en las reglas es un salto (reinicio), no una carrera */
 export const CELDA = 1;           /* rejilla espacial de 1 m */
@@ -190,7 +194,7 @@ export function crearFisica(op = {}) {
     return G;
   }
   /* tope duro: nadie se aparta más de TOPE de su sitio; si lo toca, pierde la velocidad hacia fuera */
-  const tope = h => { const m = Math.hypot(h.fx, h.fz); if (m > TOPE) { const ux = h.fx / m, uz = h.fz / m, vn = h.vx * ux + h.vz * uz; h.fx = ux * TOPE; h.fz = uz * TOPE; if (vn > 0) { h.vx -= ux * vn; h.vz -= uz * vn; } } };
+  const tope = h => { const m = Math.hypot(h.fx, h.fz), T = topeDe(masa(h)); if (m > T) { const ux = h.fx / m, uz = h.fz / m, vn = h.vx * ux + h.vz * uz; h.fx = ux * T; h.fz = uz * T; if (vn > 0) { h.vx -= ux * vn; h.vz -= uz * vn; } } };
   /* velocidad que dan las reglas (lo que se movió x, z en este paso); con tope, por si hubo un salto.
      antes: por hombre, dónde lo puso la regla en el paso anterior y si estaba vivo ({ x, z, vivo }; se reescribe, no se crea) */
   let antes = new WeakMap();
@@ -214,10 +218,9 @@ export function crearFisica(op = {}) {
     for (let i = 0, n = L.length; i < n; i++) { const h = L[i]; h.fx = FX[i]; h.fz = FZ[i]; h.vx = VX[i]; h.vz = VZ[i]; }
     for (let j = 0, m = C.length; j < m; j++) { const h = C[j]; h.fx = CFX[j]; h.fz = CFZ[j]; }
   }
-  const TOPE2 = TOPE * TOPE * (1 - 1e-9);   /* por debajo de esto el tope ni se mira (sin raíz) */
   function topeI(i) {
-    const fx = FX[i], fz = FZ[i]; if (fx * fx + fz * fz < TOPE2) return;
-    const m = Math.hypot(fx, fz); if (m > TOPE) { const ux = fx / m, uz = fz / m, vn = VX[i] * ux + VZ[i] * uz; FX[i] = ux * TOPE; FZ[i] = uz * TOPE; if (vn > 0) { VX[i] -= ux * vn; VZ[i] -= uz * vn; } }
+    const fx = FX[i], fz = FZ[i], T = M[i] > 1 ? topeDe(M[i]) : TOPE; if (fx * fx + fz * fz < T * T * (1 - 1e-9)) return;   /* FE3: el tope de cada uno, por su masa */
+    const m = Math.hypot(fx, fz); if (m > T) { const ux = fx / m, uz = fz / m, vn = VX[i] * ux + VZ[i] * uz; FX[i] = ux * T; FZ[i] = uz * T; if (vn > 0) { VX[i] -= ux * vn; VZ[i] -= uz * vn; } }
   }
 
   /* una pasada de choques entre vivos: se apartan a la suma de radios (cada uno según su masa) y el choque es
@@ -392,9 +395,10 @@ export function crearFisica(op = {}) {
     const o = L - m.t + 0.02; let ret = Math.min(o, RESBALA); const e = Math.min(TOPE_EMPUJE, (o - EMPUJA_DESDE) / 2);
     const n = Math.hypot(D[0], D[2]) || 1, ux = D[0] / n, uz = D[2] / n;
     /* si el asta ya no resbala más (de golpe: la pica baja o el rival da un paso), el rival recula ya lo que sobra */
-    /* FE3: una pica no hace recular a una bestia de MASA_BESTIA o más (el elefante): lo que no recula, lo resbala el asta
-       (se para en la piel; romperse lo deciden las reglas) y el empuje vuelve entero al piquero. Entre hombres y con jinetes, igual que antes */
-    const km = masa(m.h) >= MASA_BESTIA * masa(h) ? 0 : 1;
+    /* FE3: la masa manda: una pica no hace recular a una bestia de MASA_BESTIA o más (el elefante); a un jinete, por la razón de
+       masas (1/6). Lo que no recula, lo resbala el asta (se para en la piel; romperse lo deciden las reglas) y el empujón vuelve
+       entero al piquero. Entre hombres, igual que antes (1) */
+    const km = masa(m.h) >= MASA_BESTIA * masa(h) ? 0 : Math.min(1, masa(h) / masa(m.h));
     if (o > RESBALA) {
       const b = m.h, x0 = b.fx || 0, z0 = b.fz || 0; b.fx = x0 + ux * (o - RESBALA) * km; b.fz = z0 + uz * (o - RESBALA) * km; b.vx = b.vx || 0; b.vz = b.vz || 0; tope(b);
       /* si el rival ya está a tope y no recula todo, el asta resbala lo que falta (solo entonces pasa de 0,5) */

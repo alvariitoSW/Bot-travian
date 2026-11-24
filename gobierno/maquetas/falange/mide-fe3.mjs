@@ -6,7 +6,8 @@
 // Uso: node gobierno/maquetas/falange/mide-fe3.mjs [semilla=9] [fisica=0] [segundos=60]
 import { crearFalange, SARISA, AGARRE } from '../../../js/falange.js';
 import { RIVALES } from '../../../js/falange-rivales.js';
-import { crearFisica, TOPE } from '../../../js/fisica-batalla.js';
+import { crearFisica, topeDe, MASA } from '../../../js/fisica-batalla.js';
+const TOPE = topeDe(MASA.elefante);   /* el tope del elefante (FE3: por su masa) */
 import { cabeceo } from './elefante.js';
 const op = Object.fromEntries(process.argv.slice(2).filter(a => a.includes('=')).map(a => a.split('=')));
 const semilla = +(op.semilla || 9), conFisica = op.fisica !== '0', SEG = +(op.segundos || 60), DT = 1 / 30;
