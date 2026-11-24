@@ -88,17 +88,43 @@ export function crearFalangitaHud({ padre }) {
 #fal-eco.mal{background:rgba(160,38,30,.92)}
 #fal svg.anillo{position:absolute;left:0;top:0;width:72px;height:72px;margin:-36px 0 0 -36px;overflow:visible;display:none}
 #fal svg.anillo circle{fill:none;stroke-linecap:round}
+#fal .ay{display:block;font:600 12px Georgia,serif;color:#f1e6c8;text-shadow:0 1px 3px #000;white-space:nowrap;overflow:clip;max-width:230px}
+#fal-emp{position:absolute;left:0;top:0;width:210px;margin-left:-105px;margin-top:-100px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;transition:opacity .12s}
+#fal-emp.ve{opacity:1}
+#fal-emp b{display:block;padding:5px 14px;border-radius:12px;background:rgba(38,120,58,.94);font:700 17px Cinzel,Georgia,serif;color:#fff;white-space:nowrap;overflow:clip;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#fal-emp.cede b{background:rgba(190,36,28,.96);animation:falp .3s infinite alternate}
+#fal-emp i{display:block;width:170px;height:9px;border-radius:5px;background:rgba(0,0,0,.55);overflow:clip}
+#fal-emp u{display:block;height:100%;width:0;border-radius:5px;background:#5cc06e;text-decoration:none}
+#fal-emp.cede u{background:#ff5a44}
+@keyframes falp{from{opacity:1}to{opacity:.55}}
+#fal-oth{position:absolute;left:10%;width:80%;bottom:calc(env(safe-area-inset-bottom) + 150px);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transition:opacity .12s}
+#fal-oth.ve{opacity:1}
+#fal-oth b{display:block;padding:4px 12px;border-radius:12px;background:rgba(20,16,10,.8);font:700 16px Cinzel,Georgia,serif;color:#fff;white-space:nowrap;overflow:clip}
+#fal-oth s{display:block;position:relative;width:100%;height:16px;border-radius:8px;background:linear-gradient(90deg,#b8322a 50%,#2f6fc4 50%);overflow:clip;box-shadow:0 0 0 2px rgba(0,0,0,.6);text-decoration:none}
+#fal-oth s u{position:absolute;top:-2px;bottom:-2px;width:5px;margin-left:-2px;background:#fff;box-shadow:0 0 5px #000;text-decoration:none}
+#fal-oth em{display:block;width:60px;height:60px;border-radius:50%;border:5px solid #e9c063;background:rgba(233,192,99,.18);box-sizing:border-box;font-style:normal}
+#fal-oth-res{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 290px);padding:4px 16px;border-radius:12px;font:700 22px Cinzel,Georgia,serif;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .1s}
+#fal-oth-res.ve{opacity:1}
+#fal-oth-res.bien{background:rgba(233,192,99,.95);color:#3a2a08}
+#fal-oth-res.flojo{background:rgba(120,120,120,.85);color:#eee}
 @media (orientation:landscape){
+  #fal-oth{left:8%;width:70%;bottom:calc(env(safe-area-inset-bottom) + 64px);gap:3px}
+  #fal-oth em{width:40px;height:40px;border-width:4px}
+  #fal-oth b{font-size:14px;padding:2px 10px}
+  #fal-oth-res{bottom:calc(env(safe-area-inset-bottom) + 215px);font-size:18px}
+  #fal-emp b,#fal-aviso b{font-size:15px}
+  #fal-emp,#fal-aviso{margin-top:-134px}
   #fal-eco{top:calc(env(safe-area-inset-top) + 66px);font-size:15px}
   #fal-hueco{top:calc(env(safe-area-inset-top) + 104px);font-size:14px}
 }`;
   document.head.appendChild(st);
   const raiz = document.createElement('div'); raiz.id = 'fal'; raiz.hidden = true;
   const R2 = 28, C2 = 2 * Math.PI * R2;
-  raiz.innerHTML = `<div id="fal-aviso"><b>¡Bajad sarisas! ↓</b><i><u></u></i></div><div id="fal-hueco">Arrastra al de atrás al hueco</div><div id="fal-eco"></div>
+  raiz.innerHTML = `<div id="fal-aviso"><b>¡Bajad sarisas! ↓</b><i><u></u></i><span id="fal-ayuda-a" class="ay"></span></div><div id="fal-emp"><b>¡Aguantad! ✋</b><i><u></u></i><span id="fal-ayuda-e" class="ay"></span></div><div id="fal-oth"><b>¡Othismos! toca al compás</b><em></em><s><u></u></s><span id="fal-ayuda-o" class="ay"></span></div><div id="fal-oth-res"></div><div id="fal-hueco">Arrastra al de atrás al hueco</div><div id="fal-eco"></div>
 <svg class="anillo" viewBox="-36 -36 72 72"><circle r="${R2}" stroke="rgba(0,0,0,.5)" stroke-width="9"/><circle id="fal-cuenta" r="${R2}" stroke="#ff5a44" stroke-width="6" transform="rotate(-90)" stroke-dasharray="${C2}"/><circle r="${R2 + 7}" stroke="#ff5a44" stroke-width="2" stroke-dasharray="4 5"/></svg>`;
   (padre || document.body).appendChild(raiz);
-  const $ = s => raiz.querySelector(s), aviso = $('#fal-aviso'), barra = $('#fal-aviso u'), huecoR = $('#fal-hueco'), eco = $('#fal-eco'), anilloS = $('svg.anillo'), cuenta = $('#fal-cuenta');
+  const $ = s => raiz.querySelector(s), aviso = $('#fal-aviso'), barra = $('#fal-aviso u'), huecoR = $('#fal-hueco'), emp = $('#fal-emp'), empB = $('#fal-emp b'), empU = $('#fal-emp u'), oth = $('#fal-oth'), cir = $('#fal-oth em'), fz = $('#fal-oth s u'), othRes = $('#fal-oth-res'),
+    ayA = $('#fal-ayuda-a'), ayE = $('#fal-ayuda-e'), ayO = $('#fal-ayuda-o'), eco = $('#fal-eco'), anilloS = $('svg.anillo'), cuenta = $('#fal-cuenta');
   let ecoVisto = '', ecoHasta = 0, reloj = 0, pos = null;
   function pinta({ ve, est, frente, hueco, dt = 0 }) {
     reloj += dt; raiz.hidden = !ve || !est; pos = null; if (raiz.hidden) return;
@@ -108,6 +134,22 @@ export function crearFalangitaHud({ padre }) {
       const w = innerWidth, x = Math.max(110, Math.min(w - 110, frente[0])), y = Math.max(176, Math.min(innerHeight - 190, frente[1]));
       aviso.style.transform = `translate(${x}px,${y}px)`; barra.style.width = Math.round(100 * est.rival.t) + '%';
     }
+    const pr = est.primera || {};
+    ayA.textContent = pr.acomete ? 'Desliza el dedo hacia abajo' : ''; ayE.textContent = pr.empuje ? 'Mantén el dedo en la pantalla' : ''; ayO.textContent = pr.othismos ? 'Toca cuando late el círculo' : '';
+    const em = est.empuje, em2 = em && em.fase === 'empuja', ot = est.othismos, ot2 = ot && ot.fase === 'empuja';
+    emp.classList.toggle('ve', !!em); emp.classList.toggle('cede', !!(em2 && !em.sujeta));
+    if (em && frente) {
+      const x = Math.max(110, Math.min(innerWidth - 110, frente[0])), y = Math.max(176, Math.min(innerHeight - 190, frente[1]));
+      emp.style.transform = `translate(${x}px,${y}px)`; empU.style.width = Math.round(100 * Math.max(0, Math.min(1, em.t))) + '%';
+      empB.textContent = em2 && !em.sujeta ? '¡Cede!' : '¡Aguantad! ✋';
+    }
+    oth.classList.toggle('ve', !!ot);
+    if (ot) {
+      const c = ot.fase === 'empuja' ? 1 - Math.min(1, ot.compas * 2) : 0.3, k = 0.7 + 0.5 * Math.max(0, c);
+      cir.style.transform = `scale(${k.toFixed(2)})`; cir.style.opacity = ot2 ? (0.55 + 0.45 * c).toFixed(2) : '0.35';
+      fz.style.left = Math.round(50 + 50 * Math.max(-1, Math.min(1, ot.fuerza || 0))) + '%';
+    }
+    if (ot2 && ot.ultimo && ot.tUltimo < 0.5) { othRes.textContent = ot.ultimo === 'bien' ? '¡Bien!' : 'flojo'; othRes.className = 've ' + ot.ultimo; } else othRes.className = '';
     const hu = est.hueco;
     huecoR.classList.toggle('ve', !!hu);
     if (hu && hueco && hueco[2]) {
