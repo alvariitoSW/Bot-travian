@@ -3,6 +3,8 @@ Voces habladas de AQVILA (assets/voces) — SON3-b, 23/11/2026
 Cada archivo es una frase de los soldados (js/voces.js, campo «pron») dicha en voz alta, o un grito griego del enemigo
 (griego1 = «Alalá», griego2 = «Eleleú», griego3 = peán «Yé, yé, paián»).
 Son 77 frases romanas (ids de js/voces.js, p. ej. choque-19.mp3) y 3 gritos griegos: 80 archivos de voz sintética.
+SON5 (24/11/2026) añade 58 más: 36 frases en griego antiguo de nuestra falange (gr-*.mp3: oficial o lochagós y falangitas; pronunciación koiné
+aproximada con la voz española) y 22 gritos de guerra en castellano de Cartago (ca-*), los galos (ga-*) y los íberos (ib-*). Total: 138 archivos.
 LICENCIA DEL AUDIO: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), porque la voz se entrenó con datos CC BY 3.0 y
 exige citar a sus autores (el crédito está también en la pantalla de créditos del juego y en js/registro.js).
 
@@ -34,6 +36,8 @@ Cómo se hicieron (tools/voces.py; se rehacen con: pip install piper-tts; python
   ya pone el fragor debajo). Centurión y optio: una toma, length_scale 0,9. Soldado: dos tomas del mismo locutor (length_scale
   0,88 y 0,95), la segunda a −8 dB y desfasada 60 ms. Griegos: tres tomas (0,86 / 0,93 / 0,98) con desfases de 45 y 90 ms.
   mp3 mono a 32 kHz, volumen medio −18 dB, pico por debajo de −1 dB.
+- SON5: las frases gr-* y los gritos ca-*, ga-*, ib-* se hicieron con la misma receta (oficial y jefe, una toma; falangitas y guerreros, dos tomas, la segunda a −8 dB y desfasada 60 ms),
+  leyendo el campo «pron» de js/voces.js (GRIEGAS y GRITOS). El griego va con pronunciación koiné aproximada para una voz española (no es la voz de un griego): es del juego.
 - Los gritos griegos son palabras atestiguadas en griego antiguo (ver gobierno/historia/SON1-voces.md).
 - Descartadas tras escuchar muestras: Kokoro, la voz davefx (CC0) con saturación y tomas de tono cambiado.
 
@@ -119,3 +123,61 @@ lista (todas: CC BY 3.0, voz es_ES-sharvard-medium, Piper):
  victoria-82.mp3
  victoria-83.mp3
  victoria-84.mp3
+ gr-espera-1.mp3
+ gr-espera-2.mp3
+ gr-espera-3.mp3
+ gr-espera-4.mp3
+ gr-pila-5.mp3
+ gr-pila-6.mp3
+ gr-choque-7.mp3
+ gr-choque-8.mp3
+ gr-choque-9.mp3
+ gr-empujar-10.mp3
+ gr-empujar-11.mp3
+ gr-empujar-12.mp3
+ gr-aguantar-13.mp3
+ gr-aguantar-14.mp3
+ gr-carga-enemiga-15.mp3
+ gr-carga-enemiga-16.mp3
+ gr-elefantes-17.mp3
+ gr-elefantes-18.mp3
+ gr-caballeria-19.mp3
+ gr-flanco-20.mp3
+ gr-flanco-21.mp3
+ gr-cansancio-22.mp3
+ gr-flaquea-23.mp3
+ gr-flaquea-24.mp3
+ gr-roto-propio-25.mp3
+ gr-roto-propio-26.mp3
+ gr-roto-enemigo-27.mp3
+ gr-roto-enemigo-28.mp3
+ gr-enemigo-cede-29.mp3
+ gr-enemigo-cede-30.mp3
+ gr-victoria-31.mp3
+ gr-victoria-32.mp3
+ gr-derrota-33.mp3
+ gr-derrota-34.mp3
+ gr-lucha-35.mp3
+ gr-lucha-36.mp3
+ ca-espera-1.mp3
+ ca-espera-2.mp3
+ ca-empujar-3.mp3
+ ca-choque-4.mp3
+ ca-elefantes-5.mp3
+ ca-roto-enemigo-6.mp3
+ ca-victoria-7.mp3
+ ca-derrota-8.mp3
+ ga-espera-9.mp3
+ ga-empujar-10.mp3
+ ga-choque-11.mp3
+ ga-carga-enemiga-12.mp3
+ ga-roto-enemigo-13.mp3
+ ga-victoria-14.mp3
+ ga-derrota-15.mp3
+ ib-espera-16.mp3
+ ib-empujar-17.mp3
+ ib-choque-18.mp3
+ ib-flaquea-19.mp3
+ ib-roto-enemigo-20.mp3
+ ib-victoria-21.mp3
+ ib-derrota-22.mp3

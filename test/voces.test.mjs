@@ -92,11 +92,65 @@ ok(V.griegoPropio(fch, () => 0).id === 'griego1' && V.griegoPropio(fesp) === nul
 // la banda (js/gfx/banda.js): quién somos y quién es el rival, y el resumen para la música desde el simulador
 const Bd = createRequire(import.meta.url)('../js/gfx/banda.js'), Mu = createRequire(import.meta.url)('../js/gfx/musica.js');
 globalThis.Voces = V;
-ok(Bd.propioDe({ hastati: 90, principes: 90 }) === 'romano' && Bd.propioDe({ falange: 800 }) === 'griego' && Bd.propioDe({ libios: 500, hoplitas: 100 }) === 'otro' && Bd.propioDe({ galos: 500 }) === 'otro' && Bd.propioDe() === 'otro', 'banda: Roma habla latín; la falange, solo gritos; Cartago y galos, nada propio');
+ok(Bd.propioDe({ hastati: 90, principes: 90 }) === 'romano' && Bd.propioDe({ falange: 800 }) === 'griego' && Bd.propioDe({ libios: 500, hoplitas: 100 }) === 'cartago' && Bd.propioDe({ galos: 500 }) === 'galos' && Bd.propioDe({ iberos: 500, velites: 50 }) === 'iberos' && Bd.propioDe({ honderos: 90 }) === 'otro' && Bd.propioDe() === 'otro', 'banda: Roma habla latín; la falange, griego; Cartago, galos e íberos, gritos en español (SON5)');
 ok(Bd.rivalDe({ galos: 300 }).galos && !Bd.rivalDe({ galos: 300 }).esGriego && Bd.rivalDe({ falange: 90 }).esGriego && !Bd.rivalDe({ hastati: 90 }).galos, 'banda: el rival galo canta; el griego grita en griego; Roma, ni una cosa ni otra');
 const man = (lado, moral, estado, n0 = 100) => ({ lado, n0, moral, estado, fatiga: 0.2 });
 const base = { fase: 'lucha', man: [man(0, 1, 'firme'), man(0, 0.4, 'duda'), man(1, 0.8, 'firme'), man(1, 0, 'roto')], reg: [], resultado: null };
 const r0 = Bd.resumenSim(base); ok(r0.fase === 'lejos' && r0.rotos[1] === 1 && r0.rotos[0] === 0 && Math.abs(r0.moral[0] - 0.7) < 1e-9, 'resumen: sin choque aún, «lejos»; cuenta los rotos y la moral media');
 base.reg.push({ tipo: 'choque' }); ok(Bd.resumenSim(base).fase === 'lucha' && Mu.tensionDe(Bd.resumenSim(base)) > Mu.tensionDe(r0), 'resumen: tras el choque, «lucha» y más tensión');
 base.fase = 'fin'; base.resultado = { como: 'victoria' }; ok(Bd.resumenSim(base).fase === 'fin' && Mu.estadoDe(Bd.resumenSim(base)) === 'victoria', 'resumen: al acabar, victoria');
+
+// SON5: nuestra falange habla griego antiguo; Cartago, galos e íberos gritan en español
+const G = V.GRIEGAS, GR = V.GRITOS, mp3 = id => existsSync(RAIZ + 'assets/voces/' + id + '.mp3') && statSync(RAIZ + 'assets/voces/' + id + '.mp3').size > 2000;
+ok(G.length >= 25 && G.length <= 40, `hay ${G.length} frases en griego antiguo (25–40)`);
+ok(G.every(f => typeof f.pron === 'string' && f.pron.length > 2 && f.es && f.es.length > 2 && f.lat && f.gr && f.grupo && V.GRUPOS.includes(f.grupo) && f.peso > 0), 'toda frase griega trae pron, traducción, transliteración, escritura griega, grupo y peso');
+ok(G.every(f => mp3(f.id)), 'toda frase griega tiene su mp3 en assets/voces/');
+ok(G.every(f => f.fuente || f.licencia === 'juego'), 'toda frase griega lleva fuente o la marca licencia de juego');
+ok(G.every(f => /[Ͱ-Ͽἀ-῿]/.test(f.gr) && !/[Ͱ-Ͽἀ-῿]/.test(f.lat + f.pron + f.es)), 'el griego va solo en «gr»; la transliteración, la pronunciación y la traducción, en letras latinas');
+ok(G.every(f => f.quien === 'lochagos' || f.quien === 'falangita') && G.some(f => f.quien === 'lochagos') && G.some(f => f.quien === 'falangita'), 'hablan el lochagós (oficial) y los falangitas');
+ok(!G.some(f => /imperi|augustus|legio|cohort/i.test(f.lat + f.es + f.pron)), 'ningún anacronismo en las frases griegas');
+ok(['espera', 'choque', 'empujar', 'aguantar', 'carga-enemiga', 'elefantes', 'caballeria', 'flanco', 'flaquea', 'roto-propio', 'roto-enemigo', 'enemigo-cede', 'victoria', 'derrota'].every(e => G.some(f => f.ev === e)), 'el griego cubre espera, carga, choque, aguantar, flanco, elefantes, caballería, flaquea, victoria y derrota');
+ok(G.every(f => V.SITUACIONES.includes(f.ev)) && new Set(G.map(f => f.id)).size === G.length, 'situaciones válidas e ids únicos');
+ok(G.filter(f => f.grupo === 'orden').every(f => f.quien === 'lochagos'), 'las órdenes (grupo «orden») son del lochagós');
+ok(G.find(f => f.lat === 'Émba!') && G.find(f => f.lat === 'Émba!').es === '¡Adelante!', 'el ejemplo «Ἔμβα! — ¡Adelante!» se lee «Émba!»');
+// los gritos en español
+const PU = ['cartago', 'galos', 'iberos'];
+ok(GR.length >= 15 && GR.length <= 25, `hay ${GR.length} gritos de guerra en español (15–25)`);
+ok(PU.every(p => GR.filter(g => g.pueblo === p).length >= 5), 'cada pueblo (Cartago, galos, íberos) tiene al menos 5 gritos');
+ok(GR.every(g => g.pueblo && PU.includes(g.pueblo) && (g.quien === 'jefe' || g.quien === 'guerrero') && g.lat && g.pron && g.grupo && V.GRUPOS.includes(g.grupo) && V.SITUACIONES.includes(g.ev) && (g.fuente || g.licencia === 'juego')), 'todo grito lleva pueblo, quién, texto, pron, situación y fuente o licencia de juego');
+ok(GR.every(g => mp3(g.id)) && new Set(GR.map(g => g.id)).size === GR.length, 'todo grito tiene su mp3 y su id propio');
+ok(GR.every(g => /^¡.*[!?]$/.test(g.lat) && !/[Ͱ-Ͽ]/.test(g.lat)), 'son exclamaciones en castellano (¡…!)');
+ok(!GR.some(g => /falcata|imperi|delenda|augusto|c[eé]sar|cristo|dios mío|\b(the|and|for)\b/i.test(g.lat + g.pron)), 'sin anacronismos ni otras lenguas (falcata, Imperio, Delenda, César, inglés)');
+ok(GR.filter(g => g.pueblo === 'cartago').some(g => /Melqart|Tanit|Baal/.test(g.lat)) && GR.filter(g => g.pueblo === 'galos').some(g => /Breno/.test(g.lat)) && GR.filter(g => g.pueblo === 'iberos').some(g => /íberos|Neto|Indíbil/.test(g.lat)), 'los dioses y nombres de época: Melqart, Tanit y Baal; Breno; Neto e Indíbil');
+ok(PU.every(p => ['espera', 'empujar', 'choque', 'victoria', 'derrota', 'roto-enemigo'].every(e => GR.some(g => g.pueblo === p && g.ev === e))), 'cada pueblo grita al esperar, cargar, chocar, romper al rival, ganar y perder');
+// ninguna lengua no permitida: solo español (gritos) y griego translitero (frases), sin latín mezclado en los de otros pueblos
+ok(!GR.some(g => /\b(tenete|pro roma|signa|hastati|legio|vicimus)\b/i.test(g.lat)), 'los gritos de otros pueblos no llevan latín');
+ok(V.nombreDe(G[0]) !== '' && V.nombreDe(GR[0]) === 'Jefe cartaginés' && V.nombreDe(GR.find(g => g.pueblo === 'galos' && g.quien === 'guerrero')) === 'Guerrero galo' && V.nombreDe(F[0]) === 'Centurión', 'nombreDe: lochagós, jefe cartaginés, guerrero galo, centurión');
+// Voces.elige con pueblo: solo habla lo propio de ese pueblo (y el enemigo), nunca latín
+for (const p of ['griego', ...PU]) {
+  const e = V.nuevo(), r = semilla(11), vistas = new Set(); let tt = 0;
+  for (let k = 0; k < 4000; k++) { tt += 1; e.t = tt; e.tension = 0.8; const sit = V.SITUACIONES[k % V.SITUACIONES.length], f = V.elige(sit, e, r, p); if (f) vistas.add(f); }
+  const propias = [...vistas].filter(f => f.quien !== 'enemigo');
+  ok(propias.length > 3 && propias.every(f => f.pueblo === p), `Voces.elige(…, '${p}') solo da frases de ese pueblo (${propias.length}) y lo que se oye del enemigo`);
+}
+{ const e = V.nuevo(); e.t = 50; const f = V.elige('choque', e, () => 0.1); ok(!f || !f.pueblo, 'sin pueblo, Voces.elige sigue dando las romanas de siempre'); }
+ok(V.rotulo(G.find(f => f.lat === 'Émba!')) === 'Lochagós: Ἔμβα! · Émba! — ¡Adelante!' && V.rotulo(GR[0]) === 'Jefe cartaginés: ¡Baal Hammón, danos la victoria!', 'rótulos: «Lochagós: Ἔμβα! · Émba! — ¡Adelante!» y «Jefe cartaginés: ¡Baal Hammón…!»');
+ok(V.FRASES_PUEBLO.griego.length === G.length && PU.every(p => V.FRASES_PUEBLO[p].length === GR.filter(g => g.pueblo === p).length), 'FRASES_PUEBLO reúne las frases de cada pueblo');
+// banda: el pueblo manda sobre las tropas (Escaramuzas); los demás pueblos hablan lo suyo
+ok(Bd.propioDe({ hastati: 90 }, 'cartago') === 'cartago' && Bd.propioDe({ libios: 50 }, 'roma') === 'romano' && Bd.propioDe({ velites: 90 }, 'roma') === 'romano' && Bd.propioDe({ falange: 90 }, 'epiro') === 'griego' && Bd.propioDe({ falange: 90 }, 'macedonia') === 'griego' && Bd.propioDe({ galos: 90 }, 'iberos') === 'iberos', 'banda: el pueblo elegido en Escaramuzas manda (Roma, Cartago, Epiro, Macedonia, galos, íberos)');
+ok(Bd.propioDe({ hoplitas: 600 }) === 'griego' && Bd.propioDe({ sagrada: 300, hoplitas: 600 }) === 'cartago', 'banda: sin pueblo, hoplitas = griego; con tropa sagrada, Cartago');
+// banda con subtítulo falso: el griego y el español salen con nombre, texto y voz
+{
+  const pone = []; const sustituto = { vbuf: {}, tiene: () => false, muestra() {}, voz: (id) => { pone.push(id); return true; }, contexto() {}, cargaVoces(l) { pone.push('carga:' + l.length); } };
+  globalThis.Sonido = sustituto; globalThis.Musica = undefined; globalThis.Voces = V;
+  for (const [propio, esp] of [['griego', 'gr-'], ['cartago', 'ca-'], ['galos', 'ga-'], ['iberos', 'ib-']]) {
+    pone.length = 0; sustituto.vbuf = {}; for (const f of V.FRASES_PUEBLO[propio]) sustituto.vbuf[f.id] = { duration: 1 };
+    const b = Bd.crea({ propio, rival: {}, semilla: 1 }); b.inicia();
+    for (let k = 0; k < 40; k++) { b.vz.t += 20; b.vz.tUlt = -99; b.dice(['choque', 'empujar', 'espera', 'victoria'][k % 4]); }
+    ok(pone.some(x => x.startsWith(esp)), `banda '${propio}': suena una voz ${esp}* (${pone.filter(x => x.startsWith(esp)).length} veces)`);
+    ok(!pone.some(x => !x.startsWith(esp) && !x.startsWith('carga:') && !/^griego/.test(x)), `banda '${propio}': ninguna voz latina ni de otro pueblo`);
+    ok(pone.find(x => x.startsWith('carga:')) === 'carga:' + (V.FRASES_PUEBLO[propio].length + (propio === 'griego' ? V.GRIEGO.length : 0)), `banda '${propio}': solo carga las voces de su pueblo`);
+  }
+  globalThis.Sonido = undefined;
+}
 if (fallos.length) { console.log('\nFALLAN ' + fallos.length); process.exit(1); } else console.log('\nTodo bien');

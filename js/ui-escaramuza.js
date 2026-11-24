@@ -136,7 +136,8 @@ export function listo() { asegura(); return cuenta(0) > 0 && cuenta(1) > 0; }
 export function batalla() {
   asegura(); S.paso = 1; S.ficha = null;   /* la próxima vez se abre en el paso 1 */
   const hom = l => { const r = {}; for (const t in S.ej[l]) if (S.ej[l][t] > 0) r[t] = S.ej[l][t] * tam(t); return r; };
-  return { semilla: (Math.random() * 1e9) >>> 0, campo: S.campo, fac: S.pueblo[1], ejercitos: [hom(0), hom(1)] };
+  const ejercitos = [hom(0), hom(1)]; ejercitos.pueblo = S.pueblo[0];   /* SON5: el pueblo nuestro (decide en qué lengua gritan los nuestros) viaja en el propio arreglo: js/ui.js solo reenvía semilla, ejercitos y campo */
+  return { semilla: (Math.random() * 1e9) >>> 0, campo: S.campo, fac: S.pueblo[1], pueblo: S.pueblo[0], ejercitos };
 }
 
 /* ---------- pintar ---------- */
