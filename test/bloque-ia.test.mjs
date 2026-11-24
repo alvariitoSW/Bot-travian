@@ -218,6 +218,22 @@ t('el bot que se retira a tiempo pierde menos que el que aguanta perdiendo (Fác
     assert.ok(B.every(r => r.retiradas >= 1), 'el bot se retiró');
   }
 });
+t('Difícil (4B): tras retirarse y rehacerse, girar hacia su jefe hace que retirarse no solo retrase la derrota', () => {
+  const A = SEM(10).map(sm => perdiendo('dificil', sm, 'bueno')), B = SEM(10).map(sm => perdiendo('dificil', sm, 'retira'));
+  console.log(`   difícil: aguanta gana ${gana(A)} y pierde ${media(A, r => r.perdidos).toFixed(1)} hombres · se retira y gira: gana ${gana(B)} y pierde ${media(B, r => r.perdidos).toFixed(1)}`);
+  assert.ok(gana(B) >= 5 && gana(B) > gana(A), `${gana(A)} → ${gana(B)}`);
+});
+t('Girar hacia su jefe (4B): tras rehacerte, si su jefe viene por un lado se propone el frente hacia él (raya dorada) y no se ilumina Cargar', () => {
+  let vistos = 0, cargarConGiro = 0, ok = 0;
+  for (const sm of SEM(6)) {
+    const C = crearCombate({ semilla: sm, nivel: 'dificil', motor: BL }); alChoque(C, 40); const tu = C.S.tuyo; tu.relevos = 0; tu.fila = 0.8; tu.U.animo = 0.5;
+    hasta(C, () => tu.vueltas > 0, C.S.T + 80, 'retira'); if (!tu.vueltas) continue; ok++;
+    hasta(C, () => { const g = C.giroUtil(); if (g) { vistos++; if (!tu.contactos.length && C.ordenUtil() === 'cargar') cargarConGiro++;
+      assert.ok(Math.abs(Math.atan2(Math.sin(g.ang - tu.ang), Math.cos(g.ang - tu.ang))) <= 50 * GRADO + 1e-6, 'nunca más de 50°'); } return false; }, C.S.T + 15, 'retira');
+  }
+  console.log('   partidas que se rehicieron', ok, '· pasos con giro propuesto', vistos, '· con Cargar a la vez', cargarConGiro);
+  assert.ok(ok >= 4 && vistos > 0 && cargarConGiro === 0);
+});
 t('en partidas enteras, retirarse a tiempo no hunde (Normal y Difícil, 40 partidas: como mucho una victoria menos y 2 hombres más de media)', () => {
   let gA = 0, gB = 0, pA = 0, pB = 0;
   for (const nivel of ['normal', 'dificil']) {

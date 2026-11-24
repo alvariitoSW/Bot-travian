@@ -254,6 +254,10 @@ function salta(fase) {
     hasta(() => tu.contactos.length > 0 && S.T > 40); tu.relevos = 0; tu.fila = 0.8; tu.U.animo = 0.5; hasta(() => C.ordenUtil() === 'retirada');
     if (fase === 'retirada') { C.orden('retirada'); for (let i = 0; i < 110; i++) paso(); }
   }
+  else if (fase === 'jefe') {   /* LP4b (4B): se retira, se rehace y su jefe vuelve por un lado: la raya dorada */
+    hasta(() => tu.contactos.length > 0 && S.T > 40); tu.relevos = 0; tu.fila = 0.8; tu.U.animo = 0.5;
+    while (!S.ganador && !(tu.vueltas && C.giroUtil()) && S.T < 280) { C.bot('retira'); paso(); }
+  }
   else if (fase === 'fin') hasta(() => false);
   oyente = null; TR.asienta(); for (let i = 0; i < 30; i++) TR.paso(0.05, S.T);
   if (fase !== 'testudo') $('grito').classList.remove('ve');
