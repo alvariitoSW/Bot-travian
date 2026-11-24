@@ -14,9 +14,9 @@
    velocidad que le dan las reglas) y, al caer, fCae (hacia dónde cae: ángulo como el yaw). Las reglas no lo leen: las partidas no cambian.
    Quien dibuja suma h.fx, h.fz a la posición del hombre vivo.
 
-   PROYECTILES (FI3). OBSOLETO (FI3u, 24/11): el motor que vale es crearProyectiles(), más abajo; ya trae el pilum que se dobla,
-   la herida en el casco, los tipos y el lastre del escudo. Este de aquí (Fi.lanza, Fi.vuela, Fi.dondeP) se queda solo porque lo
-   usa la maqueta del bloque (LP5a, gobierno/maquetas/bloque/fisica.js); se quita en cuanto conecte con crearProyectiles().
+   PROYECTILES (FI3). crearProyectiles() (más abajo, FI3u) es el motor para cuando la REGLA decide a quién da cada arma. Este de
+   aquí (Fi.lanza, Fi.vuela, Fi.dondeP) decide él solo dónde da: lo usan la maqueta del bloque (LP5a, gobierno/maquetas/bloque/fisica.js)
+   y las batallas grandes (FI4, crearFisicaFiguras, al final), donde las reglas no saben a qué hombre da cada pilum.
    Lo de antes: pilum, jabalina y flecha con física. Diseño y varas: gobierno/partes/2026-11-23-FI3.md.
      Fi.lanza(tipo, P, V, de)             tipo 'pilum' | 'jabalina' | 'flecha'; P la punta, V la velocidad (m/s); de: quien lanza (no se da a sí mismo)
                                           → el proyectil p: { tipo, x, y, z, vx, vy, vz, est: 'vuela' | 'clavado' | 'caido', en, doblado, rebotes, fijo }
@@ -234,7 +234,9 @@ export function crearFisica(op = {}) {
           const rs = ra + R[j], rl = rs > DMAX_PAR ? rs : DMAX_PAR;
           let vx = (X[j] + FX[j]) - (X[i] + FX[i]), vz = (Z[j] + FZ[j]) - (Z[i] + FZ[i]);
           if (vx * vx + vz * vz >= rl * rl * (1 + 1e-9)) continue;   /* lejos, sin raíz (sin parMax, parMin solo acorta la distancia mínima) */
-          const pm = parMin ? parMin(L[i], L[j]) : undefined, min = pm === undefined ? rs : DMAX_PAR ? Math.min(pm, DMAX_PAR) : Math.min(rs, pm); let d = Math.hypot(vx, vz);
+          const pm = parMin ? parMin(L[i], L[j]) : undefined, min = pm === undefined ? rs : DMAX_PAR ? Math.min(pm, DMAX_PAR) : Math.min(rs, pm);
+          if (vx * vx + vz * vz > min * min * (1 + 1e-9)) continue;   /* FI4: lejos para su propia distancia, sin raíz (la cuenta exacta, abajo, daría lo mismo) */
+          let d = Math.hypot(vx, vz);
           if (d >= min) continue;
           if (d < 1e-6) { const g = (i * 2.399 + j) % 6.283; vx = Math.cos(g); vz = Math.sin(g); d = 0; } else { vx /= d; vz /= d; }
           const ib = 1 / M[j], wa = ia / (ia + ib), o = min - d;
@@ -941,4 +943,192 @@ export function crearProyectiles(op = {}) {
   /* lo clavado se suelta (p. ej. el asta que lo llevaba se baja): cae desde donde está, con un poco de giro */
   function suelta(p) { const f = p.fi, q = f && f.pose; if (!q || f.modo !== 'clava') return; quita(f); f.x = sum(q.punta, q.dir, -f.CM); f.d = q.dir.slice(); f.v = [0, -0.5, 0]; f.eje = nor(cruz(f.d, [0, 1, 0]).map((x, k) => x || (k ? 0 : 1))); f.w = (1 + 2 * f.az()) * (f.az() < 0.5 ? -1 : 1); f.t = 0; f.modo = 'rebota'; delete f.loc; }
   return { vuela, llega, mueve, pose, medir, reinicia, suelta, avisos: () => avisos.splice(0), olvida: p => quita(p && p.fi), pila: d => pila.get(clave(d)) || 0 };
+}
+
+/* ===================== FI4: la física en las batallas grandes (figuras sueltas) =====================
+   Une el motor de arriba (crearFisica: cuerpos que no se atraviesan, caídos que estorban, proyectiles de FI3) con pantallas
+   que mueven figuras a su aire: la batalla de campaña (js/ui-guerra.js) y, por pase, la de las escaramuzas (js/ui-mando.js).
+   Como en FI1, la física solo dice DÓNDE SE DIBUJA cada figura: las reglas (js/guerra.js, js/simulador.js) no la leen y las
+   batallas salen idénticas con y sin ella. Corre en Node: prueba en test/fisica-batalla.test.mjs (FI4).
+
+   CONTRATO
+   const FF = crearFisicaFiguras({ H, escala, semilla });   escala: alto de la figura / 1,78 m (radios y escudos a su medida)
+   FF.paso(figs, dt, lee)     tras mover las figuras. lee(f, c) rellena el cuerpo c de la figura f y devuelve false si no cuenta
+                              (ya no está en el campo): c.x, c.z (donde la deja la pantalla, sin la física), c.yaw, c.vivo, c.lado (0 | 1),
+                              c.tipo ('infante' | 'jinete' | 'elefante'), c.f (columna: misma clave = misma columna; única si no forma),
+                              c.r (fila, 0 = la de delante), c.guardia (null | 'muro' | 'alto') y c.g (grupo: su línea o su escuadrón;
+                              sin él, cada figura es su grupo). Escribe en la figura f.fx, f.fz:
+                              lo que la física la aparta (m; como mucho TOPE). Quien dibuja lo suma a su sitio, viva o caída.
+   FF.lanza(tipo, de, P, B, t)  proyectil ('pilum' | 'jabalina' | 'flecha') que sale de la figura de (no se da a sí mismo) en el punto P
+                              [x, y, z] y llegaría a B [x, y, z] en t segundos si nada lo para (tiro parabólico). Lo resuelve el motor:
+                              se clava en escudo, cuerpo o suelo, o rebota.
+   FF.proyectiles, FF.dondeP(p)  la lista viva y dónde dibujar cada uno (punta y dirección; p.doblado: pilum doblado en un escudo)
+   FF.pintaArmas(A, cap, k)   escribe en A (instanceMatrix.array) la matriz de cada uno para la malla del pilum de PIL3 → cuántos
+   op.avisa(a)                cada aviso del motor (clava, rebota, dobla, hiere, cae: ver FI3), para el sonido
+   FF.medir()                 { distMin, pisados, cargas, empuje (m, lo más que recula un golpeado), avisos: {clava_escudo…}, ms (motor),
+                              msTodo (con el enganche), n (cuerpos) }
+   DESPIERTOS (coste). Al motor solo van los grupos despiertos: los que aún no han vuelto a su sitio, los que están a menos de
+   DESPIERTA m de un rival y los que tienen así de cerca otro grupo que se mueve distinto (relevo, cruce); y los caídos cerca de
+   ellos. Los demás no pueden chocar con nadie: se quedan como están (como en LP7).
+   RODEAR. Quien anda y tiene a otro delante que se le acerca se aparta a SU derecha: dos filas que se cruzan (el relevo) pasan
+   una entre la otra sin meterse dentro (en las reglas cruzan por el mismo sitio).
+   LA CARGA. Quien llega corriendo (más de V_CARGA m/s) y se para en seco con un rival delante (a menos de ALCANCE m) le pasa
+   parte de lo que traía: el golpeado recula (≈0,15–0,3 m) y el muelle lo devuelve a su sitio. Como en FI2, es licencia de juego:
+   en las reglas las líneas se paran a distancia de espada y por puro choque de cuerpos nadie se movería.
+   HISTORIA. El golpe de la carga y la descarga de pila antes del choque: Polibio 2.30-33 y 18.30 (de memoria; que Historia coteje).
+   Cifras (velocidades, cuánto pasa, cuánto dura un proyectil en el suelo): licencia de juego. */
+export const FIG = {
+  V_CARGA: 1.8, PARADA: 0.8, ALCANCE: 2.8, K_CARGA: 0.45, TOPE_V: 1.6, ESPERA: 1.5,   /* la carga: m/s, m, fracción que pasa, tope, s entre dos golpes */
+  TENDIDO: 1.5, CAE_T: 1.6,                     /* el caído: largo tendido (m) y lo que tarda en tenderse (s); tronco y piernas, de RADIO_CAIDO */
+  VIDA_P: 14, PROY_MAX: 220,                    /* lo que dura en el suelo o clavado (s) y cuántos como mucho a la vez */
+  DESPIERTA: 3, MUEVE: 0.15,                    /* m entre cajas de grupos; m/s de diferencia (×2) para que dos grupos cercanos se despierten */
+  RODEA: 7, RODEA_V: 1.1, VE: 1.1               /* m/s² de paso a la derecha, tope (m/s) y a qué distancia (m) mira delante */
+};
+export function crearFisicaFiguras(op = {}) {
+  const ESC = op.escala || 1, H = op.H || (() => 0);
+  const Fi = crearFisica({ H, escala: ESC, caidoFijo: true });
+  const SF = { fal: [], ene: [], giro: 0 }, golpes = [];
+  const reloj = () => (typeof performance !== 'undefined' ? performance : Date).now();
+  let T = 0, ms = 0, msTodo = 0, nP = 0, cargas = 0, empuje = 0, distMin = Infinity, pisados = 0, nMed = 0;
+  const avisos = {};
+  const cuerpo = f => f._fc || (f._fc = { x: f.x || 0, z: f.z || 0, fx: 0, fz: 0, vx: 0, vz: 0, ux: 0, uz: 0, yaw: 0, vivo: true, huye: false, salta: false,
+    tipo: 'infante', f: 0, r: 0, tendido: null, guardia: null, pila: 0, lado: 0, fig: f, px: NaN, pz: NaN, sp: 0, spMax: 0, tGolpe: -9, tCae: 0 });
+  /* la carga: quien venía corriendo y se para con un rival delante le pasa parte de su impulso (los dos más cercanos) */
+  function carga(c, rivales) {
+    const fx = Math.sin(c.yaw), fz = Math.cos(c.yaw), al = FIG.ALCANCE * ESC; let a = null, b = null, da = al, db = al;
+    for (const e of rivales) {
+      const dx = e.x + e.fx - c.x - c.fx, dz = e.z + e.fz - c.z - c.fz; if (Math.abs(dx) > al || Math.abs(dz) > al) continue;
+      const d = Math.hypot(dx, dz); if (d >= db || dx * fx + dz * fz < 0.6 * d) continue;
+      if (d < da) { b = a; db = da; a = e; da = d; } else { b = e; db = d; }
+    }
+    if (!a) return;
+    c.tGolpe = T; cargas++;
+    for (const e of [a, b]) {
+      if (!e || T - e.tGolpe < 0.3) continue;
+      const d = Math.hypot(e.x + e.fx - c.x - c.fx, e.z + e.fz - c.z - c.fz) || 1, ux = (e.x + e.fx - c.x - c.fx) / d, uz = (e.z + e.fz - c.z - c.fz) / d;
+      const v = Math.min(FIG.TOPE_V, c.spMax * FIG.K_CARGA * (MASA[c.tipo] || 1) / (MASA[e.tipo] || 1)) * (e === a ? 1 : 0.6);
+      e.vx += ux * v; e.vz += uz * v; e.tGolpe = T; golpes.push({ e, ux, uz, x0: e.fx * ux + e.fz * uz, hasta: T + 0.8 });
+    }
+  }
+  const trozo = c => ({ x: 0, z: 0, fx: 0, fz: 0, vx: 0, vz: 0, vivo: false, huye: false, tipo: c.tipo === 'infante' ? 'infante' : c.tipo, tendido: null, f: 0, r: 0, de: c });
+  const grupos = new Map(), todos = [], celdas = new Map();
+  let gid = 0;
+  function grupo(k) { let G = grupos.get(k); if (!G) grupos.set(k, G = { k, n: gid++, cs: [], x0: 0, x1: 0, z0: 0, z1: 0, lado: 0, activo: false, desp: false, visto: 0, vx: 0, vz: 0 }); return G; }
+  const cerca = (a, b, m) => a.x0 - m <= b.x1 && b.x0 - m <= a.x1 && a.z0 - m <= b.z1 && b.z0 - m <= a.z1;
+  /* RODEAR: el que anda y tiene delante a otro que se le acerca toma velocidad hacia su derecha (rejilla de 1 m solo de los que andan y sus vecinos) */
+  function rodea(vivos, dt) {
+    celdas.clear(); const ve = FIG.VE * ESC, r2 = 2 * (RADIO.infante * ESC) + 0.12 * ESC;
+    for (const c of vivos) { const k = ((Math.floor(c.x + c.fx) + 32768) << 16) | ((Math.floor(c.z + c.fz) + 32768) & 0xffff); let L = celdas.get(k); if (!L) celdas.set(k, L = []); L.push(c); }
+    for (const c of vivos) {
+      if (c.sp < 0.3 || c.tipo === 'elefante') continue;
+      const ux = c.mx / c.sp, uz = c.mz / c.sp, ax = c.x + c.fx, az = c.z + c.fz, cx = Math.floor(ax), cz = Math.floor(az); let tapa = false;
+      for (let dx = -1; dx <= 1 && !tapa; dx++) for (let dz = -1; dz <= 1 && !tapa; dz++) {
+        const L = celdas.get(((cx + dx + 32768) << 16) | ((cz + dz + 32768) & 0xffff)); if (!L) continue;
+        for (const b of L) {
+          if (b === c) continue;
+          const rx = b.x + b.fx - ax, rz = b.z + b.fz - az, del = rx * ux + rz * uz; if (del <= 0 || del > ve) continue;
+          if (Math.abs(rx * uz - rz * ux) >= r2) continue;
+          if ((c.mx - b.mx) * ux + (c.mz - b.mz) * uz < 0.25) continue;   /* no se le acerca: va delante en su misma marcha */
+          tapa = true; break;
+        }
+      }
+      if (!tapa) continue;
+      const lat = c.vx * -uz + c.vz * ux;   /* derecha de quien anda hacia (ux, uz): (−uz, ux) con el yaw del juego */
+      if (lat < FIG.RODEA_V) { const dv = Math.min(FIG.RODEA * dt, FIG.RODEA_V - lat); c.vx += -uz * dv; c.vz += ux * dv; }
+    }
+  }
+  function paso(figs, dt, lee) {
+    const t0 = reloj(); T += dt; SF.fal.length = 0; SF.ene.length = 0; todos.length = 0;
+    for (const G of grupos.values()) { G.cs.length = 0; G.activo = false; G.vx = G.vz = 0; }
+    for (const f of figs) {
+      const c = cuerpo(f), eraVivo = c.vivo; c.g = undefined;
+      if (!lee(f, c)) { f.fx = f.fz = 0; c.px = NaN; c.fuera = true; continue; }
+      c.fuera = false;
+      if (eraVivo && !c.vivo) { c.tCae = 0; c.vx = c.vz = 0; c.dx = -Math.sin(c.yaw); c.dz = -Math.cos(c.yaw); c.trozos = c.trozos || [trozo(c), trozo(c)]; }
+      else if (c.vivo) c.trozos = null;
+      if (!c.vivo && c.trozos) {   /* el caído se tiende de espaldas poco a poco: tronco y piernas, dos círculos (más barato que una cápsula: 9 celdas, no 49) */
+        if (c.tCae < FIG.CAE_T) c.tCae += dt; const u = Math.min(1, c.tCae / FIG.CAE_T), l = FIG.TENDIDO * ESC * u * u * (3 - 2 * u), bx = c.x + c.fx, bz = c.z + c.fz;
+        for (let k = 0; k < 2; k++) { const t = c.trozos[k], a = l * (k ? 0.72 : 0.25); t.x = bx + c.dx * a; t.z = bz + c.dz * a; }
+      }
+      c.mx = c.mz = 0;
+      if (c.vivo && dt > 0) {
+        let sp = Number.isNaN(c.px) ? 0 : Math.hypot(c.x - c.px, c.z - c.pz) / dt; if (sp > 9) sp = 0;   /* más de 9 m/s es un salto de sitio, no una carrera */
+        if (sp > 0) { c.mx = (c.x - c.px) / dt; c.mz = (c.z - c.pz) / dt; }
+        c.sp = sp; c.spMax = Math.max(sp, c.spMax - dt * 3);
+        c.salta = sp > 2.5;   /* quien va deprisa pasa por encima de un caído (LP5a) */
+      }
+      c.px = c.x; c.pz = c.z;
+      todos.push(c);
+      if (!c.vivo) continue;
+      const G = grupo(c.g === undefined ? 'f' + f.idx : c.g); G.lado = c.lado;
+      const x = c.x + c.fx, z = c.z + c.fz;
+      if (!G.cs.length) { G.x0 = G.x1 = x; G.z0 = G.z1 = z; } else { if (x < G.x0) G.x0 = x; else if (x > G.x1) G.x1 = x; if (z < G.z0) G.z0 = z; else if (z > G.z1) G.z1 = z; }
+      G.cs.push(c); G.vx += c.mx; G.vz += c.mz;
+      if (Math.abs(c.fx) + Math.abs(c.fz) > 0.01 || Math.abs(c.vx) + Math.abs(c.vz) > 0.02) G.activo = true;   /* aún no ha vuelto a su sitio */
+    }
+    /* despiertos: los que no han vuelto a su sitio, los que tienen un rival cerca y los que tienen cerca otro grupo que se mueve
+       distinto (el relevo, el que cruza). Dos grupos que marchan juntos, al mismo paso, no pueden chocar: duermen */
+    const vivosG = []; for (const G of grupos.values()) if (G.cs.length) { G.vx /= G.cs.length; G.vz /= G.cs.length; vivosG.push(G); } else if (++G.visto > 600) grupos.delete(G.k);
+    const m = FIG.DESPIERTA * ESC, dv2 = FIG.MUEVE * FIG.MUEVE * 4;
+    for (const G of vivosG) G.desp = G.activo;
+    for (let i = 0; i < vivosG.length; i++) { const G = vivosG[i]; for (let j = i + 1; j < vivosG.length; j++) { const O = vivosG[j]; if (G.desp && O.desp) continue; if (!cerca(G, O, m)) continue;
+      if (O.lado !== G.lado || (G.vx - O.vx) ** 2 + (G.vz - O.vz) ** 2 > dv2) G.desp = O.desp = true; } }
+    const caja = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity }, desp = [];
+    for (const G of vivosG) if (G.desp) { desp.push(G); caja.x0 = Math.min(caja.x0, G.x0); caja.x1 = Math.max(caja.x1, G.x1); caja.z0 = Math.min(caja.z0, G.z0); caja.z1 = Math.max(caja.z1, G.z1); }
+    const dm = 2.5 * ESC + FIG.TENDIDO * ESC;
+    for (const c of todos) {
+      if (c.vivo) { if (!grupo(c.g === undefined ? 'f' + c.fig.idx : c.g).desp) continue; }
+      else { const x = c.x + c.fx, z = c.z + c.fz; if (x < caja.x0 - dm || x > caja.x1 + dm || z < caja.z0 - dm || z > caja.z1 + dm) continue;
+        let ok = false; for (const G of desp) if (x >= G.x0 - dm && x <= G.x1 + dm && z >= G.z0 - dm && z <= G.z1 + dm) { ok = true; break; } if (!ok) continue; }
+      const L = c.lado === 0 ? SF.fal : SF.ene; if (c.vivo) L.push(c); else if (c.trozos) L.push(c.trozos[0], c.trozos[1]);
+    }
+    /* la carga y el rodeo, solo entre despiertos */
+    const viv = [[], []]; for (const c of SF.fal) if (c.vivo) viv[0].push(c); for (const c of SF.ene) if (c.vivo) viv[1].push(c);
+    for (const L of viv) for (const c of L) if (c.spMax > FIG.V_CARGA && c.sp < FIG.PARADA && T - c.tGolpe > FIG.ESPERA) carga(c, viv[1 - c.lado]);
+    if (dt > 0) rodea(viv[0].length ? (viv[1].length ? viv[0].concat(viv[1]) : viv[0]) : viv[1], dt);
+    const t1 = reloj(); Fi.paso(SF, dt); ms += reloj() - t1;
+    for (let i = golpes.length - 1; i >= 0; i--) { const g = golpes[i], r = g.e.fx * g.ux + g.e.fz * g.uz - g.x0; if (r > empuje) empuje = r; if (T > g.hasta) golpes.splice(i, 1); }
+    for (const L of [SF.fal, SF.ene]) for (const c of L) if (c.fig) { c.fig.fx = c.fx; c.fig.fz = c.fz; }
+    if (Fi.proyectiles.length) vuela(dt);
+    msTodo += reloj() - t0; nP++;
+  }
+  const SV = { fal: [], ene: [], giro: 0 };   /* para los proyectiles cuentan todos los vivos, despiertos o no */
+  function vuela(dt) {
+    SV.fal.length = SV.ene.length = 0; if (Fi.proyectiles.some(p => p.est === 'vuela')) for (const c of todos) if (c.vivo) (c.lado === 0 ? SV.fal : SV.ene).push(c);
+    for (const a of Fi.vuela(SV, dt)) { const k = a.aviso + '_' + a.en; avisos[k] = (avisos[k] || 0) + 1; if (op.avisa) op.avisa(a); }
+    const L = Fi.proyectiles; let sobran = L.length - FIG.PROY_MAX;
+    /* lo clavado en un hombre que cae o deja el campo cae a sus pies, tendido (no se queda flotando donde estaba su escudo) */
+    for (const p of L) if (p.fijo && (!p.fijo.h.vivo || p.fijo.h.fuera)) { const q = Fi.dondeP(p), dh = Math.hypot(q.dx, q.dz) || 1; p.fijo = null; p.est = 'caido'; p.en = 'suelo'; p.plano = true; p.x = q.x; p.z = q.z; p.y = H(q.x, q.z) + 0.03; p.dir = [q.dx / dh, 0, q.dz / dh]; p.vx = p.vy = p.vz = 0; }
+    for (let i = 0; i < L.length; i++) { const p = L[i]; if (p.est === 'vuela') continue; if (sobran > 0 || T - p.nace > FIG.VIDA_P) { L.splice(i--, 1); sobran--; } }
+  }
+  function lanza(tipo, de, P, B, t) {
+    t = Math.max(0.2, t); const V = [(B[0] - P[0]) / t, (B[1] - P[1]) / t + 0.5 * G * t, (B[2] - P[2]) / t];
+    const p = Fi.lanza(tipo, P, V, de ? cuerpo(de) : null); p.nace = T; return p;
+  }
+  function medir() {
+    const m = Fi.medir(SF); if (m.distMin < distMin) distMin = m.distMin; pisados += m.pisados; nMed++;
+    let n = 0; for (const c of SF.fal) if (c.vivo) n++; for (const c of SF.ene) if (c.vivo) n++;
+    return { distMin: +distMin.toFixed(3), ahora: +m.distMin.toFixed(3), pisados: +(pisados / Math.max(1, nMed)).toFixed(2), cargas, empuje: +empuje.toFixed(3),
+      avisos: Object.assign({}, avisos), ms: +(ms / Math.max(1, nP)).toFixed(3), msTodo: +(msTodo / Math.max(1, nP)).toFixed(3), n, caidos: (SF.fal.length + SF.ene.length - n) / 2, vuelan: Fi.proyectiles.length };
+  }
+  /* FI4: las matrices (4×4 por columnas, como THREE) de cada proyectil para una malla instanciada con la punta en el origen y el
+     arma hacia −Z de 2,11 m (la del pilum de PIL3, js/gfx/soldado.js crearPila). k: escala de la figura. Devuelve cuántas escribió.
+     La jabalina y la flecha, más cortas y finas; el pilum doblado en un escudo: el asta cuelga (sin bajar del suelo) */
+  const LARGO_A = { pilum: 1, jabalina: 0.72, flecha: 0.38 }, GRUESO_A = { pilum: 1, jabalina: 0.8, flecha: 0.45 };
+  function pintaArmas(A, cap, k = 1) {
+    let n = 0;
+    for (const p of Fi.proyectiles) {
+      if (n >= cap) break; const q = Fi.dondeP(p), lg = (LARGO_A[p.tipo] || 1) * k, g = (GRUESO_A[p.tipo] || 1) * k;
+      let dx = q.dx, dy = q.dy, dz = q.dz;
+      if (p.doblado && p.est === 'clavado') { dy += 0.9; const l = Math.hypot(dx, dy, dz) || 1; dx /= l; dy /= l; dz /= l; if (q.y - 2.11 * lg * dy < 0.05) { const h0 = Math.hypot(dx, dz) || 1; dy = Math.max(0, Math.min(1, (q.y - 0.05) / (2.11 * lg))); const h = Math.sqrt(1 - dy * dy); dx *= h / h0; dz *= h / h0; if (h0 < 1e-6) { dx = h; dz = 0; } } }
+      /* base: z' = d; x' = arriba × d (o x si d es vertical); y' = d × x' */
+      let ax = dz, az = -dx; const la = Math.hypot(ax, az); if (la < 1e-6) { ax = 1; az = 0; } else { ax /= la; az /= la; }
+      const bx = dy * az, by = dz * ax - dx * az, bz = -dy * ax, o = n * 16;
+      A[o] = ax * g; A[o + 1] = 0; A[o + 2] = az * g; A[o + 3] = 0; A[o + 4] = bx * g; A[o + 5] = by * g; A[o + 6] = bz * g; A[o + 7] = 0;
+      A[o + 8] = dx * lg; A[o + 9] = dy * lg; A[o + 10] = dz * lg; A[o + 11] = 0; A[o + 12] = q.x; A[o + 13] = q.y; A[o + 14] = q.z; A[o + 15] = 1; n++;
+    }
+    return n;
+  }
+  function cero() { ms = msTodo = 0; nP = 0; distMin = Infinity; pisados = 0; nMed = 0; empuje = 0; cargas = 0; for (const k in avisos) delete avisos[k]; }
+  return { paso, lanza, medir, cero, pintaArmas, dondeP: Fi.dondeP, get proyectiles() { return Fi.proyectiles; }, get T() { return T; } };
 }
