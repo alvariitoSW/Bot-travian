@@ -231,6 +231,7 @@ const semilla = +(Q.get('semilla') || (LP7 && LP7.semilla) || (1 + Math.floor(Ma
 let oyente = null;
 function avisa(tipo, d) {
   if (oyente) oyente(tipo, d);
+  try { if (BANDA && window.Voces) { const sit = tipo === 'pilum' ? 'pila' : tipo === 'rompe' ? (d && d.de && d.de.bando === 'r' ? 'roto-propio' : 'roto-enemigo') : window.Voces.deAviso(tipo, d); if (sit) BANDA.dice(sit); if (tipo === 'fin') BANDA.fin(d.ganador === 'tuyo' ? 'victoria' : d.ganador === 'enemigo' ? 'derrota' : null); } } catch (e) { /* sin banda */ }   /* SON7: las voces y la música, como en Testudo y Falange */
   if (hud) hud.aviso(tipo, d);
   try { FORM.alAviso(tipo, d); } catch (e) { console.warn('formación', e); }
   try {
@@ -305,7 +306,7 @@ function bucle(ahora) {
       TR.paso(dt, C.S.T); FS.paso(dt); lineaDeChoque(dt);
       /* la raya del frente se queda mientras el bloque va hacia ella */
       const B = C.S.B; if (!dedos.activo()) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
-      try { Son.lucha && Son.lucha(C.S.tuyo.contactos.length ? 1 : 0); } catch (e) { /* sin sonido */ }
+      try { sonBloque(dt); } catch (e) { /* sin sonido */ }
     }
     FORM.paso(congelado ? 5 : dt);   /* FU1: el techo, tras mover a los hombres */
     camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt); camara.updateMatrixWorld();
@@ -318,6 +319,17 @@ function bucle(ahora) {
 }
 
 let campo = null;
+/* SON7: el sonido del manípulo cada fotograma: el fragor (golpes según cuántos frentes se tocan, cada caído se oye), los pasos de
+   la formación al marchar y la música y las voces (js/gfx/banda.js), que suben con la tensión */
+let BANDA = null, tPasoB = 0;
+function sonBloque(dt) {
+  const S = C.S, tu = S.tuyo, ene = S.bloques.filter(b => b.bando === 'g'), n = tu.contactos.length;
+  Son.pulso && Son.pulso(dt, { lucha: n ? Math.min(1, 0.55 + 0.25 * n) : 0, moral: tu.U.animo, caen: tu.U.sufrio, caenR: ene.reduce((a, b) => a + (b.U.sufrio || 0), 0) });
+  const v = Math.abs(tu.v || 0); tPasoB -= dt;
+  if (v > 0.3 && !n && tPasoB <= 0) { tPasoB = v > 2.5 ? 0.38 : 0.55; Son.paso && Son.paso(v > 2.5 ? 1.2 : 0.8, tu.orden === 'testudo' ? 1 : 0); }
+  if (BANDA) BANDA.tic(dt, () => ({ fase: S.ganador ? 'fin' : n ? 'lucha' : 'lejos', moral: [tu.U.animo, ene.length ? Math.min(...ene.filter(b => b.estado !== 'fuera').map(b => b.U.animo)) : 1],
+    rotos: [tu.U.roto ? 1 : 0, Math.min(3, ene.filter(b => b.U.roto).length)], cansancio: tu.U.cansancio || 0, resultado: S.ganador === 'tuyo' ? 'victoria' : 'derrota' }), () => !tu.U.roto && tu.U.animo < 0.3);
+}
 /* LP7: lo que vuelve a la batalla grande. k: tuyo, centro, amigas0/1, alas0/1, reserva, tiradores */
 function resultadoLP7() {
   if (!C) return null; const S = C.S, E = S.ene, todos = { tuyo: S.tuyo, amigas0: S.amigas[0], amigas1: S.amigas[1], centro: E.centro, alas0: E.alas[0], alas1: E.alas[1], reserva: E.reserva, tiradores: E.tiradores }, bl = {};
@@ -356,6 +368,7 @@ async function arranca() {
   $('otra').addEventListener('click', () => { $('fin').hidden = true; $('inicio').hidden = false; });
   for (const b of document.querySelectorAll('[data-nivel]')) b.addEventListener('click', () => { $('inicio').hidden = true; nueva(b.dataset.nivel); });
   addEventListener('pointerdown', () => { try { Son.inicia(); } catch (e) { /* sin sonido */ } }, { once: true });
+  try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'romano', rival: { esGriego: false, galos: true }, semilla: 43, abajo: '120px' }); Son.alSonar(() => BANDA.inicia()); window.__bloque.banda = BANDA; } catch (e) { console.log('[SON7] sin banda: ' + e.message); }   /* SON7 */
   if (FASE) { nivel = nivel || 'normal'; nueva(nivel); salta(FASE); congelado = true; if (FASE === 'fin') hud.muestraFin(); }
   else if (!Q.get('nivel') && !LP7) { nivel = null; $('inicio').hidden = false; }
   if (LP7) { $('otra').hidden = true; $('salir2').textContent = 'Volver a la batalla'; if (LP7.objetivo) $('objetivo').textContent = LP7.objetivo;
