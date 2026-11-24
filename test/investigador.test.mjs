@@ -16,7 +16,7 @@ function campana(inv, seed) {
     const s = G.newGame('Test'); const meta = G.region().capitalRival;
     const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
     let guard = 0, i = 0, escuela = false;
-    while (!G.finDePrueba() && guard++ < 200000) {
+    while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {
       G.tick(0.25);
       while (s.pending.length && !s.over) { const b = new Battle(G.battleInfo(s.pending[0]).cfg); b.finish(); G.applyBattle(b.result()); }
       if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)

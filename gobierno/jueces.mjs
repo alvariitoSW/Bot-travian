@@ -1,21 +1,32 @@
 #!/usr/bin/env node
 /* AQVILA — jueces: un solo comando que dice si el juego funciona.
-   Uso:  node gobierno/jueces.mjs            (todo)
+   Uso:  node gobierno/jueces.mjs            (todo lo que cambió: JZ1, ver abajo)
+         node gobierno/jueces.mjs --todo     (todo, aunque no haya cambiado nada: la subida final de la 1.0)
          node gobierno/jueces.mjs --rapido   (solo la lógica, sin navegador)
+         node gobierno/jueces.mjs --seguido  (una prueba detrás de otra, como antes de JZ1; para medir o si la máquina va justa)
+   JZ1: cada prueba guarda en gobierno/jueces-cache.json la huella de los archivos que lee al dar APTO; si no cambió ninguno, no
+        se repite (gobierno/jueces-cache.mjs). La lógica corre a la vez que el navegador y test/sim.test.js reparte sus campañas
+        entre los núcleos (test/sim-paralelo.js). Los criterios de aprobado no cambian.
          node gobierno/jueces.mjs --area cerebro|musculo|batallas
               (MIN4: solo los pasos de navegador de esa área, más los que la preparan; capturas en
                gobierno/capturas-area/<área>/. Lo usa gobierno/juez-area.mjs. Sin lógica ni juez de la guerra.)
    Pasa test/sim.test.js, recorre el juego en un navegador a 390×844 y deja las capturas
    y un informe en gobierno/capturas/. Sale con código 1 si algo falla. */
-import { spawnSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
+import { cierre, servido, huella, leer as leeMemoria, guardar as guardaMemoria } from './jueces-cache.mjs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { readFile, mkdir, rm, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { dirname, join, normalize, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RAPIDO = process.argv.includes('--rapido');
+/* JZ1: --todo repite todo aunque nada haya cambiado (subida final de la 1.0); --seguido, una prueba detrás de otra, como antes */
+const TODO = process.argv.includes('--todo'), SEGUIDO = process.argv.includes('--seguido');
+const HILOS_LOGICA = 2;   // pruebas de Node a la vez (sim.test.js ya reparte sus campañas en todos los núcleos)
+const MEMORIA = leeMemoria(), NUEVA = {}; let saltadas = 0;
 /* MIN4: cada paso del navegador dice de qué área es (de) y a qué otras áreas prepara (para): con --area solo corren los suyos,
    los comunes y los que preparan su estado. Sin --area corre todo, en el mismo orden de siempre (las mismas 43 comprobaciones). */
 const AREA = process.argv.includes('--area') ? process.argv[process.argv.indexOf('--area') + 1] : null;
@@ -31,147 +42,63 @@ function apunta(nombre, ok, detalle, captura) {
   console.log((ok ? '  ✔ ' : '  ✘ ') + nombre + (detalle ? ' — ' + detalle : ''));
 }
 
-/* ---------- 1. Lógica (con --area no corre: el juez de área pasa la lógica de su área) ---------- */
-if (!AREA) {
-console.log('Juez 1 · lógica (test/sim.test.js)');
-{
-  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 3600000 });   // CDe3: con el mercado cada mes el bot tarda ≈45 min con la máquina ocupada
-  const ultima = ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ');
-  apunta('Pruebas de lógica', r.status === 0, ultima.slice(0, 400));
+/* ---------- 1. Lógica (con --area no corre: el juez de área pasa la lógica de su área) ----------
+   JZ1: una fila por prueba. Se lanzan a la vez (hasta HILOS_LOGICA procesos; sim.test.js reparte además sus campañas) y,
+   mientras, el navegador hace su recorrido. Con la memoria (gobierno/jueces-cache.mjs), la prueba cuyos archivos no cambiaron
+   desde su último APTO no se repite. Los criterios de cada prueba no cambian. */
+const bienMal = (r, n) => { const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l)), mal = lineas.filter(l => /^MAL/.test(l));
+  return (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, n || 400); };
+const ultima = r => (((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '').slice(0, 200);
+const LOGICA = [
+  { id: 'sim', nombre: 'Pruebas de lógica', f: 'test/sim.test.js', t: 5400000, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
+  { id: 'pausas', nombre: 'Pausas del reloj con motivo', f: 'test/pausas.test.mjs', t: 120000, lee: bienMal },
+  { id: 'encargos', nombre: 'Encargos del Senado e hitos', f: 'test/encargos.test.mjs', t: 60000, lee: bienMal },
+  { id: 'movil', nombre: 'Copia de la partida, nota y parada', f: 'test/movil.test.mjs', t: 60000, lee: bienMal },
+  { id: 'ciudad', nombre: 'Reglas de la ciudad nueva', f: 'test/ciudad.test.mjs', t: 300000, lee: bienMal },
+  { id: 'senado', nombre: 'Senado nuevo (sala de votos)', f: 'test/senado.test.js', t: 120000, lee: bienMal },
+  { id: 'campo', nombre: 'Toparse en el camino (campaña, sin pantalla)', f: 'test/campo.test.mjs', t: 180000, lee: bienMal },
+  { id: 'guerra', nombre: 'Guerra nueva (motor sin pantalla)', f: 'test/guerra.test.mjs', t: 120000, lee: bienMal },
+  { id: 'simulador', nombre: 'Simulador de batallas (manípulos)', f: 'test/simulador.test.mjs', t: 120000, lee: bienMal },
+  { id: 'guerra-juego', nombre: 'Guerra en el juego (bot y guardar a mitad)', f: 'test/guerra-juego.test.mjs', t: 120000, lee: r => bienMal(r, 300) },
+  { id: 'fichas', nombre: 'Fichas de las piezas', f: 'gobierno/fichas.mjs', t: 60000, todo: true, lee: r => { const l = (r.stdout || '').trim().split('\n').filter(Boolean);
+    return (r.status === 0 ? l.filter(x => /^Resumen/.test(x)).join('') : l.filter(x => /✘ /.test(x) && !/^  ✘ (edificio|tropa|ciudad|hecho|faccion|mejora) /.test(x)).slice(0, 3).join(' | ')).slice(0, 400); } },
+  { id: 'mapa', nombre: 'Alturas reales del mapa', f: 'test/mapa.test.mjs', t: 60000, todo: true, lee: r => ((r.stdout || '').trim().split('\n').slice(-2).join(' | ') || (r.stderr || '').trim().split('\n').slice(-2).join(' | ')).slice(0, 400) },
+  { id: 'saber', nombre: 'Reglas del Saber', f: 'test/saber.test.mjs', t: 120000, lee: ultima },
+  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1200000, lee: ultima, completo: true },   // ~40 s: solo en el recorrido completo
+  { id: 'ajustes', nombre: 'Ajustes y dificultades (bot por nivel)', f: 'test/ajustes.test.mjs', t: 1800000, lee: ultima },
+  { id: 'diplomacia', nombre: 'Diplomacia (alianza, tributo, IA construye)', f: 'test/diplomacia.test.mjs', t: 60000, lee: bienMal },
+  { id: 'sonido-ciudad', nombre: 'Sonido de la ciudad', f: 'test/sonido-ciudad.test.mjs', t: 60000, lee: ultima },
+];
+/* lanza un proceso sin parar a los demás; devuelve lo mismo que spawnSync (status, stdout, stderr) */
+function corre(args, timeout) {
+  return new Promise(ok => {
+    const h = spawn(process.execPath, args, { cwd: RAIZ }); let out = '', err = '', fin = false;
+    h.stdout.on('data', d => { out += d; }); h.stderr.on('data', d => { err += d; });
+    const reloj = setTimeout(() => { if (!fin) h.kill('SIGKILL'); }, timeout);
+    h.on('close', status => { fin = true; clearTimeout(reloj); ok({ status, stdout: out, stderr: err }); });
+  });
 }
-
-/* ---------- 1R. Pausas del reloj (R3, sin pantalla) ---------- */
-console.log('Juez 1R · pausas del reloj (test/pausas.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/pausas.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l)), mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Pausas del reloj con motivo', r.status === 0, r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
+async function logica() {
+  const filas = LOGICA.filter(p => !(p.completo && RAPIDO));
+  /* si la prueba abre un navegador o recorre carpetas (o se marca con todo), depende de todo lo que se sirve */
+  const huellaDe = p => { const c = cierre([p.f]), todo = p.todo || c.some(x => /\.m?js$/.test(x) && /playwright|readdirSync|readdir\(/.test(readFileSync(join(RAIZ, x), 'utf8')));
+    return huella([...c, ...(todo ? servido() : []), 'gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs']); };
+  const cola = [];
+  for (const p of filas) {
+    p.huella = huellaDe(p); const m = MEMORIA[p.id];
+    if (!TODO && m && m.huella === p.huella && m.ok) { apunta(p.nombre, true, 'sin cambios en sus archivos desde su APTO del ' + m.fecha.slice(0, 16).replace('T', ' ') + ' (memoria; --todo la repite)'); saltadas++; continue; }
+    cola.push(p);
+  }
+  if (cola.length) console.log('Juez 1 · lógica: ' + cola.map(p => p.f.replace(/^(test|gobierno)\//, '')).join(', ') + (cola.length < filas.length ? ' (las demás, sin cambios)' : ''));
+  const hilos = SEGUIDO ? 1 : Math.max(1, Math.min(cola.length, HILOS_LOGICA));
+  await Promise.all(Array.from({ length: hilos }, async () => {
+    for (let p; (p = cola.shift());) {
+      const t = Date.now(), r = await corre([p.f], p.t), ok = r.status === 0;
+      apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s)');
+      if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() };
+    }
+  }));
 }
-
-/* ---------- 1S. Encargos del Senado, hitos y carácter de barrio (CN17, sin pantalla) ---------- */
-console.log('Juez 1S · encargos e hitos (test/encargos.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/encargos.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l)), mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Encargos del Senado e hitos', r.status === 0, r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
-}
-
-/* ---------- 1T. Hecho para el móvil (CN18): copia en archivo, nota, parada y crónica, sin pantalla ---------- */
-console.log('Juez 1T · copia, nota y parada (test/movil.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/movil.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l)), mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Copia de la partida, nota y parada', r.status === 0, r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
-}
-
-/* ---------- 1a. Ciudad nueva (reglas sin pantalla) ---------- */
-console.log('Juez 1a · ciudad nueva (test/ciudad.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/ciudad.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
-  const mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Reglas de la ciudad nueva', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
-}
-
-/* ---------- 1g. Senado nuevo (SN1: sala de votos, reglas sin pantalla) ---------- */
-console.log('Juez 1g · Senado (test/senado.test.js)');
-{
-  const r = spawnSync(process.execPath, ['test/senado.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
-  const mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Senado nuevo (sala de votos)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
-}
-
-/* ---------- 1k. Toparse en el camino (GM15b: sitios, salir al encuentro, apostar, partida vieja) ---------- */
-console.log('Juez 1k · Toparse en el camino (test/campo.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/campo.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 180000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
-  const mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Toparse en el camino (campaña, sin pantalla)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
-}
-
-/* ---------- 1h. Guerra nueva (GC3: motor de la batalla nueva, sin pantalla) ---------- */
-console.log('Juez 1h · Guerra nueva (test/guerra.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/guerra.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
-  const mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Guerra nueva (motor sin pantalla)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
-}
-
-/* ---------- 1h3. Simulador de batallas (CG3: manípulos, sin pantalla; aún no lo usa el juego) ---------- */
-console.log('Juez 1h3 · Simulador de batallas (test/simulador.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/simulador.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
-  const mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Simulador de batallas (manípulos)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
-}
-
-/* ---------- 1h2. Guerra en el juego (GC4: estadoGuerra, bot, guardar a mitad) ---------- */
-console.log('Juez 1h2 · Guerra en el juego (test/guerra-juego.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/guerra-juego.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
-  const mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Guerra en el juego (bot y guardar a mitad)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 300)));
-}
-
-/* ---------- 1b. Fichas (registro de piezas) ---------- */
-console.log('Juez 1b · fichas (gobierno/fichas.mjs)');
-{
-  const r = spawnSync(process.execPath, ['gobierno/fichas.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
-  const lineas = (r.stdout || '').trim().split('\n').filter(Boolean);
-  apunta('Fichas de las piezas', r.status === 0, (r.status === 0 ? lineas.filter(l => /^Resumen/.test(l)).join('') : lineas.filter(l => /✘ /.test(l) && !/^  ✘ (edificio|tropa|ciudad|hecho|faccion|mejora) /.test(l)).slice(0, 3).join(' | ')).slice(0, 400));
-}
-
-/* ---------- 1c. Alturas del mapa (C2b) ---------- */
-console.log('Juez 1c · alturas del mapa (test/mapa.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/mapa.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
-  apunta('Alturas reales del mapa', r.status === 0, ((r.stdout || '').trim().split('\n').slice(-2).join(' | ') || (r.stderr || '').trim().split('\n').slice(-2).join(' | ')).slice(0, 400));
-}
-
-/* ---------- 1c. Saber (I5: investigación y edades, reglas sin pantalla) ---------- */
-console.log('Juez 1c · saber (test/saber.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/saber.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
-  const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
-  apunta('Reglas del Saber', r.status === 0, ult.slice(0, 200));
-}
-if (!RAPIDO) {   // bot investigador (~40 s): solo en el recorrido completo
-  console.log('Juez 1d · bot investigador (test/investigador.test.mjs)');
-  const r = spawnSync(process.execPath, ['test/investigador.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 1200000 });
-  const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
-  apunta('Bot investigador', r.status === 0, ult.slice(0, 200));
-}
-
-/* ---------- 1e. Ajustes y dificultades (bot por nivel, ~90 s; también en --rapido) ---------- */
-console.log('Juez 1e · ajustes y dificultades (test/ajustes.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/ajustes.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 1800000 });
-  const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
-  apunta('Ajustes y dificultades (bot por nivel)', r.status === 0, ult.slice(0, 200));
-}
-
-/* ---------- 1e2. Diplomacia (C3; lógica pura, segundos) ---------- */
-console.log('Juez 1e2 · diplomacia e IA que construye (test/diplomacia.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/diplomacia.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
-  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l)), mal = lineas.filter(l => /^MAL/.test(l));
-  apunta('Diplomacia (alianza, tributo, IA construye)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
-}
-
-/* ---------- 1f. Sonido de la ciudad (CN15c; lógica pura, segundos; también en --rapido) ---------- */
-console.log('Juez 1f · sonido de la ciudad (test/sonido-ciudad.test.mjs)');
-{
-  const r = spawnSync(process.execPath, ['test/sonido-ciudad.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
-  const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
-  apunta('Sonido de la ciudad', r.status === 0, ult.slice(0, 200));
-}
-
-}   // fin de la lógica
 
 /* ---------- 2. Navegador ---------- */
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
@@ -277,7 +204,7 @@ async function navegador() {
       await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
       const guardada = await estado(() => localStorage.getItem('aqvila-save-v1'));
       if (!(await page.locator('#hoja .esc').count())) { await page.click('#menu .mesc'); await espera(800); }
-      await page.click('[data-act="escempieza"]');
+      await page.click('[data-act="escempieza"]'); await page.waitForSelector('#br-el [data-k="vivo"]', { timeout: 20000 }).then(() => estado(() => document.querySelector('#br-el [data-k="vivo"]').click())).catch(() => { });   // CG7 (CDe4): «Al combate» pregunta vivo, rápida o resolver: se elige «Jugar en vivo»
       await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
       if (!(await estado(() => !!(window.__mn && window.__mn.lista)))) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('escaramuza-carga') };
       await estado(() => window.__mn.pausa(true)); await espera(1500);
@@ -316,7 +243,7 @@ async function navegador() {
       /* el menú se toca en vertical; tras el paso anterior la hoja del resultado (.esc-fin) sigue en la página, así que se mira el botón */
       if (!(await page.locator('[data-act="escempieza"]').count())) { await page.click('#menu .mesc'); await espera(800); }
       await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
-      await page.click('[data-act="escempieza"]');
+      await page.click('[data-act="escempieza"]'); await page.waitForSelector('#br-el [data-k="vivo"]', { timeout: 20000 }).then(() => estado(() => document.querySelector('#br-el [data-k="vivo"]').click())).catch(() => { });   // CG7 (CDe4): «Al combate» pregunta vivo, rápida o resolver: se elige «Jugar en vivo»
       await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
       if (!(await estado(() => !!(window.__mn && window.__mn.lista)))) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('apie-carga') };
       await estado(() => window.__mn.pausa(false)); await espera(800);
@@ -706,18 +633,35 @@ async function navegador() {
   apunta('Sin errores de consola' + (AREA ? ' (pasos de ' + AREA + ')' : ''), errores.length === 0, errores.length ? errores.length + ' error(es): ' + errores.slice(0, 3).join(' ‖ ') : '');
 }
 
-if (!RAPIDO) await navegador();
-
-/* ---------- 2. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min, hasta 30 en una máquina lenta; solo en el recorrido completo) ---------- */
-if (!RAPIDO && !AREA) {   // con --area batallas, juez-area.mjs lo pasa aparte
+/* ---------- 2b. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min, hasta 30 en una máquina lenta; solo en el recorrido completo) ---------- */
+async function guerraJugada() {
   console.log('Juez 2 · Guerra jugada de verdad (gobierno/juez-guerra.mjs)');
-  const r = spawnSync(process.execPath, ['gobierno/juez-guerra.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 1800000 });
+  const r = await corre(['gobierno/juez-guerra.mjs'], 1800000);
   const lineas = (r.stdout || '').split('\n'), mal = lineas.filter(l => /MAL:|^prueba:|^consola:|^excepción:/.test(l)), avisos = lineas.filter(l => /AVISO/.test(l)).length, bien = lineas.filter(l => /^\s*bien:/.test(l)).length;
   apunta('Guerra jugada de verdad (entrar, salir, maniobra, primer toque, arte)', r.status === 0, r.status === 0 ? bien + ' comprobaciones bien' + (avisos ? ' · ' + avisos + ' aviso(s) de fallos conocidos del juego (ver salida de juez-guerra.mjs)' : '') : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
+  return r.status === 0;
 }
 
+/* JZ1: un juez de pantalla se salta si no cambió nada de lo que ve el navegador desde su último APTO */
+async function conMemoria(id, nombre, extra, fn) {
+  const h = huella([...servido(), ...cierre(extra)]), m = MEMORIA[id];
+  if (!TODO && m && m.huella === h && m.ok) { apunta(nombre, true, 'sin cambios en lo que ve el navegador desde su APTO del ' + m.fecha.slice(0, 16).replace('T', ' ') + ' (memoria; capturas de entonces; --todo lo repite)'); saltadas++; return; }
+  const antes = pasos.length, t = Date.now(); await fn();
+  console.log('  · ' + nombre + ': ' + Math.round((Date.now() - t) / 1000) + ' s');
+  if (pasos.slice(antes).every(p => p.ok)) NUEVA[id] = { huella: h, ok: true, fecha: new Date().toISOString() };
+}
+const visual = async () => {
+  await conMemoria('navegador' + (AREA ? '-' + AREA : ''), 'Recorrido en navegador' + (AREA ? ' · área ' + AREA : ''), ['gobierno/jueces.mjs'], navegador);
+  if (!AREA) await conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
+};
+/* la lógica (procesos aparte) y el navegador corren a la vez: el recorrido pasa mucho rato esperando a la página */
+const grupos = [...(AREA ? [] : [logica]), ...(RAPIDO ? [] : [visual])];
+if (SEGUIDO) for (const g of grupos) await g(); else await Promise.all(grupos.map(g => g()));
+{ const m = leeMemoria(); Object.assign(m, NUEVA); if (Object.keys(NUEVA).length) guardaMemoria(m); }
+
 const fallos = pasos.filter(p => !p.ok);
-const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, area: AREA, pasos, errores };
+const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, area: AREA, todo: TODO, saltadas, pasos, errores };
+if (!RAPIDO) await mkdir(CAPS, { recursive: true });
 if (!RAPIDO) await writeFile(join(CAPS, 'informe.json'), JSON.stringify(informe, null, 1));
-console.log('\n' + (informe.ok ? 'VEREDICTO: APTO' : 'VEREDICTO: NO APTO (' + fallos.length + ' fallo' + (fallos.length > 1 ? 's' : '') + ')') + ' · ' + pasos.length + ' comprobaciones · ' + informe.segundos + ' s' + (AREA ? ' · área ' + AREA : '') + (RAPIDO ? '' : ' · capturas en ' + CAPS.slice(RAIZ.length + 1) + '/'));
+console.log('\n' + (informe.ok ? 'VEREDICTO: APTO' : 'VEREDICTO: NO APTO (' + fallos.length + ' fallo' + (fallos.length > 1 ? 's' : '') + ')') + ' · ' + pasos.length + ' comprobaciones' + (saltadas ? ' (' + saltadas + ' sin cambios, de memoria)' : '') + ' · ' + informe.segundos + ' s' + (AREA ? ' · área ' + AREA : '') + (RAPIDO ? '' : ' · capturas en ' + CAPS.slice(RAIZ.length + 1) + '/'));
 process.exit(informe.ok ? 0 : 1);

@@ -5,12 +5,15 @@
          node gobierno/juez-area.mjs batallas --archivos [base]   dice de quién es cada archivo cambiado desde <base>
                                                            (por defecto origin/claude/roman-strategy-mobile-game-bx9oq2)
          node gobierno/juez-area.mjs --dueno js/ui.js      dice de quién es un archivo
+         node gobierno/juez-area.mjs batallas --todo       repite también las pruebas sin cambios (JZ1: por defecto se saltan)
+   JZ1: cada prueba guarda en gobierno/jueces-cache.json la huella de sus archivos al dar APTO; si no cambió ninguno, no se repite.
    Sale con código 1 si falla una prueba o si se tocó un archivo vetado (de otra área).
    NO sustituye a los jueces completos: esos se pasan una vez, antes de subir a main (los pasa la sesión de subida). */
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cierre, servido, huella, leer as leeMemoria, guardar as guardaMemoria } from './jueces-cache.mjs';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const T = JSON.parse(readFileSync(join(RAIZ, 'gobierno', 'areas.json'), 'utf8'));
@@ -62,11 +65,18 @@ if (args.includes('--archivos')) {
 const tocaArte = cambiados('origin/claude/roman-strategy-mobile-game-bx9oq2').some(r => r.startsWith('assets/') || r.startsWith('tools/'));
 const lista = [...A.juez.logica, ...(args.includes('--rapido') ? [] : A.juez.navegador), ...(tocaArte ? A.juez.si_toca_arte : [])];
 const t0 = Date.now(); let fallos = 0;
+const MEM = leeMemoria(), TODO = args.includes('--todo'); let saltadas = 0;
+/* archivos de los que depende cada prueba: lo que importa en cadena; si abre un navegador o recorre carpetas, todo lo que se sirve */
+const huellaDe = p => { const f = p.split(' ')[0], c = cierre([f]); const nav = /--area|playwright/.test(p + c.map(x => /\.m?js$/.test(x) ? /playwright|readdirSync|readdir\(/.test(readFileSync(join(RAIZ, x), 'utf8')) ? ' playwright' : '' : '').join(''));
+  return huella([...c, ...(nav ? servido() : []), 'gobierno/juez-area.mjs', 'gobierno/jueces-cache.mjs']); };
 for (const p of lista) {
+  const clave = 'area:' + p, h = huellaDe(p), m = MEM[clave];
+  if (!TODO && m && m.ok && m.huella === h) { saltadas++; console.log(`  ok   ${p} (sin cambios desde su APTO del ${m.fecha.slice(0, 16).replace('T', ' ')}; memoria)`); continue; }
   const t = Date.now(), r = spawnSync(process.execPath, p.split(' '), { cwd: RAIZ, encoding: 'utf8', timeout: 2400000 });   // MIN4: «archivo --opción valor»
   const ok = r.status === 0; if (!ok) fallos++;
+  if (ok) { const mm = leeMemoria(); mm[clave] = { huella: h, ok: true, fecha: new Date().toISOString() }; guardaMemoria(mm); }
   console.log(`${ok ? '  ok  ' : ' FALLA'} ${p} (${Math.round((Date.now() - t) / 1000)} s)`);
   if (!ok) console.log(((r.stdout || '') + (r.stderr || '')).trim().split('\n').slice(-12).map(l => '        ' + l).join('\n'));
 }
-console.log(`${fallos ? 'NO APTO' : 'APTO'} · área ${id} · ${lista.length} pruebas · ${Math.round((Date.now() - t0) / 1000)} s${args.includes('--rapido') ? ' · solo lógica' : ''}`);
+console.log(`${fallos ? 'NO APTO' : 'APTO'} · área ${id} · ${lista.length} pruebas${saltadas ? ' (' + saltadas + ' sin cambios, de memoria)' : ''} · ${Math.round((Date.now() - t0) / 1000)} s${args.includes('--rapido') ? ' · solo lógica' : ''}`);
 process.exit(fallos ? 1 : 0);

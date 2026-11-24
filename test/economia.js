@@ -56,7 +56,7 @@ function partida1(aggressive, region, opciones) {
   if (G.fundando()) { const sitio = G.modo().inicio.fundar.sitio; let pt = null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z]; G.fundarColonia(sitio, pt[0], pt[1]); }
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0;
-  while (!G.finDePrueba() && guard++ < 200000) {
+  while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {
     G.tick(0.25); M.est.add(estacion());
     if (process.env.DBG_ANIO && s.t % 12 < 0.25) { const p = G.prod(); console.log(G.yearOf(s.t), 'ciud', G.myCities().length, 'hombres', G.men(G.myCities().reduce((u, id) => { for (const k in s.cities[id].units) u[k] = (u[k] || 0) + s.cities[id].units[k]; return u; }, {})), 'disp', D.RES.map(r => r[0] + Math.round(G.disponible(r))).join(' '), 'prod', D.RES.map(r => r[0] + Math.round(p[r])).join(' '), 'rate', G.tradeRate().toFixed(2)); }
     if (s.res.grano + s.alm.grano <= 0 && G.prod().grano < 0) marcaFalta('grano');
