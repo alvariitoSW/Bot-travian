@@ -194,6 +194,51 @@
     if (!esGriego || !f || f.quien !== 'enemigo') return null;
     const c = GRIEGO.filter(g => g.ev.includes(f.ev)); return c.length ? c[Math.floor((rng || Math.random)() * c.length)] : null;
   }
+  /* SON4: lo mismo para las falanges que van de nuestro lado (falangitas): no hay frases habladas de los nuestros en griego, solo el grito
+     (los mismos assets/voces/griego1-3.mp3) con un subtítulo que lo describe. Solo estas situaciones llevan grito propio. Pregunta abierta para el usuario. */
+  const GRIEGO_PROPIO = [
+    { id: 'griego1', lat: '(Tus falangitas lanzan su grito de guerra: «¡Alalá! ¡Alalá!»)', ev: ['carga-enemiga', 'choque', 'empujar', 'victoria'], fuente: GRIEGO[0].fuente },
+    { id: 'griego2', lat: '(Tus falangitas gritan «¡Eleleú! ¡Eleleú!» al lanzarse)', ev: ['carga-enemiga', 'choque', 'empujar', 'roto-enemigo', 'enemigo-cede'], fuente: GRIEGO[1].fuente },
+    { id: 'griego3', lat: '(Tus falangitas entonan el peán: «¡Yé, yé, paián!»)', ev: ['espera', 'pila', 'carga-enemiga', 'victoria'], fuente: GRIEGO[2].fuente },
+  ];
+  /* si la frase `f` (nuestra: centurión, optio o soldado) admite un grito de falangita, devuelve uno (al azar); si no, null */
+  function griegoPropio(f, rng) {
+    if (!f || f.quien === 'enemigo') return null;
+    const c = GRIEGO_PROPIO.filter(g => g.ev.includes(f.ev)); return c.length ? c[Math.floor((rng || Math.random)() * c.length)] : null;
+  }
+  /* SON4: qué situación es un aviso de la maqueta de falange (gobierno/maquetas/falange; avisa(tipo, datos)); null si no habla nadie */
+  function deAviso(tipo, d) {
+    d = d || {};
+    switch (tipo) {
+      case 'choque': case 'flancoEntra': return 'choque';
+      case 'carga': return 'carga-enemiga';
+      case 'salva': case 'salva_cae': return 'pila';
+      case 'flanco': case 'finta': return 'flanco';
+      case 'flancoParado': return 'aguantar';
+      case 'barrito': case 'espanta': return 'elefantes';
+      case 'oleada': return 'caballeria';
+      case 'hueco': case 'dentro': return 'flaquea';
+      case 'rompe': return d.ganador === 'falange' ? 'roto-enemigo' : 'roto-propio';
+      default: return null;
+    }
+  }
+  /* SON4: qué situación es un evento del registro de js/simulador.js (S.reg: { tipo, lado (0 = tú), texto, ... }); null si no habla nadie */
+  function deSim(e) {
+    if (!e) return null; const mio = e.lado === 0;
+    switch (e.tipo) {
+      case 'choque': case 'testudo-roto': return 'choque';
+      case 'carga': return mio ? 'empujar' : 'carga-enemiga';
+      case 'carga-frenada': return mio ? 'flaquea' : 'enemigo-cede';
+      case 'pila': case 'tiro': return 'pila';
+      case 'desboque': return 'elefantes';
+      case 'flanqueo': case 'retaguardia': return mio ? 'flanco' : 'enemigo-cede';
+      case 'duda': return mio ? 'flaquea' : 'enemigo-cede';
+      case 'ruptura': case 'caida': return mio ? 'roto-propio' : 'roto-enemigo';
+      case 'relevo': return mio ? 'relevo' : null;
+      case 'fin': return e.como === 'victoria' ? 'victoria' : e.como === 'derrota' ? 'derrota' : null;
+      default: return null;
+    }
+  }
   const rotulo = f => f ? NOMBRE[f.quien] + ': ' + f.lat + (f.es ? ' — ' + f.es : '') : '';
   /* el primer grupo del banco que exista (g, o su sustituto); null si ninguno. tiene(g) → bool */
   function grupoDisponible(g, tiene) {
@@ -210,7 +255,7 @@
     n0 = n0 || {}; const hay = t => (n0[t] || 0) > 0;
     return (hay('falange') || hay('hoplitas')) && !CARTAGO.some(hay);
   }
-  const Voces = { GRIEGO, griegoDe, esGriego, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
+  const Voces = { GRIEGO, GRIEGO_PROPIO, griegoPropio, deAviso, deSim, griegoDe, esGriego, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
   raiz.Voces = Voces;
   if (typeof module !== 'undefined' && module.exports) module.exports = Voces;
 })(typeof window !== 'undefined' ? window : globalThis);

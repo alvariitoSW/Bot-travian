@@ -77,4 +77,26 @@ const r = V.rotulo(F.find(f => f.quien === 'centurion')); ok(/^Centurión: .+ �
 ok(V.esGriego({ falange: 800, elefantes: 20 }) && V.esGriego({ hoplitas: 600, peltastas: 200 }), 'Macedonia, Epiro (con elefantes) y las polis gritan en griego');
 ok(!V.esGriego({ libios: 900, hoplitas: 300 }) && !V.esGriego({ sagrada: 400, hoplitas: 200 }), 'Cartago con hoplitas mercenarios no grita en griego');
 ok(!V.esGriego({ galos: 900 }) && !V.esGriego({}) && !V.esGriego(), 'galos y ejércitos sin falange ni hoplitas, tampoco');
+// SON4: las otras pantallas de batalla (maquetas a pie, Escaramuzas): traducción de avisos y eventos, y los gritos de la falange propia
+const da = V.deAviso, ds = V.deSim;
+ok(da('choque') === 'choque' && da('salva') === 'pila' && da('barrito') === 'elefantes' && da('oleada') === 'caballeria' && da('flanco', { lado: 1 }) === 'flanco', 'avisos de la falange: choque, salva, elefantes, caballería, flanco');
+ok(da('rompe', { ganador: 'falange' }) === 'roto-enemigo' && da('rompe', { ganador: 'rival' }) === 'roto-propio' && da('pulso') === null && da('ha') === null && da('fin') === null, 'avisos: «rompe» según quién gana; pulso, «¡Ha!» y fin no hablan');
+ok(ds({ tipo: 'choque', lado: 0 }) === 'choque' && ds({ tipo: 'carga', lado: 0 }) === 'empujar' && ds({ tipo: 'carga', lado: 1 }) === 'carga-enemiga' && ds({ tipo: 'desboque', lado: 1 }) === 'elefantes', 'simulador: choque, carga propia y ajena, elefantes');
+ok(ds({ tipo: 'ruptura', lado: 0 }) === 'roto-propio' && ds({ tipo: 'ruptura', lado: 1 }) === 'roto-enemigo' && ds({ tipo: 'duda', lado: 1 }) === 'enemigo-cede' && ds({ tipo: 'flanqueo', lado: 0 }) === 'flanco', 'simulador: cuerpo roto, enemigo que duda, flanco');
+ok(ds({ tipo: 'fin', como: 'victoria' }) === 'victoria' && ds({ tipo: 'fin', como: 'derrota' }) === 'derrota' && ds({ tipo: 'fin', como: 'retirada' }) === null && ds({ tipo: 'orden' }) === null && ds(null) === null, 'simulador: victoria y derrota hablan; retirada y órdenes, no');
+ok(V.SITUACIONES.includes(da('choque')) && ['choque', 'empujar', 'carga-enemiga', 'elefantes', 'roto-propio', 'roto-enemigo', 'enemigo-cede', 'flanco', 'flaquea', 'relevo', 'pila', 'victoria', 'derrota'].every(x => V.SITUACIONES.includes(x)), 'las situaciones traducidas existen');
+ok(V.GRIEGO_PROPIO.every(g => V.GRIEGO.some(h => h.id === g.id) && existsSync(RAIZ + 'assets/voces/' + g.id + '.mp3') && g.fuente), 'los gritos propios griegos usan los mp3 y las fuentes de GRIEGO');
+ok(V.GRIEGO_PROPIO.every(g => g.ev.every(e => V.SITUACIONES.includes(e))), 'los gritos propios solo en situaciones que existen');
+const fch = F.find(f => f.ev === 'choque' && f.quien === 'centurion'), fesp = F.find(f => f.ev === 'aguantar' && f.quien === 'centurion'), fen = F.find(f => f.quien === 'enemigo');
+ok(V.griegoPropio(fch, () => 0).id === 'griego1' && V.griegoPropio(fesp) === null && V.griegoPropio(fen) === null && V.griegoPropio(null) === null, 'falangitas: gritan al chocar; sin grito en «aguantar»; el enemigo no es suyo');
+// la banda (js/gfx/banda.js): quién somos y quién es el rival, y el resumen para la música desde el simulador
+const Bd = createRequire(import.meta.url)('../js/gfx/banda.js'), Mu = createRequire(import.meta.url)('../js/gfx/musica.js');
+globalThis.Voces = V;
+ok(Bd.propioDe({ hastati: 90, principes: 90 }) === 'romano' && Bd.propioDe({ falange: 800 }) === 'griego' && Bd.propioDe({ libios: 500, hoplitas: 100 }) === 'otro' && Bd.propioDe({ galos: 500 }) === 'otro' && Bd.propioDe() === 'otro', 'banda: Roma habla latín; la falange, solo gritos; Cartago y galos, nada propio');
+ok(Bd.rivalDe({ galos: 300 }).galos && !Bd.rivalDe({ galos: 300 }).esGriego && Bd.rivalDe({ falange: 90 }).esGriego && !Bd.rivalDe({ hastati: 90 }).galos, 'banda: el rival galo canta; el griego grita en griego; Roma, ni una cosa ni otra');
+const man = (lado, moral, estado, n0 = 100) => ({ lado, n0, moral, estado, fatiga: 0.2 });
+const base = { fase: 'lucha', man: [man(0, 1, 'firme'), man(0, 0.4, 'duda'), man(1, 0.8, 'firme'), man(1, 0, 'roto')], reg: [], resultado: null };
+const r0 = Bd.resumenSim(base); ok(r0.fase === 'lejos' && r0.rotos[1] === 1 && r0.rotos[0] === 0 && Math.abs(r0.moral[0] - 0.7) < 1e-9, 'resumen: sin choque aún, «lejos»; cuenta los rotos y la moral media');
+base.reg.push({ tipo: 'choque' }); ok(Bd.resumenSim(base).fase === 'lucha' && Mu.tensionDe(Bd.resumenSim(base)) > Mu.tensionDe(r0), 'resumen: tras el choque, «lucha» y más tensión');
+base.fase = 'fin'; base.resultado = { como: 'victoria' }; ok(Bd.resumenSim(base).fase === 'fin' && Mu.estadoDe(Bd.resumenSim(base)) === 'victoria', 'resumen: al acabar, victoria');
 if (fallos.length) { console.log('\nFALLAN ' + fallos.length); process.exit(1); } else console.log('\nTodo bien');

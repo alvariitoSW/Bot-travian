@@ -91,6 +91,12 @@
     const PARADA_N = 0.55;               /* el punto del clip «cubrirse» con el escudo arriba (testudo, muro) */
     const ALTO_HASTATUS = 2.11;
     const PASO = Sim.PASO;
+    /* SON4: música, voces y subtítulo (js/gfx/banda.js, js/voces.js, js/gfx/musica.js): los momentos salen del registro S.reg del simulador */
+    let banda = null;
+    try {
+      const n0 = l => { const o = {}; for (const u of S.man) if (u.lado === l) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return o; };
+      if (root.Banda) banda = root.Banda.crea({ padre: el, propio: root.Banda.propioDe(n0(0)), rival: root.Banda.rivalDe(n0(1)), semilla: S.sem, abajo: '96px' });
+    } catch (e) { banda = null; }
     let SOLD = null, escN = 0.84, altoN = 1.78; const soldados = new Map(), V3 = new THREE.Vector3();
     const nombreTropa = t => (root.DATA && root.DATA.UNITS && root.DATA.UNITS[t] && root.DATA.UNITS[t].n) || t;
     const vivo = u => u.estado === 'firme' || u.estado === 'duda';
@@ -560,7 +566,8 @@
     function avisos() {
       const nuevos = [];
       for (; nReg < S.reg.length; nReg++) {
-        const e = S.reg[nReg], u = e.id !== undefined ? S.man[e.id] : null, nom = u ? u.nom : '', mio = e.lado === 0;
+        const e = S.reg[nReg]; if (banda && root.Voces) { if (e.tipo === 'fin') banda.fin(e.como); else { const sit = root.Voces.deSim(e); if (sit) banda.dice(sit); } }
+        const u = e.id !== undefined ? S.man[e.id] : null, nom = u ? u.nom : '', mio = e.lado === 0;
         let t = '', tono = '';
         if (e.tipo === 'flanqueo') { t = mio ? '¡Flanco al aire! Os flanquean a ' + nom : 'Flanqueáis a ' + nom; tono = mio ? 'mal' : 'bien'; }
         else if (e.tipo === 'retaguardia') { t = mio ? '¡Os atacan por la espalda! ' + nom : 'Atacáis por la espalda a ' + nom; tono = mio ? 'mal' : 'bien'; }
@@ -686,6 +693,7 @@
       if (cerrado) return; raf = requestAnimationFrame(cuadro);
       const real = Math.max(0, (ahora - antes) / 1000 || 0); antes = ahora;
       if (!lista) return;
+      if (banda && !S.pausa && S.fase !== 'fin') banda.tic(Math.min(0.1, real) * vel, () => root.Banda.resumenSim(S), () => S.man.some(u => u.lado === 0 && u.estado === 'duda'));
       avanza(real); if (apie) camaraApie(Math.min(0.1, real)); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos();
       if (ahora - tHud > 250) { tHud = ahora; pintarHud(); }
     }
@@ -697,20 +705,20 @@
         const quiero = new Set(); for (const u of S.man) if (NUEVO[u.tropa]) quiero.add(u.tropa + u.lado);
         const nuevos = !quiero.size ? null : import('./gfx/soldado.js').then(Mod => { SOLD = Mod; return Promise.all([...quiero].map(id => { const lado = +id.slice(-1), [nom, pueblo = nom] = NUEVO[id.slice(0, -1)].split(':'), propio = Mod.ROMANOS.has(pueblo) === (lado === 0), pal = Mod.PUEBLOS[pueblo];
           return Mod.cargarSoldado(nom, propio ? pal || null : Mod.gama(COLOR[lado], pal)).then(s => { if (s) soldados.set(id, s); }); })); }).catch(() => { /* sin soldado nuevo: 0 A.D. */ });
-        await Promise.all([preload([...tipos]), Gr.loadGroundTextures().then(() => St.preloadStatic(['cipres', 'olivo', 'pino'])), nuevos]);
+        await Promise.all([preload([...tipos]), Gr.loadGroundTextures().then(() => St.preloadStatic(['cipres', 'olivo', 'pino'])), nuevos, import('./gfx/sonido.js').catch(() => null)]);   /* SON4: el banco de sonido (global Sonido) para la música y las voces */
         if (cerrado) { soltarSoldados(); return; }
         if (!getUnit('hastati') && !soldados.size) throw new Error('No se han podido cargar los soldados');
         entorno = await C.montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo: cfg.campo, renderer });
         if (cerrado) { entorno.soltar(); soltarSoldados(); return; }
         preparar(); camaraInicial(); colocar(0, true);
-        lista = true; $('carga').hidden = true; pausa(S.pausa); pintarHud(true);
+        lista = true; if (banda) banda.inicia(); $('carga').hidden = true; pausa(S.pausa); pintarHud(true);
         if (S.fase === 'fin') finYa();
         else { cinta.push({ t: 'Toca un manípulo tuyo y arrástralo para moverlo', tono: '', hasta: performance.now() + 7000 }); }
       } catch (e) { console.error(e); $('carga-p').textContent = 'No se ha podido cargar la batalla.'; $('carga-s').hidden = false; }
     }
 
     function cerrarTodo() {
-      cerrado = true; cancelAnimationFrame(raf); clearTimeout(tFin);   /* window.__mn se queda con cerrado = true para las pruebas */
+      cerrado = true; cancelAnimationFrame(raf); clearTimeout(tFin); if (banda) banda.quita();   /* window.__mn se queda con cerrado = true para las pruebas */
       for (const f of salidas) f();
       for (const m of mallas.values()) { try { if (m.nv) for (const t of m.nv) { escena.remove(t.malla); t.dispose(); } else { escena.remove(m.malla); m.malla.geometry.dispose(); } } catch (e) { /* ya liberada */ } }
       soltarSoldados(); if (entorno) entorno.soltar();
