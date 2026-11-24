@@ -436,16 +436,19 @@
        queda el 15 % (FIN_LUCHA). Mientras, la batalla grande espera en pausa. Al volver, Sim.vuelveDePie pone bajas, roturas y
        dónde acabó tu manípulo: la batalla solo recibe hombres. Nada se copia de la maqueta: es la misma página. ---------- */
     const LIGERA = new Set(['velites', 'milicia', 'honderos', 'peltastas']);   /* tiradores: hacen de «tiradores» del rival */
-    const PICAS = new Set(['falange', 'hoplitas', 'sagrada']);                  /* la falange a pie tiene su propia maqueta (LP6) */
+    const PICAS = new Set(['falange', 'hoplitas', 'sagrada']);                  /* LP7b: la falange baja a la maqueta de LP6; los hoplitas, aún no */
     const TOPE_AP = { tuyo: 120, centro: 120, lado: 70, reserva: 50, tiradores: 30 };   /* hombres por bloque a pie: con todos, 600 (el motor de física, cerca de 1 ms por paso) */
     const RUTA_AP = 'gobierno/maquetas/bloque/index.html';
+    /* LP7b: la falange de picas baja a «Falange a pie» (gobierno/maquetas/falange/, LP6: el mismo control, con sarisas), con el mismo
+       contrato de capa (?lp7=, window.__bloque, postMessage). Allí se lucha con 96 contra 96 (su maqueta); las bajas vuelven a escala */
+    const RUTA_FAL = 'gobierno/maquetas/falange/index.html', N_FAL = 96;
     function puedeBajar(id) {
       const u = S.man[id];
       if (!lista) return 'Aún se están formando'; if (S.fase === 'fin') return 'La batalla ha terminado';
       if (!u || u.lado !== 0) return 'Solo puedes bajar con los tuyos';
       if (!vivo(u)) return 'Están rotos: no te seguirían';
       if (!NUEVO[u.tropa] || LIGERA.has(u.tropa)) return 'A pie, de momento, solo con la infantería de línea';
-      if (PICAS.has(u.tropa)) return 'La falange a pie, desde aquí, llega en la próxima entrega';
+      if (PICAS.has(u.tropa) && u.tropa !== 'falange') return 'Los hoplitas a pie aún no: su lanza no es la sarisa';
       if (!delanteDe(u)) return 'No hay enemigo delante';
       return '';
     }
@@ -480,13 +483,20 @@
         rival: { los: ce.tropa === 'galos' ? 'los galos' : 'los suyos', Los }, objetivo: 'Rompe su centro: se lucha hasta el 15 %' };
       return { plan, mapa };
     }
+    /* LP7b: la falange contra el que tiene delante (las reglas del rival son las de los manípulos; su soldado y su color, los suyos) */
+    function planFalange(id) {
+      const u = S.man[id], ce = delanteDe(u), pc = enMarco(u, ce), n = nombreTropa(ce.tropa), Los = n.charAt(0).toUpperCase() + n.slice(1);
+      const lejos = Math.max(22, Math.min(52, Math.round(pc.del - Sim.fondo(u) / 2 - Sim.fondo(ce) / 2)));
+      const plan = { semilla: (id * 131 + Math.round(S.t * 10)) % 9973 + 1, lejos, unidad: ce.tropa, color: COLOR[1], rival: { Los }, objetivo: 'Rompe su línea: se lucha hasta el 15 %' };
+      return { plan, mapa: { tuyo: { id: u.id, esc: u.n / N_FAL }, centro: { id: ce.id, esc: ce.n / N_FAL } }, falange: true };
+    }
     function bajar(id) {
       const no = puedeBajar(id); if (no) { aviso(no); return no; }
-      const P = planApie(id), f = document.createElement('iframe');
+      const fal = S.man[id].tropa === 'falange', P = fal ? planFalange(id) : planApie(id), f = document.createElement('iframe');
       apie = { id, P, frame: f, pausaAntes: S.pausa, t0: performance.now() };
       pausa(true); arrastre = null; gesto = null; dedos.clear(); verFormas = false; sel = [id];
-      f.id = 'mn-apie'; f.title = 'A pie, con tu manípulo'; f.setAttribute('allow', 'autoplay');
-      f.src = RUTA_AP + '?lp7=' + encodeURIComponent(JSON.stringify(P.plan));
+      f.id = 'mn-apie'; f.title = fal ? 'A pie, con tu falange' : 'A pie, con tu manípulo'; f.setAttribute('allow', 'autoplay');
+      f.src = (fal ? RUTA_FAL : RUTA_AP) + '?lp7=' + encodeURIComponent(JSON.stringify(P.plan));
       el.appendChild(f); el.classList.add('apie'); pintarHud(true);
       return '';
     }
@@ -495,7 +505,7 @@
       if (!apie) return; const a = apie; apie = null;
       if (r === undefined) { try { r = a.frame.contentWindow.__bloque.lp7(); } catch (e) { r = null; } }
       let txt = 'Vuelves al mando';
-      if (r) { const o = Sim.vuelveDePie(S, { tuyo: a.id, mapa: a.P.mapa, r }); txt = (r.ganador === 'tuyo' ? 'Victoria a pie' : r.ganador === 'enemigo' ? 'Tu manípulo rompió' : 'Vuelves al mando') + ' · bajas: ' + o.bajas[0] + ' tuyas, ' + o.bajas[1] + ' suyas'; }
+      if (r) { const o = Sim.vuelveDePie(S, { tuyo: a.id, mapa: a.P.mapa, r }); txt = (r.ganador === 'tuyo' ? 'Victoria a pie' : r.ganador === 'enemigo' ? (a.P.falange ? 'Tu falange rompió' : 'Tu manípulo rompió') : 'Vuelves al mando') + ' · bajas: ' + o.bajas[0] + ' tuyas, ' + o.bajas[1] + ' suyas'; }
       try { a.frame.src = 'about:blank'; } catch (e) { /* nada */ } a.frame.remove();
       el.classList.remove('apie'); medir(); previo = S.man.map(u => ({ x: u.x, y: u.y, a: u.a })); colocar(0, true); avisos();
       const u = S.man[a.id]; cam.x = u.x; cam.z = -u.y; ponCamara();

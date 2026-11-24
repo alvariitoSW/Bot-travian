@@ -805,7 +805,7 @@
       u.x += s * lat + c * ade; u.y += -c * lat + s * ade; u.a -= p.ang || 0; u.dest = null;
       if (u.orden === 'mover') u.orden = 'quieto';
     }
-    if (u) ev(S, 'apie', u, (r.ganador === 'tuyo' ? 'Vuelves a pie con la victoria: ' : r.ganador === 'enemigo' ? 'Tu manípulo rompió a pie: ' : 'Vuelves al mando: ') + out.bajas[0] + ' bajas tuyas y ' + out.bajas[1] + ' suyas', { bajas: out.bajas });
+    if (u) ev(S, 'apie', u, (r.ganador === 'tuyo' ? 'Vuelves a pie con la victoria: ' : r.ganador === 'enemigo' ? 'Los tuyos rompieron a pie: ' : 'Vuelves al mando: ') + out.bajas[0] + ' bajas tuyas y ' + out.bajas[1] + ' suyas', { bajas: out.bajas });
     return out;
   }
 

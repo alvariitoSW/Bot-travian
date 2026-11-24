@@ -45,3 +45,21 @@ export function crearAcciones(m = {}) {
   viste();
   return { ...F, F, S, reinicia, paso, BAJAN };
 }
+
+/* ---------- LP7b: «Bajar a pie» con una falange desde la batalla grande (la escena los usa; corren en Node) ---------- */
+/* el manípulo rival sale a 52 m (MANIPULOS.crea); desde la batalla grande, a la distancia que había allí (de 22 a 52 m: la salva
+   de pila se tira a 19). Va justo después de reiniciar */
+export function acercaRival(S, lejos) {
+  const d = 52 - Math.max(22, Math.min(52, +lejos || 52)); if (!d || !S.riv) return 0;
+  const Fx = Math.sin(S.giro), Fz = -Math.cos(S.giro); S.riv.x -= Fx * d; S.riv.z -= Fz * d; for (const h of S.ene) { h.x -= Fx * d; h.z -= Fz * d; }
+  return d;
+}
+/* lo que vuelve a la batalla grande, con el contrato de la maqueta del bloque (resultadoLP7 de bloque/escena.js): bloques tuyo y
+   centro con { hombres, enPie, roto }; pose de tu muro en el marco del inicio P0 = { x, z, giro }: x a su derecha, z hacia atrás
+   (avanzar da z negativa), ang lo girado a la derecha. ganador: 'tuyo' | 'enemigo' | null */
+export function resultadoLP7(S, P0 = { x: 0, z: -10, giro: 0 }) {
+  if (!S || !S.U || !S.R) return null; const c = Math.cos(P0.giro), s = Math.sin(P0.giro), dx = S.xF - P0.x, dz = S.zF - P0.z;
+  const b = u => ({ hombres: u.hombres, enPie: u.enPie, roto: !!u.roto });
+  return { ganador: S.ganador === 'falange' ? 'tuyo' : S.ganador === 'rival' ? 'enemigo' : null, causa: S.causa, T: +S.T.toFixed(1), bloques: { tuyo: b(S.U), centro: b(S.R) },
+    pose: { x: +(dx * c + dz * s).toFixed(2), z: +(-dx * s + dz * c).toFixed(2), ang: +(S.giro - P0.giro).toFixed(3) } };
+}
