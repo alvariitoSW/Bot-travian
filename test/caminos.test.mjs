@@ -115,3 +115,16 @@ console.log('caminos: ' + n + ' pruebas OK');
   assert.strictEqual(s.caminos.victoria, null); assert.strictEqual(s.caminos.avisos.length, 0);
   console.log('caminos: revisor OK');
 }
+
+// CE12: en la partida corta (sin Cartago en el mapa) cuenta la capital rival y bastan menos plazas
+{
+  const D = require('../js/data.js');
+  const s = { modo: { id: 'corta' }, cities: { roma: { owner: 'roma' }, tarentum: { owner: 'roma' } } };
+  const f = CAM.foto(s, null);
+  assert.strictEqual(f.corta, true); assert.strictEqual(f.cartago, true);
+  const a = CAM.evaluar(Object.assign({}, f, { plazas: CAM.CIFRAS.armas.plazasCorta })).caminos[0];
+  assert.strictEqual(a.cumple, true); assert.strictEqual(a.hitos[0].n, D.CITIES.tarentum.n + ' tomada');
+  const larga = CAM.foto({ cities: { roma: { owner: 'roma' }, carthago: { owner: 'cartago' }, tarentum: { owner: 'roma' } } }, null);
+  assert.strictEqual(larga.corta, false); assert.strictEqual(larga.cartago, false);
+  console.log('caminos: CE12 corta OK');
+}

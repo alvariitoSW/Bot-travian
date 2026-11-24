@@ -48,5 +48,30 @@ del todo en la fase 2, con el juego enganchado (CDe4: mercado, «Este año» y g
 7. **Lentitud** (`js/ciudad.js`, propio de Ciudades): `CI.mejorSitio` cuesta 22 ms y el gobernador la llama cientos de
    veces por partida. Cachear el mapa de calor bajaría el banco a la mitad.
 
+## Fase 1b (pedida por la coordinación, 24/11)
+Hecho en archivos propios:
+- `js/caminos.js`: **Cartago en la corta** (opción A, decidida por la coordinación). Si Cartago no está en el mapa, el hito lee la
+  capital rival del modo (Tarento) y se llama «Tarento tomada». En la corta bastan 3 plazas (`CIFRAS.armas.plazasCorta`),
+  porque la partida acaba al caer Tarento. Prueba nueva en `test/caminos.test.mjs`.
+- `js/plan-senado.js`: plan «bien» con el 67 % de las obras (antes 80 %) e historial de 8 planes (antes 4; `P.HISTORIAL`).
+  Pruebas de `test/plan-senado.test.mjs` al día (42 bien).
+
+### Contratos exactos para CDe4 (archivos comunes)
+- **Lujo sin conquistar** (punto 3). `game.js`, `G.servicios` (línea ≈582) ya cuenta como lujo cualquier `s.bienes[k] ≥ 1` con
+  `k` en `D.LUJO = ['vino','purpura','plata']`. Basta con que el enganche de agricultura y mercado haga entrar el vino:
+  (a) en el cierre de mes, lo que produzcan las viñas de `agricultura.js` se suma a `s.bienes.vino`; (b) en `MER.comprar`
+  de vino, el `delta` se aplica a `s.bienes.vino` (no a `s.res`). Con eso, una Roma en paz con viña o mercado llega a Urbs.
+  Histórico: el vino itálico de Campania y el Lacio (Catón, *De agri cultura* 1.7).
+- **Bando militar sin guerra** (punto 4). `data.js` línea 751: `mil: ['leva', 'victoria']` → `mil: ['leva', 'guarnicion']`;
+  `pro` se queda con `['victoriaFuera', 'guarnicion']`. Así los militares se contentan con tropas pagadas en las plazas y
+  no hace falta ganar batallas. Si no se quiere tocar la lista, en `game.js`, donde se evalúa `victoria` del bando, que
+  valga también «ninguna plaza perdida esta estación». Licencia de juego.
+- **Rutas que se pierden** (punto 6). `game.js`, `G.rutasRevisar` (línea 353): ante una guerra con el socio, en vez de
+  `G.rutaCerrar`, marcar `r.parada = true` y no contarla ni cobrarla hasta la paz; al llegar la paz, `r.parada = false`.
+  `CAM.foto` cuenta `s.rutas.length`: habría que contar `s.rutas.filter(r => !r.parada).length` (lo cambia el Cerebro
+  cuando exista el campo).
+- **Cartago en la larga** (punto 2) → vigía de Batallas: ni el bot viejo de `test/sim.test.js` la toma (0/5, larga, con
+  `--var viejo`). Plazas sí: hasta 8. Medir si la campaña agresiva de `sim.test.js` sigue ganando tras la batalla nueva.
+
 ## Fase 2
 Fusionar la rama tras CDe4, repetir `node test/equilibrio-caminos.mjs --n 10` y dejar aquí las cifras finales.

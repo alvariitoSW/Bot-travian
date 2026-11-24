@@ -16,7 +16,7 @@ const aprobado = (s, obras, estaciones, prioridad) => {
 
 t('constantes y prioridades', () => {
   assert.deepStrictEqual([P.MIN_EST, P.MAX_EST, P.POR_EST, P.MAX_OBRAS, P.VOTOS_EST, P.ABANDONO], [4, 8, 3, 16, 3, -3]);
-  assert.deepStrictEqual(P.JUICIO, { bien: 0.8, mal: 0.5, premio: 2, castigo: -3 });
+  assert.deepStrictEqual(P.JUICIO, { bien: 0.67, mal: 0.5, premio: 2, castigo: -3 });   // CE12: bien 0,8→0,67
   assert.strictEqual(Object.keys(P.PRIORIDADES).length, 4); assert.strictEqual(P.PRIORIDADES.crecer.bando, 'ter');
 });
 t('migrar crea el estado y es idempotente', () => {
@@ -251,10 +251,10 @@ t('juicio final: bien (+2 a todos), regular, mal (−3 a los que no hicieron)', 
   const r3 = P.mes(s3, 12); assert.strictEqual(s3.planSenado.historial[0].juicio, 'regular'); assert.ok(!r3.efectos.some(x => x.tipo === 'humor'));
   assert.strictEqual(s3.ministros.encargos.ejercito === null || !s3.ministros.encargos.ejercito.plan, true, 'se cancelan los encargos del plan');
 });
-t('historial guarda solo los cuatro últimos', () => {
+t('historial guarda solo los últimos (CE12: 8)', () => {
   const s = nueva(); P.migrar(s);
-  for (let i = 0; i < 6; i++) { s.cities.roma.b.foro = 5; s.cities.roma.b.cuartel = 0; s.cities.roma.b.granja = 1; s.planSenado.plan = null; P.nuevo(s, 4, 'crecer'); pon(s, 'roma', 'cuartel', 0); pon(s, 'roma', 'granja', 1); P.votar(s, 0, { si: 30, total: 30, mayoria: 16 }); P.mes(s, 12); s.cities.roma.b.cuartel = 1; s.cities.roma.b.granja = 2; s.planSenado.votacion = { est: -1, n: 0, firmas: [] }; }
-  assert.strictEqual(s.planSenado.historial.length, 4);
+  for (let i = 0; i < P.HISTORIAL + 2; i++) { s.cities.roma.b.foro = 5; s.cities.roma.b.cuartel = 0; s.cities.roma.b.granja = 1; s.planSenado.plan = null; P.nuevo(s, 4, 'crecer'); pon(s, 'roma', 'cuartel', 0); pon(s, 'roma', 'granja', 1); P.votar(s, 0, { si: 30, total: 30, mayoria: 16 }); P.mes(s, 12); s.cities.roma.b.cuartel = 1; s.cities.roma.b.granja = 2; s.planSenado.votacion = { est: -1, n: 0, firmas: [] }; }
+  assert.strictEqual(s.planSenado.historial.length, P.HISTORIAL);
 });
 t('abandonar: −3 a los bandos con obras sin hacer, historial y encargos', () => {
   const s = nueva(); s.cities.roma.b.foro = 5; aprobado(s, [['roma', 'cuartel', 0], ['roma', 'granja', 0], ['roma', 'mina', 1]]); P.mes(s, 0);
