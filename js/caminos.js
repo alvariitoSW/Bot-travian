@@ -38,7 +38,7 @@
     s = obj(s) || {};
     const cities = obj(s.cities) || {};
     const CI = (D && D.CITIES) || {};
-    const mes = Math.floor(num(s.t));
+    const mes = Math.floor(num(s.t) + 1e-9);
     let plazas = 0;
     Object.keys(cities).forEach((id) => { if (cities[id] && cities[id].owner === 'roma' && CI[id] && CI[id].f !== 'roma') plazas++; });
     const mer = obj(s.mercado) || {};
@@ -51,24 +51,27 @@
     const cargo = sen.cargo || (favorSenado >= CIFRAS.politica.favorPrinceps ? 'princeps' : 'ninguno');
     const humor = obj(sen.humor) || {}, esc = obj(sen.escanos) || {};
     const ids = Array.isArray(sen.bandos) ? sen.bandos.map((b) => (b && typeof b === 'object' ? b.id : b)) : Object.keys(humor);
-    const bandos = ids.map((id) => ({ id, humor: num(humor[id]), escanos: num(esc[id]) }));
+    // Un bando sin humor guardado (migración a medias) no cuenta: ni hostil ni a favor.
+    const bandos = ids.filter((id) => typeof humor[id] === 'number' && isFinite(humor[id])).map((id) => ({ id, humor: humor[id], escanos: num(esc[id]) }));
     const hist = lista(obj(s.planSenado) && s.planSenado.historial);
     const planesBien = hist.filter((h) => h && h.juicio === 'bien').length;
-    const cid = s.capital || 'roma', c = cities[cid] || {};
-    const bi = G && typeof G.barrioInfo === 'function' ? G.barrioInfo(c) : null;
+    const cid = (G && typeof G.capital === 'function' && G.capital()) || s.capital || 'roma', c = obj(cities[cid]) || {};
+    let bi = null;
+    try { bi = G && typeof G.barrioInfo === 'function' ? G.barrioInfo(c) : null; } catch (e) { bi = null; }   // una ciudad rota no para el mes
     let cubiertos, total;
     if (bi && lista(bi.barrios).length) {
       total = bi.barrios.length;
       cubiertos = bi.barrios.filter((b) => !b.falta && num(b.nivel) >= num(b.objetivo)).length;
     } else {
       total = 1;
-      cubiertos = (bi ? lista(bi.falta).length === 0 : (c.barrio || 1) >= 4) ? 1 : 0;
+      cubiertos = (bi ? lista(bi.falta).length === 0 : (num(c.barrio) || 1) >= 4) ? 1 : 0;
     }
     return {
       cartago: !!(cities.carthago && cities.carthago.owner === 'roma'), plazas,
       denarios: num(s.res && s.res.denarios) + num(s.alm && s.alm.denarios),
-      rutas: lista(s.rutas).length + lista(mer.rutas).length, acuerdos, cargo, favorSenado, bandos, planesBien,
-      barrios: { cubiertos, total }, nivelUrbe: c.barrio || 1
+      rutas: obj(s.mercado) ? lista(mer.rutas).length : lista(s.rutas).length,   // mercado.js migra las rutas viejas sin borrarlas: no contar dos veces
+      acuerdos, cargo, favorSenado, bandos, planesBien,
+      barrios: { cubiertos, total }, nivelUrbe: Math.max(1, num(c.barrio) || 1)
     };
   };
 
@@ -129,7 +132,7 @@
     const caminos = CAM.DATOS.map((c) => {
       const hitos = c.hitos.map((h) => {
         const v = num(CAM.VALOR[c.id][h.id](f));
-        return { id: h.id, n: h.n, v, meta: h.meta, ok: v >= h.meta, avance: Math.min(1, v / h.meta) };
+        return { id: h.id, n: h.n, v, meta: h.meta, ok: v >= h.meta, avance: Math.max(0, Math.min(1, v / h.meta)) };
       });
       const avance = hitos.reduce((a, h) => a + h.avance, 0) / hitos.length;
       return { id: c.id, n: c.n, i: c.i, avance, cumple: hitos.every((h) => h.ok), hitos };
@@ -151,9 +154,9 @@
       ['desde', 'perdidoEn'].forEach((k) => { o[k] = typeof o[k] === 'number' && isFinite(o[k]) ? o[k] : null; });
     });
     const v = obj(c.victoria);
-    c.victoria = v && typeof v.mes === 'number' ? { mes: v.mes, caminos: lista(v.caminos).filter((x) => typeof x === 'string') } : null;
+    c.victoria = v && typeof v.mes === 'number' && isFinite(v.mes) ? { mes: v.mes, caminos: lista(v.caminos).filter((x) => typeof x === 'string') } : null;
     c.victoriaVista = !!c.victoriaVista;
-    c.avisos = lista(c.avisos).filter((a) => a && typeof a === 'object').slice(-8);
+    c.avisos = lista(c.avisos).filter((a) => a && typeof a === 'object' && typeof a.texto === 'string').slice(-8);
     return c;
   };
 

@@ -19,7 +19,7 @@ t('foto con estado falso', () => {
     rutas: [1], mercado: { rutas: [1, 2], contratos: [{ id: 'tratado', hasta: 20 }, { id: 'tratado', hasta: 5 }] }, dip: { x: { estado: 'alianza' }, y: { estado: 'guerra' } },
     favor: { senado: 85 }, senado: { humor: { a: 60, b: 20 }, escanos: { a: 5, b: 5 } }, planSenado: { historial: [{ juicio: 'bien' }, { juicio: 'mal' }] } };
   const f = CAM.foto(s, null);
-  assert.strictEqual(f.cartago, true); assert.strictEqual(f.denarios, 150); assert.strictEqual(f.rutas, 3); assert.strictEqual(f.acuerdos, 2);
+  assert.strictEqual(f.cartago, true); assert.strictEqual(f.denarios, 150); assert.strictEqual(f.rutas, 2); assert.strictEqual(f.acuerdos, 2);
   assert.strictEqual(f.cargo, 'princeps'); assert.strictEqual(f.bandos.length, 2); assert.strictEqual(f.planesBien, 1); assert.strictEqual(f.nivelUrbe, 4);
   assert.deepStrictEqual(f.barrios, { cubiertos: 1, total: 1 });
 });
@@ -103,3 +103,14 @@ t('bandos hostiles', () => {
 });
 t('fuentes', () => { assert.ok(CAM.FUENTES.every((x) => x.tema && x.cita && ['histórico', 'licencia de juego'].includes(x.dictamen))); });
 console.log('caminos: ' + n + ' pruebas OK');
+
+// Revisor CE10: barrioInfo que lanza, bando sin humor, rutas sin doble cuenta, deuda
+{
+  const Gr = { barrioInfo() { throw new Error('rota'); } };
+  const f = CAM.foto({ cities: { roma: { b: {}, barrio: 2 } }, senado: { bandos: ['a', 'b'], humor: { b: 70 }, escanos: { a: 5, b: 5 } }, rutas: [1, 2], mercado: { rutas: [1, 2] }, res: { denarios: -5000 } }, Gr);
+  assert.strictEqual(f.rutas, 2); assert.strictEqual(f.bandos.length, 1); assert.strictEqual(f.nivelUrbe, 2);
+  const ev = CAM.evaluar(f); assert.ok(ev.caminos.every((c) => c.avance >= 0 && c.hitos.every((h) => h.avance >= 0)));
+  const s = { caminos: { victoria: { mes: NaN, caminos: [] }, avisos: [{ texto: 3 }] } }; CAM.migrar(s);
+  assert.strictEqual(s.caminos.victoria, null); assert.strictEqual(s.caminos.avisos.length, 0);
+  console.log('caminos: revisor OK');
+}
