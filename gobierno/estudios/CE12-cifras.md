@@ -134,3 +134,13 @@ llega pronto al nivel 4 y luego decae. Hace falta una meta que crezca (barrios o
   meta que crezca (p. ej. favor sostenido más años o planes bien acumulados).
 - **Comercio**: Roma la toma Cartago en 216–217 a.C. (Aníbal) aun con 600 hombres. Con la renta ≈740 el bot no aguanta esa
   invasión. Comercio 3/10 (230 a.C.).
+
+## Fase 2d y cifras congeladas (24/11)
+- **Ciudad**: casas de todas las ciudades propias; la mitad en barrios de nivel 4 y al menos `casasPorCiudad` × ciudades.
+  El bot de ciudad tiene una sola ciudad y se topa en ≈72 casas: con 60–72, 10/10 en el 277 a.C.; con **73** (cifra
+  congelada), 0/10. Pendiente tras la 1.0: un bot de ciudad que funde o tome ciudades, y calibrar con él.
+- **Política**: contador acumulado `s.planSenado.bienTotal` (plan-senado.js). Meta **4** planes bien, sostener 24 meses →
+  0/10 (el bot hace 2 en los primeros 3 años y luego ninguno). Pendiente tras la 1.0: un bot que logre planes bien a lo largo
+  de la partida.
+- **Comercio** 5/10 (225 a.C.) con renta 800 × ciudades. **Armas** 1/10, depende de CG10.
+Ninguna cifra gana antes que las armas. Solo el comercio queda en 4–7/10.
