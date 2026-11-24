@@ -2042,6 +2042,18 @@
       "titulo": "Ciudad · CDe3 Pantalla mínima y agricultura + mercado enganchados (de paso; Opus)",
       "nota": "Abierta el 24/11 por la sesión de ciudad; pedido del usuario tras probar la v157",
       "url": "https://claude.ai/code/session_01QiKC38arYpjMywJKEFfHi5"
+    },
+    {
+      "tarea": "LP7b",
+      "titulo": "Corazón · LP7b La falange desde la batalla grande (Opus)",
+      "nota": "Abierta el 24/11; sin supervisión",
+      "url": "https://claude.ai/code/session_01QiKC38s19RyPA8vazAaPvD"
+    },
+    {
+      "tarea": "FI4",
+      "titulo": "Corazón · FI4 Física en escaramuzas y batalla de campaña (Opus)",
+      "nota": "Abierta el 24/11; sin supervisión",
+      "url": "https://claude.ai/code/session_01QiKC39cWnfXfbC6vm6DgPf"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
