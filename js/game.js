@@ -3109,7 +3109,8 @@
           else if (su.tipo === 'consecuencia' && !D.NEC_CASTIGOS) { if (dichos++ < 2) G.log('🏘️ ' + nom + ', ' + nb + ': ' + (FRASE_NEC[su.efecto] || su.efecto) + '.', 'bad', true); }   // CDe1: solo aviso hasta CD5b (D.NEC_CASTIGOS)
           else if (su.tipo === 'consecuencia') {
             const ef = su.efecto, baja = ef === 'hambre' || ef === 'fiebres' || ef === 'se_van', perdida = baja ? Math.ceil((c.pop || 0) * D.NEC_PERDIDA * share) : 0;
-            if (baja) c.pop = Math.max(G.MIN_POP, (c.pop || 0) - perdida);
+            if (baja && hechos['baja' + i]) continue;   // CDe2: una sola pérdida de vecinos por barrio y estación (la de la necesidad peor)
+            if (baja) { c.pop = Math.max(G.MIN_POP, (c.pop || 0) - perdida); hechos['baja' + i] = true; }
             else if (hechos[ef]) continue;
             else if (ef === 'pierde_votos') hum3(-1);
             else if (ef === 'protesta') G.favorAplica(0, -1);

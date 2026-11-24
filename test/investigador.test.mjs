@@ -31,6 +31,7 @@ function campana(inv, seed) {
       }
       for (const id of G.myCities()) {
         const c = s.cities[id];
+        if (G.enRevuelta && G.enRevuelta(c)) c.nec.mem.forEach((m, k) => { if (m && m.revuelta) for (const r of ['grano', 'juegos', 'tropas']) if (G.calmarRevuelta(id, k, r).ok) break; });   // CDe2: como el bot de sim.test.js, calma las revueltas de barrio
         if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
         { const E = G.ciudadE(id), bi = E && G.barrioInfo(c);      // CI1b: como un jugador (y como el bot de sim.test.js), si a un barrio le falta agua pone una fuente
           if (bi && G.huecosLibres(c) > 0 && bi.barrios.some(x => /agua/.test(x.falta || '')) && E.edificios.filter(e => e.tipo === 'fuente').length < 1 + bi.barrios.reduce((n, x) => n + x.casas, 0) / 25) {
