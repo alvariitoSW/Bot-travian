@@ -134,3 +134,14 @@ export function crearEsqueleto(tabla, huesos, filas, pos, pesoI, pesoW) {
   }
   return { J, mat, en, postura, huesos, filas };
 }
+
+/* ---------- CB2: la pose del motor de lucha (js/combate-poses.js) hecha postura ----------
+   qDePose(pose, E): pasa los blancos de poseDe (metros) a unidades del modelo (E = metros por unidad, UNIT_SCALE).
+   posturaDePose(esq, base, pose, E): la fila de la tabla (Float32Array huesos×12) para esa pose, sobre la fila «base».
+   No cambia ninguna postura de las que ya existen: solo añade esta. La caída (pose.cae) la pone quien dibuja (gira la figura). */
+export function qDePose(p, E) {
+  const u = v => v && [v[0] / E, v[1] / E, v[2] / E];
+  return { baja: (p.baja || 0) / E, dobla: p.dobla || 0, tuerce: p.tuerce || 0, cabeza: p.cabeza || [0, 0],
+    manoI: u(p.manoI), manoD: u(p.manoD), poloI: p.poloI, poloD: p.poloD };
+}
+export const posturaDePose = (esq, base, pose, E) => esq.postura(base, qDePose(pose, E));

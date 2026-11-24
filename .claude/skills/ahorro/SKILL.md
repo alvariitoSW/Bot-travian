@@ -25,6 +25,8 @@ El gasto se mide: `node gobierno/gasto.mjs` (millones de tokens equivalentes, po
 
 4. Escribe **como mucho tres recortes**, cada uno con lo que ahorra y lo que arriesga.
 
+> Desde el 24/11 (usuario): **no hay tope ni corte de gasto**; los recortes son propuestas, nunca motivo para parar una sesión.
+
 ## Qué se hace con los recortes
 - Los que no cambian reglas ni calidad: se aplican y se anotan en el parte.
 - Los que quitan una comprobación o cambian cómo se trabaja: a la bitácora como propuesta. Decide el usuario.

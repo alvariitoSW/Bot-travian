@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1016">
+<title>AQVILA · Combate de cerca</title>
+<base href="../../../">
+<style>
+html,body{margin:0;height:100%;background:#9fb3c4;overflow:hidden;font-family:system-ui,sans-serif}
+canvas{display:block;width:100vw;height:100vh;touch-action:none}
+#rotulo{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(11,16,22,.78);color:#f3e7c9;
+  padding:6px 12px;border-radius:14px;font-size:15px;white-space:nowrap;overflow:clip}
+#rotulo b{color:#ffcf6b}
+#info{position:fixed;left:10px;top:max(8px,env(safe-area-inset-top));color:#10161c;font-size:12px;background:rgba(255,255,255,.55);padding:3px 8px;border-radius:8px}
+</style>
+</head>
+<body>
+<div id="info">cargando…</div>
+<div id="rotulo"></div>
+<script type="module">
+/* AQVILA — CB2: el cuerpo a cuerpo de cerca. Motor real (js/combate.js) con física real (js/fisica-batalla.js, en montaje.js):
+   nadie se mete dentro de otro. CB2b: soldados de Meshy, los de la maqueta del bloque (bloque/soldados.js, AL11): el hastatus
+   (scutum y gladius en su malla) y el galo grande con el escudo y la espada que le presta «galo» (soloArmas). Su esqueleto
+   (movimientos_escudo_74) no trae brazos sueltos que mover por cuentas sin rehacer esqueleto.js para 74 huesos; se mueven con
+   SUS clips (guardia, golpear, cubrirse, morir), eligiendo clip y cuadro con el estado del motor (poseDe: escudo y arma).
+   Parámetros: ?t=<s> (avanza hasta ahí y congela) &semilla= &mira=<id> &fisica=0 (el antes). */
+import { THREE } from './js/gfx/models.js';
+import { cargarSoldado, tropa } from './js/gfx/soldado.js';
+import { paleta, soloArmas, ARMAS } from './gobierno/maquetas/bloque/soldados.js';
+import { T_GOLPE, UMBO } from './js/combate.js';
+import { poseDe, rotuloDe, T_CAIDA } from './js/combate-poses.js';
+import { montar, avanzar, DT } from './gobierno/maquetas/combate-cerca/montaje.js';
+
+const Q = new URLSearchParams(location.search);
+const tFijo = Q.has('t') ? +Q.get('t') : null, semilla = +(Q.get('semilla') || 1), MIRA = Q.get('mira') || 'A:0:1';
+const S = montar(semilla, Q.get('fisica') !== '0'), H = S.A.hombres, G = S.G.hombres;
+const CB2 = window.CB2 = { S, listo: false, coste: { motor: 0, fisica: 0, poses: 0, cuadro: 0, n: 0 } };
+
+/* escena */
+const ren = new THREE.WebGLRenderer({ antialias: true });
+ren.setPixelRatio(Math.min(2, devicePixelRatio)); document.body.appendChild(ren.domElement);
+const escena = new THREE.Scene(); escena.background = new THREE.Color('#9fb3c4'); escena.fog = new THREE.Fog('#9fb3c4', 18, 60);
+const cam = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+escena.add(new THREE.HemisphereLight('#dfe8f0', '#5b4a32', 1.3));
+const sol = new THREE.DirectionalLight('#fff2d8', 2.2); sol.position.set(4, 9, 3); escena.add(sol);
+const suelo = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshLambertMaterial({ color: '#8b7a55' }));
+suelo.rotation.x = -Math.PI / 2; escena.add(suelo);
+const aro = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.5, 32), new THREE.MeshBasicMaterial({ color: '#ffcf6b', transparent: true, opacity: 0.85 }));
+aro.rotation.x = -Math.PI / 2; aro.position.y = 0.02; escena.add(aro);
+/* sombra de contacto: un disco oscuro bajo cada hombre (el material de Meshy no echa sombra) */
+const sombras = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(0,0,0,.8)'); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+  const geo = new THREE.PlaneGeometry(1, 1); geo.rotateX(-Math.PI / 2);
+  const m = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, opacity: 0.5 }), S.hombres.length);
+  m.frustumCulled = false; m.position.y = 0.01; escena.add(m); return m;
+})();
+
+/* soldados de Meshy (nivel cercano): romano = hastatus; galo = galo grande + las armas de «galo» */
+const NR = 'hastatus', NG = 'galo-grande';
+const [sR, sG, sA] = await Promise.all([cargarSoldado(NR, paleta(NR, 'r')), cargarSoldado(NG, paleta(NG, 'g')), cargarSoldado(ARMAS[NG], paleta(NG, 'g'))]);
+if (!sR || !sG || !sA) throw new Error('no cargan los soldados de Meshy');
+const tR = tropa(sR.niveles[0], H.length), tG = tropa(sG.niveles[0], G.length), tA = tropa(soloArmas(sA.niveles[0]), G.length);
+for (const t of [tR, tG, tA]) escena.add(t.malla);
+/* cuadros clave de cada clip, medidos en el esqueleto (todos comparten movimientos_escudo_74): el de la mano del arma más
+   adelante en «golpear» (la estocada o el final del tajo) y el de la mano del escudo más alta en «cubrirse» */
+function pico(s, clip, hueso, eje) {
+  const { j, geo, crudo } = s, c = j.clips[clip], nb = j.huesos.length, ib = j.huesos.indexOf(hueso), h2f = THREE.DataUtils.fromHalfFloat;
+  const si = geo.attributes.aSkinI, sw = geo.attributes.aSkinW, po = geo.attributes.position; let v = -1;
+  for (let i = 0; i < po.count && v < 0; i++) if (si.getX(i) === ib && sw.getX(i) > 0.8) v = i;
+  if (v < 0) return Math.floor(c.n / 2);
+  let mejor = 0, mv = -1e9;
+  for (let k = 0; k < c.n; k++) {
+    const b = ((c.ini + k) * nb * 3 + ib * 3) * 4 + eje * 4, f = q => h2f(crudo[b + q]);
+    const val = f(0) * po.getX(v) + f(1) * po.getY(v) + f(2) * po.getZ(v) + f(3); if (val > mv) { mv = val; mejor = k; }
+  }
+  return mejor;
+}
+const s0 = sR.niveles[0], FPS = 30, CL = s0.j.clips;
+const K = { golpe: pico(s0, 'golpear', 'wrist.R', 2) / FPS, alto: pico(s0, 'cubrirse', 'wrist.L', 1) / FPS, finG: (CL.golpear.n - 1) / FPS, finM: (CL.morir.n - 1) / FPS };
+CB2.claves = K;
+/* clip, tiempo dentro del clip y empujón adelante (m) de un hombre, sacados de su pose (poseDe, del estado del motor) */
+function clipDe(h, t) {
+  const p = poseDe(h, t);
+  if (!h.vivo) return { clip: 'morir', ct: Math.min(1, h.muerto / T_CAIDA) * K.finM, mete: 0 };
+  if (p.arma === 'estocada' || p.arma === 'tajo') {
+    /* de la guardia al golpe en el 60 % de T_GOLPE; luego se queda fuera */
+    /* sin empujón del cuerpo: el rival está a 0,95 m (física) y la punta sale por el canto del propio scutum hasta el suyo */
+    const k = p.avance, ct = K.golpe * Math.min(1, k / 0.6);
+    return { clip: 'golpear', ct, mete: 0 };
+  }
+  if (p.arma === 'recupera') return { clip: 'golpear', ct: K.golpe + (K.finG - K.golpe) * Math.min(1, (h.der.t || 0) / 0.45), mete: 0 };
+  if (p.escudo === 'empuja') { const k = Math.sin(Math.PI * Math.min(1, (h.izq.t || 0) / UMBO.t)); return { clip: 'cubrirse', ct: K.alto * (0.5 + 0.5 * k), mete: 0.06 * k }; }
+  if (p.escudo === 'para' || p.arma === 'para') return { clip: 'cubrirse', ct: K.alto * Math.min(1, (h.izq.t || h.der.t || 0) / 0.08 + 0.3), mete: 0 };
+  return { clip: 'guardia', ct: t + h.col * 0.37 + h.fila * 0.21, mete: 0 };
+}
+const M4 = new THREE.Matrix4(), QT = new THREE.Quaternion(), P3 = new THREE.Vector3(), E3 = new THREE.Vector3(1, 1, 1), Y = new THREE.Vector3(0, 1, 0);
+const var4 = s => [0, 1, 2, 3].map(k => { const v = Math.sin(s * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); });
+/* el modelo mira a +z; el motor, a (sin yaw, −cos yaw): giro π − yaw */
+function pinta(t) {
+  const t0 = performance.now(); let ns = 0;
+  for (const tr of [tR, tG, tA]) tr.limpiar();
+  for (const [L, tr, ta] of [[H, tR, null], [G, tG, tA]]) L.forEach((h, n) => {
+    const c = clipDe(h, t), i = tr.sig();
+    P3.set(h.x + Math.sin(h.yaw) * c.mete, 0, h.z - Math.cos(h.yaw) * c.mete); QT.setFromAxisAngle(Y, Math.PI - h.yaw); M4.compose(P3, QT, E3);
+    const v4 = var4(n + (h.bando === 'a' ? 1 : 50)), mu = tr.muestra(c.clip, c.ct);
+    tr.matriz(i, M4.elements); tr.vars(i, v4); tr.pose(i, c.clip, c.ct, mu);
+    if (ta) { const ia = ta.sig(); ta.matriz(ia, M4.elements); ta.vars(ia, v4); ta.pose(ia, c.clip, c.ct, ta.muestra(c.clip, c.ct)); }
+    if (h.vivo) { P3.y = 0; M4.compose(P3, QT.identity(), E3); sombras.setMatrixAt(ns++, M4); }
+  });
+  sombras.count = ns; sombras.instanceMatrix.needsUpdate = true;
+  return performance.now() - t0;
+}
+
+/* cámara: de lado, a ~3,5 m, a la altura del hombro, mirando al hueco entre el señalado y su rival */
+const yo = S.hombres.find(h => h.id === MIRA) || H[1];
+function encuadra() {
+  const w = innerWidth, h = innerHeight, vertical = h > w;
+  ren.setSize(w, h, false); cam.aspect = w / h; cam.fov = vertical ? 62 : 40; cam.updateProjectionMatrix();
+  const Fx = Math.sin(yo.yaw), Fz = -Math.cos(yo.yaw), M = yo.manip;
+  /* desde el flanco más cercano, fuera de la fila: ~3 m más allá del último hombre (3-5 m del señalado) */
+  const lat = (yo.col - (M.frente - 1) / 2) * M.lado, borde = (M.frente - 1) / 2 * M.lado, lado = lat >= 0 ? 1 : -1;
+  const d = borde - Math.abs(lat) + (vertical ? 2.6 : 3.0), Rx = Math.cos(yo.yaw) * lado, Rz = Math.sin(yo.yaw) * lado;
+  /* CB2b: de lado, sobre la raya entre los dos frentes y algo por encima del hombro */
+  cam.position.set(yo.x + Rx * d + Fx * 0.45, 1.9, yo.z + Rz * d + Fz * 0.45);
+  cam.lookAt(yo.x + Fx * 0.55, 1.0, yo.z + Fz * 0.55);
+}
+addEventListener('resize', encuadra); encuadra();
+const rotulo = document.getElementById('rotulo'), info = document.getElementById('info');
+function textos() {
+  const quien = yo.bando === 'a' ? 'hastatus' : 'galo';
+  rotulo.innerHTML = `${quien} <b>${rotuloDe(yo)}</b>`;
+  const vivos = L => L.filter(h => h.vivo).length;
+  info.textContent = `${S.t.toFixed(1)} s · hastati ${vivos(H)} · galos ${vivos(G)}`;
+  aro.position.x = yo.x; aro.position.z = yo.z;
+}
+
+if (tFijo !== null) {
+  avanzar(S, tFijo); const c = pinta(tFijo); textos(); ren.render(escena, cam);
+  CB2.coste.poses = c; CB2.listo = true;
+} else {
+  let ult = performance.now(), acu = 0;
+  ren.setAnimationLoop(() => {
+    const ahora = performance.now(); acu += Math.min(0.1, (ahora - ult) / 1000); ult = ahora;
+    const a = performance.now(), m0 = S.ms.motor, f0 = S.ms.fisica; while (acu >= DT) { avanzar(S, S.t + DT); acu -= DT; }
+    const cp = pinta(S.t); textos(); ren.render(escena, cam);
+    const C = CB2.coste; C.motor += S.ms.motor - m0; C.fisica += S.ms.fisica - f0; C.poses += cp; C.cuadro += performance.now() - a; C.n++;
+    CB2.listo = true;
+  });
+}
+</script>
+</body>
+</html>

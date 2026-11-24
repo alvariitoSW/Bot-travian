@@ -78,7 +78,7 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   `gobierno/estudios/REF-batallas-referencias.md` antes de cerrar; quien diseñe batallas la lee primero y no le pide que repita.
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
-- **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye.
+- **Gasto**: sin tope ni corte (usuario 24/11: las sesiones siguen hasta acabar), pero medido con `node gobierno/gasto.mjs` y apuntado en el parte. El director no construye.
   **Sin Fable** (usuario, 18/11: «hay que dejar de usar Fable 5.2»): dirige, diseña y construye **Opus**. La skill
   `ahorro` revisa los partes y propone recortes.
 - **Objetivos finales** (usuario, 18/11): `gobierno/OBJETIVOS.md` manda sobre el tablero. Léela al empezar y di a qué línea
@@ -86,9 +86,9 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
 - **Meta: la 1.0** (usuario, 17/11). Solo se trabaja en el Carril V del tablero, en orden. Nada nuevo entra; lo nuevo
   va a «Después de la 1.0» en la bitácora, o entra sacando otra. Sin concursos ni estudios hasta la 1.0.
 - **Ministerios por área** (usuario, 23/11: mapa «A» y reglas para todas las sesiones; `gobierno/MINISTERIOS.md`): Cerebro
-  (ramas Ciudades y Política), Corazón (Batallas), Músculo, taller de Arte y **taller de Sonido** (director de sonido para todo
+  (ramas Ciudades y Política), Corazón (Batallas y **Combate**: motor de lucha, físicas y soldados, usuario 24/11), Músculo, taller de Arte y **taller de Sonido** (director de sonido para todo
   el juego, usuario 23/11). Cada sesión carga la guía de su área
-  (`ministerio-batallas`, `ministerio-cerebro`, `ministerio-musculo`, `arte`, `sonido`), toca solo sus archivos (`gobierno/areas.json`),
+  (`ministerio-batallas`, `ministerio-combate`, `ministerio-cerebro`, `ministerio-musculo`, `arte`, `sonido`), toca solo sus archivos (`gobierno/areas.json`),
   cierra con `node gobierno/juez-area.mjs <área>` y deja pases, ideas y preguntas en su parte. Tablero y bitácora: solo el
   vigía. Jueces completos: una vez, en la sesión de subida. Gasto: sin tope fijo para los ministerios, pero medido.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.

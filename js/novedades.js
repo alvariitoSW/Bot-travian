@@ -4,12 +4,12 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
-    { v: 164, fecha: '24/11/2026', cosas: [
+    { v: 165, fecha: '24/11/2026', cosas: [
       'Se gana con tres de cuatro caminos: armas, comercio, política y ciudad. Míralos en Imperio, «Tus caminos».',
       'Tomar Cartago ya no acaba la partida y no hay límite de años.',
       '«Este año» en Imperio: a dónde va tu dinero y el tributo de guerra de cada primavera.',
       'Gobernador: enciéndelo en la ficha de una ciudad y él la cuida cada estación.',
-      'Clases sociales con sus personajes en 3D, calles que trazas con el dedo y menús nuevos de papiro y bronce.',
+      'Clases sociales con personajes en 3D, calles que trazas con el dedo, termas y acueducto nuevos y menús de papiro y bronce.',
       'Batalla rápida: al entrar en combate eliges jugarla, mirarla por rondas o resolverla.'] },
     { v: 162, fecha: '24/11/2026', cosas: [
       'La ciudad ocupa casi toda la pantalla: una tira fina arriba (toca para ver todo) y las pestañas abajo.',

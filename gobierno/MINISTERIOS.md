@@ -6,7 +6,8 @@ sin tope de gasto para montarlo, pero midiendo. El código del juego no se ha to
 
 | Área | Guía (skill) | Juez de área (medido el 23/11) | Entorno |
 |---|---|---|---|
-| **Corazón · Batallas**, con su taller | `ministerio-batallas` | lógica 48 s + navegador 12 min (`juez-guerra`) + 5,5 min (sus pasos de `jueces.mjs`, MIN4) | «AQVILA Batallas taller» |
+| **Corazón · Combate** (24/11): motor de lucha, físicas, soldados y movimientos, con el taller de arte de soldados | `ministerio-combate` | lógica de física, falange, bloque y guerra + `juez-guerra` en navegador | «AQVILA Batallas taller» |
+| **Corazón · Batallas** (ejércitos, mando, campo, pantallas) | `ministerio-batallas` | lógica 48 s + navegador 12 min (`juez-guerra`) + 5,5 min (sus pasos de `jueces.mjs`, MIN4) | «AQVILA Batallas taller» |
 | **Cerebro** (ramas Ciudades y Política) | `ministerio-cerebro` | lógica 63 s + navegador 2 min (MIN4): **3,6 min en total** | el de siempre |
 | **Músculo** (mapa, menús, manejo, fluidez) | `ministerio-musculo` | lógica 10 s + navegador 8 min (MIN4, con la batalla de preparación) | el de siempre |
 | **Taller de Arte** común | `arte` | `arte.mjs` y `fichas.mjs`, segundos | «AQVILA Batallas taller» |
@@ -122,6 +123,23 @@ reglas, la mezcla, las licencias, el presupuesto de audio (`arte.json` → `soni
 siguen con su área (`js/gfx/sonido.js` en Batallas, `js/gfx/sonido-ciudad.js` en Cerebro): el director les pasa la
 **partitura** y ellos la montan, para que ningún archivo tenga dos dueños. Juez: `node gobierno/juez-sonido.mjs` (también
 lo pasan Batallas y Cerebro si tocan arte). Aquí nada se oye: el juez mide y el usuario escucha en el móvil.
+
+## 4c. El Departamento de Combate (pedido del usuario, 24/11)
+Casi literal: «un nuevo departamento que junte todo lo referente a mecánicas de batallas, como las físicas, los gráficos y
+las animaciones, y cree un motor de la lucha [...] que puedas defenderte con el escudo y luchar con la otra mano, que
+dependa del arma que lleves, de la lucha de manípulos». Guía: skill `ministerio-combate`.
+- **Reparto con Batallas** (una frase): Combate hace que un golpe sea de verdad; Batallas decide dónde y cuándo se pelea.
+- **Pasan a Combate**: `js/fisica-batalla.js` y su prueba, `js/gfx/soldado.js`, `units.js`, `models.js`, las piezas de
+  lucha de `maquetas/a-pie/` (acciones, esqueleto, soldado, locomoción, proyectiles, física), `maquetas/soldado-*/` y el
+  taller de arte de soldados (`assets/soldados/`, `assets/units/`, `tools/blender/` y afines). Archivos nuevos suyos:
+  `js/combate.js` (el motor) y `test/combate*.test.mjs`.
+- **También pasan a Combate** (decisión del usuario, 24/11: «Sí pasan»): la falange y el testudo, `js/falange.js`,
+  `falange-rivales.js`, `bloque.js` y `bloque-ia.js`, sus pruebas y `maquetas/falange/`; y, desde CB3, `js/combate-tropas.js`.
+- **Se quedan en Batallas**: ejércitos, mando, campo, escenas y pantallas (`battle.js`, `guerra.js`, `simulador.js`,
+  `escena.js`, `ui-*.js`). Usan el motor; cambiarlo es un pase → Combate. Así cada archivo sigue con un solo dueño (R1).
+- **Por qué no se juntó todo en un único ministerio**: Batallas quedaría con la mitad del juego en una sola cola; partido
+  por «golpe» y «ejército», dos sesiones trabajan a la vez sin pisarse.
+- **Primera tarea propuesta**: P186 en la bitácora (motor de lucha con escudo, mano del arma, armas y relevo de manípulos).
 
 ## 5. Lo que NO cambia
 `OBJETIVOS.md` y la lista de la 1.0; «una sesión, una tarea»; el plan socialista (presupuesto, constructor, verificador,
