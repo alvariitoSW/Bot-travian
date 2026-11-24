@@ -1,4 +1,4 @@
-/* Vigila el juego sin conexión: todo archivo .js que se carga (import en js/, <script src> o import en index.html)
+/* Vigila el juego sin conexión: todo archivo .js que se carga (desde index.html o importado por otro archivo de FILES, maquetas incluidas)
    tiene que estar en FILES de sw.js. Si falta uno, sin red no carga. Uso: node test/sw-archivos.test.mjs */
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname, relative, posix } from 'node:path';
@@ -11,6 +11,7 @@ const mira = (rel, desde) => { const n = posix.normalize(rel); if (vistos.has(n)
 const html = readFileSync(join(R, 'index.html'), 'utf8');
 for (const m of html.matchAll(/src="([^"?#]+\.js)/g)) mira(m[1].replace(/^\.\//, ''), 'index.html');
 for (const m of html.matchAll(/from\s+['"]\.\/([^'"]+\.js)['"]|import\(\s*['"]\.\/([^'"]+\.js)['"]/g)) mira(m[1] || m[2], 'index.html');
+for (const f of files) if (f.endsWith('.js') && existsSync(join(R, f))) { vistos.add(f); pend.push(f); }   // también lo que ya está en FILES (maquetas, assets): sus import deben estar
 while (pend.length) {
   const f = pend.shift(), txt = readFileSync(join(R, f), 'utf8'), dir = posix.dirname(f);
   for (const m of txt.matchAll(/(?:from\s+|import\(\s*)['"](\.{1,2}\/[^'"]+\.js)['"]/g)) mira(posix.join(dir, m[1]), f);
