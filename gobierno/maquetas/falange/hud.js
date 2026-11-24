@@ -1,71 +1,52 @@
-/* Pieza «hud» (FA3, falange): lo que se ve encima de la escena. Pantalla limpia: sin botones de golpe.
-   Arriba: Salir, una línea con la situación (nunca un botón), la barra fina de cohesión y el terreno; al centro el
-   estandarte (único botón de mando) con la orden vigente; al tocarlo, el abanico de cuatro órdenes y el tiempo a un tercio.
-   Abajo a la izquierda, las cinco rayas de filas con su rótulo y, encima, «Bajar picas» / «Alzar picas» para las cinco a la vez. Las huellas de los pulgares; la derecha hace de aro del compás en el choque.
-   Flanco: el borde de ese lado en rojo. Las órdenes van por el puente de dedos.js (diseño FA3 §3).
-   Contrato: crearHud(m) con m = { S, Son, $, puente, dedos, acc } devuelve { hud, muestraFin, lento, abierto }. */
-import { META, AVISO_FLANCO } from './acciones.js';
+/* Pieza «hud» (LP6, falange): lo que se ve encima de la escena, con el control de «Manípulo a pie» (LP3).
+   Arriba: Salir y una línea con la situación (nunca un botón); «Datos ▾» despliega las cifras (cohesión, terreno, en pie).
+   Abajo: las cuatro órdenes de mando.js como estandartes con aro y palabra (Picas · Cerrar filas · Avanzar · Alto). La vigente
+   se rellena de rojo; la que conviene se ilumina con un aro dorado que late. Nada en el centro: el grito de la orden sale
+   encima de las órdenes y el flanco, en el borde de ese lado. El frente se dibuja en el suelo (dedos.js del bloque).
+   Contrato: crearHud(m) con m = { S, Son, $, mando } devuelve { hud, muestraFin, lento }. */
+import { AVISO_FLANCO } from './acciones.js';
 export function crearHud(m) {
-  const { S, Son, $, puente, dedos, acc } = m;
-  /* FA4: la unidad de un rival de js/falange-rivales.js puede no traer palabras(): se dicen aquí con sus números */
+  const { S, Son, $, mando } = m;
   const pal = u => u.palabras ? u.palabras() : { enPie: u.enPie, animo: u.roto ? 'rompe' : u.animo > 0.45 ? 'firme' : 'duda', cansancio: (u.cansancio || 0) < 0.35 ? 'fresca' : u.cansancio < 0.7 ? 'cansada' : 'agotada', combate: 'igualado' };
   const NOMBRE = { manipulos: 'Romanos', caballeria: 'Jinetes', elefantes: 'Elefantes', falange: 'Falange rival', hoplitas: 'Hoplitas' };
   const linea = (nombre, u) => { const p = pal(u); return `${nombre} · ${p.enPie} en pie · ${p.animo} · ${p.cansancio} · ${p.combate}`; };
-  let abierto = false, t0 = null, tPrev = -1;
-  const ORDEN_T = { aguantar: 'Aguantar', empujar: 'Empujad', cerrar: 'Cerrar', retroceder: 'Atrás' };
-  /* metros desde tu primera fila hasta el rival más cercano que tienes delante (como lo mide el bot de dedos.js) */
+  /* metros desde tu primera fila hasta el rival más cercano que tienes delante */
   function cerca() {
     const M = S.motor; let d = 1e9; if (!M || !S.ene) return d;
-    for (const h of S.ene) if (h.vivo && h.est !== 'huye') { const l = M.local(h.x, h.z); if (Math.abs(l.lado) < 12 && l.delante > -1) d = Math.min(d, l.delante); }
+    for (const h of S.ene) if (h.vivo && h.est !== 'huye') { const l = M.local(h.x, h.z); if (Math.abs(l.lado) < 14 && l.delante > -1) d = Math.min(d, l.delante); }
     return d;
   }
-  /* el botón de las picas: baja las cinco si hay alguna alzada; si están todas bajadas, las alza */
-  const todasBajas = () => S.filas.every(Boolean);
-  function picas() { const bajar = !todasBajas(); for (let i = 0; i < 5; i++) puente.fila(i, bajar); }
   /* la situación, en pocas palabras */
-  function situacion() {
-    if (S.ganador) return S.ganador === 'falange' ? 'El manípulo rompe' : 'Tu falange rompe';
-    if (!S.choque) return S.filas.some(Boolean) ? 'Filas abajo: llega el choque' : cerca() < 25 ? 'Toca al compás · baja las picas' : 'Toca al compás para avanzar';   /* FA4 */
-    if (S.flanco && S.flanco.estado === 'viene') return S.flanco.lado > 0 ? 'Entran por la derecha' : 'Entran por la izquierda';
+  function situacion(L) {
+    if (S.ganador) return S.ganador === 'falange' ? 'El enemigo rompe y huye' : 'Tu falange rompe';
+    if (S.flanco && S.flanco.estado === 'viene') return S.flanco.lado > 0 ? 'Vienen por la derecha: gira el frente' : 'Vienen por la izquierda: gira el frente';
     if (S.ene.some(h => h.vivo && h.est === 'dentro')) return 'Hay uno dentro: cerrad filas';
-    if (S.orden === 'aguantar') return S.coh < 95 ? 'El muro se rehace' : 'Muro firme';
-    if (S.coh < 40 || (S.orden === 'empujar' && S.coh < 68)) return 'El muro se afloja';
-    return S.orden === 'empujar' ? 'Empujáis: marca el compás' : 'Marca el compás';
+    if (!S.choque) {
+      const d = cerca(), vuela = S.proyectiles.some(p => p.est === 1);
+      if (vuela) return '¡Pila en el aire!';
+      if (L.gira) return 'El muro gira';
+      if (L.marcha) return d < 60 ? `El muro avanza · enemigo a ${Math.round(d)} m` : 'El muro avanza';
+      return d < 60 ? `Enemigo a ${Math.round(d)} m` : 'Dibuja tu frente en el suelo';
+    }
+    const u = S.U, r = S.R, mios = u.enPie / u.hombres, suyos = r.enPie / r.hombres;
+    if (S.coh < 40) return 'El muro se afloja';
+    return suyos < mios - 0.12 ? 'Vais ganando' : suyos > mios + 0.12 ? 'Vais perdiendo' : 'Igualado';
   }
-  function abre(v) { abierto = v; $('abanico').hidden = !v; $('estandarte').classList.toggle('abierto', v); $('cinta').style.visibility = v ? 'hidden' : ''; }
+  let datos = false;
   function hud() {
-    $('nos').textContent = linea('Falange', S.U); $('ellos').textContent = linea(NOMBRE[S.rival] || 'Rival', S.R);
-    const fin = S.fase === 'fin' || !!S.ganador, L = puente.lee(), D = dedos.estado(), W = innerWidth, Hh = innerHeight;
-    if (t0 === null || S.T < tPrev - 1e-6) t0 = S.T; tPrev = S.T;
-    $('objetivo').textContent = situacion();
-    const k = Math.round(S.coh); $('coh').style.width = k + '%'; $('coh').style.background = k >= 60 ? 'var(--verde)' : k >= 40 ? '#e6ac3c' : 'var(--rojo)'; $('cohn').textContent = k;
-    $('terreno').textContent = `${Math.floor(S.ganado)} de ${META} m`;
-    /* el estandarte y su abanico */
-    $('estandarte').hidden = fin; if (fin && abierto) abre(false);
-    $('estandarte-t').textContent = ORDEN_T[S.orden] || 'Libre';
-    $('estandarte').classList.toggle('pide', !abierto && !fin && S.choque && !S.orden && S.coh < 50);
-    for (const b of $('abanico').children) b.classList.toggle('vigente', (b.dataset.o === 'aguantar' && S.orden === 'aguantar') || (b.dataset.o === 'empujad' && S.orden === 'empujar') || (b.dataset.o === 'retroceder' && S.orden === 'retroceder') || (b.dataset.o === 'cerrar' && S.orden === 'cerrar'));
-    /* las rayas */
-    $('filas').hidden = fin;
-    const alzar = todasBajas(); $('picas-t').textContent = alzar ? 'Alzar picas' : 'Bajar picas'; $('picas').classList.toggle('alzar', alzar);
-    for (const r of $('rayas').children) r.classList.toggle('baja', !!L.filas[+r.dataset.i]);
-    /* las huellas: donde está el pulgar o, si no, donde suele caer */
-    const vert = Hh > W, yBase = vert ? Hh * 0.78 : Hh * 0.7;
-    const hd = $('huella-d'), hi = $('huella-i'), dX = D.der.activo ? D.der.x : W * 0.8, dY = D.der.activo ? D.der.y : yBase;
-    hd.style.left = dX + 'px'; hd.style.top = dY + 'px'; hd.classList.toggle('toca', D.der.activo); hd.hidden = fin;
-    const r0 = $('rayas').getBoundingClientRect();
-    hi.style.left = (D.izq.activo ? D.izq.x : r0.left + r0.width / 2) + 'px'; hi.style.top = (D.izq.activo ? D.izq.y : r0.top - 40) + 'px'; hi.classList.toggle('toca', D.izq.activo); hi.hidden = fin || !D.izq.activo;
-    /* el compás: el aro se cierra sobre la huella derecha y se enciende verde en el «¡Ha!» */
-    if (S.choque && !fin) { const u = 1 - L.pulso; $('aro').style.transform = `scale(${(1 + 0.6 * u).toFixed(3)})`; $('aro').style.opacity = (0.3 + 0.7 * (1 - u)).toFixed(2); }
-    else $('aro').style.opacity = 0;
-    hd.classList.toggle('ya', S.choque && !fin && L.enCompas);
-    /* la pista de los pulgares: 3 s al empezar */
-    const pista = !fin && S.T - t0 < 3;
-    $('pista-d').style.left = Math.min(dX, W - 100) + 'px'; $('pista-d').style.top = (dY - 50) + 'px'; $('pista-d').classList.toggle('ve', pista);
-    /* el arco de grados mientras arrastras */
-    const gira = D.der.activo && D.der.modo === 'arrastre';
-    $('arco').hidden = !gira || fin;
-    if (gira) { $('arco').style.left = D.der.x + 'px'; $('arco').style.top = (D.der.y - 92) + 'px'; $('arco').textContent = `${L.giro > 0 ? '+' : ''}${Math.round(L.giro)}°`; }
+    const fin = S.fase === 'fin' || !!S.ganador, L = mando.lee();
+    $('objetivo').textContent = situacion(L);
+    if (datos) {
+      $('nos').textContent = linea('Falange', S.U); $('ellos').textContent = linea(NOMBRE[S.rival] || 'Rival', S.R);
+      const k = Math.round(S.coh); $('coh').style.width = k + '%'; $('coh').style.background = k >= 60 ? 'var(--verde)' : k >= 40 ? '#e6ac3c' : 'var(--rojo)'; $('cohn').textContent = k;
+      $('terreno').textContent = S.choque ? `${S.ganado >= 0 ? '+' : ''}${S.ganado.toFixed(0)} m` : `${S.filas.filter(Boolean).length} filas abajo`;
+    }
+    $('abajo').hidden = fin;
+    for (const b of $('ordenes').children) {
+      const o = b.dataset.o, t = L.texto[o];
+      if (b.lastChild.textContent !== t) { b.lastChild.textContent = t; b.setAttribute('aria-label', t); }
+      b.classList.toggle('vigente', !!L.vigente[o] && o !== 'picas'); b.classList.toggle('luz', L.conviene === o); if (o === 'picas') b.classList.toggle('alza', L.vigente.picas);
+    }
     /* el flanco: el borde de ese lado en rojo, más fuerte según se acaba el tiempo */
     const F = S.flanco && S.flanco.estado === 'viene' && !fin ? S.flanco : null;
     for (const [id, l] of [['borde-d', 1], ['borde-i', -1]]) { const q = F && F.lado === l ? Math.min(1, Math.max(0, 1 - (F.tI - S.T) / AVISO_FLANCO)) : -1; $(id).style.opacity = q < 0 ? 0 : (0.4 + 0.6 * q).toFixed(2); }
@@ -73,20 +54,18 @@ export function crearHud(m) {
     if (S.tGrito && S.T - S.tGrito > 1.8) { $('grito').classList.remove('ve'); S.tGrito = 0; }
   }
   function muestraFin() {
-    const gana = S.ganador === 'falange', bF = S.U.hombres - S.U.enPie, bR = S.R.hombres - S.R.enPie, q = gana ? S.U.enPie / S.U.hombres : S.R.enPie / S.R.hombres;
-    abre(false);
-    $('fin-t').textContent = gana ? (q > 0.8 ? 'Victoria clara' : 'Victoria por poco') : (q > 0.8 ? 'Derrota clara' : 'Derrota por poco');
-    $('fin-p').textContent = (gana ? 'El manípulo rompe y huye ante el muro de puntas. ' : 'Tu falange rompe y huye. ') + `Bajas: ${bF} de los tuyos y ${bR} romanos. Terreno ganado: ${Math.floor(S.ganado)} m. ` +
-      `Toques: ${S.toques.buenos} al compás y ${S.toques.malos} a destiempo. ` + (gana ? 'Muro firme, golpe a compás y flancos cerrados: así ganaba la falange de Pirro.' : 'Toca al compás, cierra filas cuando se abra un hueco y gira hacia el flanco.');
+    const gana = S.ganador === 'falange', bF = S.U.hombres - S.U.enPie, bR = S.R.hombres - S.R.enPie, q = S.U.enPie / S.U.hombres;
+    $('fin-t').textContent = gana ? (q > 0.75 ? 'Victoria clara' : 'Victoria por poco') : (S.R.enPie / S.R.hombres > 0.75 ? 'Derrota clara' : 'Derrota por poco');
+    const quien = NOMBRE[S.rival] || 'El rival';
+    $('fin-p').textContent = (gana ? `${quien}: rompen y huyen. ` : 'Tu falange rompe y huye. ') + `Bajas: ${bF} de los tuyos y ${bR} suyos. ` +
+      (S.causa === 'bajas' ? 'Lucharon hasta quedar el 15\u00a0%. ' : '') +
+      (gana ? 'Picas abajo al llegar, muro cerrado y frente al flanco: así ganaba la falange de Pirro.' : 'Baja las picas antes de que lleguen, cierra filas si se cuela uno y gira el frente hacia el flanco.');
     $('fin').hidden = false;
   }
   addEventListener('pointerdown', () => { if (!Son.listo() && Son.inicia()) Son.cuerno(); }, { once: true });
-  /* con el abanico abierto, tocar fuera lo cierra y ese toque no es gesto */
-  addEventListener('pointerdown', e => { if (abierto && !e.target.closest('#abanico,#estandarte')) { abre(false); e.aqvIgnora = true; } }, true);
-  $('estandarte').addEventListener('click', () => abre(!abierto));
-  $('picas').addEventListener('click', picas);
-  for (const b of $('abanico').children) b.addEventListener('click', () => { puente.estandarte(b.dataset.o); abre(false); });
-  $('otra').addEventListener('click', () => { location.href = location.pathname; });
+  for (const b of $('ordenes').children) b.addEventListener('click', () => { mando.orden(b.dataset.o); });
+  $('datosB').addEventListener('click', () => { datos = !datos; $('datos').hidden = !datos; $('datosB').setAttribute('aria-expanded', datos); $('datosB').textContent = datos ? 'Datos ▴' : 'Datos ▾'; });
+  $('otra').addEventListener('click', () => { location.href = location.pathname + (S.rival !== 'manipulos' ? '?rival=' + S.rival : ''); });
   $('salir').addEventListener('click', () => { location.href = document.baseURI; });
-  return { hud, muestraFin, lento: () => abierto, abierto: () => abierto };
+  return { hud, muestraFin, lento: () => false, abierto: () => false };
 }

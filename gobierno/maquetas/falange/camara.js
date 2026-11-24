@@ -4,12 +4,16 @@
    Al chocar baja y se acerca un poco (0,6 s) sin perder al enemigo. ?lado=1 la pone de costado (foto del muro de picas); ?alto=1, en alto (FA4).
    FA4: va con el giro del muro (detrás de ti sobre su eje, con 0,3 s de retraso) y se asoma al flanco que viene.
    ?cam=d,y,cabeceo,giro,abertura la retoca (vertical u horizontal).
+   LP6: por defecto, la vista de mando (detrás y arriba del muro, como «Manípulo a pie»); la de antes, con ?cam=antes.
    Contrato: crearCamara(m) con m = { Q, S, H, suave, lerp, DX, marcado, vertical (lectura) } devuelve { CAM, camBase }. */
 export function crearCamara(m) {
   const { Q, S, H, suave, lerp, DX } = m;
   const CAMS = { v: { d: 4.6, y: 3.9, pitch: -0.4, yaw: 0, fov: 60 }, h: { d: 4.3, y: 3.6, pitch: -0.3, yaw: 0, fov: 46 } };
-  if (Q.get('cam')) { const c = Q.get('cam').split(',').map(Number), t = innerHeight > innerWidth ? CAMS.v : CAMS.h; ['d', 'y', 'pitch', 'yaw', 'fov'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
+  if (Q.get('cam') && Q.get('cam') !== 'antes') { const c = Q.get('cam').split(',').map(Number), t = innerHeight > innerWidth ? CAMS.v : CAMS.h; ['d', 'y', 'pitch', 'yaw', 'fov'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
   const LADO = Q.get('lado') === '1', ALTO = Q.get('alto') === '1', G = Math.PI / 180;
+  /* LP6: por defecto, la vista de mando; ?cam=antes (o cualquier ?cam=d,y,…) vuelve a la de antes, por encima de los cascos */
+  const MANDA = !LADO && !ALTO && !Q.get('cam');
+  const MANDO = { v: { d: 19, y: 13.5, pitch: -0.52, fov: 62, ade: 7 }, h: { d: 16, y: 9.5, pitch: -0.4, fov: 50, ade: 6 } };
   const CAM = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, fov: 60 }, SUAVE = { x: null, yaw: 0, asoma: 0 };
   /* el ángulo más corto de a a b */
   const dAng = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
@@ -20,6 +24,21 @@ export function crearCamara(m) {
       /* de costado, a la altura del pecho, a la derecha del muro: las puntas de perfil y los caídos delante */
       const C = Q.get('cerca') === '1', ad = C ? 4.6 : 3.4, ld = C ? 6 : 9.5;   /* FI1: ?cerca=1, plano bajo y más cerca, a ras de las puntas y los escudos */
       CAM.x = S.xF + Dx * ld + Fx * ad; CAM.z = S.zF + Dz * ld + Fz * ad; CAM.y = H(CAM.x, CAM.z) + (C ? 1.1 : 1.7); CAM.yaw = Math.PI / 2 - g; CAM.pitch = C ? -0.02 : -0.07; CAM.fov = C ? 50 : 42; return CAM;
+    }
+    if (MANDA) {
+      /* LP6: la vista de mando de «Manípulo a pie» (LP3): detrás y arriba del muro, mirando un poco por delante de él. No gira con
+         cada giro tuyo (así se ve la puerta y el enemigo se queda donde está); solo si el muro mira a más de 70° de ella se pone
+         detrás, despacio. Al chocar se acerca un poco. El pellizco baja de aquí a la vista del oficial (maquetas/bloque/camara.js) */
+      const c = m.vertical ? MANDO.v : MANDO.h, w = S.choque ? suave(0, 1.2, S.T - S.tChoque) : 0;
+      if (SUAVE.yM === undefined || dt === 0) { SUAVE.yM = -g; SUAVE.gira = false; }
+      const dif = dAng(SUAVE.yM, -g); if (Math.abs(dif) > 70 * G) SUAVE.gira = true; else if (Math.abs(dif) < 4 * G) SUAVE.gira = false;
+      if (SUAVE.gira) SUAVE.yM += dif * (1 - Math.exp(-dt / 1.6));
+      const y = SUAVE.yM, dx = -Math.sin(y), dz = -Math.cos(y), ade = c.ade - 2 * w, d = c.d - 4 * w;
+      const tx = S.xF + Fx * ade, tz = S.zF + Fz * ade;
+      if (SUAVE.mx === undefined || dt === 0) { SUAVE.mx = tx; SUAVE.mz = tz; } else { const k = 1 - Math.exp(-dt / 0.5); SUAVE.mx += (tx - SUAVE.mx) * k; SUAVE.mz += (tz - SUAVE.mz) * k; }
+      CAM.x = SUAVE.mx - dx * d; CAM.z = SUAVE.mz - dz * d; CAM.y = H(SUAVE.mx, SUAVE.mz) + c.y - 3 * w; CAM.yaw = y; CAM.pitch = c.pitch + 0.06 * w; CAM.fov = c.fov;
+      if (S.ganador === 'rival') { const k = suave(0, 1.5, S.T - S.tRompe); CAM.yaw += Math.PI * 0.5 * k; }
+      return CAM;
     }
     if (ALTO) {
       /* vista alta: 22 m sobre el pivote, mirando abajo unos 60°. No gira con el muro: así se ve cuánto ha girado, y el flanco */

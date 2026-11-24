@@ -25,7 +25,7 @@ const col = (M, k) => Math.hypot(M[k * 4], M[k * 4 + 1], M[k * 4 + 2]);
 
 export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
   const Q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-  const activa = Q.get('fisica') !== '0', Pr = crearProyectiles({ H, escala: ESCALA, semilla: 20261123, mismo: (a, b) => a === b || (!!a && !!b && !!a.h && a.h === b.h) });   /* las tres tiras de un scutum son el mismo escudo */
+  const activa = Q.get('fisica') !== '0', Pr = crearProyectiles({ H, escala: ESCALA, semilla: 20261123, mismo: (a, b) => a === b || (!!a && !!b && !!a.h && a.h === b.h), clave: d => (d && d.h) || d });   /* FI3u: el lastre se cuenta por hombre, no por tira */   /* las tres tiras de un scutum son el mismo escudo */
   /* lo dibujado de cada asta: de la punta al origen de la malla (TIP) y largo entero (LD) */
   const caja = g => { g.computeBoundingBox(); return { TIP: g.boundingBox.max.z, LD: g.boundingBox.max.z - g.boundingBox.min.z }; };
   const MV = caja(geoV), MPI = caja(geoP);
@@ -78,7 +78,7 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
   const mueveSi = w => { const f = w && w.fi; return !!f && (f.modo === 'vuela' || f.modo === 'rebota' || f.modo === 'cae' || f.modo === 'resbala' || (f.modo === 'clava' && f.que === 'suelo')); };
   /* el último tramo del vuelo, hasta donde lo deja la regla (y un poco más): lo que toque primero es lo que manda */
   function remata(w, fin, d, obst) { const f = w.fi; if (!f || f.toca || !f.prev) return; Pr.vuela(w, [fin[0] + d[0] * 0.3, fin[1] + d[1] * 0.3, fin[2] + d[2] * 0.3], f.v || d, obst); }
-  const nuevo = (t0, largo) => ({ t0, est: 1, fi: null, prev: null, dib: null, largo });   /* largo: el de la malla (venablo, pilum) */
+  const nuevo = (t0, largo, tipo) => ({ t0, est: 1, fi: null, prev: null, dib: null, largo, tipo });   /* largo: el de la malla (venablo, pilum); tipo (FI3u): 'jabalina' | 'pilum' */
 
   /* ---------- cada paso de las reglas (al final de paso() de la escena) ---------- */
   function paso(S, dt) {
@@ -91,10 +91,10 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
     const matR = d => d && d.h ? d.h.mEsc.elements : null;
     /* venablos */
     for (const f of X.FL) {
-      if (f.est === 0 || (f.est === 1 && T < f.t0)) { f.fi = null; continue; }
+      if (f.est === 0 || (f.est === 1 && T < f.t0)) { if (f.fi) Pr.olvida(f.fi); f.fi = null; continue; }   /* FI3u: olvida = deja de lastrar */
       let w = f.fi;
       if (f.est === 1) {
-        if (!w || w.t0 !== f.t0) w = f.fi = nuevo(f.t0, MV.LD);
+        if (!w || w.t0 !== f.t0) { if (w) Pr.olvida(w); w = f.fi = nuevo(f.t0, MV.LD, 'jabalina'); }
         const s = Math.min(1, (T - f.t0) / f.dur), d = nor(dirDe(f.q)), punta = [f.p.x + d[0] * MV.TIP, f.p.y + d[1] * MV.TIP, f.p.z + d[2] * MV.TIP];
         const vel = [(f.p1.x - f.p0.x) / f.dur, ((f.p1.y - f.p0.y) + f.alto * 4 * (1 - 2 * s)) / f.dur, (f.p1.z - f.p0.z) / f.dur];
         Pr.vuela(w, punta, vel, oR);
@@ -118,10 +118,10 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
     }
     /* pila */
     for (const p of X.PILA) {
-      if (p.est < 2) { p.fi = null; continue; }
+      if (p.est < 2) { if (p.fi) Pr.olvida(p.fi); p.fi = null; continue; }
       let w = p.fi;
       if (p.est === 2) {
-        if (!w || w.t0 !== p.t0) { w = p.fi = nuevo(p.t0, MPI.LD); w.est = 2; }
+        if (!w || w.t0 !== p.t0) { if (w) Pr.olvida(w); w = p.fi = nuevo(p.t0, MPI.LD, 'pilum'); w.est = 2; }
         const d = nor(dirDe(p.q)), punta = [p.p.x + d[0] * MPI.TIP, p.p.y + d[1] * MPI.TIP, p.p.z + d[2] * MPI.TIP];
         const vel = w.prev && dt > 0 ? [(punta[0] - w.prev[0]) / dt, (punta[1] - w.prev[1]) / dt, (punta[2] - w.prev[2]) / dt] : [d[0] * 20, d[1] * 20, d[2] * 20];
         w.prev = punta; Pr.vuela(w, punta, vel, oG);

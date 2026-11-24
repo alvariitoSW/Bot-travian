@@ -170,6 +170,56 @@ t('i) Aguantar: el toque no hace nada y la cohesión sube', () => {
   assert.ok(S.coh > 45); assert.strictEqual(F.toque(), 'nada');
 });
 
+/* ---------- LP6: la falange con el control del bloque (mando.js de la maqueta) y la lucha hasta el 15 % ---------- */
+{
+  const { crearAcciones } = await import('../gobierno/maquetas/falange/acciones.js');
+  const { crearMando, botMando } = await import('../gobierno/maquetas/falange/mando.js');
+  const juegaM = (semilla, modo) => {
+    const A = crearAcciones({ semilla }), S = A.S, Mn = crearMando({ S, acc: A }), b = botMando(Mn, S, modo);
+    let salto = 0, x = S.ene.map(h => [h.x, h.z]);
+    while (S.T < 400 && S.fase !== 'fin') { b(); Mn.paso(DT); A.paso(DT); }
+    return { S, r: A.resumen() };
+  };
+  const B = SEMILLAS.map(s => juegaM(s, 'bien')), N = SEMILLAS.map(s => juegaM(s, 'nada'));
+  t('LP6a) fin = FIN_LUCHA: el rival solo rompe con el 15 % o menos; tu muro, con el 15 % o por la cohesión', () => {
+    for (const { S } of [...B, ...N]) {
+      if (S.ganador === 'falange') assert.ok(S.R.enPie <= S.R.hombres * FA.FIN_LUCHA, `rompió con ${S.R.enPie}`);
+      if (S.ganador === 'rival') assert.ok(S.U.enPie <= S.U.hombres * FA.FIN_LUCHA || S.U.animo <= FA.ROMPE + 1e-9 || S.coh <= 40, `tu muro rompió con ${S.U.enPie} y coh ${S.coh}`);
+    }
+  });
+  t('LP6b) el bot que toca lo que se ilumina gana ≥ 18 de 20, con lucha de 40–150 s', () => {
+    const k = B.filter(({ S }) => S.ganador === 'falange').length, lucha = B.map(({ S }) => S.tRompe - S.tChoque);
+    console.log('   gana', k, '/20 · lucha', Math.round(Math.min(...lucha)), '–', Math.round(Math.max(...lucha)), 's · bajas tuyas', B.map(({ S }) => S.U.hombres - S.U.enPie).join(' '));
+    assert.ok(k >= 18); assert.ok(lucha.every(l => l >= 40 && l <= 150), lucha.join(' '));
+  });
+  t('LP6c) sin bajar las picas pierde 20 de 20', () => { assert.strictEqual(N.filter(({ S }) => S.ganador === 'rival').length, 20); });
+  t('LP6d) el frente dibujado: el muro llega a la raya con el mismo ancho, gira como mucho 8°/s y el enemigo no salta', () => {
+    const A = crearAcciones({ semilla: 5 }), S = A.S, Mn = crearMando({ S, acc: A });
+    for (let i = 0; i < 30; i++) { Mn.paso(DT); A.paso(DT); }
+    const g = 40 * Math.PI / 180, c = { x: S.xF + 6, z: S.zF - 8 }, D = { x: Math.cos(g), z: Math.sin(g) };
+    const m = Mn.frente({ x: c.x - D.x * 5, z: c.z - D.z * 5 }, { x: c.x + D.x * 5, z: c.z + D.z * 5 }); assert.ok(m, 'pone la meta');
+    let g0 = S.giro, vmax = 0, salto = 0, prev = S.ene.map(h => [h.x, h.z]), t0 = S.T;
+    while (Mn.meta() && S.T - t0 < 40 && !S.choque) { Mn.paso(DT); A.paso(DT); vmax = Math.max(vmax, Math.abs(S.giro - g0) / DT); g0 = S.giro; S.ene.forEach((h, i) => { salto = Math.max(salto, Math.hypot(h.x - prev[i][0], h.z - prev[i][1])); prev[i] = [h.x, h.z]; }); }
+    console.log('   llega en', (S.T - t0).toFixed(1), 's · giro máx', (vmax * 180 / Math.PI).toFixed(2), '°/s · salto enemigo', salto.toFixed(3), 'm');
+    assert.ok(!Mn.meta(), 'llega'); assert.ok(Math.abs(S.giro - m.rumbo) < 1e-6); assert.ok(Math.hypot(S.xF - m.x, S.zF - m.z) < 0.05);
+    assert.strictEqual(m.cols, FILES); assert.ok(vmax <= V_GIRO * 1.001 * 180 / Math.PI * Math.PI / 180 + 1e-9); assert.ok(salto < 0.5);
+  });
+  t('LP6e) en el choque la raya solo gira el muro en su sitio', () => {
+    const { S } = { S: null }; const A = crearAcciones({ semilla: 7 }), S2 = A.S, Mn = crearMando({ S: S2, acc: A }), b = botMando(Mn, S2, 'bien');
+    while (!S2.choque && S2.T < 120) { b(); Mn.paso(DT); A.paso(DT); }
+    const x0 = S2.xF, z0 = S2.zF, g = S2.giro + 0.5, D = { x: Math.cos(g), z: Math.sin(g) };
+    Mn.frente({ x: x0 + 30 - D.x * 5, z: z0 - 30 - D.z * 5 }, { x: x0 + 30 + D.x * 5, z: z0 - 30 + D.z * 5 });
+    for (let i = 0; i < 150; i++) { Mn.paso(DT); A.paso(DT); }
+    assert.ok(Math.hypot(S2.xF - x0, S2.zF - z0) < 4, 'no se va (solo lo que empuja)'); assert.ok(Math.abs(S2.giro - (g - 0.5)) > 0.3, 'gira'); void S;
+  });
+  t('LP6f) las órdenes: Picas baja y alza las cinco; Avanzar en el choque es Empujad; Alto en el choque es Aguantad', () => {
+    const A = crearAcciones({ semilla: 3 }), S = A.S, Mn = crearMando({ S, acc: A });
+    Mn.orden('picas'); assert.ok(S.filas.every(Boolean)); assert.strictEqual(Mn.lee().texto.picas, 'Alzar picas'); Mn.orden('picas'); assert.ok(S.filas.every(f => !f));
+    Mn.orden('avanzar'); assert.ok(Mn.meta() && Mn.lee().vigente.avanzar); Mn.orden('alto'); assert.ok(!Mn.meta());
+    S.choque = true; S.coh = 95; Mn.orden('avanzar'); assert.strictEqual(S.orden, 'empujar'); Mn.orden('alto'); assert.strictEqual(S.orden, 'aguantar'); assert.strictEqual(Mn.lee().texto.alto, 'Aguantad');
+  });
+}
+
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);
 /* FI1: la física de las batallas (capa de dibujo sobre estas reglas); si falla, falla esta prueba */

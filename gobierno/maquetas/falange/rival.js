@@ -16,6 +16,7 @@
    pitch > 0 inclina hacia delante; pitch < 0, hacia atrás (encabritarse). roll > 0 inclina a la derecha de la figura. */
 import { THREE } from '../../../js/gfx/models.js';
 import { preload, getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, UNIT_SCALE } from '../../../js/gfx/units.js';
+import { cargarSoldado, tropa as tropaNueva } from '../../../js/gfx/soldado.js';   /* FE2: los soldados nuevos (assets/soldados/) */
 
 export const V_PIE = 6, V_JINETE = 14, V_ELEFANTE = 11;   /* la carga de la lógica va a 9,9 m/s: el dibujo no debe quedarse atrás */
 export const G_RAPIDO = 240 * Math.PI / 180, G_ELEFANTE = 120 * Math.PI / 180;
@@ -59,6 +60,30 @@ export function crearTropa(clave, cap, { escena, color = '#a0302a' }) {
   };
 }
 
+/* ---------- FE2: una tropa de soldados nuevos (js/gfx/soldado.js) con la misma forma que crearTropa ----------
+   crearTropaNueva(nombre, cap, { escena, nivel, paleta }) → null si no carga. Un nivel de detalle (0 fino … 3 fondo), una llamada.
+   pon(i, x, y, z, yaw, clip, t, { pitch, roll, esc }): clip por nombre ('quieto', 'andar', 'correr', 'lanzar', 'golpear', 'morir'…)
+   y t en segundos dentro del clip (los de bucle dan la vuelta; los demás se quedan en el último fotograma). */
+export async function crearTropaNueva(nombre, cap, { escena, nivel = 2, paleta } = {}) {
+  const s = await cargarSoldado(nombre, paleta); if (!s) return null;
+  const nv = s.niveles[Math.min(nivel, s.niveles.length - 1)], T = tropaNueva(nv, cap); T.malla.receiveShadow = true; escena.add(T.malla);
+  const vis = new Uint8Array(cap), CERO16 = new THREE.Matrix4().makeScale(0, 0, 0).elements;
+  for (let i = 0; i < cap; i++) { T.matriz(i, CERO16); const r = k => { const v = Math.sin((i + 1) * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); }; T.vars(i, [r(1), r(2), r(3), r(4)]); }
+  const dur = c => { const k = s.clips[c]; return k ? (k.n - 1) / k.fps : 1; };
+  return {
+    nuevo: true, s, C: s.clips, malla: T.malla, cap, dur,
+    pon(i, x, y, z, yaw, clip, t, o = {}) {
+      const e = o.esc || 1; O.position.set(x, y, z); O.rotation.set(o.pitch || 0, yaw, -(o.roll || 0), 'YXZ'); O.scale.set(e, e, e); O.updateMatrix();
+      T.matriz(i, O.matrix.elements); T.pose(i, clip, Math.max(0, t), T.muestra(clip, Math.max(0, t))); vis[i] = 1;
+    },
+    oculta(i) { T.matriz(i, CERO16); vis[i] = 0; },
+    fin() { T.malla.count = cap; T.malla.instanceMatrix.needsUpdate = true; },
+    figuras() { let n = 0; for (let i = 0; i < cap; i++) n += vis[i]; return n; },
+    triangulos: () => nv.j.tris * cap,
+    quita() { escena.remove(T.malla); T.dispose(); },
+  };
+}
+
 /* ---------- sombras de contacto: un disco oscuro por figura ---------- */
 export function crearSombras(escena, cap) {
   const geo = new THREE.CircleGeometry(0.5, 14).rotateX(-Math.PI / 2);
@@ -96,10 +121,13 @@ export function crearSarisas(escena, cap, color = '#7a6646') {
 /* ---------- la figura dibujada sigue al hombre de la lógica ----------
    opc.rumbo: mira hacia donde va si se mueve a más de opc.umbral m/s. opc.yaw: rumbo forzado. opc.salto: metros a partir de los que salta (reinicio) */
 export function figura(az) { return { x: 0, z: 0, yaw: 0, v: 0, w: 0, ini: false, fase: az() * 10, esc: 0.96 + az() * 0.08, t0: 0, est: null, tMuere: -1, roll: 0 }; }
+/* FE2: el sitio de dibujo es el de la regla más el empuje de la física (h.fx, h.fz de js/fisica-batalla.js; pase de FI1 a FA7):
+   así el elefante y los demás rivales no se meten en los cuerpos de tus hombres */
 export function sigue(d, h, dt, vTope, gTope, opc = {}) {
-  if (!d.ini || dt <= 0) { if (!d.ini) { d.x = h.x; d.z = h.z; d.yaw = h.yaw; d.ini = true; } d.v = 0; d.w = 0; return; }
-  const dx = h.x - d.x, dz = h.z - d.z, dist = Math.hypot(dx, dz);
-  if (dist > (opc.salto || 80)) { d.x = h.x; d.z = h.z; d.yaw = h.yaw; d.v = 0; d.w = 0; return; }
+  const hx = h.x + (h.fx || 0), hz = h.z + (h.fz || 0);
+  if (!d.ini || dt <= 0) { if (!d.ini) { d.x = hx; d.z = hz; d.yaw = h.yaw; d.ini = true; } d.v = 0; d.w = 0; return; }
+  const dx = hx - d.x, dz = hz - d.z, dist = Math.hypot(dx, dz);
+  if (dist > (opc.salto || 80)) { d.x = hx; d.z = hz; d.yaw = h.yaw; d.v = 0; d.w = 0; return; }
   const mv = Math.min(dist, vTope * dt);
   if (dist > 1e-6) { d.x += dx / dist * mv; d.z += dz / dist * mv; }
   d.v = mv / dt;
@@ -153,7 +181,7 @@ async function montaEmpuje(nombre, ctx) {
       const off = desp + avance;
       for (let i = 0; i < S.ene.length && i < cap; i++) {
         const h = S.ene[i], d = fig(h);
-        const obj = { x: h.x + fx * off, z: h.z + fz * off, yaw: h.yaw };
+        const obj = { x: h.x + fx * off, z: h.z + fz * off, yaw: h.yaw, fx: h.fx, fz: h.fz };   /* FE2: con el empuje de la física */
         if (h.vivo) sigue(d, obj, dt, V_PIE, G_RAPIDO, { rumbo: h.est === 'huye', umbral: 1.5 });
         const y = H(d.x, d.z); let fr, pitch = 0;
         if (!h.vivo) fr = muerte(d, C, T);
@@ -184,7 +212,7 @@ async function montaEmpuje(nombre, ctx) {
     peso() { return { llamadas: sar ? 3 : 2, triangulos: tropa.triangulos() + sombras.triangulos() + (sar ? sar.triangulos() : 0), figuras: tropa.figuras() }; },
     desfase() {
       const S = ctx.estado(); let m = 0; if (!S || !S.ene) return 0;
-      for (const h of S.ene) { const d = D.get(h); if (d && h.vivo && h.est !== 'huye') m = Math.max(m, Math.hypot(d.x - h.x, d.z - h.z)); }
+      for (const h of S.ene) { const d = D.get(h); if (d && h.vivo && h.est !== 'huye') m = Math.max(m, Math.hypot(d.x - h.x - (h.fx || 0), d.z - h.z - (h.fz || 0))); }   /* FE2: el desfase, contra el sitio con física */
       return m;
     },
   };

@@ -311,5 +311,116 @@ t('FI3: clavado con la punta en el escudo vecino: sale o gira hasta no tocarlo',
   Pr.pose(q, IDENT, [Ea, Eb]); const m = Pr.medir([q], [Ea, Eb]); assert.strictEqual(m.dentro, 0, JSON.stringify(m.detalle));
 });
 
+/* ---------- LP5a: la física en la maqueta «Manípulo a pie» (gobierno/maquetas/bloque/fisica.js) ---------- */
+{
+  const BL = await import('../js/bloque.js'), { crearCombate } = await import('../js/bloque-ia.js');
+  const { crearTropas } = await import('../gobierno/maquetas/bloque/tropas.js'), FB = await import('../gobierno/maquetas/bloque/fisica.js');
+  /* una partida con el jugador automático, la física a cada fotograma de 1/30 s y las reglas a su paso de 0,05 s */
+  function partida(semilla, conFisica, segundos = 100) {
+    const C = crearCombate({ semilla, nivel: 'normal', motor: BL, avisa: () => {} }), S = C.S, TR = crearTropas({ S }), FS = FB.crearFisicaBloque({ S, TR, activa: conFisica, semilla });
+    const r = { mismoMin: Infinity, rivalMin: Infinity, pares045: 0, escudos: 0, colados: 0, pisados: 0, muestras: 0, saltos: 0, temblor: 0, giro: 0, ms: 0 };
+    const antes = new Map(); let acc = 0; const DTF = 1 / 30;
+    for (let k = 0; k < segundos / DTF && !S.ganador; k++) {
+      acc += DTF; while (acc >= 0.05) { C.bot('bueno'); C.paso(0.05); acc -= 0.05; }
+      TR.paso(DTF, S.T); FS.paso(DTF);
+      for (const f of TR.figs) {
+        const a = antes.get(f);
+        if (a) {
+          const vx = (f.x - a.x) / DTF, vz = (f.z - a.z) / DTF; if (Math.hypot(vx, vz) > 7) r.saltos++;
+          /* temblor: va y vuelve (la velocidad se da la vuelta) más de 1 cm cada vez */
+          if (a.vx !== undefined && vx * a.vx + vz * a.vz < 0 && Math.hypot(vx, vz) * DTF > 0.01 && Math.hypot(a.vx, a.vz) * DTF > 0.01) r.temblor++;
+          let dy = Math.abs(f.yaw - a.yaw) % (2 * Math.PI); if (dy > Math.PI) dy = 2 * Math.PI - dy; r.giro = Math.max(r.giro, dy / DTF);
+          a.x = f.x; a.z = f.z; a.vx = vx; a.vz = vz; a.yaw = f.yaw;
+        } else antes.set(f, { x: f.x, z: f.z, yaw: f.yaw });
+      }
+      if (k % 6) continue;
+      const m = FS.medir(); r.muestras++;
+      r.mismoMin = Math.min(r.mismoMin, m.mismo); r.rivalMin = Math.min(r.rivalMin, m.rival); r.escudos += m.escudos; r.colados += m.colados; r.pisados += m.pisados;
+      const F = TR.figs; for (let i = 0; i < F.length; i++) for (let j = i + 1; j < F.length; j++) { const a = F[i], b = F[j]; if (a.bando === b.bando && Math.abs(a.x - b.x) < 0.45 && Math.hypot(a.x - b.x, a.z - b.z) < MIN_DIST) r.pares045++; }
+      r.ms = m.ms;
+    }
+    r.fin = { ganador: S.ganador, T: +S.T.toFixed(2), bajas: S.bloques.map(b => b.U.enPie) };
+    return r;
+  }
+  /* las varas (LP5a, parte 2026-11-23-LP5a): escritas tras la primera medida, con margen; el «antes» es la misma partida sin física */
+  const con = { 3: partida(3, true), 11: partida(11, true) }, sin3 = partida(3, false);
+  for (const s in con) { const c = con[s], n = c.muestras;
+    console.log(`   semilla ${s} (${n} muestras) · con física: rival ≥ ${c.rivalMin.toFixed(2)} m · mismo bando ≥ ${c.mismoMin.toFixed(2)} m · parejas < 0,45 m ${(c.pares045 / n).toFixed(2)}/muestra · escudos en un rival ${(c.escudos / n).toFixed(2)} · colados ${(c.colados / n).toFixed(2)} · quietos sobre un caído ${(c.pisados / n).toFixed(2)} · saltos ${c.saltos} · temblores ${c.temblor} · giro máx ${c.giro.toFixed(1)} rad/s · ${c.ms} ms/paso`); }
+  { const o = sin3, m = o.muestras; console.log(`   semilla 3 · sin física (el antes): rival ≥ ${o.rivalMin.toFixed(2)} · mismo ≥ ${o.mismoMin.toFixed(2)} · parejas < 0,45 ${(o.pares045 / m).toFixed(2)} · escudos ${(o.escudos / m).toFixed(2)} · colados ${(o.colados / m).toFixed(2)} · sobre un caído ${(o.pisados / m).toFixed(2)} · temblores ${o.temblor}`); }
+  t('LP5a: en el choque, los rivales no se meten uno en otro (≥ 0,8 m; escudos en un rival ≤ 0,3 por muestra; colados ≤ 0,2)', () => {
+    for (const s in con) { const c = con[s], n = c.muestras; assert.ok(c.rivalMin >= 0.8, s + ' rival ' + c.rivalMin); assert.ok(c.escudos / n <= 0.3, s + ' escudos ' + c.escudos / n); assert.ok(c.colados / n <= 0.2, s + ' colados ' + c.colados / n); }
+  });
+  t('LP5a: los de un bando no se atraviesan (parejas a menos de 0,45 m ≤ 0,2 por muestra, 100 veces menos que sin física)', () => {
+    for (const s in con) { const c = con[s]; assert.ok(c.pares045 / c.muestras <= 0.2, s + ' ' + c.pares045 / c.muestras); }
+    assert.ok(con[3].pares045 / con[3].muestras * 100 <= sin3.pares045 / sin3.muestras + 1e-9, 'no mejora lo bastante');
+  });
+  t('LP5a: los caídos quedan en el suelo y nadie está de pie sobre ellos (≤ 2,5 por muestra, 20 veces menos que sin física)', () => {
+    for (const s in con) { const c = con[s]; assert.ok(c.pisados / c.muestras <= 2.5, s + ' ' + c.pisados / c.muestras); }
+    assert.ok(con[3].pisados / con[3].muestras * 20 <= sin3.pisados / sin3.muestras, 'no mejora lo bastante');
+  });
+  t('LP5a: nadie salta (> 7 m/s), gira de golpe (> 4,1 rad/s) ni tiembla (≤ 0,5 % de los fotogramas)', () => {
+    for (const s in con) { const c = con[s]; assert.strictEqual(c.saltos, 0, s + ' saltos'); assert.ok(c.giro <= 4.1, s + ' giro ' + c.giro); assert.ok(c.temblor / (c.muestras * 6 * 750) <= 0.005, s + ' temblor ' + c.temblor); }
+  });
+  t('LP5a: la física no cambia la partida (mismo final con y sin física) y cuesta < 4 ms por paso con ~800 hombres', () => {
+    assert.deepStrictEqual(con[3].fin, sin3.fin); for (const s in con) assert.ok(con[s].ms < 4, s + ' ' + con[s].ms);
+  });
+}
+
+/* ===== FI3u: lo que vino del otro motor (Fi.lanza, ya quitado): tipos, pilum que se dobla, herida en el casco, escudo lastrado ===== */
+function lanzaT(Pr, tipo, Q, a, obst, que, lado = 0, v0 = 20) {
+  const d = [Math.sin(R3(lado)) * Math.cos(R3(a)), -Math.sin(R3(a)), Math.cos(R3(lado)) * Math.cos(R3(a))], v = d.map(x => x * v0), p = tipo ? { tipo } : {};
+  Pr.vuela(p, Q.map((x, k) => x - d[k] * 1.5), v, obst); Pr.vuela(p, Q.map((x, k) => x + d[k] * 0.3), v, obst);
+  return { p, modo: Pr.llega(p, que, obst, IDENT) };
+}
+t('FI3u: pilum de frente al escudo se clava y se dobla (≥ 80 de 100) con aviso «dobla»; rasante rebota y no se dobla', () => {
+  const Pr = crearProyectiles({ semilla: 11 }); let clava = 0, dobla = 0, aviso = 0;
+  for (let i = 0; i < 100; i++) {
+    const a = {}, O = [escudoDe(a), cuerpoDe(a)], r = lanzaT(Pr, 'pilum', [0.09 + (i % 10) * 0.015, 0.9 + Math.floor(i / 10) * 0.03, 0], (i % 15), O, { tipo: 'escudo', dueno: a });
+    if (r.modo === 'clava') clava++; if (r.p.fi.doblado) dobla++; if (Pr.avisos().some(x => x.aviso === 'dobla' && x.p === r.p)) aviso++;
+  }
+  const a = {}, O = [escudoDe(a)], r = lanzaT(Pr, 'pilum', [0.15, 1.15, 0], 10, O, { tipo: 'escudo', dueno: a }, 70);
+  console.log(`   de frente: clava ${clava}, dobla ${dobla}; rasante: ${r.modo}`);
+  assert.ok(clava >= 95, 'clava ' + clava); assert.ok(dobla >= 80, 'dobla ' + dobla); assert.strictEqual(aviso, dobla);
+  assert.strictEqual(r.modo, 'rebota'); assert.ok(!r.p.fi.doblado);
+});
+t('FI3u: jabalina y flecha nunca se doblan; pilum y jabalina lastran el escudo (pila), la flecha no; al soltarse, olvidarse o reiniciar, deja de lastrar', () => {
+  const Pr = crearProyectiles({ semilla: 21 }), a = {}, O = [escudoDe(a)], que = { tipo: 'escudo', dueno: a };
+  let dob = 0; for (let i = 0; i < 40; i++) for (const tp of ['jabalina', 'flecha']) { const r = lanzaT(Pr, tp, [0.1, 1.1, 0], 3, O, que, 0, tp === 'flecha' ? 45 : 22); if (r.p.fi.doblado) dob++; }
+  assert.strictEqual(dob, 0); assert.strictEqual(Pr.pila(a), 40, 'solo las 40 jabalinas: ' + Pr.pila(a));
+  const b = {}, Ob = [escudoDe(b)], r = lanzaT(Pr, 'pilum', [0.1, 1.1, 0], 3, Ob, { tipo: 'escudo', dueno: b }); assert.strictEqual(Pr.pila(b), 1);
+  Pr.pose(r.p, IDENT); Pr.suelta(r.p); assert.strictEqual(Pr.pila(b), 0); Pr.suelta(r.p); assert.strictEqual(Pr.pila(b), 0, 'no baja de cero');
+  const c = {}; lanzaT(Pr, 'flecha', [0.1, 1.1, 0], 3, [escudoDe(c)], { tipo: 'escudo', dueno: c }, 0, 45); assert.strictEqual(Pr.pila(c), 0);
+  const d = {}, r2 = lanzaT(Pr, 'pilum', [0.1, 1.1, 0], 3, [escudoDe(d)], { tipo: 'escudo', dueno: d }); assert.strictEqual(Pr.pila(d), 1);
+  Pr.olvida(r2.p); assert.strictEqual(Pr.pila(d), 0, 'olvida'); Pr.olvida(r2.p); Pr.olvida({}); assert.strictEqual(Pr.pila(d), 0);
+  lanzaT(Pr, 'pilum', [0.1, 1.1, 0], 3, [escudoDe(d)], { tipo: 'escudo', dueno: d }); Pr.reinicia(); assert.strictEqual(Pr.pila(d) + Pr.pila(a), 0, 'reinicia');
+});
+t('FI3u: el casco rebota siempre (se ve igual), pero de frente y con fuerza avisa «hiere» (grave); de refilón, no', () => {
+  const Pr = crearProyectiles(), a = {}, O = [cuerpoDe(a, 0, 0)], que = { tipo: 'cuerpo', dueno: a };
+  const f = lanzaT(Pr, 'pilum', [0, 1.75, -0.2], 10, O, que); let av = Pr.avisos();
+  assert.strictEqual(f.modo, 'rebota'); assert.strictEqual(f.p.fi.hiere, 'grave'); assert.ok(av.some(x => x.aviso === 'hiere' && x.en === 'casco' && x.herida === 'grave'), JSON.stringify(av.map(x => x.aviso)));
+  const l = lanzaT(Pr, 'flecha', [0, 1.75, -0.2], 10, O, que, 0, 20); av = Pr.avisos(); assert.ok(!l.p.fi.hiere && !av.some(x => x.aviso === 'hiere'), 'una flecha floja no hiere');
+  const s = lanzaT(Pr, 'pilum', [0.15, 1.75, -0.1], 10, [cuerpoDe(a, 0, 0)], que, 75); av = Pr.avisos(); assert.ok(!s.p.fi.hiere, 'de refilón ' + s.p.fi.ang);
+});
+t('FI3u: clavado en el cuerpo avisa la herida (leve o grave); la física no decide bajas', () => {
+  const Pr = crearProyectiles(), a = {}, O = [cuerpoDe(a, 0, 0)], que = { tipo: 'cuerpo', dueno: a };
+  const g = lanzaT(Pr, 'pilum', [0, 1.2, -0.2], 10, O, que); const ag = Pr.avisos().find(x => x.aviso === 'clava');
+  const l = lanzaT(Pr, 'flecha', [0, 1.2, -0.2], 10, O, que, 0, 15); const al = Pr.avisos().find(x => x.aviso === 'clava');
+  assert.strictEqual(g.modo, 'clava'); assert.strictEqual(ag.herida, 'grave'); assert.strictEqual(l.modo, 'clava'); assert.strictEqual(al.herida, 'leve');
+  assert.deepStrictEqual(Object.keys(a), [], 'no escribe en el dueño');
+});
+t('FI3u: el tipo no cambia lo que se ve: mismo modo y misma pose con pilum, jabalina, flecha o sin tipo', () => {
+  const L = {}; for (const tp of [null, 'pilum', 'jabalina', 'flecha']) {
+    const Pr = crearProyectiles({ semilla: 9 }), a = {}, b = {}, O = [escudoDe(a), escudoDe(b, 0.2, -0.9), cuerpoDe(a)], out = [];
+    for (let k = 0; k < 30; k++) { const r = lanzaT(Pr, tp, [-0.25 + k * 0.017, 1.0 + (k % 5) * 0.06, 0], 5 + k * 2, O, { tipo: 'escudo', dueno: a }, (k % 7) * 12); for (let i = 0; i < 60; i++) Pr.mueve(r.p, DT, O); const q = Pr.pose(r.p, IDENT); out.push(r.modo + ':' + r.p.fi.modo + ':' + q.punta.map(x => x.toFixed(4)).join(',')); }
+    L[tp] = out.join('|');
+  }
+  assert.ok(L.pilum === L[null] && L.jabalina === L[null] && L.flecha === L[null]);
+});
+t('FI3u: los avisos se vacían al leerlos y no crecen sin límite', () => {
+  const Pr = crearProyectiles(), a = {}, O = [escudoDe(a)];
+  for (let i = 0; i < 400; i++) lanzaT(Pr, 'pilum', [0.1, 1.1, 0], 3, O, { tipo: 'escudo', dueno: a });
+  const av = Pr.avisos(); assert.ok(av.length <= 256 && av.length > 0, av.length); assert.strictEqual(Pr.avisos().length, 0);
+});
+
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);

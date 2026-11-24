@@ -22,9 +22,12 @@ const N_R = 160;   /* FA4: plazas de figura para los hombres del rival (manípul
 import { crearAcciones, NPILA } from './acciones.js';
 import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
-import { crearPuente, crearDedos, botDedos } from './dedos.js';
+import { crearMando, botMando } from './mando.js';   /* LP6: el control de «Manípulo a pie» */
+import { crearDedos } from '../bloque/dedos.js';   /* LP6: el dibujo del frente, el de la maqueta del bloque (sin copiarlo) */
+import { crearCamara as crearVistaOficial } from '../bloque/camara.js';   /* LP6: el pellizco hasta la vista del oficial (LP4) */
 import * as Son from './sonido.js';
 import { crearFisicaEscena } from './fisica.js';   /* FI1 */
+import { crearFalangitas, filasNuevo, espadaVista, activaSoloSombra, GESTO, CUANTOS } from './soldados.js';   /* FE2: el soldado nuevo */
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado');
 const $ = id => document.getElementById(id);
@@ -205,13 +208,21 @@ const geoSarisa = (() => {
 })();
 const geoPilum = geoPalo([[0.016, 0.016, 0, 1.2, '#b48a5a'], [0.019, 0.019, 1.2, 1.26, '#58585a'], [0.006, 0.006, 1.26, 1.95, '#505052'], [0.013, 0.001, 1.95, 2.06, '#6a6a6c']], 4);
 const sarisas = new THREE.InstancedMesh(geoSarisa, matPalo(), M); sarisas.frustumCulled = false; sarisas.castShadow = false; escena.add(sarisas);
+/* FE1: la sarisa partida por un elefante (h.picaRota): queda el muñón, de la contera a 0,9 m por delante de la mano, con la astilla clara */
+const geoMunon = (() => {
+  const pz = [[0.005, 0.023, 0, 0.3, '#4c4945'], [0.034, 0.034, 0.3, 0.38, '#8c6a3a']];
+  for (let i = 0; i < 5; i++) { const z0 = 0.38 + i * 2.2 / 5; pz.push([0.031, 0.0306, z0, z0 + 2.2 / 5, ['#a7a092', '#9f988a', '#aea799'][i % 3]]); }
+  pz.push([0.031, 0.008, 2.58, 2.86, '#d8ccb0']);
+  return geoPalo(pz, 6);
+})();
+const munones = new THREE.InstancedMesh(geoMunon, matPalo(), M); munones.frustumCulled = false; escena.add(munones);
 /* TP8b: la sombra larga de cada asta en el suelo, una tira oscura proyectada según el sol (todas en una llamada) */
 const sombrasAsta = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#2b1d10', transparent: true, opacity: 0.36, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), M);
 sombrasAsta.frustumCulled = false; sombrasAsta.renderOrder = 1; escena.add(sombrasAsta);
 const SA = new THREE.Vector3(), SB = new THREE.Vector3(), O2 = new THREE.Object3D();
 const alSuelo = v => { const g = H(v.x, v.z), k = Math.max(0, v.y - g) / SOL.y; v.x -= SOL.x * k; v.z -= SOL.z * k; v.y = g; return v; };
-function sombraAsta(i, P, D) {
-  SA.copy(P); SB.copy(P).addScaledVector(D, SARISA - 0.3); alSuelo(SA); alSuelo(SB);
+function sombraAsta(i, P, D, largo = SARISA - 0.3) {   /* FE2: largo (el muñón es más corto) */
+  SA.copy(P); SB.copy(P).addScaledVector(D, largo); alSuelo(SA); alSuelo(SB);
   const dx = SB.x - SA.x, dz = SB.z - SA.z, l = Math.hypot(dx, dz), mx = (SA.x + SB.x) / 2, mz = (SA.z + SB.z) / 2;
   O2.position.set(mx, Math.max(SA.y, SB.y, H(mx, mz)) + 0.06, mz); O2.rotation.set(0, Math.atan2(dx, dz), 0); O2.scale.set(0.075, 1, Math.max(0.01, l)); O2.updateMatrix(); sombrasAsta.setMatrixAt(i, O2.matrix);
 }
@@ -270,6 +281,14 @@ let FIG_F = null, FIG_R = null, ACC = null;
 const m4 = () => new THREE.Matrix4();
 async function creaFigs() {
   await loadIndex();
+  /* FE2: el falangita nuevo (soldados.js). ?nuevo=0, o si no carga, el de 0 A.D. de antes */
+  const N = Q.get('nuevo') === '0' ? null : await crearFalangitas({ escena, cap: M, carril: CARRIL });
+  if (N) {
+    const C = N.C, pies = datosPies(N.T, N.hues, N.geoPies, C.idle.start), f0 = { anda: faseCero(N.T, N.hues, pies, C.walk), corre: faseCero(N.T, N.hues, pies, C.run) };
+    const paso = { anda: tablaPaso(N.T, N.hues, pies, C.walk, C.walk.start, f0.anda, C.idle.start), corre: tablaPaso(N.T, N.hues, pies, C.run, C.run.start, f0.corre, C.idle.start) };
+    FIG_F = Object.assign(N, { pies, paso, zan: { walk: paso.anda.total, run: paso.corre.total } }); activaSoloSombra(renderer); cresta.visible = false;
+  } else {
+  await preload(['falange']);
   /* el falangita: su tabla con las posturas de la sarisa (soldado.js); sin la pica del modelo (pieza 4), que va aparte */
   const uF = getUnit('falange'), meta = (await (await fetch('assets/units/units.json')).json()).falange;
   const buf = await (await fetch('assets/units/falange.bin')).arrayBuffer(), CELL = new Uint8Array(buf, meta.off[6], meta.verts);
@@ -282,12 +301,14 @@ async function creaFigs() {
   const pies = datosPies(tab.T, tab.hues, uF.geo, C.idle.start), f0 = { anda: faseCero(tab.T, tab.hues, pies, C.walk), corre: faseCero(tab.T, tab.hues, pies, C.run) };
   const paso = { anda: tablaPaso(tab.T, tab.hues, pies, C.walk, C.walk.start, f0.anda, C.idle.start), corre: tablaPaso(tab.T, tab.hues, pies, C.run, C.run.start, f0.corre, C.idle.start) };
   FIG_F = { ...figura(g, M, matFigura(uF.tex, tex, '#2f5fa8', 'f'), matSombra(tex, 'f')), u: uF, C, tab, T: tab.T, hues: tab.hues, pies, paso, cima, zan: { walk: paso.anda.total * E, run: paso.corre.total * E } };
+  lejos(FIG_F, g, M);
+  }
   /* los romanos: su tabla es la del modelo */
   const uR = getUnit('hastati'); zancadas(uR); const tR = { T: uR.bones.image.data, hues: uR.bones.image.width / 3 }, CR = uR.clips, piesR = datosPies(tR.T, tR.hues, uR.geo, CR.idle.start);
   const f0R = { anda: faseCero(tR.T, tR.hues, piesR, CR.walk), corre: faseCero(tR.T, tR.hues, piesR, CR.run) }, pasoR = { anda: tablaPaso(tR.T, tR.hues, piesR, CR.walk, CR.walk.start, f0R.anda, CR.idle.start), corre: tablaPaso(tR.T, tR.hues, piesR, CR.run, CR.run.start, f0R.corre, CR.idle.start) };
   const gR = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv', 'aSkinI', 'aSkinW', 'aMode']) gR.setAttribute(k, uR.geo.attributes[k]); gR.boundingSphere = uR.geo.boundingSphere;
   FIG_R = { ...figura(gR, N_R, matFigura(uR.tex, uR.bones, '#c23a2e', 'r'), matSombra(uR.bones, 'r')), u: uR, C: CR, tab: tR, T: tR.T, hues: tR.hues, pies: piesR, paso: pasoR, zan: { walk: pasoR.anda.total * E, run: pasoR.corre.total * E } };
-  lejos(FIG_F, g, M); lejos(FIG_R, gR, N_R); console.log(`[E1] triángulos por hombre: falangita ${FIG_F.triCerca} / ${FIG_F.triLejos} sencillo; romano ${FIG_R.triCerca} / ${FIG_R.triLejos}`);
+  lejos(FIG_R, gR, N_R); console.log(`[E1] triángulos por hombre: romano ${FIG_R.triCerca} / ${FIG_R.triLejos} sencillo`);
 }
 const hueso = (fig, slot, A, B, mx, out) => huesoT(fig.tab, slot, A, B, mx, out);
 /* TP8b-E1: el mismo soldado, sencillo, para los lejanos. Se juntan los vértices que caen en la misma celda de una rejilla
@@ -318,7 +339,7 @@ function reparte(fig, L, K) {
   const cp = camara.position; L.forEach(h => { h.dCam = (h.x - cp.x) ** 2 + (h.z - cp.z) ** 2; }); const orden = L.slice().sort((a, b) => a.dCam - b.dCam);
   fig.n = 0; fig.L.n = 0;
   orden.forEach((h, j) => { const o = j < K ? fig : fig.L, i = o.n++; o.m.setMatrixAt(i, h.inst); o.fr.array[i] = h.A; o.fr2.array[i] = h.B; o.mx.array[i] = h.mx; });
-  for (const o of [fig, fig.L]) { o.m.count = o.n; o.m.instanceMatrix.needsUpdate = true; o.fr.needsUpdate = o.fr2.needsUpdate = o.mx.needsUpdate = true; }
+  for (const o of [fig, fig.L]) { o.m.count = o.n; o.m.visible = o.n > 0;   /* FE2: sin hombres, sin llamada de dibujo */ o.m.instanceMatrix.needsUpdate = true; o.fr.needsUpdate = o.fr2.needsUpdate = o.mx.needsUpdate = true; }
 }
 
 /* ---------- estado ---------- */
@@ -357,12 +378,16 @@ function avisa(tipo, d = {}) {
   /* los de los rivales */
   if (tipo === 'finta') { grita(AL(d) > 0 ? '¡Cambian! ¡Por la derecha!' : '¡Cambian! ¡Por la izquierda!'); Son.cuerno([[123, 0.3], [98, 0.5]]); }
   if (tipo === 'barrito') { Son.trueno(0.6); grita('¡Elefantes!'); }
-  if (tipo === 'espanta') Son.trueno(0.4);
+  /* FE1: la lucha contra los elefantes */
+  if (tipo === 'embiste') { temblor = Math.max(temblor, 0.8); Son.trueno(0.5); }
+  if (tipo === 'picaRota') { Son.crac(); temblor = Math.max(temblor, 0.4); }
+  if (tipo === 'ensarta') { temblor = Math.max(temblor, 1); Son.trueno(0.7); grita('¡Ensartado!'); }
+  if (tipo === 'desboca') { Son.trueno(0.4); grita('¡Se desboca contra los suyos!'); }
   if (tipo === 'hueco') { temblor = Math.max(temblor, 0.6); Son.crac(); }
   if (tipo === 'cerrado') Son.madera(0.5, 0, 0);
   if (tipo === 'oleada') Son.cuerno([[130.8, 0.6]]);
 }
-function reinicia() { semilla = 43; semillaP = 5; temblor = 0; ACC.reinicia(); colocaTerreno(); $('fin').hidden = true; }
+function reinicia() { semilla = 43; semillaP = 5; temblor = 0; ACC.reinicia(); if (MANDO) MANDO.reinicia(); if (DEDOS) DEDOS.oculta(); for (const h of S.fal) { delete h.tRotaD; delete h.munon; delete h.munonS; }   /* FE2 */ colocaTerreno(); $('fin').hidden = true; }
 
 /* ---------- cámara ---------- */
 let CAMARA = null;
@@ -373,6 +398,9 @@ const O = new THREE.Object3D(), MA = m4(), MB = m4(), V3 = new THREE.Vector3(), 
    seguidos: se mezclan dos de ellos) o la estocada */
 function filasFal(h, T) {
   const F = FIG_F, C = F.C;
+  /* FE2: la pica rota (h.picaRota, de las reglas de FE1) se ve desde aquí: el dibujo guarda cuándo la vio */
+  if (h.picaRota && h.tRotaD === undefined) h.tRotaD = h.tRota ?? T;   /* h.tRota: cuándo se partió (reglas de FE1) */
+  if (F.nuevo) return filasNuevo(F, h, T, h.vivo ? filasMarcha(F, h.paso, T + h.fase, frameOf) : null, frameOnce);
   if (!h.vivo) { h.A = h.B = frameOnce(C.death, Math.max(0, T - h.muere)); h.mx = 0; return; }
   let [A, B, mx] = filasMarcha(F, h.paso, T + h.fase, frameOf);
   const c0 = h.r === 0 ? CJF.baja : CJF.alta, k = h.huye ? 0 : h.kB, fila = F.tab.fila;
@@ -385,9 +413,13 @@ function filasFal(h, T) {
 }
 /* FA4: el caído se queda donde cayó (h.caido: sitio y giro al azar, guardados al caer); no se recoloca ni se borra */
 const fijaCaido = h => { if (!h.vivo && !h.caido) h.caido = { x: h.x, z: h.z, yaw: (g => h.fCae !== undefined ? h.fCae + Math.PI : h.yaw + g)((azarV() - 0.5) * 1.4) /* FI1: cae de espaldas hacia donde le empujan */, a: azarV() * 6.283 }; return h.caido; };
-const instDe = (h, fig, pitch = 0, dx = 0, dz = 0, dyaw = 0) => { const p = !h.vivo && h.caido ? h.caido : h; const fx = h.fx || 0, fz = h.fz || 0; O.position.set(p.x + dx + fx, H(p.x + dx + fx, p.z + dz + fz), p.z + dz + fz);   /* FI1 */ O.rotation.set(pitch, p.yaw + dyaw, 0, 'YXZ'); O.scale.setScalar(E * (h.esc || 1)); O.updateMatrix(); return O.matrix; };
+const instDe = (h, fig, pitch = 0, dx = 0, dz = 0, dyaw = 0) => { const p = !h.vivo && h.caido ? h.caido : h; const fx = h.fx || 0, fz = h.fz || 0; O.position.set(p.x + dx + fx, H(p.x + dx + fx, p.z + dz + fz), p.z + dz + fz);   /* FI1 */ O.rotation.set(pitch, p.yaw + dyaw, 0, 'YXZ'); O.scale.setScalar((fig && fig.esc || E) * (h.esc || 1)); O.updateMatrix(); return O.matrix; };   /* FE2: el soldado nuevo va en metros (esc 1) */
 /* dónde está un punto de un hueso en el mundo (p en coordenadas del modelo en reposo) */
 const ancla = (h, fig, slot, p, out) => out.set(p[0], p[1], p[2]).applyMatrix4(MA.multiplyMatrices(h.inst, hueso(fig, slot, h.A, h.B, h.mx, MB)));
+/* FE2: los anclajes con nombre (mano de la sarisa, escudo, pecho, cabeza): del soldado nuevo, o los de 0 A.D. de antes */
+const ANC0 = { manoD: () => [HF.manoD, FIG_F.tab.esq.J.munecaD], escudo: () => [HF.escudo, [0.75, 0.3, 2.6]], pecho: () => [HF.pecho, [0, 0.3, 3.0]], cabeza: () => [HF.casco, FIG_F.cima] };
+const anc = nombre => FIG_F.nuevo ? FIG_F.ancla[nombre] : ANC0[nombre]();
+const anclaN = (h, nombre, out) => { const [s, p] = anc(nombre); return ancla(h, FIG_F, s, p, out); };
 /* la dirección de una sarisa: alzada (casi derecha, inclinada hacia delante y en abanico) o bajada (al frente), con su vaivén */
 const DIR = new THREE.Vector3(), DA = new THREE.Vector3(), DB = new THREE.Vector3();
 function dirSarisa(h, T, out) {
@@ -408,7 +440,7 @@ function poseSarisa(h, T, P, D) {
     /* el caído (o el que huye) suelta la sarisa: queda en el suelo, a su lado */
     const a = h.i * 2.3; D.set(Math.sin(a) * 0.4, 0, -1).normalize().applyAxisAngle(EJE_Y, c.yaw - Math.PI); P.set(c.x, 0, c.z).addScaledVector(RG, 0.3).addScaledVector(FG, h.huye ? 0.5 : -0.8); P.y = H(P.x, P.z) + 0.03; return;
   }
-  ancla(h, FIG_F, HF.manoD, FIG_F.tab.esq.J.munecaD, PS); dirSarisa(h, T, D);
+  anclaN(h, 'manoD', PS); dirSarisa(h, T, D);
   P.copy(PS).addScaledVector(D, -AGARRE + empuje(h));
   /* TP8b: bajada, cada sarisa va por su carril (CARRIL de formacion.js): así no se cruzan */
   const s = h.r < BAJAN ? suave(0, 1, h.kB) : 0;
@@ -417,12 +449,21 @@ function poseSarisa(h, T, P, D) {
   /* TP8b-P2: a media ola las filas 4.ª y 5.ª bajan por fuera (a la derecha) para no rozar las alzadas de detrás */
   if (h.r >= 3 && h.r < BAJAN) P.addScaledVector(RG, 0.16 * Math.sin(Math.PI * Math.min(1, Math.max(0, h.kB))));
   if (s > 0) { const c = CARRIL(h.r), del = (PS.x - h.x) * FG.x + (PS.z - h.z) * FG.z; PL.set(h.x + (h.fx || 0), 0, h.z + (h.fz || 0)) /* FI1 */.addScaledVector(RG, c.x).addScaledVector(FG, del); PL.y = H(h.x, h.z) + c.y; PL.addScaledVector(D, -AGARRE + empuje(h)); P.lerp(PL, s); }
-  FIS.ajustaPica(h, P, D);   /* FI1: la punta se para en el escudo o el cuerpo; el asta resbala */
+  if (!h.picaRota) FIS.ajustaPica(h, P, D);   /* FI1: la punta se para en el escudo o el cuerpo; el asta resbala (FE1: el muñón no llega) */
 }
 const PL = new THREE.Vector3();
+/* FE2: el muñón soltado: desde donde lo tenía (h.munon, la última postura en la mano) cae girando un poco y se queda tumbado en el
+   suelo, a su derecha. t: segundos desde que lo suelta */
+function caeMunon(h, t, P, D) {
+  if (!h.munon) { poseSarisa(h, S.T, P, D); h.munon = [P.clone(), D.clone()]; }
+  const [P0, D0] = h.munon, k = Math.min(1, Math.max(0, t) / 0.45), g = k * k, giro = ((h.i * 0.618) % 1 - 0.5) * 0.8;
+  if (!h.munonS) { const dx = D0.x, dz = D0.z, l = Math.hypot(dx, dz) || 1, c = Math.cos(giro), n = Math.sin(giro); h.munonS = new THREE.Vector3((dx * c - dz * n) / l, -0.02, (dx * n + dz * c) / l).normalize(); }
+  D.copy(D0).lerp(h.munonS, g).normalize();
+  P.copy(P0); P.y = lerp(P0.y, H(P0.x, P0.z) + 0.035, g); if (k >= 1) P.y = Math.max(H(P.x, P.z), H(P.x + D.x * 2.8, P.z + D.z * 2.8)) + 0.035;
+}
 const FIS = crearFisicaEscena({ H, SARISA }), poseF = h => { const P = new THREE.Vector3(), D = new THREE.Vector3(); posaFal(h, S.T); poseSarisa(h, S.T, P, D); return [P.toArray(), D.toArray()]; };   /* FI1 */
 const MF3 = m4(), MF3b = m4(), PF3 = new THREE.Vector3(), DF3 = new THREE.Vector3(), QF3 = new THREE.Quaternion();   /* FI3 */
-FIS.conecta({ prepara: h => posaFal(h, S.T), matriz: (h, s) => MF3.multiplyMatrices(h.inst, hueso(FIG_F, s === 'escudo' ? HF.escudo : HF.pecho, h.A, h.B, h.mx, MF3b)).elements, centroEscudo: h => ancla(h, FIG_F, HF.escudo, [0.75, 0.3, 2.6], PF3).toArray(), sarisa: h => { poseSarisa(h, S.T, PF3, DF3); return { P: PF3.toArray(), D: DF3.toArray() }; }, matSarisa: h => { poseSarisa(h, S.T, PF3, DF3); QF3.setFromUnitVectors(Z1, DF3); return MF3.compose(PF3, QF3, UNO).elements; } });   /* FI3: cómo se dibuja cada falangita, para los pila */
+FIS.conecta({ prepara: h => posaFal(h, S.T), matriz: (h, s) => MF3.multiplyMatrices(h.inst, hueso(FIG_F, anc(s === 'escudo' ? 'escudo' : 'pecho')[0], h.A, h.B, h.mx, MF3b)).elements, centroEscudo: h => anclaN(h, 'escudo', PF3).toArray(),   /* FE2: anc */ sarisa: h => { poseSarisa(h, S.T, PF3, DF3); return { P: PF3.toArray(), D: DF3.toArray() }; }, matSarisa: h => { poseSarisa(h, S.T, PF3, DF3); QF3.setFromUnitVectors(Z1, DF3); return MF3.compose(PF3, QF3, UNO).elements; } });   /* FI3: cómo se dibuja cada falangita, para los pila */
 /* FA4: tu estocada (S.yo.tEstocada): el asta sale 0,9 m en 0,12 s y vuelve en 0,35 s; k da la forma (0–1) */
 const curvaEstocada = (t, ida, vuelta) => t < 0 || t > ida + vuelta ? 0 : t < ida ? suave(0, ida, t) : 1 - suave(ida, ida + vuelta, t);
 const empuje = h => S.yo && h.i === S.yo.i && h.vivo ? 0.9 * curvaEstocada(S.T - S.yo.tEstocada, 0.12, 0.35) : 0;
@@ -440,7 +481,7 @@ function astasMin() {
   for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) { const d = distSeg(L[i][0], L[i][1], L[j][0], L[j][1]); if (d < min) { min = d; par = `col ${L[i][2].f} fila ${L[i][2].r} y col ${L[j][2].f} fila ${L[j][2].r}`; } }
   return { min: +min.toFixed(3), par, grosor: 0.062 };
 }
-const MS = m4(), PP = new THREE.Vector3(), DD = new THREE.Vector3(), VF = new THREE.Vector3(), VG = new THREE.Vector3();
+const MS0 = m4().makeScale(0, 0, 0), MS = m4(), PP = new THREE.Vector3(), DD = new THREE.Vector3(), VF = new THREE.Vector3(), VG = new THREE.Vector3();
 /* TP8b-E1 y FA4: un asta que pasa a menos de unos 2,3 m de la cámara se adelgaza (del todo; a 3,5 m ya es entera) hasta desaparecer (antes cruzaba la vista como un poste) */
 function finaCerca(P, D) {
   const t = Math.min(SARISA, Math.max(0, VF.copy(camara.position).sub(P).dot(D))), d = VG.copy(P).addScaledVector(D, t).distanceTo(camara.position);
@@ -448,12 +489,20 @@ function finaCerca(P, D) {
 }
 /* la postura de un falangita (tabla y matriz), sin dibujar: la usan dibuja y las medidas */
 /* FA4: en tu estocada, el oficial se vence hacia delante (e: 0–1) */
-function posaFal(h, T) { if (!h.vivo) fijaCaido(h); filasFal(h, T); const sB = h.vivo && !h.huye ? suave(0, 1, h.kB) : 0, ola = h.vivo && !h.huye ? Math.sin(Math.PI * Math.min(1, Math.max(0, h.kB))) : 0, e = empuje(h) / 0.9; ejesH(h); h.inst = (h.inst || m4()).copy(instDe(h, FIG_F, 0.05 * sB + 0.07 * ola + 0.16 * e, FG.x * 0.16 * e, -0.12 * sB + FG.z * 0.16 * e, 0.1 * sB + 0.08 * ola)); }
+function posaFal(h, T) { if (!h.vivo) fijaCaido(h); filasFal(h, T); const sB = h.vivo && !h.huye ? suave(0, 1, h.kB) * (h.tRotaD !== undefined ? 1 - suave(GESTO.suelta, GESTO.suelta + 0.4, T - h.tRotaD) : 1) : 0,   /* FE2: con la espada, de frente */ ola = h.vivo && !h.huye ? Math.sin(Math.PI * Math.min(1, Math.max(0, h.kB))) : 0, e = empuje(h) / 0.9; ejesH(h); h.inst = (h.inst || m4()).copy(instDe(h, FIG_F, 0.05 * sB + 0.07 * ola + 0.16 * e, FG.x * 0.16 * e, -0.12 * sB + FG.z * 0.16 * e, 0.1 * sB + 0.08 * ola)); }
 function dibuja(dt) {
   const T = S.T, F = FIG_F, R = FIG_R;
   for (const h of S.fal) {
     posaFal(h, T);
-    poseSarisa(h, T, PP, DD); Q1.setFromUnitVectors(Z1, DD); sarisas.setMatrixAt(h.i, MS.compose(PP, Q1, finaCerca(PP, DD))); sombraAsta(h.i, PP, DD);
+    poseSarisa(h, T, PP, DD); Q1.setFromUnitVectors(Z1, DD); MS.compose(PP, Q1, finaCerca(PP, DD)); sombraAsta(h.i, PP, DD);
+    /* FE1: con la pica partida, se dibuja el muñón y no la sarisa entera */
+    if (h.picaRota) {
+      /* FE2: lo sujeta GESTO.suelta segundos y lo suelta: cae al suelo a su lado (0,45 s) y se queda; su sombra larga ya no va */
+      const u = h.tRotaD !== undefined ? T - h.tRotaD : 0;
+      if (u > GESTO.suelta || !h.vivo) { caeMunon(h, u - GESTO.suelta, PP, DD); Q1.setFromUnitVectors(Z1, DD); MS.compose(PP, Q1, finaCerca(PP, DD)); sombrasAsta.setMatrixAt(h.i, MS0); }
+      else { h.munon = [PP.clone(), DD.clone()]; sombraAsta(h.i, PP, DD, 2.6); }
+      munones.setMatrixAt(h.i, MS); sarisas.setMatrixAt(h.i, MS0);
+    } else { sarisas.setMatrixAt(h.i, MS); munones.setMatrixAt(h.i, MS0); }
     /* el golpe sordo de cada asta al llegar abajo (o arriba): la ola se oye fila a fila */
     if (h.vivo && !h.huye && h.r < BAJAN) { if (h.sonB === undefined) h.sonB = h.kB > 0.5 ? 1 : 0; if (h.kB > 0.93 && !h.sonB) { h.sonB = 1; if (!parado) Son.madera(0.16, (h.f - (FILES - 1) / 2) / (FILES / 2), 0); } if (h.kB < 0.07 && h.sonB) { h.sonB = 0; if (!parado) Son.madera(0.1, (h.f - (FILES - 1) / 2) / (FILES / 2), 0); } }
   }
@@ -463,14 +512,15 @@ function dibuja(dt) {
     if (!h.vivo) fijaCaido(h);
     filasRomano(h, R, T, frameOf, frameOnce); h.inst = (h.inst || m4()).copy(h.vivo ? instDe(h, R, h.pitch) : instDe(h, R));
   }
-  reparte(F, S.fal, CERCA * FILES); reparte(R, ENE, CERCA * FILES);
+  if (F.nuevo) F.pinta(S.fal, S.fal[S.yo.i], camara.position, h => espadaVista(h, T)); else reparte(F, S.fal, CERCA * FILES);   /* FE2 */
+  reparte(R, ENE, CERCA * FILES);
   for (let j = 0; j < N_R; j++) {
     const h = ENE[j], c = h && !h.vivo && h.caido;
     if (!c) { pila.setMatrixAt(NPILA + j, MS.makeScale(0, 0, 0)); continue; }
     ejesH(h, c.yaw); DD.set(Math.sin(c.a), -0.01, Math.cos(c.a)).normalize(); PP.set(c.x, 0, c.z).addScaledVector(RG, 0.55).addScaledVector(DD, -1); PP.y = H(PP.x, PP.z) + 0.03;
     Q1.setFromUnitVectors(Z1, DD); pila.setMatrixAt(NPILA + j, MS.compose(PP, Q1, UNO));
   }
-  sarisas.instanceMatrix.needsUpdate = true; sombrasAsta.instanceMatrix.needsUpdate = true;
+  sarisas.instanceMatrix.needsUpdate = true; munones.instanceMatrix.needsUpdate = true; sombrasAsta.instanceMatrix.needsUpdate = true;
   if (S.resp && S.T >= S.resp.t) { grita(S.resp.texto); Son.trueno(0.35); S.resp = null; }
   /* GM43i: el fragor grabado de la lucha mientras las líneas se tocan */
   { const kL = S.choque && S.fase !== 'fin' && !parado ? 1 : 0; if (kL !== S.kLucha) { S.kLucha = kL; Son.lucha(kL); } }
@@ -485,14 +535,14 @@ function dibuja(dt) {
     DD.fromArray(P.dir).normalize();
     if (P.est === 1 || P.est === 5) PP.fromArray(P.p).addScaledVector(DD, -1.6);
     if (P.est === 2) { poseSarisa(P.h, T, PP, V4); PP.addScaledVector(V4, P.s); DD.applyAxisAngle(V4, P.giro); PP.addScaledVector(DD, -1.75); }
-    if (P.est === 3 || P.est === 4) { ancla(P.h, F, P.est === 3 ? HF.escudo : HF.pecho, P.est === 3 ? [0.75, 0.3, 2.6] : [0, 0.3, 3.0], PP); PP.addScaledVector(DD, -1.75); }
+    if (P.est === 3 || P.est === 4) { anclaN(P.h, P.est === 3 ? 'escudo' : 'pecho', PP); PP.addScaledVector(DD, -1.75); }
     /* FA4: el venablo clavado en un asta cercana se desvanece con ella (si no, cruza la vista como un poste) */
     Q1.setFromUnitVectors(Z1, DD); pila.setMatrixAt(i, MS.compose(PP, Q1, finaCerca(PP, DD)));
   });
   pila.instanceMatrix.needsUpdate = true;
   /* tu cresta: en el casco del oficial (si cae, se queda con él) */
-  const of = S.fal[S.yo.i]; ancla(of, F, HF.casco, F.cima, PP); Q1.setFromRotationMatrix(MA.extractRotation(MA.multiplyMatrices(of.inst, hueso(F, HF.casco, of.A, of.B, of.mx, MB))));
-  cresta.matrix.compose(PP, Q1.multiply(QC), UNO); cresta.matrixWorldNeedsUpdate = true;
+  const of = S.fal[S.yo.i]; if (!F.nuevo) { ancla(of, F, HF.casco, F.cima, PP); Q1.setFromRotationMatrix(MA.extractRotation(MA.multiplyMatrices(of.inst, hueso(F, HF.casco, of.A, of.B, of.mx, MB))));
+  cresta.matrix.compose(PP, Q1.multiply(QC), UNO); cresta.matrixWorldNeedsUpdate = true; }   /* FE2: el oficial nuevo lleva su penacho */
   const r = ACC.marcado(); aro.visible = !!r; if (r) aro.position.set(r.x, H(r.x, r.z) + 0.04, r.z);
   /* la cámara, con su temblor en el choque */
   temblor = Math.max(0, temblor - dt * 2.5);
@@ -500,6 +550,9 @@ function dibuja(dt) {
   /* FA4: en tu estocada, la cámara da un empujón de 15 cm hacia delante que vuelve en 0,4 s */
   const eC = 0.15 * curvaEstocada(T - S.yo.tEstocada, 0.12, 0.4);
   camara.position.set(C.x + Math.sin(T * 41) * tb - Math.sin(C.yaw) * eC, C.y + Math.sin(T * 37 + 1) * tb, C.z - Math.cos(C.yaw) * eC); camara.rotation.set(C.pitch, C.yaw, 0); if (camara.fov !== C.fov) { camara.fov = C.fov; camara.updateProjectionMatrix(); }
+  CUANTOS[0] = VISTA && VISTA.t() > 0.3 ? 7 : 4;   /* LP6: hombres finos: 4 desde arriba, 7 abajo (≤ 750 mil triángulos) */
+  if (VISTA && !CAMFIJA) { VISTA.aplica(parado ? (VISTA_YA ? 5 : 0) : dt); }   /* LP6: el pellizco baja de aquí al hombro del oficial */
+  if (CAMFIJA) { camara.position.set(CAMFIJA[0], CAMFIJA[1], CAMFIJA[2]); camara.rotation.set(CAMFIJA[4], CAMFIJA[3], 0); }   /* FE2: cámara puesta a mano para las fotos (__tp.mira) */
   /* la sombra va con el pivote del muro (S.xF, S.zF) */
   const fx = Math.sin(S.giro), fz = -Math.cos(S.giro), lx = S.xF + fx * 2, lz = S.zF + fz * 2; luz.target.position.set(lx, H(lx, lz), lz); luz.position.copy(luz.target.position).addScaledVector(SOL, 40); luz.target.updateMatrixWorld();
   renderer.render(escena, camara);
@@ -509,11 +562,23 @@ const QC = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), M
 
 /* ---------- fases para las capturas: colocan la escena y la congelan ---------- */
 let parado = false;
+let CAMFIJA = null;   /* FE2: [x, y, z, yaw, pitch] o null */
 /* bot: true (el del motor, que gira al flanco), false (nadie manda) o un modo del motor ('nogira'…) */
 const salta = (s, bot = true) => { for (let t = 0; t < s; t += 1 / 30) { if (bot) ACC.bot(bot === true ? undefined : bot); ACC.paso(1 / 30); if (CAMARA) CAMARA.camBase(1 / 30); } };
 const hasta = (cond, max = 200, bot = true) => { for (let i = 0; i < max * 10 && !cond(); i++) salta(0.1, bot); };
+/* LP6: saltar con el mando (el bot de mando.js) */
+const saltaM = (s, bot = true) => { for (let t = 0; t < s; t += 1 / 30) { if (bot) BOTM(); MANDO.paso(1 / 30); ACC.paso(1 / 30); if (CAMARA) CAMARA.camBase(1 / 30); if (RIV) RIV.paso(1 / 30); } };
+const hastaM = (cond, max = 200, bot = true) => { for (let i = 0; i < max * 10 && !cond(); i++) saltaM(0.1, bot); };
 function prepara(f) {
   const baja = n => { for (let i = 0; i < 5; i++) ACC.fila(i, i < n); };
+  /* LP6: ?fase=lp-inicio|lp-dibuja|lp-marcha|lp-choque|lp-picas|lp-lucha|lp-final */
+  const fz = () => ({ x: Math.sin(S.giro), z: -Math.cos(S.giro) });
+  if (f === 'lp-inicio') saltaM(1, false);
+  if (f === 'lp-dibuja' || f === 'lp-marcha') { saltaM(1, false); const F = fz(), c = { x: S.xF + F.x * 14 + 6, z: S.zF + F.z * 14 }, r = 25 * Math.PI / 180, D = { x: Math.cos(r), z: Math.sin(r) }; MANDO.frente({ x: c.x - D.x * 6, z: c.z - D.z * 6 }, { x: c.x + D.x * 6, z: c.z + D.z * 6 }); saltaM(f === 'lp-marcha' ? +(Q.get('t') || 6) : 0.5, false); }
+  if (f === 'lp-choque') { BOTM = botMando(MANDO, S, 'bien'); hastaM(() => S.choque); saltaM(1.2); }
+  if (f === 'lp-picas') { BOTM = botMando(MANDO, S, 'bien'); hastaM(() => S.filas.every(Boolean) && !S.choque && S.T > 3); saltaM(0.4, false); }
+  if (f === 'lp-lucha') { BOTM = botMando(MANDO, S, 'bien'); hastaM(() => S.choque); saltaM(+(Q.get('t') || 25)); }
+  if (f === 'lp-final') { BOTM = botMando(MANDO, S, 'bien'); hastaM(() => S.fase === 'fin'); saltaM(0.3); }
   if (f === 'marcha') salta(4);
   if (f === 'filas') { salta(4, false); baja(+(Q.get('n') || 3)); salta(2, false); }
   if (f === 'giro') { baja(5); ACC.gira(1); salta(+(Q.get('t') || 5), false); ACC.gira(0); }
@@ -531,7 +596,7 @@ function prepara(f) {
   }
   if (f === 'contacto') { hasta(() => S.choque, 200, 'compas'); const tc = +Q.get('t') || 0; for (let i = 0; i < 30 * 200 && S.T < tc - 1e-6; i++) { ACC.bot('compas'); ACC.paso(1 / 30); CAMARA.camBase(1 / 30); } }   /* FI1: el instante con más puntas tocando (?t= lo da captura-fi1.mjs) */
   if (f === 'estocada') { hasta(() => S.choque); salta(1.5); ACC.estocada(); salta(0.1, false); }
-  parado = true;
+  parado = true; if (S.fase === 'fin' && HUD) HUD.muestraFin();
 }
 
 /* ---------- medidas para captura.mjs ---------- */
@@ -546,20 +611,37 @@ function astas() {
 }
 /* la partida entera con el «bot» (y sin hacer nada), sin dibujar */
 /* FA3: la partida entera solo con los dedos (botDedos manda por el puente, no por acciones) */
-function partidaDedos() { reinicia(); parado = true; let k = 0, paradoFl = 0; const fp = () => { paradoFl++; }; for (; k < 30 * 400 && S.fase !== 'fin'; k++) { const n0 = S.flanco && S.flanco.estado; BOTD(); ACC.paso(1 / 30); PUENTE.paso(1 / 30); if (n0 === 'viene' && S.flanco && S.flanco.estado === 'parado') fp(); } return { fin: S.fase === 'fin', ganador: S.ganador, causa: S.causa, ganado: +S.ganado.toFixed(1), coh: Math.round(S.coh), segundos: +S.T.toFixed(1), flancosParados: paradoFl, toques: { ...S.toques }, estocadas: PUENTE.lee().estocadas }; }
+/* LP6: la partida entera solo con el mando (botMando toca lo que se ilumina y dibuja el frente al flanco) */
+function partidaMando(modo = 'bien') { reinicia(); parado = true; const b = botMando(MANDO, S, modo); for (let k = 0; k < 30 * 400 && S.fase !== 'fin'; k++) { b(); MANDO.paso(1 / 30); ACC.paso(1 / 30); } return { ...ACC.resumen(), U: S.U.enPie, R: S.R.enPie, choque: +S.tChoque.toFixed(1) }; }
 /* la partida entera con un bot del motor ('compas' | 'destiempo' | 'nogira' | 'loco'), sin dibujar */
 function partida(modo = 'compas') { reinicia(); parado = true; let k = 0; for (; k < 30 * 400 && S.fase !== 'fin'; k++) { ACC.bot(modo); ACC.paso(1 / 30); } return ACC.resumen(); }
 
 /* ---------- arranque ---------- */
-let ultimo = 0, CAMPO = null, PUENTE = null, DEDOS = null, BOTD = null;
+let ultimo = 0, CAMPO = null, MANDO = null, DEDOS = null, BOTM = null, VISTA = null, VISTA_YA = false;
+/* LP6: el dedo en el suelo (plano a la altura del muro) */
+const rayo = new THREE.Raycaster(), RV2 = new THREE.Vector2(), RV3 = new THREE.Vector3(), PLANO = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+function suelo(px, py) {
+  if (S.fase === 'fin' || parado && !FASE) return null;
+  RV2.set(px / innerWidth * 2 - 1, -(py / innerHeight) * 2 + 1); rayo.setFromCamera(RV2, camara); PLANO.constant = -H(S.xF, S.zF);
+  const p = rayo.ray.intersectPlane(PLANO, RV3); if (!p || Math.hypot(p.x - camara.position.x, p.z - camara.position.z) > 200) return null; return { x: p.x, z: p.z };
+}
+/* la raya se queda en el suelo mientras el muro va; al llegar, se borra */
+function rayaSigue() { const m = MANDO.meta(); if (DEDOS.activo()) return; if (m && !m.sinRaya && !S.choque) DEDOS.muestra(m.p0, m.p1, m.rumbo, false); else DEDOS.oculta(); }
+/* el oficial para la vista de abajo: los hombres del muro con la forma que pide maquetas/bloque/camara.js */
+let BSOMBRA = null;
+function bloqueVista() {
+  if (!BSOMBRA || BSOMBRA.S !== S || BSOMBRA.n !== S.fal.length) BSOMBRA = { S, n: S.fal.length, cols: FILES, get rumbo() { return S.giro; },
+    hombres: S.fal.map(h => ({ get vivo() { return h.vivo && !h.huye; }, get fila() { return h.r; }, col: h.f, get x() { return h.x; }, get z() { return h.z; } })) };
+  return BSOMBRA;
+}
 function bucle(t) {
   if (CAMPO) CAMPO.tick(t / 1000);
   const dt = Math.min(0.05, (t - ultimo) / 1000 || 0); ultimo = t;
   /* FA3: con el abanico abierto, el tiempo va a un tercio */
   const k = HUD.lento() ? 1 / 3 : 1;
-  if (!parado) ACC.paso(dt * k);
+  if (!parado) { MANDO.paso(dt * k); ACC.paso(dt * k); }
   if (RIV) RIV.paso(parado ? 0 : dt * k);
-  DEDOS.paso(parado ? 0 : dt * k);
+  rayaSigue();
   dibuja(parado ? 0 : dt); HUD.hud(); requestAnimationFrame(bucle);
 }
 const camT = new THREE.PerspectiveCamera(55, 1, 0.06, 12000); camT.rotation.order = 'YXZ';
@@ -567,8 +649,9 @@ const enPantalla = v => { v.project(camara); return { x: +((v.x + 1) / 2).toFixe
 window.__tp = {
   lista: false, S, F: null, renderer, escena, camara, salta: (s, b) => salta(s, b), parar: v => { parado = v; }, orden: n => ACC.orden(n),
   astas: () => astas(), astasMin: () => astasMin(), partida: b => partida(b),
-  puente: null, dedos: () => DEDOS.estado(), lee: () => PUENTE.lee(), partidaDedos: () => partidaDedos(), abanico: () => HUD.abierto(),
-  saltaDedos: s => { for (let t = 0; t < s; t += 1 / 30) { ACC.paso(1 / 30); PUENTE.paso(1 / 30); CAMARA.camBase(1 / 30); } },
+  /* LP6: el mando */
+  mando: () => MANDO, lee: () => MANDO.lee(), partidaMando: m => partidaMando(m), saltaM: (s, b) => saltaM(s, b), vista: () => VISTA, dedosActivo: () => DEDOS.activo(),
+  vistaYa: v => { VISTA_YA = v; },
   /* la cámara tal como la calcula camara.js (sin dibujar) */
   cam: () => ({ ...CAMARA.CAM }),
   estado: () => ({ T: +S.T.toFixed(2), fase: S.fase, choque: S.choque, filas: S.filas.slice(), giro: +(S.giro * 180 / Math.PI).toFixed(2), orden: S.orden, ganador: S.ganador, causa: S.causa, yo: S.yo.i, coh: Math.round(S.coh), ganado: +S.ganado.toFixed(1), objetivo: $('objetivo').textContent, nos: (S.U.palabras ? S.U.palabras() : null), ellos: (S.R.palabras ? S.R.palabras() : null), proyectiles: S.proyectiles.map(p => p.est), flanco: S.flanco ? { lado: S.flanco.lado, estado: S.flanco.estado } : null, kB: S.fal.map(h => +h.kB.toFixed(2)) }),
@@ -576,11 +659,15 @@ window.__tp = {
   reinicia: () => reinicia(),
   /* FA4: medidas del guion */
   hasta: (c, max, bot) => hasta(c, max, bot), rival: () => !!RIV,
+  rivPaso: dt => { if (RIV) RIV.paso(dt); },   /* FE1: el dibujo del rival avanza con la partida saltada (fotos) */
   punta: () => { const yo = S.fal[S.yo.i], P = new THREE.Vector3(), D = new THREE.Vector3(); posaFal(yo, S.T); poseSarisa(yo, S.T, P, D); P.addScaledVector(D, SARISA); return { x: P.x, y: P.y, z: P.z, yx: yo.x, yz: yo.z }; },
   incl: () => { const d = new THREE.Vector3(), L = []; for (const h of S.fal) if (h.vivo && !h.huye && h.kB < 0.05) { dirSarisa(h, S.T, d); (L[h.r] ||= []).push(Math.atan2(d.x * Math.sin(S.giro) - d.z * Math.cos(S.giro), d.y) * 180 / Math.PI);   /* hacia delante, sin el abierto de lado */ } return Array.from(L, l => l ? +(l.reduce((a, b) => a + b, 0) / l.length).toFixed(2) : null); },
   proyecta: (x, y, z) => { const C = CAMARA.CAM; camT.position.set(C.x, C.y, C.z); camT.rotation.set(C.pitch, C.yaw, 0); camT.fov = C.fov; camT.aspect = innerWidth / innerHeight; camT.updateProjectionMatrix(); camT.updateMatrixWorld(); const v = new THREE.Vector3(x, y ?? H(x, z) + 1.1, z).project(camT); return { x: +((v.x + 1) / 2).toFixed(3), y: +((1 - v.y) / 2).toFixed(3), delante: v.z < 1 }; },
   posDibujo: (bando, i) => { const h = (bando === 'f' ? S.fal : S.ene)[i]; let m; if (bando === 'f') { posaFal(h, S.T); m = h.inst; } else { fijaCaido(h); m = instDe(h, FIG_R); } return [+m.elements[12].toFixed(3), +m.elements[14].toFixed(3)]; },
   info: () => ({ llamadas: renderer.info.render.calls, triangulos: renderer.info.render.triangles }),
+  H: (x, z) => H(x, z),   /* FE2: la altura del suelo, para poner la cámara */
+  mira: (x, y, z, yaw, pitch) => { CAMFIJA = x === null ? null : [x, y, z, yaw, pitch]; },   /* FE2 */
+  soldados: () => FIG_F && FIG_F.nuevo ? { nuevo: true, triangulos: FIG_F.triangulos() } : { nuevo: false },   /* FE2 */
   dirSarisa: i => { const d = new THREE.Vector3(), P = new THREE.Vector3(); posaFal(S.fal[i], S.T); poseSarisa(S.fal[i], S.T, P, d); return d.toArray(); },
 };
 async function montaRival() {
@@ -590,24 +677,26 @@ async function montaRival() {
   } catch (e) { console.log('[FA4] el rival va con el muñeco de hoy: ' + e.message); return null; }
 }
 (async () => {
-  await preload(['falange', 'hastati']);
-  if (!getUnit('falange') || !getUnit('hastati')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
+  await preload(['hastati']);   /* FE2: el falangita de 0 A.D. solo se baja si no carga el nuevo */
+  if (!getUnit('hastati')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
   await creaFigs();
   ACC = crearAcciones({ H, avisa, hombres: M, zanF: FIG_F.zan });
-  S = ACC.S; window.__tp.S = S; window.__tp.F = ACC.F;
+  S = ACC.S; window.__tp.S = S; window.__tp.F = ACC.F; window.__tp.acc = ACC;   /* FE2: acc para las fotos */
   { const p0 = ACC.paso, r0 = ACC.reinicia; ACC.paso = dt => { p0(dt); FIS.paso(ACC.S, dt); }; ACC.reinicia = () => { r0(); FIS.reinicia(ACC.S); }; window.__tp.fisica = () => FIS.medida(ACC.S, poseF); window.__tp.fisicaJuega = (n, bot) => FIS.juega(n, ACC, poseF, bot); }   /* FI1 */
   window.__tp.proyectiles = () => FIS.medidaPr(ACC.S); window.__tp.proyectilesJuega = (n, bot) => FIS.juegaPr(n, ACC, bot);   /* FI3: medida de la salva y la salva entera sin dibujar */
   /* FA7: el dibujo de los demás rivales vive en rival.js (montaRivalDe). Si no está o falla, se pintan con el muñeco de hoy.
      Con RIV, la escena no pinta S.ene (lo pinta él) y le pasa cada paso y cada aviso */
   if (S.rival !== 'manipulos') RIV = await montaRival();
   CAMARA = crearCamara({ Q, S, H, suave, lerp, DX, marcado: () => ACC.marcado(), get vertical() { return vertical; } });
-  PUENTE = crearPuente({ S, acc: ACC, avisa }); window.__tp.puente = PUENTE;
-  DEDOS = crearDedos({ puente: PUENTE, S, zona: {} });
-  BOTD = botDedos(PUENTE, S);
-  HUD = crearHud({ S, Son, $, puente: PUENTE, dedos: DEDOS, acc: ACC });
+  MANDO = crearMando({ S, acc: ACC, avisa }); BOTM = botMando(MANDO, S, 'bien');
+  VISTA = crearVistaOficial({ camara, lienzo, H, estado: () => ({ B: bloqueVista() }), hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba' });
+  DEDOS = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => MANDO.haciaDonde(a, b), alSoltar: (a, b) => { if (!parado) MANDO.frente(a, b); }, H, libre: () => VISTA.libre(), escala: () => 0.5 - 0.3 * VISTA.t() });
+  escena.add(DEDOS.raya);
+  HUD = crearHud({ S, Son, $, mando: MANDO });
   reinicia();
   if (FASE) prepara(FASE);
+  else if (Q.get('inicio') !== '0') { parado = true; $('inicio').hidden = false; $('empieza').addEventListener('click', () => { $('inicio').hidden = true; parado = false; }); }
   $('carga').hidden = true;
   requestAnimationFrame(t => { ultimo = t; bucle(t); });
   setTimeout(() => { window.__tp.lista = true; }, 400);

@@ -47,6 +47,12 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 .est em{display:none;order:3;margin-top:3px;padding:2px 7px 3px;border-radius:9px;background:linear-gradient(#a3281c,#6a160f);border:1.5px solid var(--oro);font:700 11px Cinzel,Georgia,serif;font-style:normal;letter-spacing:.04em;color:#fff3dc;text-shadow:0 1px 2px #000;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.6)}
 .est.trabado em{display:block}
 .orden.cambia .aro{animation:cambia .6s}
+/* LP4b (4B): la raya dorada hacia su jefe; se toca para girar el frente ahí */
+#giro{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#giro-l{stroke:var(--oro);stroke-width:4;stroke-dasharray:10 7;filter:drop-shadow(0 0 4px rgba(0,0,0,.8));animation:giro 1s linear infinite}
+#giro-f{fill:var(--oro);stroke:#5c3a10;stroke-width:1}
+#giro-t{stroke:transparent;stroke-width:44;pointer-events:stroke;cursor:pointer}
+@keyframes giro{to{stroke-dashoffset:-17}}
 @keyframes cambia{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
 
 /* avisos en el borde: una franja roja del lado del peligro, con su frase */
@@ -118,6 +124,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 <canvas id="lienzo"></canvas>
 <div id="hud">
   <div id="vineta"></div>
+  <svg id="giro" hidden aria-label="Girar el frente hacia su jefe"><path id="giro-l"/><path id="giro-f"/><path id="giro-t"/></svg>
   <div id="ests"></div>
   <div id="borde-i" class="borde"><span id="borde-i-t"></span></div>
   <div id="borde-d" class="borde"><span id="borde-d-t"></span></div>

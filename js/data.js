@@ -55,21 +55,44 @@
   D.MONTHS = ['Ianuarius', 'Februarius', 'Martius', 'Aprilis', 'Maius', 'Iunius', 'Quintilis', 'Sextilis', 'September', 'October', 'November', 'December'];
 
   D.BUILD = {
-    aserradero: { n: 'Aserradero', i: '🪓', prod: 'materiales', cost: { materiales: 100, denarios: 10 }, time: 1.5, d: 'Da materiales: madera.' },
-    cantera: { n: 'Cantera', i: '⛏️', prod: 'materiales', cost: { materiales: 100, denarios: 10 }, time: 1.5, d: 'Da materiales: piedra.' },
-    mina: { n: 'Mina de hierro', i: '⚒️', prod: 'hierro', cost: { materiales: 105, denarios: 13 }, time: 1.5, d: 'Produce hierro.' },
-    granja: { n: 'Granja', i: '🌾', prod: 'grano', cost: { materiales: 100, denarios: 5 }, time: 1.5, d: 'Produce grano. Las tropas lo consumen.' },
-    viviendas: { n: 'Ínsulas', i: '🏘️', solar: 1, cost: { materiales: 120, denarios: 15 }, time: 1.8, d: 'Viviendas: aumentan la población máxima. La población paga impuestos y de ella salen los reclutas.' },
-    foro: { n: 'Foro', i: '🏛️', solar: 1, prod: 'denarios', cost: { materiales: 210, denarios: 20 }, time: 2.5, d: 'Recauda denarios, acelera las obras un 4 % por nivel y permite más población.' },
-    almacen: { n: 'Almacén', i: '🏺', solar: 1, cost: { materiales: 160, denarios: 10 }, time: 2, d: 'Aumenta la capacidad de almacenamiento.' },
-    mercado: { n: 'Mercado', i: '⚖️', solar: 1, cost: { materiales: 180, denarios: 55 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio, y da +2 de felicidad y +20 de población máxima.' },
-    puerto: { n: 'Puerto', i: '⚓', solar: 1, cost: { materiales: 270, denarios: 75 }, time: 3, sea: true, d: 'Necesario para embarcar ejércitos por rutas marítimas. Da ingresos por comercio y acorta las travesías.' },
-    cuartel: { n: 'Cuartel', i: '⚔️', solar: 1, cost: { materiales: 220, denarios: 20 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
-    establo: { n: 'Establo', i: '🐎', solar: 1, cost: { materiales: 250, denarios: 35 }, time: 3, d: 'Recluta caballería (Équites).' },
-    muralla: { n: 'Muralla', i: '🧱', cost: { materiales: 190, denarios: 10 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
-    herreria: { n: 'Herrería', i: '🔨', solar: 1, cost: { materiales: 220, denarios: 45 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
-    escuela: { n: 'Escuela', i: '📜', solar: 1, cost: { materiales: 170, denarios: 80 }, time: 3, d: 'Aquí estudian los sabios: aceleran las investigaciones y cobran paga.' },
-    templo: { n: 'Templo', i: '🔥', solar: 1, cost: { materiales: 210, denarios: 80 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
+    aserradero: { n: 'Aserradero', fam: 'produccion', i: '🪓', prod: 'materiales', cost: { materiales: 100, denarios: 10 }, time: 1.5, d: 'Da materiales: madera.' },
+    cantera: { n: 'Cantera', fam: 'produccion', i: '⛏️', prod: 'materiales', cost: { materiales: 100, denarios: 10 }, time: 1.5, d: 'Da materiales: piedra.' },
+    mina: { n: 'Mina de hierro', fam: 'produccion', i: '⚒️', prod: 'hierro', cost: { materiales: 105, denarios: 13 }, time: 1.5, d: 'Produce hierro.' },
+    granja: { n: 'Granja', fam: 'produccion', i: '🌾', prod: 'grano', cost: { materiales: 100, denarios: 5 }, time: 1.5, d: 'Produce grano. Las tropas lo consumen.' },
+    viviendas: { n: 'Ínsulas', fam: 'viviendas', i: '🏘️', solar: 1, cost: { materiales: 120, denarios: 15 }, time: 1.8, d: 'Viviendas: aumentan la población máxima. La población paga impuestos y de ella salen los reclutas.' },
+    foro: { n: 'Foro', fam: 'principales', i: '🏛️', solar: 1, prod: 'denarios', cost: { materiales: 210, denarios: 20 }, time: 2.5, d: 'Recauda denarios, acelera las obras un 4 % por nivel y permite más población.' },
+    almacen: { n: 'Almacén', fam: 'principales', i: '🏺', solar: 1, cost: { materiales: 160, denarios: 10 }, time: 2, d: 'Aumenta la capacidad de almacenamiento.' },
+    mercado: { n: 'Mercado', fam: 'principales', i: '⚖️', solar: 1, cost: { materiales: 180, denarios: 55 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio, y da +2 de felicidad y +20 de población máxima.' },
+    puerto: { n: 'Puerto', fam: 'puerto', i: '⚓', solar: 1, cost: { materiales: 270, denarios: 75 }, time: 3, sea: true, d: 'Necesario para embarcar ejércitos por rutas marítimas. Da ingresos por comercio y acorta las travesías.' },
+    cuartel: { n: 'Cuartel', fam: 'militar', i: '⚔️', solar: 1, cost: { materiales: 220, denarios: 20 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
+    establo: { n: 'Establo', fam: 'militar', i: '🐎', solar: 1, cost: { materiales: 250, denarios: 35 }, time: 3, d: 'Recluta caballería (Équites).' },
+    muralla: { n: 'Muralla', fam: 'militar', i: '🧱', cost: { materiales: 190, denarios: 10 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
+    herreria: { n: 'Herrería', fam: 'militar', i: '🔨', solar: 1, cost: { materiales: 220, denarios: 45 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
+    escuela: { n: 'Escuela', fam: 'principales', i: '📜', solar: 1, cost: { materiales: 170, denarios: 80 }, time: 3, d: 'Aquí estudian los sabios: aceleran las investigaciones y cobran paga.' },
+    templo: { n: 'Templo', fam: 'politica', i: '🔥', solar: 1, cost: { materiales: 210, denarios: 80 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
+  };
+  /* CD1b: familias del menú «Construir» (CD0 §2). Licencia de juego: es una agrupación para el jugador. */
+  /* CDe1: las necesidades de barrio (js/necesidades.js) se calculan y avisan en el diario; sus castigos (gente que se va, votos, revuelta sin impuestos)
+     se encienden cuando la pantalla del barrio (CD5b) deje ver qué falta y remediarlo (CDe2). Licencia de juego. */
+  D.NEC_CASTIGOS = false;
+  D.FAMILIAS = [['principales', 'Principales'], ['infra', 'Infraestructura'], ['politica', 'Política y culto'], ['militar', 'Militar'], ['produccion', 'Producción'], ['viviendas', 'Viviendas'], ['puerto', 'Puerto']];
+  D.FAMILIA_PIEZA = { fuente: 'infra', granero: 'principales', taller: 'produccion', salinas: 'produccion', zanja: 'infra', dique: 'infra', compitum: 'viviendas' };   // piezas de ciudad.js sin edificio de D.BUILD
+  /* CDe1-C: las diez obras que eran «Pronto» ya se construyen: viven en EDIF de ciudad.js y su familia está en D.FAMILIA_PIEZA.
+     Vacío a propósito: ciudad-menu.js lo recorre y tolera que no haya fichas. Acueducto: Aqua Appia, 312 a.C. (Frontino 1.5). Cloaca: Cloaca Máxima (Livio 1.38).
+     Médico: primer médico griego en Roma, 219 a.C. (Plinio 29.12). Baños, jardín y parque: licencia de juego. */
+  D.OBRAS_PRONTO = {};
+  /* CDe1-C: las diez obras de ciudad nuevas (sus números viven en EDIF de js/ciudad.js) y su familia en el menú. Nombre visible: «Baños», nunca «termas»
+     (balneae, ya en Plauto; las grandes termas son de Agripa, 25 a.C.). El id interno termas se queda: lo traduce js/necesidades.js. */
+  D.OBRAS = {
+    termas: { n: 'Baños', fam: 'infra' }, acueducto: { n: 'Acueducto', fam: 'infra' }, cloaca: { n: 'Cloaca', fam: 'infra' }, medico: { n: 'Médico', fam: 'infra' },
+    jardin: { n: 'Jardín', fam: 'infra' }, parque: { n: 'Parque', fam: 'infra' }, curia: { n: 'Curia', fam: 'politica' }, comicio: { n: 'Comicio', fam: 'politica' },
+    astillero: { n: 'Astillero', fam: 'puerto' }, faro: { n: 'Faro', fam: 'puerto' }
+  };
+  for (const id in D.OBRAS) D.FAMILIA_PIEZA[id] = D.OBRAS[id].fam;
+  /* CDe1-C: reglas y cargos de la ciudad nueva que tienen ficha de historia en registro.js (ministros, necesidades, revuelta, plan del Senado). */
+  D.SISTEMAS = {
+    ministros: { n: 'Ministros' }, censor: { n: 'Censor' }, edil: { n: 'Edil' }, cuestor: { n: 'Cuestor' }, pontifice: { n: 'Pontífice' }, legado: { n: 'Legado' },
+    publicanos: { n: 'Publicano de minas' }, necesidades: { n: 'Necesidades del barrio' }, revuelta: { n: 'Revuelta de la plebe' }, planSenado: { n: 'Plan del Senado' }
   };
   /* Templos (F5): cada ciudad puede dedicar su templo a un dios. Los dones son por nivel de templo. Licencia de juego:
      los romanos no «elegían» un dios por ciudad, pero Marte, Ceres y Neptuno eran divinidades reales de Roma (Livio 2.41 para el templo de Ceres, 493 a.C.; Marte, Campo de Marte; Neptuno, Circo Flaminio). Dones inventados. */
@@ -291,6 +314,10 @@
     elefantes: { n: 'Elefantes de guerra', g: '🐘', cls: 'ele', atk: 13, def: 9, spd: 42, mor: 50, hp: 8, mass: 4, up: 2 },
     general: { n: 'General', lic: 'Un mismo modelo y valores para todos los generales', g: '★', cls: 'gen', atk: 17, def: 16, spd: 68, mor: 100, hp: 3, up: 0 }
   };
+
+  /* CDe1-A: paga de cada tropa por estación (3 meses), igual que MIN.pagaTropa: grano = up × 3, denarios = up × 3 × MANT_TROPA.
+     Es un dato derivado para la pantalla: el cobro ya se hace cada mes en game.js (grano: up por hombre; denarios: up × MANT_TROPA). Licencia de juego. */
+  for (const k in D.UNITS) { const up = D.UNITS[k].up || 0; D.UNITS[k].paga = { grano: Math.round(up * 3 * 100) / 100, denarios: Math.round(up * 3 * D.MANT_TROPA * 100) / 100 }; }
 
   D.FACTIONS = {
     roma: { n: 'Roma', col: '#b3261e' },

@@ -380,9 +380,11 @@ async function navegador() {
       // Ciudad: se elige una ficha de la bandeja, se ve el fantasma, se pulsa «Construir aquí»; luego ficha de pieza y Gobierno limpio
       const fallos = [];
       await page.click('#tabs3 [data-v="ciudad"]'); await espera(1500); await cierraAvisos();
-      await page.waitForSelector('.pza', { timeout: 10000 }).catch(() => fallos.push('no hay bandeja de fichas'));
-      const sel = (await page.locator('.pza[data-id="granja"]:not(.cara)').count()) ? '.pza[data-id="granja"]' : '.pza:not(.cara)';
-      await page.locator(sel).first().scrollIntoViewIfNeeded(); await page.locator(sel).first().tap(); await espera(1200);
+      // CD1/CDe1: ya no hay bandeja .pza; se abre «Construir» (#cbtn), la familia Producción y la granja
+      await page.waitForSelector('#cbtn', { timeout: 10000 }).catch(() => fallos.push('no hay botón «Construir»'));
+      await page.locator('#cbtn').first().tap().catch(() => fallos.push('no se pudo pulsar «Construir»')); await espera(600);
+      await page.locator('#cmenu [data-f="produccion"]').first().tap().catch(() => fallos.push('no se abre la familia Producción')); await espera(600);
+      await page.locator('#cmenu [data-id="granja"]').first().tap().catch(() => fallos.push('no está la granja en el menú')); await espera(1200);
       const linea = () => estado(() => { const l = document.getElementById('linea'); return l.hidden ? '' : l.textContent.trim(); });
       const lin = await linea(); if (!lin) fallos.push('al elegir la ficha no aparece el fantasma ni la línea');
       // CN14-A: la cifra grande de la línea sale al colocar una pieza con efecto y cambia al moverla (se lee antes y después)

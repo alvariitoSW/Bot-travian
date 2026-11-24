@@ -21,8 +21,14 @@
    probable (Rafia 217, Magnesia 190). En Benevento (275 a.C.) los elefantes de Pirro se revolvieron contra los suyos
    (Plutarco, Pirro 25; Dionisio 20.12): histórico. Falange contra falange (Selasia 222, Rafia 217, Mantinea 207): histórico;
    muro hoplita en esta época, raro (Esparta antes de 227): probable.
-   Licencia de juego: que los elefantes se espanten por las filas bajadas.
+   FE1 (24/11): los elefantes ya no se espantan por las filas bajadas: embisten, rompen picas, alguno se ensarta, y se lucha hasta el 15 %.
+   Elefantes heridos que se desbocan contra los suyos: histórico (Benevento 275, Plutarco, Pirro 25; Metauro 207, Polibio 11.1).
+   Sarisas que hieren a la bestia: histórico (Hidaspes 326, Arriano 5.17, antes de la época). Picas que se parten y bestias
+   ensartadas: probable. Luchar hasta el 15 % y todas las cifras: licencia de juego. Ficha: gobierno/historia/FE1-elefantes-contra-picas.md.
    Licencia de juego: el compás, las oleadas, las fintas, los segundos de aviso y todas las cifras de este archivo. */
+
+import { FIN_LUCHA } from './falange.js';   /* FE1: la regla del 15 % es una sola, la del motor */
+export { FIN_LUCHA };
 
 /* ---------- PUENTE con el estado S y el motor de FA1. Todo lo que se supone de S pasa por aquí; con S.motor se usan sus
    ayudas y, si faltan, la reserva de cada línea. Si el contrato real difiere, se cambia solo esto. ---------- */
@@ -135,15 +141,28 @@ export const ELE_SALVA_MUERTOS = 4;       /* muertos (o proyectiles) de una salv
 export const ELE_SALVA_CANSA = 0.06;      /* cansancio de una salva con las filas bajadas */
 export const ELE_PAUSA = 2;               /* segundos entre la salva y el barrito */
 export const ELE_BARRITO = 4;             /* segundos de aviso del barrito (carga) */
-export const ELE_VUELVE = [10, 14];       /* la espantada vuelve a los 10-14 s */
-export const ELE_DESBOCA = 1 / 3;         /* espantadas que se desbocan y no vuelven */
-export const ELE_ESPANTA_ANIMO = 0.06;    /* ánimo del rival por cada espantada (y 2 de escolta atropellados) */
-export const ELE_DESBOCA_ANIMO = 0.1;     /* ánimo extra por cada desbocada */
-export const ELE_PARA_MUERTOS = 3;        /* con 3 filas bajadas la paras, con estas bajas */
-export const ELE_HUECO_COH = 30;          /* cohesión que se pierde al abrirse un hueco */
+/* FE1: la lucha contra las picas (licencia de juego: todas las cifras) */
+export const ELE_VIDA = 30;               /* heridas que aguanta una bestia */
+export const ELE_ACIERTA = 0.75;          /* cada pica bajada que la alcanza da con esta tirada */
+export const ELE_HIERE_1 = 0.8, ELE_HIERE = 0.5; /* herida de la pica de la 1.ª fila y de las de detrás, a la carrera */
+export const ELE_ENSARTA_PICAS = 11, ELE_ENSARTA = 0.4; /* con 11 picas o más a la carrera, 4 de cada 10 se quedan ensartadas */
+export const ELE_ROMPE_PICA = [0.4, 0.22, 0.15, 0.1, 0.08]; /* que la pica de cada fila se parta en el impacto (la de delante, más) */
+export const ELE_CLAVA_TROZO = 0.5;       /* puntas rotas que se quedan clavadas en la bestia (el resto, al suelo) */
+export const ELE_AGONIA = 7;              /* segundos que tarda en caer la ensartada */
+export const ELE_AGONIA_MUERTOS = 2;      /* hombres que aplasta en su agonía */
+export const ELE_PARA_PICAS = 6;          /* con estas picas o más en el impacto, no pisa a nadie al llegar */
+export const ELE_HONDO = 2.2;             /* hasta dónde se mete (m por delante de tu primera fila) */
+export const ELE_EMPUJA = 0.9;            /* m/s que se mete sin picas delante */
+export const ELE_HIERE_CERCA = 0.3;       /* por segundo: los de cerca (picas rotas, espadas, la contera) la hieren aunque no queden picas */
+export const ELE_ESTOCADA = 1;            /* tu estocada a una bestia de tus columnas */
+export const ELE_HIERE_LUCHA = 0.06;      /* herida por segundo de cada pica que le queda delante */
+export const ELE_ROMPE_LUCHA = 0.012;     /* por segundo, cada pica que le queda delante puede partirse */
+export const ELE_MATA = 0.5;              /* hombres por segundo que pisa sin picas delante (menos cuantas más quedan) */
+export const ELE_HUECO_PICAS = 2;         /* con estas picas o menos delante, abre un hueco */
+export const ELE_DESBOCA_VIDA = 0.4, ELE_DESBOCA = 0.3; /* muy herida (40 % de vida), 3 de cada 10 se desbocan contra los suyos */
+export const ELE_DESBOCA_ANIMO = 0.1;     /* ánimo extra del rival por cada desbocada */
+export const ELE_HUECO_COH = 25;          /* cohesión que se pierde al abrirse un hueco */
 export const ELE_CUELA = { coh: 4, bajas: 0.6 }; /* por segundo, mientras la escolta se cuela por el hueco */
-export const ELE_ROMPE = 0.15;            /* con este ánimo o menos, el rival rompe */
-export const ELE_ESTOCADA = 0.5;          /* tu estocada vale si es de hace menos de esto al chocar (s) */
 /* empuje (falange rival y hoplitas) */
 export const EMP_META = 10;               /* metros que se ganan (o se pierden) para acabar */
 export const EMP_METROS = 0.7;            /* metros por unidad de diferencia de fuerza en un latido */
@@ -156,6 +175,7 @@ export const EMP_HOPL_DEBAJO = 1.5;       /* con menos de 3 filas bajadas, el ho
 export const EMP_MUERTOS = 0.8;         /* falangitas que caen por unidad de diferencia cuando el muro cede */
 export const EMP_OLEADA = 3, EMP_GASTADO = 2; /* latidos de oleada y de cansancio después */
 
+const FILES = 12;
 const NOMBRES = ['caballeria', 'elefantes', 'falange', 'hoplitas'];
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
 const suave = u => { const t = Math.min(1, Math.max(0, u)); return t * t * (3 - 2 * t); };
@@ -274,27 +294,75 @@ function colocaJinetes(S, riv, a, r, sale) {
   }
 }
 
-/* ================= ELEFANTES: se espantan o te abren ================= */
+/* ================= ELEFANTES: embisten, rompen picas y luchan (FE1) ================= */
+/* FE1 (usuario, 24/11: «llegan, tocan las lanzas y huyen, cuando deberían romperlas y alguno clavarse en el elefante»).
+   Ya no se espantan por ver las filas bajadas. Cada carga:
+   1. EL IMPACTO (choque): las picas bajadas de las tres columnas que cubre la bestia le dan, cada una con su tirada. Cada pica que
+      da hiere y puede ROMPERSE (más la de delante, que recibe el golpe): su hombre queda con el trozo (h.picaRota) y esa pica deja
+      de contar en las cargas siguientes. Parte de las puntas rotas se quedan clavadas en la bestia (S.riv.trozos).
+   2. ENSARTADA: si las heridas del impacto pasan de su vida, se queda clavada en las puntas, sin avanzar; aplasta a alguno en su
+      agonía y cae despacio (est 'ensartada', luego muerta).
+   3. LUCHA: si aguanta, empuja contra el muro unos segundos: pisa a los de sus columnas (más cuantas menos picas le quedan delante),
+      las picas le siguen hiriendo y rompiéndose, y si ya no queda casi ninguna abre un HUECO por el que se cuela la escolta.
+      No recula: lucha hasta caer. Muy herida, puede DESBOCARSE contra los suyos (Benevento) y salir de la lucha.
+   4. EL FINAL (regla del 15 %, FIN_LUCHA): el rival rompe cuando le queda el 15 % de su manada en lucha; tu muro, cuando le queda el
+      15 % de sus hombres o se le acaba la cohesión (reglas de js/falange.js). Nadie huye antes por miedo. */
+function columnasDe(S, b) { const c = []; for (let k = -1; k <= 1; k++) { const f = b.columna + k; if (f >= 0 && f < FILES) c.push(f); } return c; }
+/* las picas que alcanzan a la bestia: en cada columna, los cinco primeros vivos (por su fila), con su fila bajada y la pica entera */
+function picasContra(S, b) {
+  const out = [], filas = Array.isArray(S.filas) ? S.filas : [true, true, true, true, true];
+  if (!Array.isArray(S.fal)) return out;
+  for (const f of columnasDe(S, b)) {
+    const col = S.fal.filter(h => h.vivo && !h.huye && h.f === f).sort((a, c) => a.r - c.r);
+    for (let k = 0; k < Math.min(5, col.length); k++) if (filas[k] && !col[k].picaRota) out.push({ h: col[k], k });
+  }
+  return out;
+}
+/* mata a n de las columnas de la bestia, de delante atrás (con el motor: a esos hombres; sin él, n bajas sin nombre) */
+function pisa(S, b, n, por) {
+  if (n <= 0) return 0;
+  if (!M(S).caeFalangita || !Array.isArray(S.fal)) { bajas(S, n, por); return n; }
+  const cols = columnasDe(S, b), L = S.fal.filter(h => h.vivo && !h.huye && cols.includes(h.f)).sort((a, c) => a.r - c.r || Math.abs(a.f - b.columna) - Math.abs(c.f - b.columna));
+  let k = 0; for (const h of L) { if (k >= n) break; M(S).caeFalangita(h, por); k++; }
+  if (k < n) bajas(S, n - k, por);
+  return n;
+}
+/* una pica se parte: el hombre se queda con el trozo; la punta cae al suelo o se queda clavada en la bestia */
+function rompePica(S, riv, b, p) {
+  const h = p.h; h.picaRota = true; h.tRota = tiempoDe(S); riv.rotas++;
+  const clavada = riv.azar() < ELE_CLAVA_TROZO, l = (h.f - (FILES - 1) / 2) * 0.78;
+  const q = enCampo(S, b.d - 1.6 - riv.azar() * 1.2, l + (riv.azar() - 0.5) * 0.5);
+  riv.trozos.push({ i: riv.trozos.length, hombre: h.i, f: h.f, k: p.k, bestia: clavada ? b.i : -1, x: q.x, z: q.z, yaw: Math.PI + (riv.azar() - 0.5) * 1.2,
+    alto: 1.2 + riv.azar() * 1.1, lado: (riv.azar() - 0.5) * 1.4, t: tiempoDe(S) });
+  avisa(S, 'picaRota', { h, bestia: b.i, clavada, fila: p.k });
+}
+function hiereEle(S, riv, b, x) { b.vida -= x; b.heridas += x; }
+const enLucha = b => b.vivo && !b.fuera && !b.desbocada;
+const finManada = riv => Math.floor(riv.n0 * FIN_LUCHA + 1e-9);
 const elefantes = {
   nombre: 'elefantes',
   crea(S, azar) {
     const riv = base(S, azar, 'elefantes'), v = variedadDe(S, riv), n = 3 + Math.min(2, Math.floor(v.fuerza * 3));
-    Object.assign(riv, { fase: 'espera', tFase: ELE_FORMA - ELE_ESPERA, carga: 0, hueco: false, cuela: 0, n0: n, tl: 0 });
+    Object.assign(riv, { fase: 'espera', tFase: ELE_FORMA - ELE_ESPERA, carga: 0, hueco: false, cuela: 0, n0: n, tl: 0, trozos: [], rotas: 0, ensartadas: 0 });
     for (let i = 0; i < n; i++) {
       const h = hombre(i, 'elefante', 'lista'), l = (i - (n - 1) / 2) * 2.2;
-      Object.assign(h, { l, d: 40, fuera: false, heridas: 0, vuelveEn: 0, columna: Math.max(0, Math.min(11, Math.round(l / 0.78 + 5.5))) });
+      Object.assign(h, { l, l0: l, d: 40, fuera: false, heridas: 0, vida: ELE_VIDA, columna: columnaDe(l), tPisa: 0, dio: 0 });
       riv.bestias.push(h);
     }
     for (let i = 0; i < ELE_ESCOLTA; i++) { const h = hombre(n + i, 'infante', 'tira'); h.l = (i - (ELE_ESCOLTA - 1) / 2) * 1.2; riv.hombres.push(h); }
     S.ene = riv.bestias.concat(riv.hombres); S.R = unidadRival(S, n + ELE_ESCOLTA, 'Elefantes y escolta');
+    /* FE1: regla del 15 % en los dos bandos; el rival rompe por su manada (abajo), no por las bajas de su unidad */
+    if (S.U) { S.U.fin = FIN_LUCHA; S.U.miedo = false; }
+    if (S.R) { S.R.fin = 0; S.R.miedo = false; }
     colocaEle(S, riv);
   },
   paso(S, dt) {
     const riv = S.riv; if (!riv || S.ganador) return; riv.T += dt; const T = riv.T, az = riv.azar;
     if (S.R && S.R.tic) S.R.tic(dt);
-    const enJuego = riv.bestias.filter(b => b.vivo && !b.fuera);
+    const libres = riv.bestias.filter(b => enLucha(b) && b.est !== 'ensartada');
     if (riv.fase === 'espera') {
-      if (enJuego.length && enJuego.every(b => b.est === 'lista') && T - riv.tFase >= ELE_ESPERA) {
+      /* la escolta sigue tirando mientras las bestias luchan; carga la que esté lista */
+      if (libres.some(b => b.est === 'lista') && libres.every(b => b.est === 'lista' || b.est === 'lucha') && T - riv.tFase >= ELE_ESPERA) {
         riv.fase = 'salva'; riv.tl = T + ELE_SALVA_AVISO; avisa(S, 'salva', { t: ELE_SALVA_AVISO });
       }
     } else if (riv.fase === 'salva' && T >= riv.tl) {
@@ -307,51 +375,90 @@ const elefantes = {
       riv.fase = 'pausa'; riv.tl = T + ELE_PAUSA;
     } else if (riv.fase === 'pausa' && T >= riv.tl) {
       riv.fase = 'carga'; riv.tFase = T; riv.tl = T + ELE_BARRITO; riv.carga++; avisa(S, 'barrito', { t: ELE_BARRITO });
-      for (const b of enJuego) { b.est = 'carga'; b.toca = null; b.d0 = b.d; }   /* FA4: carga desde donde está, sin salto */
+      for (const b of libres) {
+        if (b.est !== 'lista') continue;
+        /* FA4: carga desde donde está, sin salto. FE1: cada carga busca otro sitio del muro (hasta 1,5 m de su puesto) */
+        b.est = 'carga'; b.toca = null; b.d0 = b.d;
+        if (riv.carga > 1) { b.l = Math.max(-4.6, Math.min(4.6, b.l0 + (az() - 0.5) * 3)); b.columna = columnaDe(b.l); }
+      }
     } else if (riv.fase === 'carga') {
       const u = (T - riv.tFase) / ELE_BARRITO;
-      for (const b of enJuego) if (b.est === 'carga' && b.contacto !== riv.carga) { const d0 = b.d0 ?? 40; b.d = d0 - (d0 - 0.5) * Math.min(1, u); }
-      if (T >= riv.tl) { for (const b of enJuego) if (b.est === 'carga' && (!llamaChoque(S) || b.contacto !== riv.carga)) elefantes.choque(S, b); riv.fase = 'espera'; riv.tFase = T; }
+      for (const b of libres) if (b.est === 'carga' && b.contacto !== riv.carga) { const d0 = b.d0 ?? 40; b.d = d0 - (d0 - 0.5) * Math.min(1, u); }
+      if (T >= riv.tl) { for (const b of libres) if (b.est === 'carga' && (!llamaChoque(S) || b.contacto !== riv.carga)) elefantes.choque(S, b); riv.fase = 'espera'; riv.tFase = T; }
     }
     for (const b of riv.bestias) {
       if (!b.vivo || b.fuera) continue;
-      if (b.est === 'desbocada') { b.d += 7 * dt; if (b.d > 90) b.fuera = true; }
-      else if (b.est === 'espantada' || b.est === 'retira') { b.d = Math.min(40, b.d + 5 * dt); if (T >= b.vuelveEn) { b.est = 'lista'; b.toca = null; } }
+      if (b.est === 'ensartada') {
+        /* clavada en las puntas: no avanza; en su agonía aplasta a alguno y cae despacio */
+        if (b.dio < ELE_AGONIA_MUERTOS && T >= b.tPisa) { pisa(S, b, 1, 'elefante'); b.dio++; b.tPisa = T + ELE_AGONIA / (ELE_AGONIA_MUERTOS + 1); }
+        if (T >= b.tMuere) { caeRival(S, b); riv.animo = Math.max(0, riv.animo - 0.1); }
+      } else if (b.est === 'lucha') luchaEle(S, riv, b, dt);
+      else if (b.est === 'desbocada') { b.d += 7 * dt; if (b.d > 90) b.fuera = true; }
     }
     if (riv.hueco) {
       if (ordenDe(S) === 'cerrar') { riv.hueco = false; avisa(S, 'cerrado', {}); for (const h of riv.hombres) if (h.est === 'cuela') h.est = 'tira'; }
       else { cambiaCoh(S, -ELE_CUELA.coh * dt); riv.cuela += ELE_CUELA.bajas * dt; if (riv.cuela >= 1) { bajas(S, Math.floor(riv.cuela), 'hueco'); riv.cuela -= Math.floor(riv.cuela); } }
     }
     colocaEle(S, riv);
-    if (riv.animo <= ELE_ROMPE || !riv.bestias.some(b => b.vivo && !b.fuera && b.est !== 'desbocada')) rompe(S, riv, 'animo');
+    /* FE1, regla del 15 %: rompe cuando le queda el 15 % de la manada en lucha (con 3 a 5 bestias: ninguna) */
+    if (riv.bestias.filter(enLucha).length <= finManada(riv)) { riv.causa = 'bajas'; rompe(S, riv, 'bajas'); }
     mira(S, riv);
   },
   choque(S, h) {
     const riv = S.riv; if (h.tipo !== 'elefante') return 'para';
     if (h.contacto === riv.carga) return h.res;
-    const b = bajadasDe(S), encara = h.toca ? h.toca === 'puntas' : Math.abs(giroDe(S)) <= ENCARA, T = riv.T; let r;
-    if (b >= 4 && encara) {
-      r = 'espanta'; h.est = 'espantada'; riv.animo = Math.max(0, riv.animo - ELE_ESPANTA_ANIMO); anima(S, 0.02);
-      let k = 0; for (const e of riv.hombres) if (e.vivo && k < 2) { caeRival(S, e); e.est = 'pisado'; k++; } causa(S, k + 1);
-      const estocada = tiempoDe(S) - estocadaDe(S) <= ELE_ESTOCADA && Math.abs(h.columna - 5) <= 1;
-      if (estocada || riv.azar() < ELE_DESBOCA) { h.est = 'desbocada'; riv.animo = Math.max(0, riv.animo - ELE_DESBOCA_ANIMO); }
-      else h.vuelveEn = T + ELE_VUELVE[0] + (ELE_VUELVE[1] - ELE_VUELVE[0]) * riv.azar();
-      avisa(S, 'espanta', { bestia: h.i, desbocada: h.est === 'desbocada' });
-    } else if (b >= 3) {
-      r = 'para'; h.est = 'retira'; h.vuelveEn = T + 8; bajas(S, ELE_PARA_MUERTOS, 'bajas'); causa(S, 1); h.heridas++;
-      if (h.heridas >= 2) { caeRival(S, h); h.est = 'muerta'; riv.animo = Math.max(0, riv.animo - 0.1); }
+    if (!enLucha(h) || h.est === 'ensartada') { h.contacto = riv.carga; h.res = 'para'; return 'para'; }
+    const T = riv.T, az = riv.azar, P = picasContra(S, h), vel = h.est === 'carga' ? 1 : 0.5;
+    let dano = 0, dan = 0;
+    for (const p of P) {
+      if (az() >= ELE_ACIERTA) continue; dan++;
+      dano += (p.k === 0 ? ELE_HIERE_1 : ELE_HIERE) * vel;
+      if (az() < ELE_ROMPE_PICA[p.k] * vel) rompePica(S, riv, h, p);
+    }
+    hiereEle(S, riv, h, dano); causa(S, dan > 0 ? 1 : 0);
+    let r;
+    if (h.vida <= 0 || (vel === 1 && dan >= ELE_ENSARTA_PICAS && az() < ELE_ENSARTA)) {
+      /* ensartada: clavada en las puntas que la alcanzaron de frente a la carrera */
+      r = 'cae'; h.est = 'ensartada'; h.tMuere = T + ELE_AGONIA; h.tPisa = T + 0.4; h.dio = 0; riv.ensartadas++;
+      avisa(S, 'ensarta', { bestia: h.i, picas: dan });
     } else {
-      r = 'hueco'; h.est = 'retira'; h.vuelveEn = T + 10; bajas(S, COLUMNA, 'hueco'); cambiaCoh(S, -ELE_HUECO_COH); anima(S, -0.03);
-      riv.hueco = true; riv.causa = 'hueco'; let k = 0; for (const e of riv.hombres) if (e.vivo && k < 6) { e.est = 'cuela'; k++; }
-      avisa(S, 'hueco', { columna: h.columna });
+      r = dan >= ELE_PARA_PICAS ? 'para' : 'entra';
+      h.est = 'lucha'; h.tPisa = T + 0.5; h.yaHueco = false;
+      pisa(S, h, dan >= ELE_PARA_PICAS ? 0 : 1, 'elefante');
+      avisa(S, 'embiste', { bestia: h.i, picas: dan });
     }
     h.contacto = riv.carga; h.res = r; return r;
   },
 };
-/* bestias y escolta, a la vista del muro (por delante; d = metros por delante del pivote) */
+const columnaDe = l => Math.max(0, Math.min(FILES - 1, Math.round(l / 0.78 + (FILES - 1) / 2)));
+/* la bestia empuja contra el muro: pisa, la hieren y le rompen picas; si se queda sin picas delante, abre un hueco */
+function luchaEle(S, riv, b, dt) {
+  const T = riv.T, az = riv.azar, P = picasContra(S, b), n = P.length;
+  b.d = Math.max(ELE_HONDO, b.d - ELE_EMPUJA * (1 - n / 15) * dt);   /* cuantas menos picas, más se mete */
+  hiereEle(S, riv, b, (ELE_HIERE_CERCA + n * ELE_HIERE_LUCHA) * dt);
+  /* tu estocada, si es en sus columnas (tú estás en la 6.ª), hiere más */
+  const tE = estocadaDe(S); if (tE > (b.tEst ?? -1e9) && Math.abs(b.columna - 5) <= 1) { b.tEst = tE; hiereEle(S, riv, b, ELE_ESTOCADA); }
+  for (const p of P) if (az() < ELE_ROMPE_LUCHA * dt) rompePica(S, riv, b, p);
+  if (T >= b.tPisa) { b.tPisa = T + 1; const m = ELE_MATA * (1 - n / 15) * (1 - n / 15); if (az() < m) pisa(S, b, 1, 'elefante'); }
+  if (n <= ELE_HUECO_PICAS && !b.yaHueco && !riv.hueco) {
+    b.yaHueco = true; cambiaCoh(S, -ELE_HUECO_COH); riv.hueco = true; riv.causa = 'hueco';
+    let k = 0; for (const e of riv.hombres) if (e.vivo && k < 6) { e.est = 'cuela'; k++; }
+    avisa(S, 'hueco', { columna: b.columna });
+  }
+  if (b.vida <= 0) { caeRival(S, b); b.est = 'muerta'; riv.animo = Math.max(0, riv.animo - 0.1); return; }
+  /* muy herida, a veces se desboca y se vuelve contra los suyos (Benevento, 275 a.C.): sale de la lucha */
+  if (!b.tiroDesboca && b.vida <= ELE_VIDA * ELE_DESBOCA_VIDA) {
+    b.tiroDesboca = true;
+    if (az() < ELE_DESBOCA) {
+      b.est = 'desbocada'; b.desbocada = true; let k = 0; for (const e of riv.hombres) if (e.vivo && k < 2) { caeRival(S, e); e.est = 'pisado'; k++; }
+      riv.animo = Math.max(0, riv.animo - ELE_DESBOCA_ANIMO); avisa(S, 'desboca', { bestia: b.i }); return;
+    }
+  }
+}
+/* bestias y escolta, en el eje del campo por delante de tu pivote (d = metros por delante del pivote) */
 function colocaEle(S, riv) {
   const g = 0;
-  for (const b of riv.bestias) { if (!b.vivo) continue; const q = enCampo(S, b.d, b.l); b.x = q.x; b.z = q.z; b.yaw = (b.est === 'carga' || b.est === 'lista' ? -g : Math.PI - g); }
+  for (const b of riv.bestias) { if (!b.vivo) continue; const q = enCampo(S, b.d, b.l); b.x = q.x; b.z = q.z; b.yaw = (b.est === 'desbocada' ? Math.PI - g : -g); }
   for (const h of riv.hombres) { if (!h.vivo) continue; const q = enCampo(S, h.est === 'cuela' ? 0.8 : 46, h.l); h.x = q.x; h.z = q.z; h.yaw = -g; }
 }
 

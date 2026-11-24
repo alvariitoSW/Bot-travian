@@ -5,7 +5,7 @@
    (por defecto, la de hoy: misma fecha, misma partida).
    Lo de dibujo de cada hombre: va (vaivén del asta), kA (inclinación de su asta alzada, rad; va suave hacia el abanico), kG (gesto de la estocada, de h.tG),
    fase (desfase del paso), paso (la pierna, si el motor aún no lo movió), esc (talla). Corre en Node. */
-import { crearFalange, PULSO, VENTANA, META, AVISO_FLANCO, BAJAN } from '../../../js/falange.js';
+import { crearFalange, PULSO, VENTANA, META, AVISO_FLANCO, BAJAN, FIN_LUCHA } from '../../../js/falange.js';
 import { rivalDe } from '../../../js/falange-rivales.js';
 import { crearPaso, velocidad, pisa } from './locomocion.js';
 import { vaiven, primeraAlzada, abanicoObj } from './formacion.js';
@@ -19,9 +19,12 @@ const hoy = () => { const d = new Date(); return d.getFullYear() * 10000 + (d.ge
 
 export function crearAcciones(m = {}) {
   const Q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-  const nombre = Q.get('rival') || 'manipulos', semilla = +Q.get('semilla') || hoy();
+  const nombre = m.rival || Q.get('rival') || 'manipulos', semilla = m.semilla ?? (+Q.get('semilla') || hoy());
   const zan = m.zanF || { walk: 1.5, run: 2.2 };
-  const F = crearFalange({ semilla, rival: rivalDe(nombre) || undefined, avisa: m.avisa, H: m.H, hombres: m.hombres, locomocion: { crearPaso, velocidad, pisa }, zancadas: zan });
+  /* LP6: contra los manípulos se lucha hasta el 15 % (FIN_LUCHA, la lucha sola del motor). Los elefantes ya lo traen de FE1; caballería,
+     falange e hoplitas siguen con su regla (?fin=0 vuelve a lo de antes también con los manípulos) */
+  const fin = m.fin !== undefined ? m.fin : nombre === 'manipulos' && Q.get('fin') !== '0' ? FIN_LUCHA : null;
+  const F = crearFalange({ semilla, rival: rivalDe(nombre) || undefined, avisa: m.avisa, H: m.H, hombres: m.hombres, locomocion: { crearPaso, velocidad, pisa }, zancadas: zan, fin });
   const S = F.S;
   /* azar propio del dibujo (no toca las tiradas del motor) */
   let sV = 7; const azarV = () => { sV = (sV * 16807) % 2147483647; return (sV - 1) / 2147483646; };
