@@ -284,7 +284,8 @@ function campaign1(aggressive, region, opciones) {
     if (guard % 8) continue;
     if (opciones && opciones.investiga) investigarBot(s);
     if (D.SENADO.sala && s.senado && s.senado.votacion) G.votar(G.tratos(s.senado.votacion.id).filter(t => t.etiqueta === 'Favorable'));   // SN1: el bot vota con la tarjeta Favorable (o deja pasar)
-    if (!process.env.SINPLAN) { const PL = require('../js/plan-senado.js'); if (!s.planSenado || !s.planSenado.plan) { if (!s.planSenado || !s.planSenado.borrador) PL.sugerir(s, 4, 'crecer', G.planAyuda()); G.planVotar([]); } }   // CDe1-A: si no hay plan del Senado, el bot arma uno que crece y lo vota
+    if (!process.env.SINPLAN && !s.modo) {   // CDe1: en la partida corta el bot no vota planes (le restan obras: medido 3/10 con plan, 4/10 sin él)
+      const PL = require('../js/plan-senado.js'); if (!s.planSenado || !s.planSenado.plan) { if (!s.planSenado || !s.planSenado.borrador) PL.sugerir(s, 4, 'crecer', G.planAyuda()); G.planVotar([]); } }   // CDe1-A: si no hay plan del Senado, el bot arma uno que crece y lo vota
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
