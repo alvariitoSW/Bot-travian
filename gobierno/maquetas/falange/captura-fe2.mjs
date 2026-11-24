@@ -79,7 +79,7 @@ for (const [nombre, [w, h], q, mom] of FOTOS) {
   if (solo && !solo.includes(nombre)) continue;
   const t0 = Date.now(), ctx = await br.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page, nombre);
   try {
-    await page.goto(URL0 + '?' + q + '&semilla=' + SEMILLA + (op.extra ? '&' + op.extra : ''));
+    await page.goto(URL0 + '?antiguo=1&' + q + '&semilla=' + SEMILLA + (op.extra ? '&' + op.extra : ''));
     await page.waitForFunction('window.__tp && window.__tp.lista === true', null, { timeout: 300000, polling: 500 });
     await page.evaluate(() => window.__tp.parar(true));
     const r = await page.evaluate(`(() => { const t = window.__tp, S = t.S; ${PREP} ${MOMENTOS[mom]}; return { T: +S.T.toFixed(2), fase: S.fase, riv: S.riv && S.riv.fase, rotas: S.fal.filter(h => h.picaRota).length, espadas: S.fal.filter(h => h.picaRota && h.vivo && S.T - h.tRota > 1.2).length, ele: S.ene.filter(e => e.tipo === 'elefante').map(e => e.est + (e.vivo ? '' : '†')).join(',') }; })()`);

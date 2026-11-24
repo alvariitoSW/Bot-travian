@@ -45,7 +45,7 @@ for (const [nombre, [w, h], q] of FOTOS) {
   if (solo && !solo.includes(nombre)) continue;
   const t0 = Date.now(), ctx = await br.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page, nombre);
   try {
-    await page.goto(URL0 + '?' + q + '&semilla=' + SEMILLA + (op.extra ? '&' + op.extra : ''));
+    await page.goto(URL0 + '?antiguo=1&' + q + '&semilla=' + SEMILLA + (op.extra ? '&' + op.extra : ''));
     await page.waitForFunction('window.__tp && window.__tp.lista === true', null, { timeout: 150000, polling: 500 });
     await page.waitForTimeout(2500);
     if (nombre.startsWith('dibuja')) { const cdp = await ctx.newCDPSession(page); await arrastra(page, cdp, [w * 0.3, h * 0.42], [w * 0.78, h * 0.36], false); await page.waitForTimeout(600); }
@@ -63,7 +63,7 @@ if (op.dedos !== '0') {
   const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page, 'dedos');
   const ok = (n, v, d = '') => { pruebas.push([n, !!v, d]); console.log((v ? 'ok  ' : 'MAL ') + n + (d ? ' — ' + d : '')); };
   try {
-    await page.goto(URL0 + '?semilla=' + SEMILLA); await page.waitForFunction('window.__tp && window.__tp.lista === true', null, { timeout: 150000, polling: 500 });
+    await page.goto(URL0 + '?antiguo=1&semilla=' + SEMILLA); await page.waitForFunction('window.__tp && window.__tp.lista === true', null, { timeout: 150000, polling: 500 });
     ok('la tarjeta de inicio para la partida', await page.evaluate(() => !document.getElementById('inicio').hidden));
     await page.tap('#empieza'); await page.waitForTimeout(400);
     const cdp = await ctx.newCDPSession(page);

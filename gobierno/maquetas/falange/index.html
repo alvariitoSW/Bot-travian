@@ -6,6 +6,17 @@
 <meta name="theme-color" content="#0b1016">
 <title>AQVILA · Falange a pie</title>
 <base href="../../../">
+<script>
+/* FU3: «Falange a pie» contra manípulos es ahora la escena del bloque con ?formacion=falange (el mismo motor de la falange, con el control
+   del bloque). Se conservan los otros parámetros. Los demás rivales (?rival=galos, elefantes…) siguen aquí hasta FU4; ?antiguo=1 deja
+   esta escena vieja, para comparar y para sus capturas. */
+(function () { try {
+  var q = new URLSearchParams(location.search); if (q.get('antiguo') === '1') return;
+  if (q.get('rival') && q.get('rival') !== 'manipulos') return;
+  q.set('formacion', 'falange');
+  location.replace(new URL('gobierno/maquetas/bloque/', document.baseURI).href + '?' + q.toString());
+} catch (e) { /* si falla, se queda la escena vieja */ } })();
+</script>
 <style>
 @font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
 :root{--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--vidrio:rgba(18,15,11,.82);--fil:rgba(184,134,43,.55);--roma:#c23a2e;--verde:#7cc65e;--rojo:#dd5a43;--ri:28%;--rs:58%}

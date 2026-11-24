@@ -18,7 +18,7 @@ const DUR = { golpear: 1.55, lanzar: 1.85, cubrirse: 1.25, morir: 2.4, encajar: 
 const CAIDOS_MAX = 700;
 const FRENA = 0.88;   /* LP5a: el que va contra alguien afloja hasta 1 − FRENA de su paso (lo mismo que fisica.js FRENA) */
 
-export function crearTropas({ S, muroDelante = false }) {   /* FU1: muroDelante: en testudo la 1.ª fila no se cubre arriba, lleva el escudo de frente (guardia) */
+export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3: reales = [{ b, hombres }]: bloques que se pintan con sus hombres de verdad (x, z, yaw, vivo), no con huecos */   /* FU1: muroDelante: en testudo la 1.ª fila no se cubre arriba, lleva el escudo de frente (guardia) */
   const figs = [], caidos = [];
   /* LP5a: cuánto se dibuja apartado cada bloque entero (lo pone la física cuando las reglas meten un bloque en otro):
      sus hombres van a su sitio más esto, y las filas no se deforman */
@@ -29,10 +29,12 @@ export function crearTropas({ S, muroDelante = false }) {   /* FU1: muroDelante:
   /* ---------- tu manípulo: los hombres del bloque de LP1 ---------- */
   const tuyo = S.tuyo, B = S.B;
   if (B) for (const h of B.hombres) { const f = nuevo(tuyo, { h, x: h.x, z: h.z, yaw: h.yaw }); figs.push(f); }
+  const conReales = new Set(reales.map(r => r.b));
+  for (const { b, hombres } of reales) for (const h of hombres) if (h.vivo !== false) figs.push(nuevo(b, { h, x: h.x, z: h.z, yaw: h.yaw }));
 
   /* ---------- los demás bloques: un hueco por hombre ---------- */
   for (const b of S.bloques) {
-    if (B && b === tuyo) continue;
+    if ((B && b === tuyo) || conReales.has(b)) continue;
     const [sx, sz, des] = HUECO[b.tipo] || HUECO.manipulo, n = b.U.hombres;
     const cols = Math.max(2, Math.round(b.ancho / sx)), filas = Math.ceil(n / cols);
     b.vis = { cols, filas, sx: b.ancho / cols, sz: Math.max(sz, filas > 1 ? Math.min(1.6, b.fondo / (filas - 1)) : sz), des, men: [] };
@@ -112,17 +114,17 @@ export function crearTropas({ S, muroDelante = false }) {   /* FU1: muroDelante:
 
   function paso(dt, T) {
     /* tu manípulo: copia a los hombres de LP1 y mira su velocidad */
-    if (B) for (const f of figs.slice()) {
-      if (f.b !== tuyo) continue; const h = f.h;
+    for (const f of figs.slice()) {
+      if (!f.h) continue; const h = f.h, bf = f.b;   /* tu bloque (LP1) y los de hombres reales (FU3) */
       if (!h.vivo) { cae(f, T); continue; }
       /* LP5a: anda hacia su hombre de LP1 (no se pega a él): así, si la física lo aparta, vuelve a su paso, sin saltos */
       const hv = Math.hypot(h.x - (f.hx ?? h.x), h.z - (f.hz ?? h.z)) / Math.max(dt, 1e-3); f.hx = h.x; f.hz = h.z;
-      const o = ofsDe(tuyo); sigue(f, h.x, h.z, dt);
+      const o = ofsDe(bf); sigue(f, h.x, h.z, dt);
       const dx = f.tx + o.x - f.x, dz = f.tz + o.z - f.z, d = Math.hypot(dx, dz), m0 = Math.min(d, Math.min(5, hv + 0.6 + d * 2.5) * dt);
       const m = d > 1e-4 ? anda(f, dx / d, dz / d, m0) : (f.px = f.pz = 0);
       const v = m / Math.max(dt, 1e-3); f.v += (v - f.v) * Math.min(1, dt * 6);
       giraA(f, h.yaw, 4, dt);
-      animacion(f, tuyo, h.fila, dt, T);
+      animacion(f, bf, h.fila ?? h.r ?? 0, dt, T);
     }
     /* los demás bloques */
     for (const b of S.bloques) {

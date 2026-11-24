@@ -488,7 +488,7 @@
     const RUTA_AP = 'gobierno/maquetas/bloque/index.html';
     /* LP7b: la falange de picas baja a «Falange a pie» (gobierno/maquetas/falange/, LP6: el mismo control, con sarisas), con el mismo
        contrato de capa (?lp7=, window.__bloque, postMessage). Allí se lucha con 96 contra 96 (su maqueta); las bajas vuelven a escala */
-    const RUTA_FAL = 'gobierno/maquetas/falange/index.html', N_FAL = 96;
+    const RUTA_FAL = 'gobierno/maquetas/bloque/index.html?formacion=falange', N_FAL = 96;   /* FU3: la escena del bloque con la formación falange */
     function puedeBajar(id) {
       const u = S.man[id];
       if (!lista) return 'Aún se están formando'; if (S.fase === 'fin') return 'La batalla ha terminado';
@@ -543,7 +543,7 @@
       apie = { id, P, frame: f, pausaAntes: S.pausa, t0: performance.now() };
       pausa(true); arrastre = null; gesto = null; dedos.clear(); verFormas = false; sel = [id];
       f.id = 'mn-apie'; f.title = fal ? 'A pie, con tu falange' : 'A pie, con tu manípulo'; f.setAttribute('allow', 'autoplay');
-      f.src = (fal ? RUTA_FAL : RUTA_AP) + '?lp7=' + encodeURIComponent(JSON.stringify(P.plan));
+      f.src = (fal ? RUTA_FAL + '&' : RUTA_AP + '?') + 'lp7=' + encodeURIComponent(JSON.stringify(P.plan));
       el.appendChild(f); el.classList.add('apie'); pintarHud(true);
       return '';
     }

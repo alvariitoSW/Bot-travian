@@ -20,7 +20,7 @@ const vara = (ok, texto) => { console.log((ok ? '  bien: ' : '  MAL: ') + texto)
 for (const q of ['fisica=0&', '']) {
   const ctx = await br.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 }), page = await ctx.newPage();
   page.on('pageerror', e => errores.push('error: ' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/404|rival\.js/.test(m.text())) errores.push('consola: ' + m.text().slice(0, 200)); });
-  await page.goto(URL0 + '?' + q + 'semilla=20261123'); await page.waitForFunction('window.__tp && window.__tp.lista === true', null, { timeout: 300000 });
+  await page.goto(URL0 + '?antiguo=1&' + q + 'semilla=20261123'); await page.waitForFunction('window.__tp && window.__tp.lista === true', null, { timeout: 300000 });
   await page.evaluate(() => window.__tp.parar(true));
   const r = await page.evaluate(n => { const t = window.__tp; t.reinicia(); return t.proyectilesJuega(n, 'compas'); }, SEGUNDOS);
   R[q ? 'sin' : 'con'] = r; console.log((q ? 'sin física' : 'con física') + ': ' + JSON.stringify(r));
