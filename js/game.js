@@ -749,7 +749,7 @@
     for (let n = E.n0; n <= d.mesN; n++) {
       for (const a of ac) { if (a.n !== n) continue;
         if (a.a === 'c') { const r = CI.colocar(E, a.tipo, a.x, a.z, true); if (r.ok) r.e.obra = 0; else E.fallos++; }
-        else if (a.a === 'u') CI.mejorar(E, a.id, true); else if (a.a === 'v') CI.mover(E, a.id, a.x, a.z); else if (a.a === 'k' && CI.trazarCalle) CI.trazarCalle(E, a.p, true); else if (a.a === 'm') CI.levantarMuralla(E, true); else if (a.a === 'a') CI.ampliarMuralla(E, true);
+        else if (a.a === 'u') CI.mejorar(E, a.id, true); else if (a.a === 'v') CI.mover(E, a.id, a.x, a.z); else if (a.a === 'k' && CI.trazarCalle) { const r = CI.trazarCalle(E, a.p, true); if (!r || !r.ok) E.fallos = (E.fallos || 0) + 1; } else if (a.a === 'm') CI.levantarMuralla(E, true); else if (a.a === 'a') CI.ampliarMuralla(E, true);
         else if (a.a === 's') CI.sembrarCasas(E, a.pob); else if (a.a === 'd') quitar(E, a.id); else if (a.a === 'q') CI.saquearArrabal(E, a.fz); else if (a.a === 'j') CI.techarBarrio(E, a.i, true); else if (a.a === 'f') CI.apagarFuego(E, a.ids); }
       if (n < d.mesN) CI.mes(E);
     }
@@ -766,7 +766,7 @@
 
   G.sincronizar = function (cid) { const c = typeof cid === 'string' ? G.state.cities[cid] : cid, r = c && regE.get(c); if (!r) return false; sinc(c, r); return true; };
   // CD2a: calle trazada con el dedo; el coste sale del almacén del jugador (como una fuente cada 120 m)
-  G.trazarCalle = function (cid, pts) { const c = prop(cid), E = c && G.ciudadE(cid); if (!E || !CI.trazarCalle) return { ok: false, motivo: 'No se puede' }; const r = CI.trazarCalle(E, pts, false, coste => { if (!G.canAfford(coste)) return false; pay(coste); return true; }); if (r.ok) { G.sincronizar(cid); ponerDatos(c, regE.get(c)); G.save(); } return r; };
+  G.trazarCalle = function (cid, pts) { const c = prop(cid), E = c && G.ciudadE(cid); if (!E || !CI.trazarCalle) return { ok: false, motivo: 'Solo puedes trazar calles en tus ciudades' }; const r = CI.trazarCalle(E, pts, false, coste => { if (!G.canAfford(coste)) return false; pay(coste); return true; }); if (r.ok) { G.sincronizar(cid); ponerDatos(c, regE.get(c)); G.save(); } return r; };
   function sinc(c, r) {
     const E = r.E, her = c.heredado || {}, suma = {};
     for (const e of E.edificios) { const bid = CI.EDIF[e.tipo].bid; if (bid && bid !== 'muralla') suma[bid] = (suma[bid] || 0) + D.NIVEL_PIEZA[e.mejora || 0]; }

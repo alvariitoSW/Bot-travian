@@ -442,6 +442,7 @@ function volverAlMapa() { UI.deMapa = false; setTab('map'); if (UI.map) UI.map.r
 
 /* ---------- paneles ---------- */
 function setTab(t) {
+  if (UI.cityV && UI.cityV.enCalles) UI.cityV.calles(false); document.body.classList.remove('encalles');   // CD2a: al cambiar de pestaña se sale del modo calles
   if (window.MINISTROS_UI) MINISTROS_UI.cerrar();   // CDe1: la hoja de ministros no sobrevive al cambio de pestaña
   if (UI.fundar) cerrarFundar(true);
   eaCierra(); UI.tab = t; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
@@ -2074,6 +2075,6 @@ function botonCalles() {
   const barra = document.getElementById('cbar'); if (!barra || document.getElementById('kbtn') || !UI.cityV || !UI.cityV.calles) return;
   const b = document.createElement('button'); b.id = 'kbtn'; b.type = 'button'; b.className = 'cbar-b'; b.setAttribute('aria-label', 'Trazar calles');
   b.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21 9 3M20 21 15 3M12 5v2M12 11v2M12 17v2"/></svg><b>Calles</b>';
-  b.addEventListener('click', () => { if (UI.menuC && UI.menuC.cerrar) UI.menuC.cerrar(); document.body.classList.add('encalles'); UI.cityV.calles(true); });
+  b.addEventListener('click', () => { if (UI.menuC && UI.menuC.cerrar) UI.menuC.cerrar(); UI.cityV.calles(true); if (UI.cityV.enCalles) document.body.classList.add('encalles'); else toast('Aquí no se pueden trazar calles.'); });
   barra.appendChild(b);
 }

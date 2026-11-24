@@ -672,7 +672,7 @@ function rehacer(datos, plano) {
   if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
   const ac = datos.acciones || [];
   for (let n = datos.n0 || 0; n <= datos.mesN; n++) {
-    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (!r.ok) E.fallos++; if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); else if (a.a === 'j') techarBarrio(E, a.i, true); else if (a.a === 'f') apagarFuego(E, a.ids); else if (a.a === 'k') trazarCalle(E, a.p, true); }
+    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (!r.ok) E.fallos++; if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); else if (a.a === 'j') techarBarrio(E, a.i, true); else if (a.a === 'f') apagarFuego(E, a.ids); else if (a.a === 'k') { const r = trazarCalle(E, a.p, true); if (!r || !r.ok) E.fallos++; } }
     if (n < datos.mesN) mes(E);
   }
   E.monedas = datos.monedas; (datos.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;
