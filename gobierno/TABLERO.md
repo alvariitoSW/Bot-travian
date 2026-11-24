@@ -210,7 +210,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
     - ~~Congelado (usuario, 24/11)~~: levantado el 24/11 por sus órdenes de «sin supervisión» (ciudad y batallas); suben a `main` con jueces APTO.
     - **Ola 4**: CE4 · AG1 · CE5 · CE10 → CE12 equilibrio con el bot, la última.
   - ⏸ (parada el 24/11 por el usuario, «converger»; pasa a la ola 4; lo hecho en su rama) AG1 **Agricultura por suelos** (usuario, 24/11; entra sacando CE11 y CD6; ≈2,5 M): cinco campos según el suelo (trigo, olivar, viña, huerto, pasto), cada uno con su trabajo en el suelo y sus mejoras; productos nuevos aceite, vino, verdura y lana. Reglas en `js/agricultura.js` (propio), dibujo en `js/gfx/campos.js`; enganche (recursos, mercado, almacén, bot, migración) en el siguiente CDe.
-  - ⬜ ED0 **Edificios: catálogo, rehacer y nuevos** (usuario, 24/11; tras la fase 1 de CDe3): por familia, qué se rehace y qué falta; militares nuevos (herrería, campo de entrenamiento, mercenarios); modelos con Meshy por API; estudio y maqueta con capturas, luego construir en sesiones cortas.
+  - ⏸ (después de la 1.0, por «finiquitar hoy el 1.0», 24/11) ED0 **Edificios: catálogo, rehacer y nuevos** (usuario, 24/11; tras la fase 1 de CDe3): por familia, qué se rehace y qué falta; militares nuevos (herrería, campo de entrenamiento, mercenarios); modelos con Meshy por API; estudio y maqueta con capturas, luego construir en sesiones cortas.
   - ⬜ CDe1 **Enganche de la ola 1** (de paso; ≈0,6 M): conecta ministros y necesidades al juego, tope del Foro en todas las vías, tropas con hierro y paga, migración, jueces, subida a `main`.
   - ⬜ CDe2 **Enganche de la ola 2** (de paso; ≈0,6 M).
   - ⬜ CDe3 **Enganche de la ola 3** (de paso; ≈0,6 M).
