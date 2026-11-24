@@ -44,13 +44,12 @@ await page.evaluate(i => BarrioUI.abrirFicha(i), mejor); await page.waitForTimeo
 const imp0 = await page.evaluate(() => Game.prod().det.impuestos);
 const gr = await page.$('#bui-ficha [data-bu="calmar"][data-r="grano"]'); if (gr) { await gr.click(); await page.waitForTimeout(1200); console.log('calmar →', await aviso(), '| revuelta:', await page.evaluate(i => !!Game.state.cities[UI.city].nec.mem[i].revuelta, mejor), '| impuestos', imp0.toFixed(1), '→', (await page.evaluate(() => Game.prod().det.impuestos)).toFixed(1)); await foto('calmada'); }
 await page.evaluate(() => BarrioUI.cerrar()); await page.waitForTimeout(400);
-await page.click('#bui-capa'); await page.waitForTimeout(600);
+await page.click('#ctop .vb'); await page.click('#ctop [data-act="capas"]').catch(() => { }); await page.waitForTimeout(600);
 await page.evaluate(() => BarrioUI.ponerCapa('agua')); await page.waitForTimeout(1500); await foto('capa-agua');
 await page.evaluate(() => BarrioUI.cerrar()); await page.waitForTimeout(600);
 await page.click('#cbtn'); await page.waitForTimeout(1200); await foto('construir');
 await page.click('#cmenu [data-cm="x"]'); await page.waitForTimeout(500);
-await page.click('#mbtn'); await page.waitForTimeout(1500); await foto('ministros'); await cierra(); await page.waitForTimeout(500);
-await page.evaluate(() => { const b = document.querySelector('#modal [data-act="close"], #modal .close, #modal button'); if (b) b.click(); });
-await cierra(); await page.waitForTimeout(300); await page.click('#sbtn').catch(() => page.evaluate(() => document.getElementById('sbtn').click())); await page.waitForTimeout(2000); await foto('senado-plan');
+await page.evaluate(() => { UI.senT = 'ministros'; }); await page.evaluate(() => document.querySelector('#tabs3 [data-v="senado"]').click()); await page.waitForTimeout(1500); await foto('ministros');
+await page.evaluate(() => { UI.senT = 'plan'; UI.dirty = true; }); await page.waitForTimeout(1500); await foto('senado-plan');
 console.log(errores.length ? 'ERRORES:\n' + errores.join('\n') : 'sin errores de consola');
 await br.close(); srv.close();

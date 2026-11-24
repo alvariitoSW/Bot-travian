@@ -1811,3 +1811,91 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #app[data-vista="city"] #miga-b { padding: 0 13px; font-size: 13px; }
 #app[data-vista="city"][data-miga="1"] #linea, #app[data-vista="city"][data-miga="1"] #cubos { top: calc(150px + env(safe-area-inset-top)); }
 #app[data-vista="city"][data-miga="1"] #ctop { top: calc(150px + env(safe-area-inset-top)); }
+
+/* ---- CDe3: una tira arriba y una barra abajo. La ciudad ocupa el resto ---- */
+#top { top: calc(6px + env(safe-area-inset-top)); }
+#tira { display: flex; align-items: center; gap: 6px; height: 40px; pointer-events: auto; }
+#tira-b { flex: 1 1 auto; min-width: 0; height: 40px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; border-radius: 99px; background: rgba(18, 26, 36, .88); border: 1px solid rgba(241, 234, 217, .16); color: var(--ink); overflow: clip; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
+#tira-b[aria-expanded="true"] { border-color: var(--gold); }
+#tira-r { display: flex; align-items: center; gap: 10px; min-width: 0; overflow: clip; }
+#tira .tr { flex: none; display: inline-flex; align-items: center; gap: 3px; font-size: 13px; line-height: 1; white-space: nowrap; }
+#tira .tr .ico { width: 16px; height: 16px; flex: none; }
+#tira .tr b { font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+#tira .tr.full b { color: var(--gold); } #tira .tr.pierde b { color: #ff7060; }
+#tira #date { flex: none; font-size: 11px; color: var(--mute); white-space: nowrap; letter-spacing: .01em; }
+#tira #speed { flex: none; display: grid; place-items: center; width: 44px; min-width: 44px; height: 40px; padding: 0; border-radius: 99px; background: rgba(18, 26, 36, .88); border: 1px solid rgba(241, 234, 217, .16); color: var(--gold); font-size: 12px; letter-spacing: -1px; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
+#tira #speed.on { background: var(--red); color: #fff; }
+#app[data-tab="ciudad"] #tira #turno:not([hidden]) { display: flex; align-items: center; justify-content: center; flex: none; position: static; width: auto; height: 40px; margin: 0; padding: 0 12px; border-radius: 99px; font: 700 13px var(--serif); letter-spacing: 0; color: #1c1206; background: linear-gradient(var(--gold), var(--gold2)); text-transform: none; text-shadow: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); white-space: nowrap; }
+#app[data-tab="ciudad"] #tira #turno .tu-est { display: none; }
+#tpanel { position: absolute; left: 0; right: 0; top: 46px; z-index: 9; max-height: calc(100dvh - 140px - env(safe-area-inset-bottom)); overflow-x: clip; overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; padding: 10px 12px 12px; border-radius: 16px; background: rgba(14, 20, 29, .97); border: 1px solid rgba(233, 192, 99, .55); box-shadow: 0 12px 34px #000b; color: var(--ink); }
+#tpanel[hidden] { display: none; }
+#tpanel .tp-sec { margin: 8px 0 4px; font: 700 12px var(--serif); letter-spacing: .1em; color: var(--gold); }
+#tpanel .tp-sec:first-child { margin-top: 0; }
+#tpanel .tp-f, #tpanel .tp-pob { display: grid; grid-template-columns: 26px 1fr auto auto; align-items: center; column-gap: 8px; padding: 4px 0; border-bottom: 1px solid rgba(241, 234, 217, .08); font-size: 14px; overflow: clip; }
+#tpanel .tp-f i, #tpanel .tp-pob i { font-style: normal; display: grid; place-items: center; }
+#tpanel .tp-f .ico, #tpanel .tp-pob .ico { width: 20px; height: 20px; }
+#tpanel .tp-f b, #tpanel .tp-pob b { font-variant-numeric: tabular-nums; font-size: 15px; }
+#tpanel .tp-f em { font-style: normal; font-size: 12px; color: var(--good); min-width: 76px; text-align: right; }
+#tpanel .tp-f small, #tpanel .tp-pob small { grid-column: 2 / -1; font-size: 11px; color: var(--mute); }
+#tpanel .tp-f.full b { color: var(--gold); } #tpanel .tp-f.pierde b, #tpanel .tp-f.pierde small { color: #ff8a70; }
+#tpanel .tp-bienes { display: flex; flex-wrap: wrap; gap: 6px; }
+#tpanel .tp-bn { padding: 3px 9px; border-radius: 99px; font-size: 13px; background: rgba(241, 234, 217, .08); border: 1px solid rgba(241, 234, 217, .14); }
+#tpanel .tp-bn.pierde { border-color: #ff7060; }
+#tpanel .tp-ciu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+#tpanel .tp-ciu button { min-height: 44px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 4px 12px; border-radius: 12px; background: rgba(241, 234, 217, .07); border: 1px solid rgba(241, 234, 217, .14); color: var(--ink); font-size: 14px; font-weight: 650; text-align: left; overflow: clip; }
+#tpanel .tp-ciu button.on { border-color: var(--gold); color: var(--gold); }
+#tpanel .tp-ciu small { font-size: 11px; font-weight: 400; color: var(--mute); }
+#tpanel .tp-pie { display: flex; gap: 6px; margin-top: 10px; }
+#tpanel .tp-pie button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 8px; border-radius: 12px; background: rgba(241, 234, 217, .08); border: 1px solid rgba(241, 234, 217, .2); color: var(--ink); font-size: 14px; font-weight: 650; overflow: clip; white-space: nowrap; text-overflow: ellipsis; }
+#tpanel .tp-pie .tp-menu { flex: 0 0 96px; background: linear-gradient(var(--gold), var(--gold2)); border-color: rgba(255, 240, 200, .5); color: #1c1206; }
+/* lo de debajo sube: ya no hay segunda fila ni miga */
+#linea, #cubos { top: calc(54px + env(safe-area-inset-top)); }
+#toasts, #pausa { top: calc(118px + env(safe-area-inset-top)); }
+#zoom { top: calc(62px + env(safe-area-inset-top)); }
+#bmarchas { top: calc(52px + env(safe-area-inset-top)); }
+#app[data-vista="map"] .mmigas, .mmigas { top: calc(58px + env(safe-area-inset-top)); }
+#view { padding-top: calc(60px + env(safe-area-inset-top)); }
+/* botón de vista (un solo botón redondo a la derecha) y su menú */
+#app #ctop { top: calc(54px + env(safe-area-inset-top)); right: 8px; left: auto; z-index: 6; align-items: flex-end; gap: 6px; }
+#ctop .vb { width: 44px; height: 44px; }
+#ctop .vmenu { display: flex; flex-direction: column; gap: 6px; min-width: 176px; padding: 8px; border-radius: 14px; background: rgba(14, 20, 29, .96); border: 1px solid rgba(233, 192, 99, .55); box-shadow: 0 8px 24px #000a; }
+#ctop .vmenu .vo { min-height: 44px; height: 44px; width: 100%; text-align: left; padding: 0 14px; border-radius: 10px; font-size: 14px; background: rgba(241, 234, 217, .07); border-color: rgba(241, 234, 217, .16); }
+#ctop .vmenu .vo.on { border-color: var(--gold); background: rgba(233, 192, 99, .18); }
+/* «Construir»: botón redondo flotante sobre la ciudad, encima de la barra */
+#cbar { position: fixed; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); width: auto; z-index: 5; pointer-events: none; overflow: visible; }
+#cbar > * { pointer-events: auto; }
+#cbtn { width: 60px; height: 60px; padding: 0; gap: 1px; flex-direction: column; border-radius: 50%; border: 2px solid rgba(255, 240, 200, .6); box-shadow: 0 6px 18px rgba(0, 0, 0, .6); }
+#cbtn svg { width: 24px; height: 24px; } #cbtn b { font-size: 10px; font-weight: 750; letter-spacing: 0; line-height: 1; }
+#cmenu { bottom: calc(144px + env(safe-area-inset-bottom)); }
+@media (orientation: landscape) {
+  #view { padding-top: 6px; border-top: calc(56px + env(safe-area-inset-top)) solid transparent; }
+  #cbar { bottom: calc(12px + env(safe-area-inset-bottom)); }
+  #cmenu { bottom: calc(80px + env(safe-area-inset-bottom)); }
+  #tpanel { max-height: calc(100dvh - 64px); }
+  #toasts, #pausa { top: calc(100px + env(safe-area-inset-top)); }
+}
+
+/* CDe3 (ajustes): la fecha pasa a una segunda línea recortada si no cabe (en turnos, en la ciudad, queda en el panel) */
+#top { z-index: 7; }
+#tira-b { flex-wrap: wrap; align-content: flex-start; column-gap: 8px; padding: 0 10px; }
+#tira-r { height: 38px; gap: 8px; flex: 0 1 auto; }
+#tira .tr { font-size: 12px; } #tira .tr .ico { width: 15px; height: 15px; } #tira .tr b { font-size: 12.5px; }
+#tira #date { height: 38px; line-height: 38px; margin-left: auto; }
+#tira #speed, #app[data-vista="map"] #tira #speed { width: 40px; min-width: 40px; height: 40px; }
+#app[data-tab="ciudad"] #tira #turno:not([hidden]) { padding: 0 10px; font-size: 12px; }
+#tpanel .tp-fecha { display: flex; justify-content: space-between; gap: 8px; margin: 0 0 6px; font-size: 13px; color: var(--mute); }
+#tpanel .tp-pob b { grid-column: 3 / 5; text-align: right; }
+.ro .sen-tabs.ro-tablilla > button { flex: 1 1 auto; min-width: 0; font-size: 10px; letter-spacing: -.02em; padding-left: 1px; padding-right: 1px; }
+.sen-tabs.ro-tablilla { gap: 2px; padding: 5px 3px; }
+#tira #date { font-size: 10px; letter-spacing: 0; } #tira-r { gap: 7px; } #tira-b { padding: 0 8px; }
+/* CDe3 (vuelta 2): tira de dos filas (recursos arriba, fecha abajo) y consejo en una línea que se despliega al tocar */
+#tira, #tira #speed, #app[data-vista="map"] #tira #speed, #app[data-tab="ciudad"] #tira #turno:not([hidden]) { height: 44px; }
+#tira-b { height: 44px; flex-wrap: nowrap; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; padding: 0 12px; border-radius: 22px; }
+#tira-r { height: auto; max-width: 100%; }
+#tira #date { height: auto; line-height: 1.1; margin: 0; font-size: 10.5px; max-width: 100%; overflow: clip; text-overflow: ellipsis; }
+#tpanel { top: 50px; }
+#linea, #cubos { top: calc(58px + env(safe-area-inset-top)); }
+#app #ctop { top: calc(58px + env(safe-area-inset-top)); }
+#linea.consejo:not(.abierta) { display: flex; align-items: center; gap: 6px; height: 30px; box-sizing: border-box; padding: 0 10px; max-height: 30px; overflow: clip; cursor: pointer; }
+#linea.consejo:not(.abierta) #l-texto { flex: 1; min-width: 0; font-size: 13px; line-height: 1; white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
+#linea.consejo:not(.abierta) #l-nota { display: none; }

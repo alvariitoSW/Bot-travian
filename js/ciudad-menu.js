@@ -27,18 +27,12 @@ export function crearMenu(ctx) {
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const app = $('app') || document.body, cs = $('csheet');
   const btn = document.createElement('button'); btn.id = 'cbtn'; btn.type = 'button'; btn.setAttribute('aria-label', 'Construir');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V10l7-6 7 6v11M10 21v-6h4v6"/></svg><b>Construir</b>'; btn.className = 'cbar-b';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V10l7-6 7 6v11M10 21v-6h4v6"/></svg><b>Construir</b>'; btn.className = 'cbar-b'; btn.title = 'Construir un edificio';
   const hoja = document.createElement('div'); hoja.id = 'cmenu'; hoja.hidden = true;
-  /* CDe1-B: tres botones en una fila: Construir (este menú), Ministros y Senado (los abre ui.js con ctx.ministros / ctx.senado) */
-  const ICO = p => '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
-  const mkBtn = (id, rotulo, ico) => { const b = document.createElement('button'); b.id = id; b.type = 'button'; b.className = 'cbar-b'; b.setAttribute('aria-label', rotulo); b.innerHTML = ICO(ico) + '<b>' + rotulo + '</b>'; return b; };
-  const bm = mkBtn('mbtn', 'Ministros', '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/><path d="M9 3.5 12 2l3 1.5"/>');
-  const bs = mkBtn('sbtn', 'Senado', '<path d="M3 9 12 3l9 6z"/><path d="M5 9v10M9.5 9v10M14.5 9v10M19 9v10M3 21h18"/>');
+  /* CDe3: «Construir» es un botón redondo flotante sobre la ciudad. Ministros y Senado ya no tienen botón aquí: viven en la pestaña Senado. */
   const barra = document.createElement('div'); barra.id = 'cbar'; barra.hidden = true;
-  barra.appendChild(btn); barra.appendChild(bm); barra.appendChild(bs);
+  barra.appendChild(btn);
   (cs || app).appendChild(barra); app.appendChild(hoja);
-  bm.addEventListener('click', () => { cerrar(); if (ctx.ministros) ctx.ministros(); });
-  bs.addEventListener('click', () => { cerrar(); if (ctx.senado) ctx.senado(); });
   const est = { fam: null };
 
   const foto = (id, fam) => {

@@ -248,7 +248,7 @@ export function montarBarrioUI(vista, ctx) {
   const host = vista.host, app = document.getElementById('app') || document.body;
   const etq = document.createElement('div'); etq.className = 'bui-etq'; host.appendChild(etq);
   const gotas = document.createElement('canvas'); gotas.className = 'bui-gotas'; host.appendChild(gotas);
-  const btn = document.createElement('button'); btn.id = 'bui-capa'; btn.type = 'button'; btn.hidden = true; btn.setAttribute('aria-label', 'Ver necesidades de los barrios'); btn.innerHTML = svg('capas', 26); app.appendChild(btn);
+  const btn = document.createElement('button'); btn.id = 'bui-capa'; btn.type = 'button'; btn.hidden = true; btn.setAttribute('aria-label', 'Ver necesidades de los barrios'); btn.innerHTML = svg('capas', 26);   // CDe3: el botón ya no se pinta; las capas se abren desde el botón de vista de ui.js (BarrioUI.alternaFila)
   const fila = document.createElement('div'); fila.id = 'bui-fila'; fila.hidden = true; app.appendChild(fila);
   const ley = document.createElement('div'); ley.id = 'bui-ley'; ley.hidden = true; app.appendChild(ley);
   const ficha = document.createElement('div'); ficha.id = 'bui-ficha'; ficha.hidden = true; app.appendChild(ficha);
@@ -328,11 +328,9 @@ export function montarBarrioUI(vista, ctx) {
 
   /* ----- capa de necesidades ----- */
   function colocaBoton() {
-    const ref = document.querySelector('.vo.plano'), rr = ref ? ref.getBoundingClientRect() : null, ar = app.getBoundingClientRect();
-    btn.style.top = Math.round(rr && rr.height ? rr.bottom - ar.top + 10 : 360) + 'px';
-    const sal = [...document.querySelectorAll('button')].find(q => q.offsetParent && /Salir al mapa/.test(q.textContent || '')), sr = sal ? sal.getBoundingClientRect() : null;
+    const ar = app.getBoundingClientRect(), tira = document.getElementById('tira'), tr = tira ? tira.getBoundingClientRect() : null;   // CDe3: ya no hay miga; la leyenda cuelga de la tira de arriba
     const fr = fila.hidden ? null : fila.getBoundingClientRect();   // CDe2: la leyenda va justo encima de la fila de necesidades (antes pisaba el aviso)
-    ley.style.top = Math.round(fr && fr.height ? fr.top - ar.top - 30 : sr && sr.height ? sr.bottom - ar.top + 6 : 154) + 'px';
+    ley.style.top = Math.round(fr && fr.height ? fr.top - ar.top - 30 : tr && tr.height ? tr.bottom - ar.top + 6 : 62) + 'px';
   }
   function pintaFila() {
     const D = est.D, c = est.capa, n = c && NEC.NECESIDADES.find(q => q.id === c);
@@ -452,6 +450,6 @@ export function montarBarrioUI(vista, ctx) {
     if (vivo()) est.raf = requestAnimationFrame(tick); else est.raf = setTimeout(tick, 400);
   }
   function despierta() { if (!est.raf) est.raf = requestAnimationFrame(tick); }
-  const api = { sync() { despierta(); }, cerrar() { cerrarFicha(); if (filaAbierta) alternaFila(false); }, abrirFicha, ponerCapa, alternaFila, get estado() { return est; } };
+  const api = { sync() { despierta(); }, cerrar() { cerrarFicha(); if (filaAbierta) alternaFila(false); }, abrirFicha, ponerCapa, alternaFila, get hayCapas() { return est.visible; }, get capasAbiertas() { return filaAbierta; }, get estado() { return est; } };
   window.BarrioUI = api; return api;
 }
