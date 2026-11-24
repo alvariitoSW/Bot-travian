@@ -399,7 +399,7 @@
       "id": "L19",
       "organo": "arte",
       "titulo": "Soldados nuevos, con licencia clara",
-      "estado": "hecha",
+      "estado": "medias",
       "veras": "Soldados con aspecto propio y variedad: galos distintos (grande, rápido, lancero, jefe), centurión, triario y vélite, con la túnica teñida por bando.",
       "hecho": "Diez soldados generados con Meshy (plan de pago), aligerados a cuatro niveles con el esqueleto del juego y publicados como CC BY-SA 3.0 con crédito (MS1, MS2, AL1 a AL11, CR1), con su pilum (PIL3); de 0,6 a 1,0 MB cada uno. En tu móvil desde la v149.",
       "falta": "Nada para la 1.0. Los 20 personajes de las clases (MS3, MS4) se aligeran en CS3 (línea L3). Piel de lobo del vélite, galos sin barba y ciudades griegas con el templo y la curia ya generados: en la nevera.",
@@ -419,7 +419,8 @@
         "AL10",
         "AL11",
         "CR1",
-        "PIL3"
+        "PIL3",
+        "AR1"
       ]
     }
   ],
