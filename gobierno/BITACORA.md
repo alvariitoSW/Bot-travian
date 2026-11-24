@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11 (vigía 4): CE12 fase 2 en la rama (v167): comercio 5/10 y armas 4/10 se pueden ganar; ciudad y política aún 0/10. La 1.0 pide «dos de los tres caminos»: hoy se cumple con armas y comercio; ciudad y política quedan para una fase 3 (sesión de ciudad).
 - 24/11/2026 ~22:35 — (vía ciudad) La escaramuza combinada (ES2–ES4, `es-combinada` bd9d179) **entra en la 1.0 si llega**: en la cola de subida tras CE12, CG9 y UN2, antes de la subida final (UN3: unir `es-combinada` y enganchar su entrada en el menú de Escaramuzas según el contrato del parte ES2). ES5 (flanco débil, arte de itálicos y tiradores, citas) después.
 - 24/11/2026 ~22:25 — **Subido a `main`: ciudad nueva (CDe4)**, `160a46c1`, caché **v165**; jueces completos APTO 43/43. Lleva la pantalla de ciudad, mercado, agricultura, menús con imágenes, gobernador, caminos, E4b, CB3, CG10, JG1. Detrás: CG9 y CE12 (en paralelo), UN2 (falange, FU5, TH1).
 - **24/11 CE12 fase 1** (c78c1cd): bots por camino en `test/equilibrio-caminos.mjs`. Ningún camino llega a 4–7/10 (corta: solo política 5/5). Frenos: Cartago no está en la corta (→ cuenta la capital rival, opción A recomendada, decidido por la regla de no preguntar), ningún bot toma Cartago en la larga (→ Batallas, vigía), lujo de barrio, bando militar sin guerra, planes del Senado imposibles, rutas perdidas. CE12 sigue con fase 1b en archivos del Cerebro.
