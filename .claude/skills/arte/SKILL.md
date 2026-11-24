@@ -1,6 +1,6 @@
 ---
 name: arte
-description: Ministerio de Arte de AQVILA. Dueño de `tools/`, de las licencias y del presupuesto de peso y triángulos. Úsala en cualquier tarea que añada, convierta o cambie modelos, texturas, animaciones, iconos o sonido (carril E y afines).
+description: Ministerio de Arte de AQVILA. Dueño de `tools/`, de las licencias y del presupuesto de peso y triángulos. Úsala en cualquier tarea que añada, convierta o cambie modelos, texturas, animaciones o iconos (carril E y afines). El sonido y la música son del Director de Sonido (skill `sonido`).
 ---
 
 # Arte
@@ -13,8 +13,8 @@ description: Ministerio de Arte de AQVILA. Dueño de `tools/`, de las licencias 
 
 ## Taller común (ministerios por área, 23/11; `gobierno/MINISTERIOS.md`)
 - El taller guarda las reglas, las licencias, el presupuesto y las herramientas de **todo** el arte.
-- Cada área lleva el arte de lo suyo: **Batallas**, soldados, tropas y sonido de guerra (`assets/soldados/`, `units/`,
-  `sonido/`, `tools/blender/`); el taller, **edificios, mapa y menús** (`assets/static/`, `mapa/`, `fuentes/`, el resto de `tools/`).
+- Cada área lleva el arte de lo suyo: **Batallas**, soldados y tropas (`assets/soldados/`, `units/`, `tools/blender/`); el taller, **edificios, mapa y menús** (`assets/static/`, `mapa/`, `fuentes/`, el resto de `tools/`).
+- **Sonido y música**: Taller de Sonido (skill `sonido`, 23/11): `assets/sonido/`, `assets/musica/`, `tools/sonido*`. Usa estas mismas reglas de licencia.
 - Una sesión del taller trabaja por encargo de un área (un pase) y cierra con `node gobierno/juez-area.mjs arte`
   y las capturas de la pieza junto a un soldado. Dueño de cada archivo: `node gobierno/juez-area.mjs --dueno <ruta>`.
 - Blender sin pantalla, Quaternius y MakeHuman: entorno «AQVILA Batallas taller» (`gobierno/entornos/batallas-taller.md`); sirve también al taller común.

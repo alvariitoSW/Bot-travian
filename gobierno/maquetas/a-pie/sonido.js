@@ -4,8 +4,14 @@
    testudo, lo de fuera se oye apagado, como bajo un techo. Respeta el interruptor y el volumen del juego (Sonido.activo,
    Sonido.maestro) y no suena nada antes del primer toque. La falange usa este mismo archivo (falange/sonido.js lo reexporta). */
 import '../../../js/gfx/sonido.js';
+import '../../../js/voces.js';        /* SON4: las voces, la música y el subtítulo del juego (globales Voces, Musica, Banda) */
+import '../../../js/gfx/musica.js';
+import '../../../js/gfx/banda.js';
 
 const So = () => window.Sonido, RAIZ = new URL('../../../', import.meta.url).href;   /* la raíz del juego: de ahí cuelga assets/sonido/ */
+const alSonarFns = [];
+/* SON4: lo que debe arrancar con el primer toque (la música y las voces): se ejecuta ya si el sonido está en marcha */
+export function alSonar(fn) { alSonarFns.push(fn); if (ctx) try { fn(); } catch (e) { /* sin banda */ } }
 let ctx = null, propio = false, maestro = null, fuera = null, tapa = null, dentro = null;
 
 /* se llama con el primer toque (los navegadores no dejan sonar antes); para las pruebas admite un contexto sin altavoz (OfflineAudioContext) */
@@ -20,6 +26,7 @@ export function inicia(c) {
     dentro = ctx.createGain(); dentro.gain.value = 1.3; dentro.connect(maestro);
   } catch (e) { ctx = null; return null; }
   S.cargaBanco(ctx, RAIZ).then(() => fondo());
+  for (const fn of alSonarFns) try { fn(); } catch (e) { /* sin banda */ }
   return ctx;
 }
 /* espera a que el banco esté descodificado (para las pruebas sin altavoz) */
@@ -56,6 +63,7 @@ export function trueno(fuerza = 1) {
 export function cuerno(notas) {
   const fin = notas && notas.length ? notas[notas.length - 1][0] : 146.83, vel = Math.max(0.85, Math.min(1.3, fin / 146.83));
   toca('cuerno', fuera, { v: 0.85, i: fin < 140 ? 2 : 1, vel }, 12);
+  if (window.Musica && vale()) window.Musica.agacha();   /* SON4: suena un cuerno: la música baja un momento */
 }
 /* un paso de la formación: tu pie, los de al lado y, bajo los escudos, madera que roza */
 export function paso(fuerza = 1, techo = 0) {

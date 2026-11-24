@@ -14,18 +14,21 @@ export const NECESIDADES = [
   { id: 'orden', nombre: 'Orden', ministro: 'ejercito', consecuencia: 'paran_obras' }
 ];
 
+/* UNIDAD de `alcance`: pasos de celda de la red (4 u cada uno) POR la calle. CD5b: el factor F_ALC pone la fuente (10 antes) en 28 pasos = ~112 u de calle,
+   ~85 u en línea recta, que es su radio en ciudad.js EDIF.fuente.radio. Todos se multiplican igual: el orden relativo no cambia. */
+const F_ALC = 2.8;
 export const SERVICIOS = {
-  fuente: { nombre: 'Fuente (lacus)', cubre: ['agua'], alcance: 10 },
-  cloaca: { nombre: 'Cloaca', cubre: ['limpieza'], alcance: 20 },
-  termas: { nombre: 'Baños (balneum)', cubre: ['limpieza', 'salud'], alcance: 20 },
-  medico: { nombre: 'Tienda del médico', cubre: ['salud'], alcance: 20 },
-  escuela: { nombre: 'Escuela (ludus)', cubre: ['cultura'], alcance: 20 },
-  taller: { nombre: 'Taller', cubre: ['trabajo'], alcance: 20 },
-  templo: { nombre: 'Templo', cubre: ['culto'], alcance: 30 },
-  mercado: { nombre: 'Mercado', cubre: ['alimento', 'trabajo'], alcance: 30 },
-  guardia: { nombre: 'Ronda nocturna (triunviros)', cubre: ['orden'], alcance: 30 },
-  granero: { nombre: 'Granero (horreum)', cubre: ['alimento'], alcance: 45 },
-  teatro: { nombre: 'Escena de los juegos', cubre: ['culto', 'cultura'], alcance: 45 }
+  fuente: { nombre: 'Fuente (lacus)', cubre: ['agua'], alcance: 28 },
+  cloaca: { nombre: 'Cloaca', cubre: ['limpieza'], alcance: 56 },
+  termas: { nombre: 'Baños (balneum)', cubre: ['limpieza', 'salud'], alcance: 56 },
+  medico: { nombre: 'Tienda del médico', cubre: ['salud'], alcance: 56 },
+  escuela: { nombre: 'Escuela (ludus)', cubre: ['cultura'], alcance: 56 },
+  taller: { nombre: 'Taller', cubre: ['trabajo'], alcance: 56 },
+  templo: { nombre: 'Templo', cubre: ['culto'], alcance: 84 },
+  mercado: { nombre: 'Mercado', cubre: ['alimento', 'trabajo'], alcance: 84 },
+  guardia: { nombre: 'Ronda nocturna (triunviros)', cubre: ['orden'], alcance: 84 },
+  granero: { nombre: 'Granero (horreum)', cubre: ['alimento'], alcance: 126 },
+  teatro: { nombre: 'Escena de los juegos', cubre: ['culto', 'cultura'], alcance: 126 }
 };
 
 export const UMBRAL = { cubierta: 0.8, mal: 0.3 };

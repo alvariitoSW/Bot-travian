@@ -1,3 +1,4 @@
+import { montarBarrioUI } from './barrio-ui.js';   // CD5b: manchas de barrio, ficha y capa de necesidades
 /* CD1b: el botón «Construir» de la ciudad y su mini menú por siete familias.
    Solo pinta y maneja el menú. Todo lo que necesita se lo pasa ui.js por parámetro (nada de globales):
    ctx = { ministros(), senado(), D, ids(), info(id), famDe(id), minis(), coste5(c), puede(coste), costa(), elegir(id), aviso(t) } */
@@ -78,7 +79,14 @@ export function crearMenu(ctx) {
     else if (a === 'ed') { const i = ctx.info(t.dataset.id); if (i.cerrada) { ctx.aviso(i.cerrada + '.'); return; } if (i.enObra) { ctx.aviso('La obra ya está en marcha.'); return; } cerrar(); ctx.elegir(t.dataset.id); }
   });
   /* ui.js lo llama cada vez que repinta la pantalla de la ciudad: m3 es el modo; solo se ve al mirar */
+  let bui = null;
+  /* CDe2: la ficha del barrio pide al juego (Game): encargar al ministro y calmar una revuelta. «Construir la mejora» lo hace la ficha sola (ctx.elegir). */
+  const G = () => window.Game, cid = () => window.UI && window.UI.city;
+  const tras = (r, bien) => { ctx.aviso(r && r.ok ? bien(r) : ((r && r.motivo) || 'No se pudo') + '.'); if (r && r.ok && window.BarrioUI) window.BarrioUI.cerrar(); };
+  document.addEventListener('barrio:encargar', e => { if (!G() || !G().necEncargar) return; e.preventDefault(); tras(G().necEncargar(cid(), e.detail), () => 'Encargado. Míralo en «Ministros».'); });
+  document.addEventListener('barrio:calmar', e => { if (!G() || !G().calmarRevuelta) return; e.preventDefault(); tras(G().calmarRevuelta(cid(), e.detail.barrio, e.detail.remedio), r => r.texto); });
   function sync(m3, visible) {
+    try { if (visible) { const V = window.UI && window.UI.cityV; if (!bui && V && V.listo && V.capaSuelo) bui = montarBarrioUI(V, ctx); if (bui) bui.sync(m3, visible); if (V && V.listo && V.estadosBarrios && G() && G().necEstados) V.estadosBarrios(G().necEstados(cid())); } } catch (e) { console.warn('Barrios: ', e); }
     const ver = !!visible && m3 === 'mirar'; barra.hidden = !ver;
     if (!ver) cerrar(); else if (!hoja.hidden) { const k = ctx.minis() ? 1 : 0; if (est.k !== k) { est.k = k; pinta(); } }
   }
