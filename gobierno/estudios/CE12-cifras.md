@@ -90,3 +90,17 @@ las invasiones de 225 a.C. Falta mirarlo con una partida suelta.
 
 ## Fase 2
 Fusionar la rama tras CDe4, repetir `node test/equilibrio-caminos.mjs --n 10` y dejar aquí las cifras finales.
+
+## Fase 2 (rama `ce12-fase2` = CDe4 + CE12, 24/11)
+Cambios: el banco lee `s.caminos` (el juego llama a `CAM.paso` y al gobernador). `game.js`: las rutas en guerra quedan
+**paradas** y no se cierran (`r.parada`, sin renta). `CAM.foto` cuenta solo las rutas no paradas. El vino de la agricultura y
+el del mercado ya entraban en `s.bienes`: no hizo falta tocar nada. El bot de comercio perdía Roma porque guardaba más
+denarios que el techo del almacén y no compraba hierro: arreglado en el bot (guarnición de 300).
+Medida N=10, con las cifras anteriores: armas corta 0/10 (Tarento 3/10), larga 1/10 (233 a.C.); comercio larga 10/10 en el
+274 a.C.; política y ciudad 0/10.
+Comercio se satura pronto con el mercado nuevo: 8 rutas, 8 acuerdos y ≈3900 denarios hacia el 274 a.C. Con el tesoro en
+3600 y 24 meses seguidos lo siguen logrando 10/10 en el 273 a.C. Con 3900 o 6000, ninguno. Se deja 3600, rutas 6, acuerdos 6
+y 24 meses. **Queda pronto**: hace falta una meta que crezca con la partida. Propuesta: el tesoro por ciudad propia, o
+contar la renta del año (`ESTEANO`) en vez de la caja.
+Ciudad: el vino comprado se estropea cada mes (`caduca`) y el nivel 4 no llega; el bot no tiene el saber «Viña y olivar».
+Política: los mercaderes piden «denarios» y quedan hostiles; planes bien 2 de 3.
