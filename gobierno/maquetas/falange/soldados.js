@@ -67,7 +67,21 @@ export function crearEsqueletoNuevo(T, nb, huesos, geo, punos) {
     hombro: junta(H('shoulder01.' + s), H('upperarm01.' + s)), codo: junta(H('upperarm02.' + s), H('lowerarm01.' + s)), muneca: junta(H('lowerarm02.' + s), H('wrist.' + s)),
     mano: huesos.map((n, i) => /^(wrist|finger|metacarpal)/.test(n) && n.endsWith('.' + s) ? i : -1).filter(i => i >= 0),
     hB: H('upperarm01.' + s), hA: H('lowerarm02.' + s), hM: H('wrist.' + s),
+    dedos: dedosDe(s),
   });
+  /* FU3c: los dedos para cerrar el puño: por cada dedo, sus tres falanges con la articulación (en reposo) donde se doblan */
+  function dedosDe(s) {
+    const out = [];
+    for (let n = 1; n <= 5; n++) {
+      let prev = n < 5 ? H('metacarpal' + n + '.' + s) : H('wrist.' + s);
+      for (let k = 1; k <= 3; k++) {
+        const cur = H('finger' + n + '-' + k + '.' + s); if (cur < 0 || prev < 0) break;
+        let piv = null; try { piv = junta(prev, cur); } catch (e) { piv = null; }
+        out.push({ h: cur, n, k, piv }); prev = cur;
+      }
+    }
+    return out;
+  }
   const B = { D: lado('R'), I: lado('L') };
   /* el puño: el centro de los dedos de cada mano en reposo (vértices casi enteros de sus huesos) */
   const puno = s => { const c = [0, 0, 0]; let n = 0; for (let i = 0; i < nv; i++) { const nm = huesos[SI[i * 4]]; if (SW[i * 4] > 200 && /^(finger|metacarpal)/.test(nm) && nm.endsWith('.' + s)) { c[0] += P[i * 3]; c[1] += P[i * 3 + 1]; c[2] += P[i * 3 + 2]; n++; } } return por(c, 1 / Math.max(1, n)); };
@@ -78,7 +92,7 @@ export function crearEsqueletoNuevo(T, nb, huesos, geo, punos) {
      y si se da, dirD = hacia dónde apunta lo que lleva en la mano derecha (la hoja de la espada): la mano gira sobre el puño */
   function postura(base, q) {
     const X = new Array(nb).fill(null);
-    const brazo = (b, blanco, polo, dir) => {
+    const brazo = (b, blanco, polo, dir, cierra, sgn) => {
       if (!blanco) return;
       const s0 = en(base, b.hB, b.hombro), c0 = en(base, b.hB, b.codo), m0 = en(base, b.hA, b.muneca), p0 = en(base, b.hA, b.puno);
       const objetivo = suma(blanco, resta(m0, p0));      /* la muñeca va donde el puño, con el mismo desfase que en la base */
@@ -86,13 +100,21 @@ export function crearEsqueletoNuevo(T, nb, huesos, geo, punos) {
       const xb = giraDe(s0, resta(c0, s0), resta(r.medio, s0));
       const xa = mul(giraDe(r.medio, resta(punto(xb, m0), r.medio), resta(r.fin, r.medio)), xb);
       for (const h of b.brazo) X[h] = xb; for (const h of b.ante) X[h] = xa;
+      if (cierra && !dir) {   /* FU3c: puño cerrado: cada dedo se dobla hacia la palma en sus articulaciones (eje a lo ancho de la mano) */
+        const Mm = mul(xa, mat(base, b.hM)), eje = [0, 0, sgn], ax = [Mm[0] * eje[0] + Mm[1] * eje[1] + Mm[2] * eje[2], Mm[4] * eje[0] + Mm[5] * eje[1] + Mm[6] * eje[2], Mm[8] * eje[0] + Mm[9] * eje[1] + Mm[10] * eje[2]];
+        const ANG = { 1: [0.5, 0.5, 0.4], 2: [1.15, 1.3, 0.9], 3: [1.2, 1.35, 0.95], 4: [1.2, 1.35, 0.95], 5: [1.15, 1.3, 0.9] };
+        const rs = {};
+        for (const d of b.dedos) { if (!d.piv) continue; const Mh = mul(xa, mat(base, d.h)); rs[d.n] = rs[d.n] || [];
+          rs[d.n].push({ d, R: gira(punto(Mh, d.piv), ax, ANG[d.n][d.k - 1] * cierra) }); }
+        for (const n in rs) { const l = rs[n]; for (let i = 0; i < l.length; i++) { let m = xa; for (let j = i; j >= 0; j--) m = mul(l[j].R, m); X[l[i].d.h] = m; } }
+      }
       if (dir) {   /* la hoja: del puño a la punta en reposo (ESPADA), girada hasta dir alrededor del puño */
         const Mw = mul(xa, mat(base, b.hM)), p1 = punto(Mw, ESPADA.puno), p2 = punto(Mw, ESPADA.punta), xm = mul(giraDe(p1, resta(p2, p1), dir), xa);
         for (const h of b.mano) X[h] = xm;
       }
     };
-    brazo(B.D, q.manoD, q.poloD || [-0.7, -0.7, -0.1], q.dirD);
-    brazo(B.I, q.manoI, q.poloI || [0.8, -0.6, 0]);
+    brazo(B.D, q.manoD, q.poloD || [-0.7, -0.7, -0.1], q.dirD, q.cierra, 1);
+    brazo(B.I, q.manoI, q.poloI || [0.8, -0.6, 0], undefined, q.cierra, -1);
     const out = new Float32Array(nb * 12);
     for (let h = 0; h < nb; h++) out.set(X[h] ? mul(X[h], mat(base, h)) : mat(base, h), h * 12);
     return out;
@@ -112,8 +134,8 @@ export function generaTabla(T0, j, geo, carril, punos) {
   const pon = (fila, base, q) => T.set(esq.postura(base, q), fila * nb * 12);
   const bases = [...Array(C.quieto.n)].map((_, i) => C.quieto.ini + i).concat([...Array(C.andar.n)].map((_, i) => C.andar.ini + i));
   /* dónde van los puños: la mano de atrás (derecha) en el carril y la de delante 42 cm más allá, por el mismo lado */
-  const bajaQ = r => { const c = carril(r); return { manoD: [-c.x, c.y - 0.03, -0.12], manoI: [-c.x + 0.03, c.y - 0.01, 0.30] }; };
-  const GOLPE = { manoD: [-0.17, 1.0, 0.24], manoI: [-0.15, 1.03, 0.66] };
+  const bajaQ = r => { const c = carril(r); return { manoD: [-c.x, c.y - 0.03, -0.12], manoI: [-c.x + 0.03, c.y - 0.01, 0.30], cierra: 1 }; };
+  const GOLPE = { manoD: [-0.17, 1.0, 0.24], manoI: [-0.15, 1.03, 0.66], cierra: 1 };
   bases.forEach((b, k) => { for (let r = 0; r < 5; r++) pon(N0 + (CJ.baja + r) * CJ.filas + k, b, bajaQ(r)); pon(N0 + CJ.golpe * CJ.filas + k, b, GOLPE); });
   /* la espada: puño en la empuñadura de la vaina (costado izquierdo), luego arriba y a la guardia */
   const q0 = C.quieto.ini, vainaEn = esq.en(q0, j.huesos.indexOf('root'), PUNO_VAINA), GUARD = { manoD: [-0.2, 1.14, 0.36], manoI: [0.17, 1.12, 0.3], dirD: uno([0.12, 0.42, 0.9]) };

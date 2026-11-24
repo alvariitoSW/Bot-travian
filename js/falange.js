@@ -59,6 +59,7 @@
      ensarta(h, p)           → true si cae en las puntas (tirada p por fila bajada; por defecto P_ENSARTA)
      entra(h, por)             h se cuela ('frente' | 'der' | 'izq' | 'espalda'): pasa a est 'dentro' y el motor le hace matar
      caeRival(h), caeFalangita(h, causa), cohesion(x)
+     empuja(m)               empuja (m>0) o cede (m<0) el muro m metros, como un golpe de compás: mueve el pivote con S.pend y, en el choque, suma a S.ganado
      flanco(lado, hombres, aviso)   declara el flanco: llena S.flanco y avisa('flanco', { lado, hombres })
      proyectil(desde, blanco, vuelo)   lanza un proyectil contra un falangita; al llegar, el motor tira si lo para un asta alzada }
    La escena monta el dibujo de cada rival llamando a montaRival(ctx) del archivo del rival, si existe (FA4 y FA7).
@@ -343,7 +344,8 @@ export function crearFalange(m = {}) {
     S.proyectiles.push(P); return P;
   }
   const H = m.H || (() => 0);
-  const motor = { azar: () => azar(), avisa, local, mundo, puesto, frente, bajadas, centro, mueve, ensarta, entra, caeRival, caeFalangita, cohesion, flanco, resuelveFlanco, proyectil };
+  function empuja(m) { if (S.ganador) return; S.pend += m; if (S.choque) S.ganado += m; }   /* FU3c: igual que un toque bueno (pend y ganado) */
+  const motor = { azar: () => azar(), avisa, local, mundo, puesto, frente, bajadas, centro, mueve, ensarta, entra, caeRival, caeFalangita, cohesion, empuja, flanco, resuelveFlanco, proyectil };
 
   function reinicia() {
     azar = azarSemilla(semilla); azarB = azarSemilla((semilla * 2654435761) ^ 0x5bd1e995); caja = null; kPulso = 0; tLoco = -9; kBot = -99;

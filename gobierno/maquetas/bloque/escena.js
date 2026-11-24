@@ -32,7 +32,7 @@ import { crearHud } from './hud.js';
 import { crearDedos } from './dedos.js';
 import { crearCamara } from './camara.js';
 import { separaEstandartes } from './rotulos.js';
-import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas, ponBandos } from './soldados.js';
+import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas, paraFalange, ponBandos } from './soldados.js';
 import { FIN_LUCHA } from '../../../js/falange.js';
 import { crear as formacionManipulo } from './formaciones/manipulo.js';
 import { crear as formacionTestudo } from './formaciones/testudo.js';
@@ -144,7 +144,7 @@ function suelo(px, py) { V2.set(px / innerWidth * 2 - 1, -(py / innerHeight) * 2
 
 /* ---------- soldados: tres niveles de detalle por bando, elegidos por distancia (y fuera de cámara no se pintan) ---------- */
 /* AL11: los galos no usan el nivel cercano (con siete modelos serían siete llamadas más por una docena de hombres) */
-const NIV = [1, 2, 3], TOPE = { r: [22, 150, 900], g: [0, 142, 1300] }, DMAX = [26, 70];
+const NIV = [1, 2, 3], TOPE = { r: [30, 150, 900], g: [0, 142, 1300] }, DMAX = [26, 70];   /* FU3c: hasta 30 hombres con manos y dedos (antes 22): las llamadas de dibujo no cambian, son instancias */
 const T = { r: {}, g: {} }, A = { r: {}, g: {} };   /* AL11: T[bando][modelo] = 3 tropas (una por nivel); A[bando][quien presta] = sus armas */
 let oficial = null;
 const M4 = new THREE.Matrix4(), QT = new THREE.Quaternion(), P3 = new THREE.Vector3(), E3 = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0);
@@ -165,7 +165,7 @@ function azulea(mat) {
   const antes = mat.onBeforeCompile, azul = { value: new THREE.Color('#2456c8') };
   mat.onBeforeCompile = sh => {
     antes(sh); sh.uniforms.uAzul = azul;
-    sh.fragmentShader = 'uniform vec3 uAzul;\n' + sh.fragmentShader.replace('{ float alto = vObj.y;', '{ float lm = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11)), sa = max(diffuseColor.r, max(diffuseColor.g, diffuseColor.b)) - min(diffuseColor.r, min(diffuseColor.g, diffuseColor.b)); float kl = smoothstep(0.12, 0.35, lm) * (1.0 - smoothstep(0.16, 0.4, sa)) * (1.0 - smoothstep(1.4, 1.48, vObj.y)); diffuseColor.rgb = mix(diffuseColor.rgb, uAzul * (0.5 + 1.2 * lm), kl);\n float alto = vObj.y;');
+    sh.fragmentShader = 'uniform vec3 uAzul;\n' + sh.fragmentShader.replace('{ float alto = vObj.y;', '{ float lm = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11)), sa = max(diffuseColor.r, max(diffuseColor.g, diffuseColor.b)) - min(diffuseColor.r, min(diffuseColor.g, diffuseColor.b)); float piel = smoothstep(0.14, 0.24, diffuseColor.r - diffuseColor.b) * step(diffuseColor.b, diffuseColor.g + 0.01); float kl = smoothstep(0.12, 0.35, lm) * (1.0 - smoothstep(0.16, 0.4, sa)) * (1.0 - piel) * (1.0 - smoothstep(1.4, 1.48, vObj.y)); diffuseColor.rgb = mix(diffuseColor.rgb, uAzul * (0.5 + 1.2 * lm), kl);\n float alto = vObj.y;');
   };
   mat.customProgramCacheKey = () => 'fu4-soldado-azul'; mat.needsUpdate = true;
 }
@@ -184,7 +184,7 @@ function pintaSoldados() {
       const d = Math.sqrt(f.d2); let n = d < DMAX[0] && usados[0] < TOPE[b][0] ? 0 : d < DMAX[1] && usados[1] < TOPE[b][1] ? 1 : 2;
       if (usados[n] >= TOPE[b][n]) continue; let mo = tr[modeloDe(f, oficial)] ? f.modelo : hay[0]; if (n >= 1 && tr[FONDO[mo]]) mo = FONDO[mo];   /* LP7: también a media distancia (≤ 30 llamadas con el campo lleno) */ const t = tr[mo][n], i = t.sig(); if (i < 0) continue; usados[n]++;
       const y = H(f.x, f.z); P3.set(f.x, y, f.z); QT.setFromAxisAngle(Y, f.yaw); E3.set(f.talla, f.talla, f.talla); M4.compose(P3, QT, E3);
-      const v4 = var4(f.semilla), mu = t.muestra(f.clip, f.t); t.matriz(i, M4.elements); t.vars(i, v4); t.pose(i, f.clip, f.t, mu);
+      const v4 = var4(f.semilla), mu = t.muestra(f.clip, f.t); t.matriz(i, M4.elements); t.vars(i, v4); t.pose(i, f.clip, f.t, mu); if (f.gesto) f.gesto(t, i, n);   /* FU3c: la formación (falange) cambia las filas de huesos de los hombres de cerca: sarisa bajada con las manos en el asta */
       const pa = ar[ARMAS[mo]]; if (pa) { const ta = pa[n], ia = ta.sig(); if (ia >= 0) { ta.matriz(ia, M4.elements); ta.vars(ia, v4); ta.pose(ia, f.clip, f.t, ta.muestra(f.clip, f.t)); } }
       if (sombras && ns < 2400 && f.clip !== 'morir') { P3.y = y + 0.04; E3.set(1, 1, 1); QT.identity(); M4.compose(P3, QT, E3); sombras.setMatrixAt(ns++, M4); }
     }
@@ -296,6 +296,10 @@ function alFalangita(tipo, d) {
     if (tipo === 'golpe') { if (d.res === 'ensarta') { Son.hierro && Son.hierro(0, 0, 1.3); Son.herido && Son.herido(0); } else { Son.herido && Son.herido(0); Son.cuerno && Son.cuerno(1); sacude = Math.max(sacude, 0.3); } }
     else if (tipo === 'cierra') Son.madera && Son.madera(0.9, 0);
     else if (tipo === 'brecha') { Son.cuerno && Son.cuerno(2); sacude = Math.max(sacude, 0.4); }
+    else if (tipo === 'empuja') Son.esfuerzo && Son.esfuerzo(0, 1);   /* FU3c: empuje y othismos con los sonidos que hay */
+    else if (tipo === 'compas') Son.madera && Son.madera(0.8, 0);
+    else if (tipo === 'golpe-oth') { if (d && d.bien) { Son.esfuerzo && Son.esfuerzo(0, 1); Son.toque && Son.toque(); } }
+    else if (tipo === 'othismos-fin') { if (d && d.res === 'gana') { Son.choque ? Son.choque() : Son.cuerno && Son.cuerno(1); } else if (d && d.res === 'pierde') { Son.cuerno && Son.cuerno(2); sacude = Math.max(sacude, 0.4); } }
   } catch (e) { /* sin sonido */ }
 }
 /* FU3: la partida de una formación con su propio combate (la falange): sus reglas, sus hombres de verdad, sin física del bloque
@@ -316,7 +320,7 @@ function nuevaFormacion() {
   /* FU3b: el rival de las reglas es el de ?rival= (manípulos si no); el nombre que se lee es el de LP7.rival si viene (no lo pisan «los manípulos») */
   const rotulo = LP7 && LP7.rival ? Object.assign({}, LP7.rival, { los: LP7.rival.los || (LP7.rival.Los || '').toLowerCase(), Los: LP7.rival.Los || (LP7.rival.los || '').replace(/^./, c => c.toUpperCase()) }) : txtR ? { los: txtR.los, Los: txtR.Los } : null;
   C = FORM.combate({ semilla, rival: nomR, rotulo, avisa, H, vestir: true, vivo: true });   /* FU4: vivo, los rivales con IA propia (si combate() no la tiene aún, se ignora) */
-  FL = crearFalangita({ S: C.S, motor: C.motor, alAviso: alFalangita }); window.__bloque.falangita = FL; FUI = { bajar: false, anillo: null };
+  FL = crearFalangita({ S: C.S, motor: C.motor, alAviso: alFalangita }); window.__bloque.falangita = FL; FUI = { bajar: false, anillo: null, sostener: false, empuje: false, othismos: false };
   const F = C.S.fal; if (LP7 && LP7.lejos) { acercaRival(F, LP7.lejos); C.paso(0); } P0F = { x: F.xF, z: F.zF, giro: F.giro };
   TR = crearTropas({ S: C.S, muroDelante: false, reales: [{ b: C.S.ene.centro, hombres: txtR ? [] : F.ene }] });   /* FU4: a los demás rivales los pinta entero rival.js */
   FS = crearFisicaBloque({ S: C.S, TR, H, activa: false, semilla, guardia: FORM.guardia });
@@ -463,6 +467,7 @@ function bucle(ahora) {
       const e = FL.estado(); FORM.vis && (FORM.vis.bajadas = e.bajadas);
       const fr0 = C.S.tuyo, pf = proyecta(fr0.x, 3.2, fr0.z), hh = e.hueco && FL.hueco ? (FL.hueco.h || null) : null, ph = e.hueco ? proyecta(hh ? hh.x : fr0.x, 0.1, hh ? hh.z : fr0.z) : null;
       FH.pinta({ ve: !!nivel, est: e, frente: pf, hueco: ph, dt: congelado ? 0 : dt }); FUI.bajar = !!(e.rival && e.rival.fase === 'acomete'); FUI.anillo = FH.anillo();
+      FUI.empuje = !!(e.empuje && e.empuje.fase === 'empuja'); FUI.othismos = !!(e.othismos && e.othismos.fase === 'empuja'); FUI.sostener = !!(FUI.empuje || FUI.othismos || e.lucha);   /* FU3c */
     }
     DH.pinta({ ve: !!(FORM.duelo !== false && nivel && cam1 && cam1.t() > 0.5), est: OF.estado(), aro: rivF ? proyecta(rivF.x, 1.45, rivF.z) : null, dedo: dedos.dedoEn(), modo: pelea(), dt: congelado ? 0 : dt });
     mPolvo.material.opacity = cam1 ? 1 - 0.75 * cam1.t() : 1;   /* LP7: abajo, el polvo no tapa media pantalla */
@@ -479,7 +484,8 @@ let campo = null;
 let BANDA = null, tPasoB = 0;
 function sonBloque(dt) {
   const S = C.S, tu = S.tuyo, ene = S.bloques.filter(b => b.bando === 'g'), n = tu.contactos.length;
-  Son.pulso && Son.pulso(dt, { lucha: n ? Math.min(1, 0.55 + 0.25 * n) : 0, moral: tu.U.animo, caen: tu.U.sufrio, caenR: ene.reduce((a, b) => a + (b.U.sufrio || 0), 0) });
+  const fe = FL ? FL.estado() : null, emp = fe && ((fe.empuje && fe.empuje.fase === 'empuja') || (fe.othismos && fe.othismos.fase === 'empuja')), cede = emp && ((fe.empuje && !fe.empuje.sujeta) || (fe.othismos && fe.othismos.fuerza < 0));   /* FU3c: el fragor del empuje */
+  Son.pulso && Son.pulso(dt, { lucha: emp ? 1 : n ? Math.min(1, 0.55 + 0.25 * n) : 0, moral: cede ? Math.min(0.3, tu.U.animo) : tu.U.animo, caen: tu.U.sufrio, caenR: ene.reduce((a, b) => a + (b.U.sufrio || 0), 0) });
   const v = Math.abs(tu.v || 0); tPasoB -= dt;
   if (v > 0.3 && !n && tPasoB <= 0) { tPasoB = v > 2.5 ? 0.38 : 0.55; Son.paso && Son.paso(v > 2.5 ? 1.2 : 0.8, tu.orden === 'testudo' ? 1 : 0); }
   if (BANDA) BANDA.tic(dt, () => ({ fase: S.ganador ? 'fin' : n ? 'lucha' : 'lejos', moral: [tu.U.animo, ene.length ? Math.min(...ene.filter(b => b.estado !== 'fuera').map(b => b.U.animo)) : 1],
@@ -500,7 +506,7 @@ window.__bloque = { listo: false, congela: b => { congelado = !!b; }, lp7: () =>
 async function arranca() {
   hud = crearHud({ $, proyecta, ladoEnPantalla, Son });
   dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H, libre: () => !cam1 || cam1.libre(), escala: () => cam1 ? 1 - 0.6 * cam1.t() : 1,
-    pelea, fal: () => (FUI && C && nivel && !congelado ? FUI : null), alGesto: (g, d) => { if (g === 'bajar' || g === 'cerrar') { if (FL && C && nivel && !congelado) FL.pide(g, g === 'cerrar' ? (FL.hueco ? { col: FL.hueco.col } : {}) : undefined); return; } if (C && nivel && !congelado && OF && cam1 && cam1.cerca()) OF.pide(g, d); } });
+    pelea, fal: () => (FUI && C && nivel && !congelado ? FUI : null), alGesto: (g, d) => { if (g === 'bajar' || g === 'cerrar' || g === 'sostener' || g === 'golpe') { if (FL && C && nivel && !congelado) FL.pide(g, g === 'cerrar' ? (FL.hueco ? { col: FL.hueco.col } : {}) : g === 'sostener' ? { on: !!(d && d.on) } : undefined); return; } if (C && nivel && !congelado && OF && cam1 && cam1.cerca()) OF.pide(g, d); } });
   cam1 = crearCamara({ camara, lienzo, H, estado: () => C && C.S, hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba',
     yo: () => OF && OF.yo(), modo: () => { const e = OF && OF.estado(); return { duelo: !!(e && e.duelo && rivF), techo: !!(FORM.cerrado && FORM.cerrado()), rival: rivF ? { x: rivF.x, z: rivF.z } : null }; } }); window.__bloque.vista = cam1;
   /* FU4: medida de la física con la falange: picas dibujadas (ya retiradas) y cuerpos (Fi.medir); y el peso del dibujo del rival */
@@ -515,6 +521,7 @@ async function arranca() {
   const [cs] = await Promise.all([crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color }).catch(e => { console.warn('Sin campo', e); return null; }), ...pide]);
   campo = cs;
   if (FALANGE) for (const k of ['r:falangita', 'r:oficial-falange']) if (cargados[k]) for (const nv of cargados[k].niveles) if (nv && nv.mat) azulea(nv.mat);   /* FU3b */
+  if (FALANGE) for (const k of ['r:falangita', 'r:oficial-falange']) if (cargados[k]) cargados[k].niveles = cargados[k].niveles.map(nv => nv ? paraFalange(nv) : nv);   /* FU3c: una sola arma por hombre (sin la lanza del modelo, queda la sarisa de formaciones/falange.js) y el escudo al pecho (soldados.js) */
   for (const b of ['r', 'g']) {
     for (const n of modelos(b)) { const s = cargados[b + ':' + n]; if (s) T[b][n] = NIV.map((nv, k) => { const t = tropa(s.niveles[nv], TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Falta soldado', n); }
     for (const n of prestan(b)) { const s = cargados[b + ':' + n]; if (s) A[b][n] = NIV.map((nv, k) => { const t = tropa(soloArmas(s.niveles[nv]), TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Faltan armas de', n); }
