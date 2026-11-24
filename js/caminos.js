@@ -1,0 +1,215 @@
+/* AQVILA — CE10: los cuatro caminos de victoria (reglas). Lógica pura (corre en Node), sin pantalla, sin azar.
+   Armas, comercio, política y ciudad. Se gana con dos tercios de los caminos (3 de 4), sin plazo.
+   Un camino logrado se puede perder. Ganar NO acaba la partida: este módulo nunca escribe s.over.
+   Solo escribe en s.caminos = { v, estado:{id:{logrado,desde,sost,fallo,perdidoEn,veces}}, victoria, victoriaVista, avisos }.
+   NOTA HISTÓRICA:
+   - Príncipe del Senado (princeps senatus): primer senador de la lista del censo; Q. Fabio Máximo lo fue en 209 a.C.
+     (Livio 27.11.9-12). Histórico. Que se llegue a él por el favor y los bandos: licencia de juego.
+   - Toma y destrucción de Cartago, 146 a.C., Escipión Emiliano (Polibio 38.19-22; Apiano, Líbica 127-135). Histórico.
+     Que sea «un camino» y no el fin del juego: licencia de juego.
+   - Tratados con Cartago y comercio (Polibio 3.22-25); alianza (foedus) con Hierón II en 263 (Polibio 1.16). Histórico.
+     La meta de tesoro, rutas y acuerdos: licencia de juego.
+   - Ciudad: Aqua Appia, 312 a.C. (Frontino, Acueductos 1.5); los ediles cuidan calles y mercados (Cicerón, Leyes 3.7).
+     Histórico. «Barrios cubiertos» y «Urbs» como nivel: licencia de juego.
+   - Ganar con 3 de 4, sin plazo y con caminos que se pierden: licencia de juego (decisión del usuario, 18/11). */
+(function (root) {
+  'use strict';
+  const D = root.DATA || (typeof require !== 'undefined' ? require('./data.js') : null);
+  const CAM = {};
+  CAM.ORDEN = ['armas', 'comercio', 'politica', 'ciudad'];
+  CAM.necesarios = function (n) { n = n == null ? 4 : n; return Math.ceil(n * 2 / 3); };
+  // Cifras de juego (las ajusta CE12). Todas licencia de juego.
+  const CIFRAS = {
+    armas: { plazas: 8 },
+    comercio: { denarios: 3000, rutas: 4, acuerdos: 3 },
+    politica: { favorPrinceps: 80, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 2 },
+    ciudad: { cubiertos: 0.8, nivelUrbe: 4 },
+    sostener: { armas: 0, comercio: 12, politica: 6, ciudad: 6 },
+    gracia: 3
+  };
+  CAM.CIFRAS = CIFRAS;
+
+  const num = (x) => (typeof x === 'number' && isFinite(x) ? x : 0);
+  const obj = (x) => (x && typeof x === 'object' && !Array.isArray(x) ? x : null);
+  const lista = (x) => (Array.isArray(x) ? x : []);
+
+  // La «foto»: lo que el juego mide cada mes, leído del estado guardado.
+  CAM.foto = function (s, G) {
+    s = obj(s) || {};
+    const cities = obj(s.cities) || {};
+    const CI = (D && D.CITIES) || {};
+    const mes = Math.floor(num(s.t));
+    let plazas = 0;
+    Object.keys(cities).forEach((id) => { if (cities[id] && cities[id].owner === 'roma' && CI[id] && CI[id].f !== 'roma') plazas++; });
+    const mer = obj(s.mercado) || {};
+    const dip = obj(s.dip) || {};
+    let acuerdos = Object.keys(dip).filter((k) => dip[k] && (dip[k].estado === 'alianza' || dip[k].estado === 'tributo')).length;
+    acuerdos += lista(mer.contratos).filter((c) => c && c.id === 'tratado' && num(c.hasta) > mes).length;
+    const favorSenado = num(s.favor && s.favor.senado);
+    const sen = obj(s.senado) || {};
+    // Puente provisional (licencia de juego): sin cargo del Senado (CE7), el favor alto hace de princeps.
+    const cargo = sen.cargo || (favorSenado >= CIFRAS.politica.favorPrinceps ? 'princeps' : 'ninguno');
+    const humor = obj(sen.humor) || {}, esc = obj(sen.escanos) || {};
+    const ids = Array.isArray(sen.bandos) ? sen.bandos.map((b) => (b && typeof b === 'object' ? b.id : b)) : Object.keys(humor);
+    const bandos = ids.map((id) => ({ id, humor: num(humor[id]), escanos: num(esc[id]) }));
+    const hist = lista(obj(s.planSenado) && s.planSenado.historial);
+    const planesBien = hist.filter((h) => h && h.juicio === 'bien').length;
+    const cid = s.capital || 'roma', c = cities[cid] || {};
+    const bi = G && typeof G.barrioInfo === 'function' ? G.barrioInfo(c) : null;
+    let cubiertos, total;
+    if (bi && lista(bi.barrios).length) {
+      total = bi.barrios.length;
+      cubiertos = bi.barrios.filter((b) => !b.falta && num(b.nivel) >= num(b.objetivo)).length;
+    } else {
+      total = 1;
+      cubiertos = (bi ? lista(bi.falta).length === 0 : (c.barrio || 1) >= 4) ? 1 : 0;
+    }
+    return {
+      cartago: !!(cities.carthago && cities.carthago.owner === 'roma'), plazas,
+      denarios: num(s.res && s.res.denarios) + num(s.alm && s.alm.denarios),
+      rutas: lista(s.rutas).length + lista(mer.rutas).length, acuerdos, cargo, favorSenado, bandos, planesBien,
+      barrios: { cubiertos, total }, nivelUrbe: c.barrio || 1
+    };
+  };
+
+  // Fracción de escaños contentos y si algún bando es hostil.
+  function apoyoBandos(f) {
+    const b = lista(f.bandos), P = CIFRAS.politica;
+    let tot = 0, ap = 0, hostil = false;
+    b.forEach((x) => { if (!x) return; const e = num(x.escanos); tot += e; if (num(x.humor) >= P.humorApoyo) ap += e; if (num(x.humor) < P.hostil) hostil = true; });
+    return { frac: tot > 0 ? ap / tot : 0, hostil, vacio: !b.length };
+  }
+  // Valor de cada hito desde la foto.
+  CAM.VALOR = {
+    armas: { cartago: (f) => (f.cartago ? 1 : 0), plazas: (f) => num(f.plazas) },
+    comercio: { tesoro: (f) => num(f.denarios), rutas: (f) => num(f.rutas), acuerdos: (f) => num(f.acuerdos) },
+    politica: {
+      princeps: (f) => (f.cargo === 'princeps' ? 1 : 0),
+      bandos: (f) => {
+        const a = apoyoBandos(f), P = CIFRAS.politica;
+        if (a.vacio) return 0;
+        if (!a.hostil && a.frac >= P.apoyo) return 1;
+        return Math.min(0.99, a.frac / P.apoyo);
+      },
+      planes: (f) => num(f.planesBien)
+    },
+    ciudad: {
+      barrios: (f) => { const t = num(f.barrios && f.barrios.total); return t > 0 ? num(f.barrios.cubiertos) / t : 0; },
+      urbe: (f) => num(f.nivelUrbe)
+    }
+  };
+  CAM.DATOS = [
+    { id: 'armas', n: 'Camino de las armas', i: '⚔️', lema: 'Roma se impone por la espada',
+      hitos: [{ id: 'cartago', n: 'Cartago tomada', meta: 1, unidad: 'hecho' }, { id: 'plazas', n: 'Plazas tomadas', meta: CIFRAS.armas.plazas, unidad: 'plazas' }],
+      nota: 'Histórico: Cartago cae en 146 a.C. con Escipión Emiliano (Polibio 38.19-22; Apiano, Líbica 127-135). Licencia de juego: que sea un camino y no el fin, y la meta de plazas.' },
+    { id: 'comercio', n: 'Camino del comercio', i: '🪙', lema: 'Roma prospera con sus tratos',
+      hitos: [{ id: 'tesoro', n: 'Tesoro reunido', meta: CIFRAS.comercio.denarios, unidad: 'denarios' }, { id: 'rutas', n: 'Rutas abiertas', meta: CIFRAS.comercio.rutas, unidad: 'rutas' }, { id: 'acuerdos', n: 'Acuerdos firmados', meta: CIFRAS.comercio.acuerdos, unidad: 'acuerdos' }],
+      nota: 'Histórico: tratados con Cartago (Polibio 3.22-25) y alianza con Hierón II en 263 a.C. (Polibio 1.16). Licencia de juego: las metas de tesoro, rutas y acuerdos.' },
+    { id: 'politica', n: 'Camino de la política', i: '🏛️', lema: 'Roma te sigue en el Senado',
+      hitos: [{ id: 'princeps', n: 'Príncipe del Senado', meta: 1, unidad: 'hecho' }, { id: 'bandos', n: 'Apoyo de los bandos', meta: 1, unidad: 'apoyo' }, { id: 'planes', n: 'Planes bien juzgados', meta: CIFRAS.politica.planesBien, unidad: 'planes' }],
+      nota: 'Histórico: el princeps senatus era el primer senador del censo; Q. Fabio Máximo lo fue en 209 a.C. (Livio 27.11.9-12). Licencia de juego: llegar a él por el favor y los bandos.' },
+    { id: 'ciudad', n: 'Camino de la ciudad', i: '🏙️', lema: 'Roma crece y se cuida',
+      hitos: [{ id: 'barrios', n: 'Barrios cubiertos', meta: CIFRAS.ciudad.cubiertos, unidad: 'barrios' }, { id: 'urbe', n: 'Roma es Urbs', meta: CIFRAS.ciudad.nivelUrbe, unidad: 'nivel' }],
+      nota: 'Histórico: Aqua Appia, 312 a.C. (Frontino, Acueductos 1.5); los ediles cuidan calles y mercados (Cicerón, Leyes 3.7). Licencia de juego: «barrios cubiertos» y «Urbs» como nivel.' }
+  ];
+  CAM.FUENTES = [
+    { tema: 'Príncipe del Senado (princeps senatus): Q. Fabio Máximo, 209 a.C.', cita: 'Livio 27.11.9-12', dictamen: 'histórico' },
+    { tema: 'Llegar a príncipe por el favor y los bandos', cita: 'Diseño de AQVILA', dictamen: 'licencia de juego' },
+    { tema: 'Toma y destrucción de Cartago, 146 a.C., Escipión Emiliano', cita: 'Polibio 38.19-22; Apiano, Líbica 127-135', dictamen: 'histórico' },
+    { tema: 'Cartago como un camino y no el fin de la partida', cita: 'Diseño de AQVILA', dictamen: 'licencia de juego' },
+    { tema: 'Tratados con Cartago y comercio; alianza con Hierón II en 263 a.C.', cita: 'Polibio 3.22-25; Polibio 1.16', dictamen: 'histórico' },
+    { tema: 'Metas de tesoro, rutas y acuerdos', cita: 'Diseño de AQVILA', dictamen: 'licencia de juego' },
+    { tema: 'Aqua Appia, 312 a.C.; los ediles cuidan calles y mercados', cita: 'Frontino, Acueductos 1.5; Cicerón, Leyes 3.7', dictamen: 'histórico' },
+    { tema: '«Barrios cubiertos» y «Urbs» como nivel', cita: 'Diseño de AQVILA', dictamen: 'licencia de juego' },
+    { tema: 'Ganar con 3 de 4, sin plazo, con caminos que se pierden', cita: 'Decisión del usuario, 18/11', dictamen: 'licencia de juego' }
+  ];
+
+  CAM.evaluar = function (foto) {
+    const f = obj(foto) || {};
+    const caminos = CAM.DATOS.map((c) => {
+      const hitos = c.hitos.map((h) => {
+        const v = num(CAM.VALOR[c.id][h.id](f));
+        return { id: h.id, n: h.n, v, meta: h.meta, ok: v >= h.meta, avance: Math.min(1, v / h.meta) };
+      });
+      const avance = hitos.reduce((a, h) => a + h.avance, 0) / hitos.length;
+      return { id: c.id, n: c.n, i: c.i, avance, cumple: hitos.every((h) => h.ok), hitos };
+    });
+    return { caminos, cumplen: caminos.filter((c) => c.cumple).length };
+  };
+
+  const vacio = () => ({ logrado: false, desde: null, sost: 0, fallo: 0, perdidoEn: null, veces: 0 });
+  CAM.migrar = function (s) {
+    if (!obj(s)) return null;
+    let c = obj(s.caminos);
+    if (!c) c = s.caminos = {};
+    c.v = 1;
+    const e = obj(c.estado) || (c.estado = {});
+    CAM.ORDEN.forEach((id) => {
+      const o = obj(e[id]) || (e[id] = vacio());
+      o.logrado = !!o.logrado;
+      ['sost', 'fallo', 'veces'].forEach((k) => { o[k] = Math.max(0, Math.floor(num(o[k]))); });
+      ['desde', 'perdidoEn'].forEach((k) => { o[k] = typeof o[k] === 'number' && isFinite(o[k]) ? o[k] : null; });
+    });
+    const v = obj(c.victoria);
+    c.victoria = v && typeof v.mes === 'number' ? { mes: v.mes, caminos: lista(v.caminos).filter((x) => typeof x === 'string') } : null;
+    c.victoriaVista = !!c.victoriaVista;
+    c.avisos = lista(c.avisos).filter((a) => a && typeof a === 'object').slice(-8);
+    return c;
+  };
+
+  CAM.paso = function (s, foto, mes) {
+    const c = CAM.migrar(s);
+    const out = { efectos: [], logra: [], pierde: [], gana: false };
+    if (!c) return out;
+    const ev = CAM.evaluar(foto);
+    const aviso = (texto, tono) => { out.efectos.push({ tipo: 'log', texto, tono }); c.avisos.push({ mes, texto, tono }); };
+    ev.caminos.forEach((k) => {
+      const e = c.estado[k.id], nom = CAM.DATOS.find((d) => d.id === k.id).n.replace('Camino', 'camino');
+      if (k.cumple) { e.sost++; e.fallo = 0; } else e.sost = 0;
+      if (!e.logrado) {
+        if (k.cumple && e.sost >= CIFRAS.sostener[k.id]) {
+          e.logrado = true; e.desde = mes; e.veces++; out.logra.push(k.id);
+          aviso('Logras el ' + nom + '.', 'good');
+        }
+      } else if (!k.cumple) {
+        e.fallo++;
+        if (e.fallo >= CIFRAS.gracia) { e.logrado = false; e.perdidoEn = mes; e.sost = 0; out.pierde.push(k.id); aviso('Pierdes el ' + nom + '.', 'bad'); }
+        else if (e.fallo === 1) aviso('Peligro: el ' + nom + ' flaquea. Te quedan ' + (CIFRAS.gracia - 1) + ' meses para recuperarlo.', 'warn');
+      }
+    });
+    const ids = CAM.ORDEN.filter((id) => c.estado[id].logrado);
+    if (c.victoria === null && ids.length >= CAM.necesarios(CAM.ORDEN.length)) {
+      c.victoria = { mes, caminos: ids }; c.victoriaVista = false; out.gana = true;
+      aviso('¡Victoria! Has logrado ' + ids.length + ' de ' + CAM.ORDEN.length + ' caminos. Puedes seguir jugando.', 'good');
+    }
+    c.avisos = c.avisos.slice(-8);
+    return out;
+  };
+
+  function miles(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function textoHito(id, h) {
+    if (h.ok) return 'Hecho';
+    if (id === 'tesoro') return miles(h.v) + ' de ' + miles(h.meta) + ' denarios';
+    if (id === 'barrios') return Math.round(h.v * 100) + ' % (meta ' + Math.round(h.meta * 100) + ' %)';
+    if (id === 'urbe') return 'Nivel ' + h.v + ' de ' + h.meta;
+    if (id === 'bandos') return Math.round(h.avance * 100) + ' % del apoyo';
+    if (h.meta === 1) return 'Pendiente';
+    return h.v + ' de ' + h.meta;
+  }
+  CAM.vista = function (s, foto) {
+    const c = CAM.migrar(s) || { estado: {}, victoria: null, victoriaVista: false, avisos: [] };
+    const ev = CAM.evaluar(foto);
+    const caminos = ev.caminos.map((k) => {
+      const d = CAM.DATOS.find((x) => x.id === k.id), e = c.estado[k.id] || vacio();
+      return { id: k.id, n: k.n, i: k.i, lema: d.lema, avance: k.avance, cumple: k.cumple, logrado: e.logrado, sost: e.sost,
+        sostMeta: CIFRAS.sostener[k.id], fallo: e.fallo, gracia: CIFRAS.gracia, perdido: e.perdidoEn !== null && !e.logrado,
+        hitos: k.hitos.map((h) => ({ id: h.id, n: h.n, v: h.v, meta: h.meta, ok: h.ok, avance: h.avance, texto: textoHito(h.id, h) })) };
+    });
+    return { caminos, logrados: caminos.filter((k) => k.logrado).length, necesarios: CAM.necesarios(4), total: 4,
+      victoria: c.victoria, nuevaVictoria: !!c.victoria && !c.victoriaVista, avisos: c.avisos };
+  };
+  CAM.marcarVista = function (s) { const c = CAM.migrar(s); if (c) c.victoriaVista = true; return c; };
+
+  root.CAMINOS = CAM;
+  if (typeof module !== 'undefined') module.exports = CAM;
+})(typeof window !== 'undefined' ? window : globalThis);
