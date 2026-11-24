@@ -6,11 +6,11 @@ const CAM = require('../js/caminos.js');
 let n = 0;
 const t = (nombre, f) => { f(); n++; };
 
-const buena = (o) => Object.assign({ cartago: false, plazas: 0, denarios: 0, renta: 0, ciudades: 1, rutas: 0, acuerdos: 0, cargo: 'ninguno', favorSenado: 0, bandos: [], planesBien: 0, barrios: { cubiertos: 0, total: 5 }, nivelUrbe: 1 }, o || {});
+const buena = (o) => Object.assign({ cartago: false, plazas: 0, denarios: 0, renta: 0, ciudades: 1, casasUrbe: 0, casasTotal: 0, rutas: 0, acuerdos: 0, cargo: 'ninguno', favorSenado: 0, bandos: [], planesBien: 0, barrios: { cubiertos: 0, total: 5 }, nivelUrbe: 1 }, o || {});
 const armasOk = { cartago: true, plazas: 8 };
 const comercioOk = { renta: CAM.CIFRAS.comercio.rentaPorCiudad, rutas: CAM.CIFRAS.comercio.rutas, acuerdos: CAM.CIFRAS.comercio.acuerdos };   // CE12: sigue a las cifras
 const politicaOk = { cargo: 'princeps', bandos: [{ id: 'a', humor: 70, escanos: 10 }], planesBien: CAM.CIFRAS.politica.planesBien };   // CE12: sigue a las cifras
-const ciudadOk = { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4 };
+const ciudadOk = { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4, casasUrbe: CAM.CIFRAS.ciudad.casasMin, casasTotal: CAM.CIFRAS.ciudad.casasMin };
 const junta = (...fs) => buena(Object.assign({}, ...fs));
 
 t('necesarios', () => { assert.strictEqual(CAM.necesarios(4), 3); assert.strictEqual(CAM.necesarios(5), 4); assert.strictEqual(CAM.necesarios(), 3); });
@@ -112,6 +112,14 @@ t('comercio: la renta es la neta del año anterior y el umbral crece con las ciu
   assert.strictEqual(h.meta, R * 2); assert.strictEqual(h.ok, f.renta >= R * 2);
   assert.strictEqual(CAM.foto({ cities: {} }, null).renta, 0);
   assert.strictEqual(CAM.evaluar(Object.assign({}, f, { renta: R * 2 - 1 })).caminos[1].hitos[0].ok, false);
+});
+t('ciudad: casas en barrios de nivel 4, con fraccion y minimo', () => {
+  const C = CAM.CIFRAS.ciudad, h = (o) => CAM.evaluar(buena(Object.assign({ barrios: { cubiertos: 5, total: 5 } }, o))).caminos[3].hitos[1];
+  assert.strictEqual(h({ casasUrbe: C.casasMin, casasTotal: C.casasMin }).ok, true);
+  assert.strictEqual(h({ casasUrbe: C.casasMin - 1, casasTotal: C.casasMin - 1 }).ok, false);
+  assert.strictEqual(h({ casasUrbe: C.casasMin, casasTotal: Math.ceil(C.casasMin / C.fraccionUrbe) + 5 }).ok, false);   // muchas casas, pero pocas en nivel 4
+  const f = CAM.foto({ cities: { roma: { b: {}, barrio: 4, pop: 2400 } }, res: {}, alm: {} }, null);
+  assert.strictEqual(f.casasTotal, 120); assert.strictEqual(f.casasUrbe, 120);
 });
 console.log('caminos: ' + n + ' pruebas OK');
 

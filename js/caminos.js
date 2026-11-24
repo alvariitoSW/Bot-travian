@@ -26,7 +26,7 @@
     armas: { plazas: 6, plazasCorta: 3 },   // CE12: en la partida corta (Italia) la partida acaba al caer la capital rival
     comercio: { rentaPorCiudad: 800, rutas: 6, acuerdos: 6 },   // CE12: «tesoro» es la renta neta del año anterior: umbral = rentaPorCiudad x ciudades propias
     politica: { favorPrinceps: 80, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 2 },
-    ciudad: { cubiertos: 0.8, nivelUrbe: 4 },
+    ciudad: { cubiertos: 0.8, nivelUrbe: 4, casasMin: 70, fraccionUrbe: 0.5 },   // CE12: «urbe» = casas de la capital en barrios de nivel >= nivelUrbe (y al menos la fracción de las casas)
     sostener: { armas: 0, comercio: 24, politica: 12, ciudad: 12 },
     gracia: 3
   };
@@ -68,12 +68,14 @@
     const cid = (G && typeof G.capital === 'function' && G.capital()) || s.capital || 'roma', c = obj(cities[cid]) || {};
     let bi = null;
     try { bi = G && typeof G.barrioInfo === 'function' ? G.barrioInfo(c) : null; } catch (e) { bi = null; }   // una ciudad rota no para el mes
-    let cubiertos, total;
+    let cubiertos, total, casasUrbe = 0, casasTotal = 0;
     if (bi && lista(bi.barrios).length) {
       total = bi.barrios.length;
       cubiertos = bi.barrios.filter((b) => !b.falta && num(b.nivel) >= num(b.objetivo)).length;
+      bi.barrios.forEach((b) => { const k = num(b.casas); casasTotal += k; if (num(b.nivel) >= CIFRAS.ciudad.nivelUrbe) casasUrbe += k; });
     } else {
       total = 1;
+      casasTotal = Math.floor(num(c.pop) / 20); if ((num(c.barrio) || 1) >= CIFRAS.ciudad.nivelUrbe) casasUrbe = casasTotal;   // sin barrios: la población hace de casas (20 por casa, como los escaños)
       cubiertos = (bi ? lista(bi.falta).length === 0 : (num(c.barrio) || 1) >= 4) ? 1 : 0;
     }
     // CE12 (decidido por la coordinación, 24/11): si Cartago no está en el mapa (partida corta), cuenta la capital rival del modo.
@@ -86,7 +88,7 @@
       renta: rentaAnual(s), ciudades: Math.max(1, Object.keys(cities).filter((id) => cities[id] && cities[id].owner === 'roma').length),
       rutas: obj(s.mercado) ? lista(mer.rutas).filter((r) => r && !r.parada).length : lista(s.rutas).filter((r) => r && !r.parada).length,   // mercado.js migra las rutas viejas sin borrarlas: no contar dos veces
       acuerdos, cargo, favorSenado, bandos, planesBien,
-      barrios: { cubiertos, total }, nivelUrbe: Math.max(1, num(c.barrio) || 1)
+      barrios: { cubiertos, total }, casasUrbe, casasTotal, nivelUrbe: Math.max(1, num(c.barrio) || 1)
     };
   };
 
@@ -113,7 +115,7 @@
     },
     ciudad: {
       barrios: (f) => { const t = num(f.barrios && f.barrios.total); return t > 0 ? num(f.barrios.cubiertos) / t : 0; },
-      urbe: (f) => num(f.nivelUrbe)
+      urbe: (f) => { const u = num(f.casasUrbe), t = num(f.casasTotal), C = CIFRAS.ciudad; return t > 0 && u / t >= C.fraccionUrbe ? u : Math.min(u, C.casasMin - 1); }   // casas en barrios de nivel 4, si son la fracción pedida
     }
   };
   CAM.DATOS = [
@@ -127,7 +129,7 @@
       hitos: [{ id: 'princeps', n: 'Príncipe del Senado', meta: 1, unidad: 'hecho' }, { id: 'bandos', n: 'Apoyo de los bandos', meta: 1, unidad: 'apoyo' }, { id: 'planes', n: 'Planes bien juzgados', meta: CIFRAS.politica.planesBien, unidad: 'planes' }],
       nota: 'Histórico: el princeps senatus era el primer senador del censo; Q. Fabio Máximo lo fue en 209 a.C. (Livio 27.11.9-12). Licencia de juego: llegar a él por el favor y los bandos.' },
     { id: 'ciudad', n: 'Camino de la ciudad', i: '🏙️', lema: 'Roma crece y se cuida',
-      hitos: [{ id: 'barrios', n: 'Barrios cubiertos', meta: CIFRAS.ciudad.cubiertos, unidad: 'barrios' }, { id: 'urbe', n: 'Roma es Urbs', meta: CIFRAS.ciudad.nivelUrbe, unidad: 'nivel' }],
+      hitos: [{ id: 'barrios', n: 'Barrios cubiertos', meta: CIFRAS.ciudad.cubiertos, unidad: 'barrios' }, { id: 'urbe', n: 'Casas en barrios de nivel ' + CIFRAS.ciudad.nivelUrbe, meta: CIFRAS.ciudad.casasMin, unidad: 'casas' }],
       nota: 'Histórico: Aqua Appia, 312 a.C. (Frontino, Acueductos 1.5); los ediles cuidan calles y mercados (Cicerón, Leyes 3.7). Licencia de juego: «barrios cubiertos» y «Urbs» como nivel.' }
   ];
   CAM.FUENTES = [
@@ -212,7 +214,7 @@
     if (h.ok) return 'Hecho';
     if (id === 'tesoro') return miles(h.v) + ' de ' + miles(h.meta) + ' denarios al año';
     if (id === 'barrios') return Math.round(h.v * 100) + ' % (meta ' + Math.round(h.meta * 100) + ' %)';
-    if (id === 'urbe') return 'Nivel ' + h.v + ' de ' + h.meta;
+    if (id === 'urbe') return h.v + ' de ' + h.meta + ' casas en barrios de nivel ' + CIFRAS.ciudad.nivelUrbe;
     if (id === 'bandos') return Math.round(h.avance * 100) + ' % del apoyo';
     if (h.meta === 1) return 'Pendiente';
     return h.v + ' de ' + h.meta;
