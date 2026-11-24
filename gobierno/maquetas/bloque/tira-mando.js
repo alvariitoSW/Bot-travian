@@ -58,7 +58,7 @@ export function crearTira({ mando: M, hud, $, dedos }) {
   let puestas = '';
   function ordenes() {
     const l = M.ordenesDe(M.elegido), k = l.join(); if (k === puestas) return; puestas = k;
-    hud.ordenes(l, { retirada: false, tuyo: 'Falange' });
+    hud.ordenes(l, { retirada: false, tuyo: M.cuerpos[0].corto });
   }
   /* tocar el estandarte de un cuerpo lo elige */
   const ESTS = { 0: 'falange', 1: 'man1', 2: 'man2' };

@@ -301,7 +301,7 @@ function avisa(tipo, d) {
 function nueva(n) {
   nivel = n; if (FORM.combate) { LU = null; return nuevaFormacion(); }
   C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa, lucha: LUCHA }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}, FORM.opcCombate ? FORM.opcCombate(BL) : {}));
-  if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
+  if (LP7 && LP7.rival) C.S.rival = LP7.rival; else if (ASC) C.S.rival = ASC.bando === 'pirro' ? { los: 'los romanos', Los: 'Romanos' } : { los: 'la falange', Los: 'Falange' };   /* ES4: el nombre del rival en Ásculo */ TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
   LU = LUCHA === 'motor' ? crearLucha({ C, TR, semilla }) : null;
   FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, BL, hud, $, dedos, FS, camara, proyecta, suelo, lienzo, semilla, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
   OF = crearOficial({ S: C.S, alAviso: alOficial }); rivF = null; sacude = 0;
