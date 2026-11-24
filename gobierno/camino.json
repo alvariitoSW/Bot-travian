@@ -1,27 +1,27 @@
 {
   "_ayuda": "Camino a la 1.0 (CM5, pedido del usuario del 24/11). Lo pinta el cuadro de mando arriba del todo, en «Juego». Lo pone al día el vigía en cada subida: cambia «actualizado» (hora ISO en UTC), el «estado» de cada paso (hecho, prueba = en prueba, esperando) y, si cambia el plan, las horas y los %. Las horas van en UTC (terminan en Z); el cuadro las enseña en hora de España. «hasta» es opcional (una franja: de «hora» a «hasta»); sin «hora», «cuando» dice el texto que sale. «pct» es el % del cuadro al acabar ese paso. El % actual no se escribe aquí: sale de lista.json, (hechas + ½ a medias) / total, el mismo del menú del juego.",
-  "actualizado": "2026-11-24T20:27:00Z",
+  "actualizado": "2026-11-24T21:28:00Z",
   "pasos": [
     {
-      "que": "Ciudad CDe4: jueces finales (relanzados a las 21:24 con los jueces rápidos de JZ1) y subida",
-      "hora": "2026-11-24T21:30:00Z",
+      "que": "Ciudad CDe4: subida a tu móvil (v165) con jueces completos APTO 43/43",
+      "hora": "2026-11-24T21:25:00Z",
       "pct": 67,
+      "estado": "hecho"
+    },
+    {
+      "que": "CG9 datos de tropas y CE12 caminos (suben ya, en paralelo)",
+      "hora": "2026-11-24T22:15:00Z",
+      "pct": 75,
       "estado": "prueba"
     },
     {
-      "que": "Batallas: CG9 datos de tropas (aprobada), falange FU3+FU3b(+FU3c), CG10 Cartago y E4b termas",
-      "hora": "2026-11-24T22:30:00Z",
-      "pct": 72,
-      "estado": "esperando"
+      "que": "UN2: falange completa, muro y orden abierto, tácticas a la rama",
+      "hora": "2026-11-24T22:45:00Z",
+      "pct": 80,
+      "estado": "prueba"
     },
     {
-      "que": "CE12 fase 2: los caminos de comercio, política y ciudad se pueden ganar",
-      "hora": "2026-11-24T23:30:00Z",
-      "pct": 78,
-      "estado": "esperando"
-    },
-    {
-      "que": "FU4 rivales y elefantes, FU5 muro y orden abierto, TH1 tácticas (en obra en paralelo)",
+      "que": "FU4 rivales y elefantes (en obra) y FU6 limpieza",
       "hora": "2026-11-25T00:30:00Z",
       "pct": 84,
       "estado": "esperando"
