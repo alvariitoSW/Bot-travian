@@ -1,17 +1,49 @@
 {
   "_ayuda": "Camino a la 1.0 (CM5, pedido del usuario del 24/11). Lo pinta el cuadro de mando arriba del todo, en «Juego». Lo pone al día el vigía en cada subida: cambia «actualizado» (hora ISO en UTC), el «estado» de cada paso (hecho, prueba = en prueba, esperando) y, si cambia el plan, las horas y los %. Las horas van en UTC (terminan en Z); el cuadro las enseña en hora de España. «hasta» es opcional (una franja: de «hora» a «hasta»); sin «hora», «cuando» dice el texto que sale. «pct» es el % del cuadro al acabar ese paso. El % actual no se escribe aquí: sale de lista.json, (hechas + ½ a medias) / total, el mismo del menú del juego.",
-  "actualizado": "2026-11-24T17:05:00Z",
+  "actualizado": "2026-11-24T18:27:00Z",
   "pasos": [
-    { "que": "Ciudad CDe4: jueces finales y subida", "hora": "2026-11-24T17:50:00Z", "pct": 67, "estado": "prueba" },
-    { "que": "CE12 fase 2, CG9 datos de tropas y E4b termas", "hora": "2026-11-24T19:30:00Z", "pct": 75, "estado": "esperando" },
-    { "que": "Fusión de la lucha a pie (FU3 falange en obra; FU4 a FU6)", "hora": "2026-11-24T20:30:00Z", "hasta": "2026-11-24T22:00:00Z", "pct": 80, "estado": "esperando" },
-    { "que": "CG4b: la batalla nueva en la campaña (tras la fusión: «mantener el orden»)", "hora": "2026-11-24T23:00:00Z", "pct": 90, "estado": "esperando" },
-    { "que": "TH1, CG5 y CG10 (Cartago en la partida larga)", "cuando": "en paralelo", "pct": 95, "estado": "esperando" },
-    { "que": "Subida final con los jueces completos", "hora": "2026-11-25T01:00:00Z", "pct": 100, "estado": "esperando" }
+    {
+      "que": "Ciudad CDe4: jueces finales y subida (relanzó la prueba larga a las 18:54)",
+      "hora": "2026-11-24T19:15:00Z",
+      "pct": 67,
+      "estado": "prueba"
+    },
+    {
+      "que": "CE12 fase 2, CG9 datos de tropas (hecha) y E4b termas (hecha)",
+      "hora": "2026-11-24T20:00:00Z",
+      "pct": 75,
+      "estado": "esperando"
+    },
+    {
+      "que": "Fusión de la lucha a pie: FU3 falange (hecha), FU4 a FU6",
+      "hora": "2026-11-24T20:30:00Z",
+      "hasta": "2026-11-24T23:00:00Z",
+      "pct": 80,
+      "estado": "esperando"
+    },
+    {
+      "que": "CG4b: la batalla nueva en la campaña (tras la fusión: «mantener el orden»)",
+      "hora": "2026-11-25T00:00:00Z",
+      "pct": 90,
+      "estado": "esperando"
+    },
+    {
+      "que": "TH1 y CG5; CG10 Cartago en la partida larga ya hecha (4 de 10)",
+      "cuando": "en paralelo",
+      "pct": 95,
+      "estado": "esperando"
+    },
+    {
+      "que": "Subida final con los jueces completos (más rápidos con JZ1)",
+      "hora": "2026-11-25T02:00:00Z",
+      "pct": 100,
+      "estado": "esperando"
+    }
   ],
   "riesgos": [
-    "Cartago y Roma en la partida larga (CG10, CE12)",
-    "La fusión de la lucha a pie va por la mitad",
+    "Roma cae ante Aníbal en 6 de 10 partidas largas (CE12)",
+    "La fusión de la lucha a pie va por la mitad (3 de 6)",
+    "Los jueces tardan ~1 h por subida hasta que entre JZ1",
     "El límite semanal de uso"
   ]
 }
