@@ -21,7 +21,7 @@ export const SOLDADOS = {
 };
 /* niveles de detalle que usa la falange (de js/gfx/soldado.js: '', _lejos, _muylejos, _fondo) y cuántos hombres van en cada uno,
    los más cercanos a la cámara primero (el resto, en el último) */
-export const NIVELES_F = [0, 1, 2], CUANTOS = [6, 30];
+export const NIVELES_F = [0, 2], CUANTOS = [10];
 
 /* ---------- cuentas con matrices 3×4 (las de esqueleto.js) ---------- */
 const resta = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], suma = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], por = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
@@ -65,7 +65,8 @@ export function crearEsqueletoNuevo(T, nb, huesos, geo, punos) {
     brazo: [H('upperarm01.' + s), H('upperarm02.' + s)],
     ante: huesos.map((n, i) => /^(lowerarm0[12]|wrist|finger|metacarpal)/.test(n) && n.endsWith('.' + s) ? i : -1).filter(i => i >= 0),
     hombro: junta(H('shoulder01.' + s), H('upperarm01.' + s)), codo: junta(H('upperarm02.' + s), H('lowerarm01.' + s)), muneca: junta(H('lowerarm02.' + s), H('wrist.' + s)),
-    hB: H('upperarm01.' + s), hA: H('lowerarm02.' + s),
+    mano: huesos.map((n, i) => /^(wrist|finger|metacarpal)/.test(n) && n.endsWith('.' + s) ? i : -1).filter(i => i >= 0),
+    hB: H('upperarm01.' + s), hA: H('lowerarm02.' + s), hM: H('wrist.' + s),
   });
   const B = { D: lado('R'), I: lado('L') };
   /* el puño: el centro de los dedos de cada mano en reposo (vértices casi enteros de sus huesos) */
@@ -73,10 +74,11 @@ export function crearEsqueletoNuevo(T, nb, huesos, geo, punos) {
   /* el esqueleto sencillo (36 huesos, niveles lejanos) no tiene dedos: usa los puños del fino (mismo cuerpo en reposo) */
   B.D.puno = punos ? punos.D : puno('R'); B.I.puno = punos ? punos.I : puno('L');
   const en = (fila, h, p) => punto(mat(fila, h), p);
-  /* una postura nueva desde la fila base: q = { manoD, manoI } (dónde va el PUÑO, en el modelo), poloD, poloI (hacia dónde sale el codo) */
+  /* una postura nueva desde la fila base: q = { manoD, manoI } (dónde va el PUÑO, en el modelo), poloD, poloI (hacia dónde sale el codo),
+     y si se da, dirD = hacia dónde apunta lo que lleva en la mano derecha (la hoja de la espada): la mano gira sobre el puño */
   function postura(base, q) {
     const X = new Array(nb).fill(null);
-    const brazo = (b, blanco, polo) => {
+    const brazo = (b, blanco, polo, dir) => {
       if (!blanco) return;
       const s0 = en(base, b.hB, b.hombro), c0 = en(base, b.hB, b.codo), m0 = en(base, b.hA, b.muneca), p0 = en(base, b.hA, b.puno);
       const objetivo = suma(blanco, resta(m0, p0));      /* la muñeca va donde el puño, con el mismo desfase que en la base */
@@ -84,8 +86,12 @@ export function crearEsqueletoNuevo(T, nb, huesos, geo, punos) {
       const xb = giraDe(s0, resta(c0, s0), resta(r.medio, s0));
       const xa = mul(giraDe(r.medio, resta(punto(xb, m0), r.medio), resta(r.fin, r.medio)), xb);
       for (const h of b.brazo) X[h] = xb; for (const h of b.ante) X[h] = xa;
+      if (dir) {   /* la hoja: del puño a la punta en reposo (ESPADA), girada hasta dir alrededor del puño */
+        const Mw = mul(xa, mat(base, b.hM)), p1 = punto(Mw, ESPADA.puno), p2 = punto(Mw, ESPADA.punta), xm = mul(giraDe(p1, resta(p2, p1), dir), xa);
+        for (const h of b.mano) X[h] = xm;
+      }
     };
-    brazo(B.D, q.manoD, q.poloD || [-0.7, -0.7, -0.1]);
+    brazo(B.D, q.manoD, q.poloD || [-0.7, -0.7, -0.1], q.dirD);
     brazo(B.I, q.manoI, q.poloI || [0.8, -0.6, 0]);
     const out = new Float32Array(nb * 12);
     for (let h = 0; h < nb; h++) out.set(X[h] ? mul(X[h], mat(base, h)) : mat(base, h), h * 12);
@@ -110,22 +116,25 @@ export function generaTabla(T0, j, geo, carril, punos) {
   const GOLPE = { manoD: [-0.17, 1.0, 0.24], manoI: [-0.15, 1.03, 0.66] };
   bases.forEach((b, k) => { for (let r = 0; r < 5; r++) pon(N0 + (CJ.baja + r) * CJ.filas + k, b, bajaQ(r)); pon(N0 + CJ.golpe * CJ.filas + k, b, GOLPE); });
   /* la espada: puño en la empuñadura de la vaina (costado izquierdo), luego arriba y a la guardia */
-  const q0 = C.quieto.ini, vainaEn = esq.en(q0, j.huesos.indexOf('root'), PUNO_VAINA), GUARD = { manoD: [-0.2, 1.14, 0.36], manoI: [0.17, 1.12, 0.3] };
+  const q0 = C.quieto.ini, vainaEn = esq.en(q0, j.huesos.indexOf('root'), PUNO_VAINA), GUARD = { manoD: [-0.2, 1.14, 0.36], manoI: [0.17, 1.12, 0.3], dirD: uno([0.12, 0.42, 0.9]) };
+  const D_ARRIBA = uno([0.05, 0.95, 0.3]), D_VAINA = uno([0.13, -0.97, -0.17]);   /* D_VAINA: el eje de la vaina, hacia abajo y atrás */   /* la hoja sale de la vaina hacia arriba y baja al frente, a la guardia */
   const b0 = bajaQ(0), ARRIBA = [-0.04, 1.4, 0.12];
   const camino = u => {
-    if (u < 0.45) { const t = ss(u / 0.45); return { manoD: mezcla3(b0.manoD, suma(vainaEn, [0.02, 0.02, 0.04]), t), manoI: mezcla3(b0.manoI, GUARD.manoI, t), poloD: [-0.5, -0.5, -0.7] }; }
-    if (u < 0.72) { const t = ss((u - 0.45) / 0.27); return { manoD: mezcla3(suma(vainaEn, [0.02, 0.02, 0.04]), ARRIBA, t), manoI: GUARD.manoI, poloD: [-0.8, -0.3, -0.5] }; }
-    const t = ss((u - 0.72) / 0.28); return { manoD: mezcla3(ARRIBA, GUARD.manoD, t), manoI: GUARD.manoI, poloD: [-0.8, -0.5, -0.2] };
+    if (u < 0.45) { const t = ss(u / 0.45); return { manoD: mezcla3(b0.manoD, suma(vainaEn, [0.02, 0.02, 0.04]), t), manoI: mezcla3(b0.manoI, GUARD.manoI, t), poloD: [-0.5, -0.5, -0.7], dirD: D_VAINA }; }
+    if (u < 0.72) { const t = ss((u - 0.45) / 0.27); return { manoD: mezcla3(suma(vainaEn, [0.02, 0.02, 0.04]), ARRIBA, t), manoI: GUARD.manoI, poloD: [-0.8, -0.3, -0.5], dirD: uno(mezcla3(D_VAINA, D_ARRIBA, t)) }; }
+    const t = ss((u - 0.72) / 0.28); return { manoD: mezcla3(ARRIBA, GUARD.manoD, t), manoI: GUARD.manoI, poloD: [-0.8, -0.5, -0.2], dirD: uno(mezcla3(D_ARRIBA, GUARD.dirD, t)) };
   };
   const F_SACA = N0 + CJ.n * CJ.filas, F_GUARD = F_SACA + CJ.saca, F_TAJO = F_GUARD + CJ.guardia;
   for (let k = 0; k < CJ.saca; k++) pon(F_SACA + k, q0, camino(k / (CJ.saca - 1)));
   for (let k = 0; k < CJ.guardia; k++) pon(F_GUARD + k, C.quieto.ini + k, GUARD);
-  for (let k = 0; k < CJ.tajo; k++) { const t = Math.sin(Math.PI * k / (CJ.tajo - 1)); pon(F_TAJO + k, q0, { manoD: mezcla3(GUARD.manoD, [-0.1, 1.24, 0.86], t), manoI: mezcla3(GUARD.manoI, [0.2, 1.1, 0.2], t), poloD: [-0.8, -0.5, -0.2] }); }
+  for (let k = 0; k < CJ.tajo; k++) { const t = Math.sin(Math.PI * k / (CJ.tajo - 1)); pon(F_TAJO + k, q0, { manoD: mezcla3(GUARD.manoD, [-0.1, 1.24, 0.86], t), manoI: mezcla3(GUARD.manoI, [0.2, 1.1, 0.2], t), poloD: [-0.8, -0.5, -0.2], dirD: uno(mezcla3(GUARD.dirD, [0.05, 0.12, 0.99], t)) }); }
   /* la fila del conjunto c que corresponde a una fila de «quieto» o «andar» del modelo (las demás, sin conjunto: se quedan) */
   const fila = (c, b) => b >= C.quieto.ini && b < C.quieto.ini + C.quieto.n ? N0 + c * CJ.filas + (b - C.quieto.ini)
     : b >= C.andar.ini && b < C.andar.ini + C.andar.n ? N0 + c * CJ.filas + C.quieto.n + (b - C.andar.ini) : b;
   return { T, nb, N0, total, esq, fila, F_SACA, F_GUARD, F_TAJO };
 }
+/* la espada del peltasta en su mano, en reposo (centros de las piezas espada_puno y espada_hoja de assets/soldados/peltasta) */
+const ESPADA = { puno: [-0.515, 0.977, 0.255], punta: [-0.34, 1.18, 0.475] };
 /* la empuñadura de la espada envainada: la del peltasta (a su derecha, x = -0,217) pasada a la izquierda, en reposo */
 const PUNO_VAINA = [0.217, 1.09, 0.035];
 
@@ -190,8 +199,11 @@ export async function crearFalangitas({ escena, cap, carril, sombra = true }) {
   const niveles = NIVELES_F.map(k => malla(F.niveles[k], cap, conHuesos(F.niveles[k].mat, texDe(F.niveles[k]))));
   const oficial = malla(O.niveles[0], 1, conHuesos(O.niveles[0].mat, texDe(O.niveles[0])));
   const espada = P ? malla(geoEspada(P.niveles[0]), CUANTOS[0] + 1, conHuesos(P.niveles[0].mat, tex)) : null;
+  /* la hoja brilla un poco por sí misma: a contraluz (el sol de la escena viene de frente) el hierro salía negro */
+  if (espada) { const m = espada.malla.material; m.emissive = new THREE.Color(0.42, 0.4, 0.37); m.emissiveMap = m.map; }
   /* la sombra: nivel _fondo de todos (y el oficial), solo en el mapa de sombras (ver soloSombra) */
   const sombraT = sombra ? malla(F.niveles[3], cap + 1, conHuesos(F.niveles[3].mat, tex36)) : null;
+  if (typeof window !== 'undefined') window.__fe2 = { niveles, oficial, espada, sombra: sombraT };   /* para revisar en el navegador */
   if (sombraT) { sombraT.malla.castShadow = true; sombraT.malla.receiveShadow = false; sombraT.malla.customDepthMaterial = mSombra; soloSombra(sombraT.malla); }
   /* clips con la forma de los de 0 A.D. (start, frames, dur, loop) para la locomoción de la escena */
   const clip = c => ({ start: c.ini, frames: c.n - 1, dur: (c.n - 1) / c.fps, loop: !!c.bucle, fps: c.fps });
@@ -201,7 +213,7 @@ export async function crearFalangitas({ escena, cap, carril, sombra = true }) {
   const cen = (re, peso = 200) => { const P = ga.position.array, SI = ga.aSkinI.array, SW = ga.aSkinW.array, c = [0, 0, 0]; let n = 0; for (let i = 0; i < P.length / 3; i++) if (SW[i * 4] > peso && re.test(j.huesos[SI[i * 4]])) { c[0] += P[i * 3]; c[1] += P[i * 3 + 1]; c[2] += P[i * 3 + 2]; n++; } return por(c, 1 / Math.max(1, n)); };
   const piezaCen = nom => { const pz = j.piezas, idx = nv0.geo.index.array, P = ga.position.array; let t = 0; const c = [0, 0, 0]; let n = 0; for (const [k, m] of Object.entries(pz)) { if (k === nom) for (let i = t * 3; i < (t + m) * 3; i++) { const v = idx[i]; c[0] += P[v * 3]; c[1] += P[v * 3 + 1]; c[2] += P[v * 3 + 2]; n++; } t += m; } return por(c, 1 / Math.max(1, n)); };
   const ancla = { manoD: [H('wrist.R'), tab.esq.B.D.puno], escudo: [H('lowerarm01.L'), piezaCen('escudo_frente')], pecho: [H('spine02'), cen(/^spine02$/)], cabeza: [H('head'), [0, 1.72, 0.02]] };
-  if (typeof window !== "undefined") window.__fe2 = { niveles, oficial, espada: null };
+
   console.log(`[FE2] soldado nuevo: ${F.niveles.map(n => n.j.tris).join(' / ')} triángulos por nivel; tabla de ${tab.total} filas`);
 
   /* variación de cada hombre (tela, piel, pelo, escudo): fija por hombre, aunque cambie de nivel o de hueco */
@@ -218,11 +230,12 @@ export async function crearFalangitas({ escena, cap, carril, sombra = true }) {
       for (const h of lista) h.dCam = (h.x - cp.x) ** 2 + (h.z - cp.z) ** 2;
       const orden = lista.filter(h => h !== yo).sort((a, b) => a.dCam - b.dCam);
       for (const t of niveles) t.limpiar(); oficial.limpiar(); if (espada) espada.limpiar(); if (sombraT) sombraT.limpiar();
-      orden.forEach((h, k) => { const t = niveles[k < CUANTOS[0] ? 0 : k < CUANTOS[0] + CUANTOS[1] ? 1 : 2]; poner(t, t.sig(), h); });
+      orden.forEach((h, k) => { let n = 0; for (let a = CUANTOS[0]; n < CUANTOS.length && k >= a; a += CUANTOS[++n] || 0); const t = niveles[Math.min(n, niveles.length - 1)]; poner(t, t.sig(), h); });
       if (yo) poner(oficial, oficial.sig(), yo);
       if (espada) { const cerca = (yo ? [yo] : []).concat(orden.slice(0, CUANTOS[0])); for (const h of cerca) { const e = espadaDe ? espadaDe(h) : 1; if (!e) continue; const i = espada.sig(); if (i < 0) break; poner(espada, i, h); mu(espada).setX(i, e); } }
       if (sombraT) for (const h of lista) if (h.vivo || h.caido) poner(sombraT, sombraT.sig(), h);
       for (const t of niveles.concat([oficial], espada ? [espada] : [], sombraT ? [sombraT] : [])) fin(t);
+      for (const t of niveles.concat([oficial], espada ? [espada] : [])) t.malla.visible = t.malla.count > 0;   /* sin hombres, sin llamada */
     },
     triangulos() { return niveles.reduce((s, t) => s + t.malla.count * t.s.j.tris, 0) + oficial.malla.count * oficial.s.j.tris + (espada ? espada.malla.count * espada.s.geo.index.count / 3 : 0); },
   };

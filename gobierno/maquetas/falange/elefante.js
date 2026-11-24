@@ -1,14 +1,14 @@
 /* AQVILA — FA7: el dibujo de los elefantes y su escolta contra la falange (elefantes y peltastas de 0 A.D., Wildfire Games, CC BY-SA 3.0).
    Elefantes (tipo 'elefante'): lista → quieto. Aviso 'barrito' → trompa arriba (attack_melee2) una vez y luego carga a la carrera.
      FE1: lucha → empuja contra las picas y pisa (attack_melee en bucle), cabeceando. ensartada → clavada en las puntas: se alza de dolor
-     (pitch atrás) y barrita, sin avanzar; al morir cae despacio (la muerte a 0,45 de velocidad). desbocada → se alza, gira despacio
+     (pitch atrás) y barrita, sin avanzar; al morir cae despacio (la muerte a 0,45 de velocidad); FE2: hinca la cabeza y se va de costado. desbocada → se alza, gira despacio
      (120°/s) y se va contra los suyos. muerta → muerte una vez y se queda delante del muro. fuera → no se dibuja.
      Trozos de pica (S.riv.trozos, FE1): la punta rota clavada en la bestia (sigue a su figura) o tirada en el suelo.
    Escolta (tipo 'infante', peltastas): tira → quieta; con el aviso 'salva', lanza una vez (attack_ranged) cuando la salva sale.
      cuela → corre al hueco a 6 m/s y ataca (los peltastas solo tienen el gesto de lanzar: lo usan en bucle). pisado → muerte.
    La lógica coloca a saltos (la escolta de 46 m a 0,8 m; la desbocada cambia de rumbo de golpe): aquí se suaviza. Contrato: rival.js. */
 import { THREE } from '../../../js/gfx/models.js';
-import { cargaArte, vacio, crearTropa, crearSombras, figura, sigue, clipMarcha, muerte, dado, V_PIE, V_ELEFANTE, G_RAPIDO, G_ELEFANTE } from './rival.js';
+import { cargaArte, vacio, crearTropa, crearTropaNueva, crearSombras, figura, sigue, clipMarcha, muerte, dado, V_PIE, V_ELEFANTE, G_RAPIDO, G_ELEFANTE } from './rival.js';
 import { frameOf, frameOnce } from '../../../js/gfx/units.js';
 
 const CAP_E = 5, CAP_P = 16, ALZA = 1.2;   /* segundos que dura el alzarse */
@@ -34,10 +34,14 @@ function crearTrozos(escena, cap) {
 }
 export async function montaRival(ctx) {
   try {
-    if (!(await cargaArte(['elefantes', 'peltastas']))) return vacio();
+    /* FE2: la escolta es el peltasta nuevo (assets/soldados/, nivel _muylejos: siempre a más de 8 m de la cámara); si no carga, el de 0 A.D. */
+    const nueva = await crearTropaNueva('peltasta', CAP_P, { escena: ctx.escena, nivel: 2 });
+    if (!(await cargaArte(nueva ? ['elefantes'] : ['elefantes', 'peltastas']))) { if (nueva) nueva.quita(); return vacio(); }
     const H = ctx.H || (() => 0), az = dado(37);
     const ele = crearTropa('elefantes', CAP_E, { escena: ctx.escena, color: ctx.color || '#8a5a1e' });
-    const pel = crearTropa('peltastas', CAP_P, { escena: ctx.escena, color: ctx.color || '#8a5a1e' });
+    /* FE2: a contraluz (el sol de la escena les da por detrás) salían negros: un poco de su propio color como luz propia */
+    if (ele && ele.malla.material.emissive) { const m = ele.malla.material; m.emissive.setScalar(0.32); m.emissiveMap = m.map; m.needsUpdate = true; }
+    const pel = nueva || crearTropa('peltastas', CAP_P, { escena: ctx.escena, color: ctx.color || '#8a5a1e' });
     const sombras = crearSombras(ctx.escena, CAP_E + CAP_P), CE = ele.C, CP = pel.C, D = new Map(), trozos = crearTrozos(ctx.escena, CAP_T);
     let T = 0, Sv = null, tBarrito = -99, tSalva = -99;
     const fig = h => { let d = D.get(h); if (!d) { d = figura(az); d.retraso = az() * 0.35; D.set(h, d); } return d; };
@@ -58,7 +62,12 @@ export async function montaRival(ctx) {
             const clavada = h.est === 'ensartada' || (!h.vivo && d.est === 'ensartada');
             if (h.vivo) sigue(d, h, dt, V_ELEFANTE, G_ELEFANTE, { rumbo: h.est === 'carga' || h.est === 'desbocada' || h.est === 'huye', umbral: 1.5, yaw: alzado ? d.yaw0 : h.est === 'lucha' || clavada ? -g : undefined });
             const y = H(d.x, d.z); let fr, pitch = 0;
-            if (!h.vivo) { if (d.tMuere < 0) d.tMuere = T; fr = frameOnce(CE.death, (T - d.tMuere) * (clavada ? 0.45 : 1)); }   /* FE1: la ensartada cae despacio */
+            let roll = 0;
+            if (!h.vivo) {
+              if (d.tMuere < 0) d.tMuere = T; const vel = clavada ? 0.45 : 1; fr = frameOnce(CE.death, (T - d.tMuere) * vel);   /* FE1: la ensartada cae despacio */
+              /* FE2: la ensartada se vence: hinca la cabeza al doblar las manos y se va de costado (cada una hacia un lado) */
+              if (clavada) { const k = Math.min(1, (T - d.tMuere) * vel / CE.death.dur), lado = h.i % 2 ? 1 : -1; pitch = 0.14 * Math.sin(Math.PI * Math.min(1, k * 1.5)); roll = lado * 0.5 * k * k * (3 - 2 * k); }
+            }
             else if (clavada) {
               /* FE1: clavada en las puntas: se alza de dolor una vez, barrita y se queda, cabeceando */
               const u = (T - d.t0) / (ALZA * 1.4); pitch = u < 1 ? -0.35 * Math.sin(Math.PI * u) : -0.06 - 0.04 * Math.sin(T * 2.1 + d.fase);
@@ -70,13 +79,23 @@ export async function montaRival(ctx) {
               fr = frameOf(CE.run, T + d.fase);
             } else if (h.est === 'carga') fr = frameOf(CE.run, T + d.fase);
             else fr = clipMarcha(CE, d.v, V_ELEFANTE, T + d.fase);
-            ele.pon(i, d.x, y + Math.sin(-pitch) * 1.9, d.z, d.yaw, fr, { pitch, esc: d.esc });
+            ele.pon(i, d.x, y + (h.vivo ? Math.sin(-pitch) * 1.9 : 0), d.z, d.yaw, fr, { pitch, roll, esc: d.esc });
             sombras.pon(i, d.x, y, d.z, d.yaw, h.vivo ? 2.2 : 3.2, h.vivo ? 4.2 : 4.6);
           } else {
             if (ip >= CAP_P) continue; const i = ip++;
             if (h.vivo) sigue(d, h, dt, V_PIE, G_RAPIDO, { rumbo: true, umbral: 1.5 });
             const y = H(d.x, d.z); let fr;
             const ts = T - tSalva - d.retraso;
+            if (pel.nuevo) {   /* FE2: el peltasta nuevo, por clips con nombre */
+              let c = 'quieto', t = T + d.fase;
+              if (!h.vivo) { if (d.tMuere < 0) d.tMuere = T; c = 'morir'; t = T - d.tMuere; }
+              else if (h.est === 'cuela' && d.v < 0.5) { c = 'golpear'; t = (T + d.fase) % (pel.dur('golpear') + 0.4); }
+              else if (d.v >= 0.3) c = d.v < V_PIE / 2 ? 'andar' : 'correr';
+              else if (ts >= 0 && ts < pel.dur('lanzar')) { c = 'lanzar'; t = ts; }
+              pel.pon(i, d.x, y, d.z, d.yaw, c, t, { esc: d.esc });
+              sombras.pon(CAP_E + i, d.x, y, d.z, d.yaw, h.vivo ? 0.8 : 1, h.vivo ? 0.8 : 1.8);
+              continue;
+            }
             if (!h.vivo) fr = muerte(d, CP, T);
             else if (h.est === 'cuela' && d.v < 0.5) fr = frameOf(CP.attack_ranged, T + d.fase);
             else if (d.v >= 0.3) fr = clipMarcha(CP, d.v, V_PIE, T + d.fase);
@@ -112,7 +131,7 @@ export async function montaRival(ctx) {
       peso() { return { llamadas: 4, triangulos: ele.triangulos() + pel.triangulos() + sombras.triangulos() + trozos.triangulos(), figuras: ele.figuras() + pel.figuras() }; },
       desfase() {
         const S = ctx.estado(); let m = 0; if (!S || !S.ene) return 0;
-        for (const h of S.ene) { const d = D.get(h); if (d && h.vivo && !h.fuera && !(h.est === 'cuela' && d.v > 0.3)) m = Math.max(m, Math.hypot(d.x - h.x, d.z - h.z)); }   /* la escolta que corre al hueco no cuenta: la lógica la pone allí de un salto */
+        for (const h of S.ene) { const d = D.get(h); if (d && h.vivo && !h.fuera && !(h.est === 'cuela' && d.v > 0.3)) m = Math.max(m, Math.hypot(d.x - h.x - (h.fx || 0), d.z - h.z - (h.fz || 0))); }   /* la escolta que corre al hueco no cuenta: la lógica la pone allí de un salto */
         return m;
       },
     };
