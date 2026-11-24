@@ -20,10 +20,14 @@ body.aspecto #res .r { position: relative; display: flex; align-items: center; j
   background: linear-gradient(#f6e8c0, #e2c98f); border: 1px solid var(--as-bronce2); color: var(--as-tinta); font: 700 14px var(--as-letra); white-space: nowrap; backdrop-filter: none; -webkit-backdrop-filter: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -2px 3px rgba(120, 78, 28, .22); }
 body.aspecto #res .r .ico, body.aspecto #res .r > img { flex: none; display: block; width: 20px; height: 20px; margin: 0; stroke: none; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .5)); }
-body.aspecto #res .r b { display: block; flex: none; font: 700 12.5px var(--as-letra); letter-spacing: -.03em; color: var(--as-tinta); font-variant-numeric: tabular-nums; text-align: left; }
+body.aspecto #res .r b { display: block; flex: 0 1 auto; min-width: 0; font: 700 12.5px var(--as-letra); letter-spacing: -.04em; color: var(--as-tinta); font-variant-numeric: tabular-nums; text-align: left; }
 body.aspecto #res .r small { flex: none; margin-left: 1px; font: 700 8px var(--as-letra); color: var(--as-oliva); }
 body.aspecto #res .r small.neg, body.aspecto #res .r small.baja { color: var(--as-minio); }
 body.aspecto #res .r small.alm { display: none; }
+body.aspecto #res .r { overflow: clip; }
+body.aspecto #res .r small.tn { margin-left: 0; font-size: 7px; }
+/* CDe4: «Tus caminos» (CE10) y «Este año» sobre papiro: títulos en tinta, no en oro pálido */
+body.aspecto .cam-cab h2 { color: var(--as-tinta); }
 body.aspecto #res .r.full b { color: var(--as-minio); }
 body.aspecto #res .r.w-only, body.aspecto #res .r.g-only { }
 body.aspecto #bar2 #citybtn, body.aspecto #bar2 #datebox { background: var(--as-hoja); border: 0; color: var(--as-tinta); font-family: var(--as-cinzel);
@@ -106,12 +110,15 @@ body.aspecto #sheet .x, body.aspecto .as-x { color: var(--as-tinta); background:
   background: linear-gradient(#f3e2b4, #dcc48c); box-shadow: inset 0 0 0 1px var(--as-bronce2), 0 2px 3px rgba(0, 0, 0, .35); }
 /* sello de «lo lleva …» y barra de abajo */
 .as-lleva { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 3px; border-radius: 99px; background: var(--as-lacre); color: #fbe9c7; font: 700 12px var(--as-cinzel); letter-spacing: .04em; box-shadow: 0 0 0 1px var(--as-oro); }
-body.aspecto #tabs { background: var(--as-hoja); border: 0; box-shadow: inset 0 0 0 2px var(--as-bronce), inset 0 0 0 3px var(--as-bronce3), 0 -3px 10px rgba(0, 0, 0, .45); }
-body.aspecto #tabs button { color: #ecd9a8; background: linear-gradient(#3e2e16, #1f160a); box-shadow: inset 0 0 0 1px var(--as-bronce), inset 0 0 0 3px rgba(184, 134, 43, .22); font-family: var(--as-cinzel); }
-body.aspecto #tabs button.on { color: var(--as-tinta); background: linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--as-minio); }
-body.aspecto #tabs button i img, .as-nav img { display: block; width: 26px; height: 26px; margin: 0 auto; }
-body.aspecto #tabs button:not(.on) i img { filter: brightness(1.25) saturate(1.1) drop-shadow(0 0 1px #000); }
+body.aspecto #tabs3 { background: var(--as-hoja); border: 0; box-shadow: inset 0 0 0 2px var(--as-bronce), inset 0 0 0 3px var(--as-bronce3), 0 -3px 10px rgba(0, 0, 0, .45); }
+body.aspecto #tabs3 button { color: #ecd9a8; background: linear-gradient(#3e2e16, #1f160a); box-shadow: inset 0 0 0 1px var(--as-bronce), inset 0 0 0 3px rgba(184, 134, 43, .22); font-family: var(--as-cinzel); }
+body.aspecto #tabs3 button.on { color: var(--as-tinta); background: linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--as-minio); }
+body.aspecto #tabs3 button i img, .as-nav img { display: block; width: 26px; height: 26px; margin: 0 auto; }
+body.aspecto #tabs3 button:not(.on) i img { filter: brightness(1.25) saturate(1.1) drop-shadow(0 0 1px #000); }
 /* barra de abajo: seis botones iguales (icono pintado + palabra) */
-body.aspecto #tabs { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; padding: 5px; }
-body.aspecto #tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; padding: 2px 0; border: 0; font-size: 11px; letter-spacing: .02em; text-transform: uppercase; }
-body.aspecto #tabs button i { display: block; font-style: normal; line-height: 0; }
+body.aspecto #tabs3 { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; padding: 5px; }
+body.aspecto #tabs3 button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; padding: 2px 0; border: 0; font-size: 11px; letter-spacing: .02em; text-transform: uppercase; }
+body.aspecto #tabs3 button i { display: block; font-style: normal; line-height: 0; }
+
+body.aspecto .cam-tira .cam-nom { letter-spacing: 0; font-size: 11px; }
+body.aspecto .clases .bn { display: flex; align-items: center; }

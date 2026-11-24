@@ -17,7 +17,7 @@ G.usarCiudad(Ciudad); if (G.usarNecesidades) G.usarNecesidades(NEC);   // CN2b: 
 const UI = { codice: null, modo: 'gobierno', tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
 const ROMA = D.FACTIONS.roma.col;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fmt = n => { n = Math.floor(n); return n >= 10000 ? (n / 1000).toFixed(1) + 'k' : String(n); };
+const fmt = n => { n = Math.floor(n); return n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + '\u202fM' : n >= 10000 ? (n / 1000).toFixed(1).replace('.', ',') + '\u202fk' : String(n); };   // CDe4: «12,3 k», «1,2 M»
 /* CE3-B: tiempos en estaciones (la lógica da G.estaciones, G.estacionesRestan, G.llegada) */
 const estTxt = n => n + (n === 1 ? ' estación' : ' estaciones');
 const mesesEst = m => estTxt(G.estaciones(m));
@@ -50,14 +50,17 @@ D.BUILD_ICON = {
   escuela: svgIco('<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3zM5 17a3 3 0 013-3h11M9 8h6M9 11h4"/>'),
   templo: svgIco('<path d="M3 10l9-6 9 6zM6 12v6M10 12v6M14 12v6M18 12v6M3 20h18"/>')
 };
+/* CDe4 (MN4a): los cuatro recursos con el icono pintado de assets/iconos/ (CC BY-SA 3.0). BUILD_ICON ya guardó los de línea */
+{ const im = n => '<img class="ico" src="assets/iconos/' + n + '.svg" alt="">'; ['grano', 'denarios', 'materiales', 'hierro'].forEach(r => { D.RES_ICON[r] = im(r); }); D.RES_ICON_IMG = true; }
 const bIco = b => D.BUILD_ICON[b] || D.BUILD[b].i;
 // coste con plan de pago: «🧱 40/120» (cuota/total) si hay más de una cuota
-const costPlanHtml = (pp) => pp.nc < 2 ? costHtml(pp.total) : '<div class="cost plazo">' + Object.keys(pp.total).map(r => '<span>' + D.RES_ICON[r] + ' ' + fmt(pp.primera[r]) + '<small>/' + fmt(pp.total[r]) + '</small></span>').join('') + '</div>';
+const asFalta = (r, n) => { try { return G.disponible(r) < n ? ' falta' : ''; } catch (e) { return ''; } };   // CDe4: el coste en rojo si no alcanza
+const costPlanHtml = (pp) => pp.nc < 2 ? costHtml(pp.total) : '<div class="cost plazo as-costes">' + Object.keys(pp.total).map(r => '<span class="as-coste' + asFalta(r, pp.primera[r]) + '">' + D.RES_ICON[r] + fmt(pp.primera[r]) + '<small>/' + fmt(pp.total[r]) + '</small></span>').join('') + '</div>';
 const sinHuecoTxt = c => G.huecosObra(c) === 1 ? 'Ya hay una obra en curso en esta ciudad' : 'Sube el foro para otra obra';
 const obrasTxt = c => 'Obras ' + c.obras.length + '/' + G.huecosObra(c);
 const obraBarra = q => '<div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div><span class="rem"></span>';
 const plazoTxt = q => q && q.nc > 1 ? (q.pausa ? 'En pausa · ' : '') + q.pag + '/' + q.nc + ' cuotas · ' + Object.keys(q.cuota).filter(r => q.cuota[r] > 0).map(r => D.RES_ICON[r] + fmt(q.cuota[r])).join(' ') + ' al mes' : q && q.pausa ? 'En pausa' : '';
-const costHtml = c => '<div class="cost">' + Object.keys(c).map(r => '<span>' + D.RES_ICON[r] + ' ' + fmt(c[r]) + '</span>').join('') + '</div>';
+const costHtml = c => '<div class="cost as-costes">' + Object.keys(c).map(r => '<span class="as-coste' + asFalta(r, c[r]) + '">' + D.RES_ICON[r] + fmt(c[r]) + '</span>').join('') + '</div>';
 const pt = (k, col) => { const u = realPortrait(k, col || ROMA) || portrait(k, col || ROMA); return u ? '<img src="' + u + '" alt="">' : '<span style="display:grid;place-items:center;height:100%;font-size:22px">' + D.UNITS[k].g + '</span>'; };
 const troopsHtml = (u, col) => { const k = Object.keys(u).filter(x => u[x] > 0); return k.length ? '<div class="troops">' + k.map(x => '<div class="troop">' + pt(x, col) + '<em>' + u[x] + '</em><b>' + D.UNITS[x].n + '</b></div>').join('') + '</div>' : '<div class="empty">Sin tropas.</div>'; };
 const S = () => G.state;
@@ -141,6 +144,7 @@ G.onEvent = function (type, p) {
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) carta('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
   else if (type === 'turno') { if (window.MINISTROS_UI) MINISTROS_UI.pintar(); const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) setTimeout(() => { const q = S(); if (q && !q.pending.length && !q.vivo && !q.over) consejoModal(); }, 0); UI.dirty = true; }   // SN2: tras pasarTurno, que ya ha abierto la votación del Senado
+  else if (type === 'victoria') { if (!UI.camVic) setTimeout(camVictoria, 0); }
   else if (type === 'over') { if (!UI.binfo) showOver(); }
 };
 
@@ -322,8 +326,8 @@ const s_name = () => (S() && S().hero && S().hero.name) || 'General';
 
 /* ---------- HUD ---------- */
 function buildTop() {
-  $('res').innerHTML = D.RES.map(r => '<span class="r' + (r === 'denarios' || r === 'grano' ? '' : ' g-only') + '" id="rb-' + r + '">' + D.RES_ICON[r] + '<b id="r-' + r + '"></b><small class="alm" id="ra-' + r + '"></small></span>').join('') +
-    '<span class="r g-only" id="rb-hom" title="Hombres: reclutas libres de todas tus ciudades">' + D.POP_ICON + '<b id="r-hom"></b></span>' +   // CE2: hombres (no se guardan)
+  $('res').innerHTML = D.RES.map(r => '<span class="r' + (r === 'denarios' || r === 'grano' ? '' : ' g-only') + '" id="rb-' + r + '">' + D.RES_ICON[r] + '<b id="r-' + r + '"></b><small class="tn" id="rt-' + r + '"></small><small class="alm" id="ra-' + r + '"></small></span>').join('') +
+    '<span class="r g-only" id="rb-hom" title="Hombres: reclutas libres de todas tus ciudades"><img class="ico" src="assets/iconos/hombres.svg" alt=""><b id="r-hom"></b></span>' +   // CE2: hombres (no se guardan)
     '<span class="r w-only" id="rb-recl" title="Reclutas disponibles en la ciudad">' + D.GUERRA_ICON.casco + '<b id="r-recl"></b></span><span class="r w-only" id="rb-march" title="Marchas de tus ejércitos">' + D.GUERRA_ICON.espadas + '<b id="r-march"></b></span>';
   $('res').dataset.act = 'cuentas'; $('res').title = 'Cuentas del mes';
   if (!$('bienes')) { const b = document.createElement('div'); b.id = 'bienes'; b.className = 'g-only'; b.dataset.act = 'cuentas'; b.title = 'Bienes guardados: toca para ver las cuentas'; $('res').after(b); }   // CE2: fila compacta de bienes
@@ -395,7 +399,8 @@ function hudFundando(s) {
   const sitio = G.modo().inicio.fundar.sitio; setTxt('citybtn', '<b>' + (D.COLONIAS[sitio] || D.CITIES[sitio]).n.toUpperCase() + '</b>'); 
 }
 function tickUI() {
-  const s = S(); if (UI.pausa) { if (s && s.speed > 0) UI.pausa = null; pausaPon(); }   // R3: si el reloj corre por otra vía, la línea sobra
+  const s = S(); if (s && !UI.camVic && !UI.modalOpen && s.caminos && s.caminos.victoria && !s.caminos.victoriaVista && window.CAMINOS_UI) camVictoria();   // CDe4: pantalla de victoria por caminos
+  if (UI.pausa) { if (s && s.speed > 0) UI.pausa = null; pausaPon(); }   // R3: si el reloj corre por otra vía, la línea sobra
   if (!s) return;
   if (G.fundando()) { hudFundando(s); return; }   // I8: sin ciudad aún no hay cuentas; I8b: la barra enseña lo que traen los colonos
   if (UI.map && UI.map.cities) for (const id in UI.map.cities) { if (!D.CITIES[id] || !D.CITIES[id].antes) continue; const sp = UI.map.cities[id].el.querySelector('span'); if (sp && sp.textContent !== D.CITIES[id].n) sp.textContent = D.CITIES[id].n; }   // H14: el nombre del mapa cambia con la fecha (Poblado íbero → Carthago Nova)
@@ -405,6 +410,7 @@ function tickUI() {
     const v = Math.round(p[r]), pierde = pr[r].perdera >= 1 && aviso, lleno = s.alm[r] >= cap - 1;
     $('ra-' + r).textContent = 'alm ' + fmt(s.alm[r]); $('ra-' + r).style.color = pierde ? '#ff7060' : lleno ? 'var(--gold)' : '';
     $('r-' + r).style.color = pierde ? '#ff7060' : '';
+    { const tn = $('rt-' + r); if (tn) { tn.textContent = v > 0 ? '▲' : v < 0 ? '▼' : ''; tn.classList.toggle('neg', v < 0); } }   // CDe4: sube o baja este mes
     $('rb-' + r).title = (RES_NOM[r] || r) + ': caja del mes ' + fmt(s.res[r]) + ', almacén ' + fmt(s.alm[r]) + ' de ' + fmt(cap) + ', ' + (v >= 0 ? '+' : '') + v + ' al mes' + (pierde ? ' · se perderán ' + pr[r].perdera : lleno ? ' (almacén lleno)' : '');
     $('rb-' + r).classList.toggle('full', lleno); $('rb-' + r).classList.toggle('pierde', pierde);
     $('rb-' + r).style.setProperty('--lleno', Math.min(100, Math.round(s.alm[r] / Math.max(1, cap) * 100)) + '%');   // CE2: rayita del almacén (cuánto falta para el tope)
@@ -438,7 +444,7 @@ function volverAlMapa() { UI.deMapa = false; setTab('map'); if (UI.map) UI.map.r
 function setTab(t) {
   if (window.MINISTROS_UI) MINISTROS_UI.cerrar();   // CDe1: la hoja de ministros no sobrevive al cambio de pestaña
   if (UI.fundar) cerrarFundar(true);
-  UI.tab = t; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
+  eaCierra(); UI.tab = t; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D
   if (!c3 && UI.cityV && UI.cityV.enPlano) UI.cityV.plano(false, null, true);   // CV1: al salir de la ciudad, el plano se apaga (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
@@ -648,7 +654,7 @@ const clasesHtml = c => {
   if (c.owner !== 'roma') return '';
   const cl = G.clases(c), an = G.animoClases(c), mot = G.motivoCiudadania(c), K = G.K();
   const fila = (n, k, v) => { const pc = cl.pop > 0 ? Math.round(v / cl.pop * 100) : 0; return '<div class="cl"><span class="cn">' + n + '</span><b class="cv">' + Math.floor(v) + '</b><span class="cb"><i style="width:' + pc + '%"></i></span><span class="ca' + (an[k] < K.bajo ? ' mal' : '') + '" title="Ánimo ' + an[k] + '">' + G.cara(an[k]) + ' ' + an[k] + '</span></div>'; };
-  return '<div class="clases"><div class="bn"><b>Clases</b></div>' + fila('Ciudadanos', 'ciu', cl.ciu) + fila('Plebeyos', 'ple', cl.ple) + fila('Esclavos', 'esc', cl.esc) +
+  return '<div class="clases"><div class="bn"><b>Clases</b>' + (window.CLASES_UI ? '<button class="chip" style="margin-left:auto" data-act="clases">Ver clases</button>' : '') + '</div>' + fila('Ciudadanos', 'ciu', cl.ciu) + fila('Plebeyos', 'ple', cl.ple) + fila('Esclavos', 'esc', cl.esc) +
     '<div class="bf' + (an.esc < K.inquietud && cl.esc > 0 ? ' mal' : '') + '">' + clasesFrase(c, cl, an) + '</div>' +
     '<button class="btn ' + (mot ? 'no' : '') + '" data-act="ciud"' + (mot ? ' disabled' : '') + '>Dar ciudadanía (' + K.ciudadaniaCoste + ' 🪙)<small>' + (mot || '+' + K.ciudadaniaLote + ' ciudadanos') + '</small></button></div>';
 };
@@ -822,9 +828,21 @@ function viewCity(enHoja) {   // ficha de la ciudad (K12a): felicidad, lo que fa
     (UI.cityV && enHoja && UI.tab !== 'city' ? '<button class="gver" data-act="barra" data-v="ciudad">Ver la ciudad</button>' : '') + dipHtml(c) + '</div><div class="ro-palo"></div></div>';
 }
 /* MN1: hoja de ROMA ▾: arriba la ficha de la ciudad; debajo, cambiar de ciudad */
+/* CDe4: bloque «Gobernador» (MN3) de la ficha de ciudad. El interruptor lo atiende el clic de data-gb (más abajo) */
+function gobBloque() {
+  const s = S(); if (!s || !window.GobernadorUI || !window.GOBERNADOR) return '';
+  const cid = cityOk(), c = s.cities[cid]; if (!c || c.owner !== 'roma') return '';
+  try { if (!s.gobernador) GOBERNADOR.migrar(s); return '<div class="gobbl">' + GobernadorUI.html(s, cid, { nombreCiudad: id => D.CITIES[id].n, mesTexto: m => G.estacion(m) + ' · ' + G.yearOf(m) + ' a.C.' }) + '</div>'; } catch (e) { return ''; }
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-gb=alternar]'); if (!b || !S()) return;
+  const cid = b.closest('[data-cid]') ? b.closest('[data-cid]').dataset.cid : cityOk(), si = b.getAttribute('aria-checked') !== 'true';
+  try { GOBERNADOR.poner(S(), cid, si); G.save(); toast(si ? 'Un gobernador lleva ' + D.CITIES[cid].n + '.' : 'Vuelves a llevar ' + D.CITIES[cid].n + ' tú.'); } catch (err) { console.warn('Gobernador', err); }
+  UI.hjDown = false; setTimeout(() => hojaPinta(true), 0);   // después del clic global: si no, el botón ya no está en la página y el clic cerraría la hoja
+});
 function fichaCiudad() {
   if (!S()) return '<div class="empty">Aún no hay partida.</div>'; cityOk();
-  return '<div class="fciu">' + viewCity(true) + '</div>' + '<b class="hrot">Cambiar de ciudad</b><div class="fcam">' + cityMenuHtml() + '</div>';
+  return '<div class="fciu">' + viewCity(true) + '</div>' + gobBloque() + '<b class="hrot">Cambiar de ciudad</b><div class="fcam">' + cityMenuHtml() + '</div>';
 }
 /* ---------- J6 · Ciudad como pantalla principal ---------- */
 const ICO_X = svgIco('<path d="M6 6l12 12M18 6L6 18"/>');
@@ -893,7 +911,23 @@ function impFila(id) {
 const impObraHtml = (q, cls) => '<div class="' + cls + '"><span class="imp-nb">' + esc(obraNom(q)) + '</span><div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div><span class="rem"></span></div>';
 /* MN2: hueco de «Tus caminos» (cuatro caminos de victoria; los llena CE10). Sin datos aún: cintas vacías y «Pronto» */
 const IMP_CAMINOS = [['armas', 'Armas', '<path d="M5 19L19 5M15 5h4v4M5 5l14 14M5 15v4h4"/>'], ['comercio', 'Comercio', '<path d="M12 3v18M5 7h14M3 14l2-7 2 7a2 2 0 0 1-4 0zM17 14l2-7 2 7a2 2 0 0 1-4 0z"/>'], ['politica', 'Política', '<path d="M4 20h16M6 17V9M10 17V9M14 17V9M18 17V9M3 9l9-5 9 5z"/>'], ['ciencia', 'Ciencia', '<path d="M6 4h10a2 2 0 0 1 2 2v14H8a2 2 0 0 1-2-2zM6 18a2 2 0 0 1 2-2h10M10 8h5M10 11h5"/>']];
-const impCaminos = () => '<div class="imp-cam" role="group" aria-label="Tus caminos de victoria"><div class="imp-cam-t"><b>Tus caminos</b><span>Ganas con tres de cuatro</span></div><div class="imp-cam-g">' +
+/* CDe4: «Tus caminos» (CE10). Con CAMINOS_UI sale la tira real; sin ella (o si falla) queda el hueco de arriba */
+function camVista() {
+  try { const s = S(); if (!s || !window.CAMINOS || !window.CAMINOS_UI) return null; if (!s.caminos) CAMINOS.migrar(s); const v = CAMINOS.vista(s, CAMINOS.foto(s, G)); CAMINOS_UI.estilos(); return v; } catch (e) { return null; }
+}
+function camAbrir() {
+  const v = camVista(); if (!v) return;
+  modal(CAMINOS_UI.hoja(v, {}), false, 'cam-modal');
+  const mb = $('mbox'); CAMINOS_UI.montar(mb, mb.innerHTML, a => { if (a === 'cerrar') closeModal(); });
+}
+function camVictoria() {
+  const s = S(), v = camVista(); if (!s || !v || !v.nuevaVictoria) return;
+  UI.camVic = true;
+  modal(CAMINOS_UI.victoria(v, {}), true, 'cam-modal');
+  const mb = $('mbox'); CAMINOS_UI.montar(mb, mb.innerHTML, a => { if (a !== 'seguir' && a !== 'abrir') return; CAMINOS.marcarVista(S()); UI.camVic = false; G.save(); closeModal(); if (a === 'abrir') camAbrir(); });
+}
+const impCaminos = () => { const v = camVista(); return v ? CAMINOS_UI.tira(v).replace('data-cam="abrir"', 'data-cam="abrir" data-act="camabrir"') : impCaminosVacio(); };
+const impCaminosVacio = () => '<div class="imp-cam" role="group" aria-label="Tus caminos de victoria"><div class="imp-cam-t"><b>Tus caminos</b><span>Ganas con tres de cuatro</span></div><div class="imp-cam-g">' +
   IMP_CAMINOS.map(c => '<div class="imp-cam-c" data-c="' + c[0] + '">' + svgIco(c[2]) + '<span>' + c[1] + '</span><div class="sen-cinta"><i></i></div></div>').join('') + '</div></div>';
 function viewImperio() {
   const s = S(), filas = G.myCities().map(impFila), n = filas.length;
@@ -914,8 +948,36 @@ function viewImperio() {
       '<div class="imp-l2">' + (r.ob.length ? '<div class="imp-obs">' + r.ob.map(q => impObraHtml(q, 'imp-obra')).join('') + '</div>' : '<span class="imp-sin">sin obra</span>') +
       (r.causa ? '<em class="imp-tag ' + r.tono + '">' + r.causa + '</em>' : '') + '</div></div></div>';
   }
-  h += '</div><div class="mar-pie"><button class="btn cu-go ro-bronce" data-act="cuentas">' + svgIco('<path d="M5 4h12l2 2v14H5zM8 9h8M8 13h8M8 17h5"/>') + '<span>Este año</span><small>cuentas y tributo</small></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="hero">' + svgIco('<path d="M5 15c0-5 3-9 7-9s7 4 7 9v3h-4v-3H9v3H5zM12 6V3M9 3h6"/>') + '<span>General</span></button></div>';
+  h += '</div><div class="mar-pie"><button class="btn cu-go ro-bronce" data-act="esteano">' + svgIco('<path d="M5 4h12l2 2v14H5zM8 9h8M8 13h8M8 17h5"/>') + '<span>Este año</span><small>cuentas y tributo</small></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="hero">' + svgIco('<path d="M5 15c0-5 3-9 7-9s7 4 7 9v3h-4v-3H9v3H5zM12 6V3M9 3h6"/>') + '<span>General</span></button></div>';
   return h + '</div><div class="ro-palo"></div></div>';
+}
+/* CDe4: «Este año» (CE5): hoja de papiro con las cuentas del año y el tributo de guerra. Sin ESTEANO_UI, cae a la hoja de cuentas del mes */
+function eaPinta() {
+  const e = $('eahoja'); if (!e || e.hidden || !S()) return;
+  try { ESTEANO_UI.montar(e, ESTEANO.cuentas(S().esteAno.actual, S().esteAno.anterior), eaOpts()); } catch (err) { console.warn('Este año', err); e.hidden = true; }
+}
+function eaOpts() {
+  const s = S(), nombres = {}; G.myCities().forEach(id => { nombres[id] = D.CITIES[id].n; });
+  let tributo = null; try { tributo = G.tributoPendiente ? G.tributoPendiente() : null; } catch (e) { tributo = null; }
+  return { ambito: UI.eaAmb || 'imperio', nombres, tributo, anioTexto: G.estacion(s.t) + ' · ' + G.yearOf(s.t) + ' a.C.', abierta: UI.eaFila || null };
+}
+function eaAbre() {
+  const s = S(); if (!s) return;
+  if (!window.ESTEANO || !window.ESTEANO_UI) { const cs = $('cuentas'); cs.hidden = false; renderCuentas(true); return; }
+  try { if (!s.esteAno) ESTEANO.migrar(s, G.yearOf(s.t)); } catch (e) { }
+  let e = $('eahoja'); if (!e) { e = document.createElement('div'); e.id = 'eahoja'; $('app').appendChild(e); }
+  UI.eaAmb = 'imperio'; UI.eaFila = null; e.hidden = false; eaPinta();
+}
+function eaCierra() { const e = $('eahoja'); if (e) { e.hidden = true; e.innerHTML = ''; } }
+function eaAccion(a, v) {
+  if (a === 'eacerrar') return eaCierra();
+  if (a === 'eaambito') { UI.eaAmb = v; UI.eaFila = null; }
+  else if (a === 'eafila') UI.eaFila = UI.eaFila === v ? null : v;
+  else if (a === 'eatributo' || a === 'eacaja') {
+    if (!G.resolverTributo) toast('El tributo aún no está en marcha.', 'bad');
+    else { let r = null; try { r = G.resolverTributo(a === 'eatributo' ? 'tributo' : 'caja'); } catch (err) { r = { ok: false, motivo: 'No se pudo resolver el tributo.' }; } if (r && r.ok === false) toast(r.motivo || 'No se puede pagar ahora.', 'bad'); else { G.save(); UI.dirty = true; } }
+  }
+  eaPinta();
 }
 /* pone una pieza en una ciudad: la mejora (op.mej = id de la pieza) o una nueva en su mejor sitio. Devuelve {ok, motivo, obra} */
 function ponPieza(cid, op) {
@@ -969,9 +1031,9 @@ function mismoModal(id, pz, nueva) {
 })();
 function buildTabs() {
   const ICO_SAB = svgIco('<path d="M6 4h11a2 2 0 0 1 0 4H6M6 4a2 2 0 0 0 0 4v12h11a2 2 0 0 0 0-4H8M9 11h6M9 14h4"/>');
-  $('tabs3').innerHTML = [['ciudad', ICO_TEMPLO, 'Ciudad'], ['senado', ICO_GOB, 'Senado'], ['saber', ICO_SAB, 'Saber'], ['tropas', D.GUERRA_ICON.casco, 'Tropas'], ['mapa', ICO_MUNDO, 'Mapa'], ['imperio', D.GUERRA_ICON.aguila, 'Imperio']].map(t => '<button data-act="barra" data-v="' + t[0] + '" title="' + t[2] + '" aria-label="' + t[2] + '">' + t[1] + '<span>' + t[2] + '</span></button>').join('');
+  $('tabs3').innerHTML = [['ciudad', 'nav-ciudad', 'Ciudad'], ['senado', 'nav-senado', 'Senado'], ['saber', 'nav-saber', 'Saber'], ['tropas', 'nav-tropas', 'Tropas'], ['mapa', 'nav-mapa', 'Mapa'], ['imperio', 'nav-imperio', 'Imperio']].map(t => '<button data-act="barra" data-v="' + t[0] + '" title="' + t[2] + '" aria-label="' + t[2] + '"><i><img src="assets/iconos/' + t[1] + '.svg" alt=""></i><span>' + t[2] + '</span></button>').join('');
   $('bmas').innerHTML = ICO_MAS;
-  $('bpest').innerHTML = [['yo', 'Lo hago yo'], ['encargar', 'Encargar'], ['gobernador', 'Gobernador']].map((t, i) => '<button role="tab" data-act="bpest" data-v="' + t[0] + '"' + (i ? ' class="off" aria-disabled="true"' : ' class="on" aria-selected="true"') + '>' + t[1] + '</button>').join('');   // MN1: «Encargar» (CE8) y «Gobernador» (MN3), aún huecos
+  $('bpest').innerHTML = [['yo', 'Lo hago yo'], ['encargar', 'Encargar'], ['gobernador', 'Gobernador']].map((t, i) => '<button role="tab" data-act="bpest" data-v="' + t[0] + '"' + (i && !(t[0] === 'gobernador' && window.GOBERNADOR && window.GobernadorUI) ? ' class="off" aria-disabled="true"' : i ? '' : ' class="on" aria-selected="true"') + '>' + t[1] + '</button>').join('');   // MN1: «Encargar» (CE8) y «Gobernador» (MN3), aún huecos
 }
 /* ---------- consejo y piezas (CN4): el consejo habla de piezas, no de niveles de edificio ---------- */
 const ROM = Ciudad.ROMANOS;
@@ -1845,7 +1907,7 @@ document.addEventListener('click', function (e) {
     case 'menumodo': if (UI.hoja && UI.hoja.id === 'menu' && !$('hoja').hidden) hojaCierra(); else hojaAbre('menu'); break;
     case 'marchas': if (UI.hoja && UI.hoja.id === 'marchas' && !$('hoja').hidden) hojaCierra(); else hojaAbre('marchas'); break;
     case 'codicem': UI.codice = 'hechos'; setTab('log'); break;
-    case 'bpest': if (v !== 'yo') toast('Llegará pronto'); break;
+    case 'bpest': if (v === 'gobernador' && window.GobernadorUI && window.GOBERNADOR) { hojaAbre('ciudad'); setTimeout(() => { const b = document.querySelector('#hoja .gb-bloque'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start' }); }, 80); } else if (v !== 'yo') toast('Llegará pronto'); break;
     case 'entrar': entrarEn(v); break;
     case 'vera': hojaCierra(true); try { if (UI.map) UI.map.center(v); } catch (e) { } break;
     case 'hoja': hojaAbre(v); break;
@@ -1856,6 +1918,10 @@ document.addEventListener('click', function (e) {
     case 'hojax': hojaCierra(); break;
     case 'menuconf': UI.hojaConf = true; hojaPinta(true); break;
     case 'popx': $('popsheet').hidden = true; break;
+    case 'esteano': eaAbre(); break;
+    case 'eacerrar': case 'eaambito': case 'eafila': case 'eatributo': case 'eacaja': eaAccion(a, v); break;
+    case 'camabrir': camAbrir(); break;
+    case 'clases': if (window.CLASES_UI) { hojaCierra(true); CLASES_UI.abrir(UI.city); } else toast('El menú de clases no ha cargado.', 'bad'); break;
     case 'cuentas': { const cs = $('cuentas'); cs.hidden = !cs.hidden; if (!cs.hidden) { $('popsheet').hidden = true; renderCuentas(true); } break; }
     case 'cux': $('cuentas').hidden = true; break;
     case 'cubien': { const got = G.venderBien(v, +el.dataset.n || 0), nb = D.ESPECIAL[v] ? D.ESPECIAL[v].n.toLowerCase() : v;   // CE2: vender bienes a precio fijo
@@ -1975,6 +2041,7 @@ window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.ci
 document.addEventListener('visibilitychange', () => { if (document.hidden && S() && !UI.menu) G.save(); });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
+document.body.classList.add('aspecto');   // CDe4 (MN4a): el aspecto nuevo (papiro, bronce, iconos pintados); quitar la clase lo apaga
 buildTop(); buildTabs(); initBandeja();
 /* CDe1-B: botón «Ministros» de la ciudad */
 function abreMinistros() {
