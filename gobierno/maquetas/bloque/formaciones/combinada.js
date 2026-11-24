@@ -9,27 +9,32 @@
 import { guardiaDeSerie } from '../fisica.js';
 import { crearMando } from '../mando.js';
 import { crearTira } from '../tira-mando.js';
+import { montaTiradores, DETRAS } from '../../../../js/tiro.js';   /* ES3b: tus tiradores (reglas, sin pantalla) */
+import { crearVista } from '../tiradores.js';   /* ES3b: cómo se ven y se tocan */
 
 export const HOMBRES_FALANGE = 128;
 export function crear() {
-  let ctx = null, M = null, tira = null, aros = [], tAro = 0;
+  let ctx = null, M = null, tira = null, vista = null, aros = [], tAro = 0;
   const camaras = { v: { d: 110, alto: 88, ad: 30, fov: 56 }, h: { d: 52, alto: 34, ad: 22, fov: 44 } };
   function monta(c) {
     ctx = c; const { THREE } = c;
-    if (tira) tira.quita();
+    if (tira) tira.quita(); if (vista) vista.quita(); vista = null;
     M = crearMando(c.C, { MO: c.BL, avisa: t => { try { c.hud && c.hud.grito(t); } catch (e) { /* sin aviso */ } } });
     /* el aro dorado: un anillo plano por cuerpo (el mismo dibujo, 1 llamada cada uno; «Todos» enseña los tres) */
     if (!aros.length) {
       const geo = new THREE.RingGeometry(0.93, 1, 48), mat = new THREE.MeshBasicMaterial({ color: 0xe9c063, transparent: true, opacity: 0.9, depthTest: false, depthWrite: false, side: THREE.DoubleSide, fog: false });
       for (let i = 0; i < 3; i++) { const m = new THREE.Mesh(geo, mat); m.rotation.x = -Math.PI / 2; m.renderOrder = 18; m.frustumCulled = false; m.visible = false; c.escena.add(m); aros.push(m); }
     }
+    /* ES3b: los tiradores (?tiradores=honderos|arqueros|velites) entran como quinta ficha, antes de armar la tira */
+    const tp = new URLSearchParams(location.search).get('tiradores'), X = montaTiradores(c.C, M, { tipo: tp, semilla: c.semilla, alSalva: s => vista && vista.salva(s), avisa: t => vista && vista.aviso(t) });
     tira = crearTira({ mando: M, hud: c.hud, $: c.$, dedos: c.dedos });
+    if (X) { vista = crearVista({ ctx: c, M, X }); window.__bloque && (window.__bloque.tiradores = X, window.__bloque.proyecta = c.proyecta); }
     c.texto && c.texto('Rompe su centro con la falange y los dos manípulos');
     window.__bloque && (window.__bloque.mando = M);
   }
   return {
     id: 'combinada', ordenes: ['avanzar', 'alto', 'cargar', 'retirada'], hud: { retirada: false }, objetivo: 'Rompe su centro con la falange y los dos manípulos', escenario: null, muroDelante: false, camaras,
-    opcCombate: BL => ({ bloque: BL.crearBloque({ id: 'yo', bando: 'yo', tipo: 'falange', x: 0, z: 0, rumbo: 0 }), fuerzas: { tuyo: HOMBRES_FALANGE } }),
+    opcCombate: BL => ({ bloque: BL.crearBloque({ id: 'yo', bando: 'yo', tipo: 'falange', x: 0, z: 0, rumbo: 0 }), fuerzas: { tuyo: HOMBRES_FALANGE }, apoyo: { x: 0, z: DETRAS, hombres: 40 } }),
     util: () => (M ? M.util() : null),
     mods: () => null,
     guardia: guardiaDeSerie,
@@ -45,7 +50,7 @@ export function crear() {
       });
       void S;
     },
-    despues(dt) { if (tira) tira.tick(dt); },
+    despues(dt) { if (tira) tira.tick(dt); if (vista) vista.tick(dt); },
     alAviso() {}
   };
 }

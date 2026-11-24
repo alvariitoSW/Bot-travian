@@ -26,7 +26,7 @@ import * as BL from '../../../js/bloque.js';
 import { crearCombate, centro, NIVELES, SALVA_VUELO } from '../../../js/bloque-ia.js';
 import { crearTropas } from './tropas.js';
 import { crearLucha } from '../../../js/combate-tropas.js';   /* CB3: el motor de lucha decide los golpes y los caídos */
-import { crearFisicaBloque } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
+import { crearFisicaBloque, PROY_MAX } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
 import { crearHud } from './hud.js';
 import { crearDedos } from './dedos.js';
 import { crearCamara } from './camara.js';
@@ -208,7 +208,7 @@ function creaEfectos() {
   for (let i = 0; i < POLVO_N; i++) polvo.pos[i * 3 + 1] = -99; for (let i = 0; i < CHISPA_N; i++) chispa.pos[i * 3 + 1] = -99;
   mPolvo = pts(polvo, 3.2, false); mChispa = pts(chispa, 0.35, true);
   const gj = new THREE.CylinderGeometry(0.018, 0.018, 1.7, 4); gj.rotateX(Math.PI / 2);
-  mJab = new THREE.InstancedMesh(gj, new THREE.MeshLambertMaterial({ color: 0x5a4630 }), 160); mJab.frustumCulled = false; mJab.count = 0; escena.add(mJab);
+  mJab = new THREE.InstancedMesh(gj, new THREE.MeshLambertMaterial({ color: 0xffffff }), PROY_MAX); mJab.frustumCulled = false; mJab.count = 0; escena.add(mJab);
 }
 function suelta(P, N, x, y, z, vx, vy, vz, r, g, b, vida) { const i = P.k; P.k = (P.k + 1) % N; P.pos.set([x, y, z], i * 3); P.vel.set([vx, vy, vz], i * 3); P.col.set([r, g, b], i * 3); P.vida[i] = vida; P.col0 = P.col0 || new Float32Array(N * 3); P.col0.set([r, g, b], i * 3); }
 function avanza(P, N, m, dt, cae) {
@@ -236,7 +236,9 @@ function lanza(de, a, n, dur) {
     const x0 = de.x + D.x * s, z0 = de.z + D.z * s, x1 = ca.x + (azarV() - 0.5) * a.ancho, z1 = ca.z + (azarV() - 0.5) * a.fondo;
     vuelos.push({ x0, z0, y0: H(x0, z0) + 1.8, x1, z1, y1: H(x1, z1) + 0.2, t: -azarV() * 0.4, dur: dur * (0.9 + azarV() * 0.2), alto: 4 + Math.hypot(x1 - x0, z1 - z0) * 0.18 }); }
 }
-const LARGO = { pilum: 2.0, jabalina: 1.5, flecha: 0.75 };
+const LARGO = { pilum: 2.0, jabalina: 1.5, flecha: 0.75, piedra: 0.3 };
+/* ES3b: grosor (× el del cilindro) y color de cada proyectil: la piedra, un guijarro gris; la flecha, algo más gruesa y clara. Sin entrada: como siempre */
+const GRUESO_P = { piedra: 8, flecha: 2.2 }, COLOR_P = { piedra: new THREE.Color(0xb9b3a6), flecha: new THREE.Color(0xd9c9a0) }, COLOR_0 = new THREE.Color(0x5a4630);
 /* un punto al azar entre los hombres del bloque a (donde caen pilum y jabalinas) */
 const puntoEn = a => { const men = TR.figs.filter(f => f.b === a); return () => { if (!men.length) { const c = centro(a); return { x: c.x, z: c.z }; } const f = men[Math.floor(azarV() * men.length)]; return { x: f.x + (azarV() - 0.5) * 1.6, z: f.z + (azarV() - 0.5) * 1.6 }; }; };
 function lanzaFisica(de, a, n, dur, tipo) { if (!FS || !FS.activa) return lanza(de, a, n, dur); FS.salva(de, a, n, dur, tipo, puntoEn(a)); }
@@ -244,15 +246,15 @@ function pintaVuelos(dt) {
   let n = 0;
   /* LP5a: los de la física (en vuelo, clavados en escudos y cuerpos, en el suelo): la punta y la dirección las da el motor */
   if (FS && FS.activa) for (const p of FS.proyectiles) {   /* FI3u */
-    if (n >= 160) break; const d = FS.dondeP(p), L = LARGO[p.tipo] || 1.5;   /* FI3u */
+    if (n >= PROY_MAX) break; const d = FS.dondeP(p), L = LARGO[p.tipo] || 1.5;   /* FI3u */
     E3.set(d.dx, d.dy, d.dz); if (E3.lengthSq() < 1e-8) continue; E3.normalize(); P3.set(d.x - E3.x * L / 2, d.y - E3.y * L / 2, d.z - E3.z * L / 2);
-    QT.setFromUnitVectors(Z1, E3); E3.set(1, 1, L / 1.7); M4.compose(P3, QT, E3); mJab.setMatrixAt(n++, M4);
+    QT.setFromUnitVectors(Z1, E3); const gr = GRUESO_P[p.tipo] || 1; E3.set(gr, gr, L / 1.7); M4.compose(P3, QT, E3); mJab.setColorAt(n, COLOR_P[p.tipo] || COLOR_0); mJab.setMatrixAt(n++, M4);
   }
-  for (let i = vuelos.length - 1; i >= 0; i--) { const v = vuelos[i]; v.t += dt; if (v.t > v.dur + 2.5) { vuelos.splice(i, 1); continue; } if (v.t < 0 || n >= 160) continue;
+  for (let i = vuelos.length - 1; i >= 0; i--) { const v = vuelos[i]; v.t += dt; if (v.t > v.dur + 2.5) { vuelos.splice(i, 1); continue; } if (v.t < 0 || n >= PROY_MAX) continue;
     const u = Math.min(1, v.t / v.dur), u2 = Math.min(1, (v.t + 0.05) / v.dur), at = w => [v.x0 + (v.x1 - v.x0) * w, v.y0 + (v.y1 - v.y0) * w + v.alto * 4 * w * (1 - w), v.z0 + (v.z1 - v.z0) * w];
     const p = at(u), q = u < 1 ? at(u2) : at(1), dir = u < 1 ? [q[0] - p[0], q[1] - p[1], q[2] - p[2]] : [v.x1 - v.x0, -2, v.z1 - v.z0];
-    P3.set(...p); E3.set(...dir).normalize(); QT.setFromUnitVectors(new THREE.Vector3(0, 0, 1), E3); M4.compose(P3, QT, new THREE.Vector3(1, 1, 1)); mJab.setMatrixAt(n++, M4); }
-  mJab.count = n; mJab.instanceMatrix.needsUpdate = true;
+    P3.set(...p); E3.set(...dir).normalize(); QT.setFromUnitVectors(new THREE.Vector3(0, 0, 1), E3); M4.compose(P3, QT, new THREE.Vector3(1, 1, 1)); mJab.setColorAt(n, COLOR_0); mJab.setMatrixAt(n++, M4); }
+  mJab.count = n; mJab.instanceMatrix.needsUpdate = true; if (mJab.instanceColor) mJab.instanceColor.needsUpdate = true;
 }
 
 /* ---------- partida ---------- */
@@ -286,7 +288,7 @@ function nueva(n) {
   C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa, lucha: LUCHA }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}, FORM.opcCombate ? FORM.opcCombate(BL) : {}));
   if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
   LU = LUCHA === 'motor' ? crearLucha({ C, TR, semilla }) : null;
-  FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, BL, hud, $, dedos, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
+  FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, BL, hud, $, dedos, FS, camara, proyecta, suelo, lienzo, semilla, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
   OF = crearOficial({ S: C.S, alAviso: alOficial }); rivF = null; sacude = 0;
   window.__bloque.C = C; window.__bloque.LU = LU; window.__bloque.S = C.S; window.__bloque.oficial = OF;
 }

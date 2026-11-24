@@ -246,6 +246,8 @@ export function crearCombate(m = {}) {
     ene.centro.z = -78; for (const a of ene.alas) a.z = -78; ene.reserva.z = -100; ene.tiradores.z = -50;
     S.escenario = { meta: { x: 0, z: -62, r: 9 }, fase: 'cruza', tCarga: -1 };
   }
+  /* ES3b: un cuerpo de apoyo tuyo (tus tiradores, js/tiro.js montaTiradores): un bloque más de bando 'r' que lleva el mando. m.apoyo = { x, z, hombres } */
+  if (m.apoyo) S.apoyo = crea('tiradores', 'tiradores', 'r', m.apoyo.x || 0, m.apoyo.z ?? 20, 0, m.apoyo.hombres || 40);
   /* cada partida, su suerte: la fuerza de cada banda galo varía ±VAR con la semilla */
   for (const b of S.bloques) b.atkNivel = b.bando === 'g' ? P.fuerza * (b.papel === 'ala' ? P.alas : 1) * (1 - VAR + azar() * 2 * VAR) : 1;
   S.tuyo = tuyo; S.amigas = amigas; S.ene = ene;

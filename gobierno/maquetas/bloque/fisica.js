@@ -14,14 +14,15 @@
    La guardia de cada romano sale de la orden: en testudo, la 1.ª fila en muro y las demás con el escudo arriba.
    Medidas (D_RIVAL, TENDIDO, los tiempos de los proyectiles): licencia de juego. */
 import { crearFisica, crearProyectiles, MIN_DIST, ESCUDO, RADIO, ALTO, PROYECTIL } from '../../../js/fisica-batalla.js';
+import { angulos } from '../../../js/tiro.js';   /* ES3b: el ángulo bajo (directo) o alto (parábola) de cada tiro */
 
 export const D_RIVAL = 0.95;     /* m entre dos rivales (centro a centro): los escudos se tocan, no se cruzan */
 export const TENDIDO = 1.25;     /* m de los pies a la cabeza del caído */
 export const RAD_CAIDO = 0.22;   /* medio ancho del caído (hombros) */
 export const CAE_T = 1.8;        /* s que tarda en quedar tendido (el muñeco de morir: 2,4 s) */
 export const VARA = { mismo: MIN_DIST, rival: 0.9 };   /* las varas de la medida: 0,45 m entre los de un bando; 0,9 entre rivales */
-export const PROY_MAX = 160;     /* los que se dibujan (los más viejos del suelo se quitan) */
-export const SUELO_VIDA = 25;    /* s que se queda en el suelo un proyectil */
+export const PROY_MAX = 200;     /* los que se dibujan (los más viejos del suelo se quitan). ES3b: 160 → 200 (tus tiradores y los vélites rivales) */
+export const SUELO_VIDA = 15;    /* s que se queda en el suelo un proyectil (ES3b: 25 → 15) */
 /* FI3u: la geometría del escudo y del cuerpo para los proyectiles (venía del motor viejo de fisica-batalla.js) */
 export const ESCUDO_ALTO = { y: 1.85, delante: 0.4 };   /* testudo (guardia 'alto'): la caja tumbada sobre la cabeza, adelantada */
 export const MURO = { sube: 0.28, agacha: 0.1 };        /* guardia 'muro': algo agachado y con el escudo subido hasta los ojos */
@@ -255,8 +256,10 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
     const v = Math.hypot(p.v[0], p.v[1], p.v[2]) || 1; return { x: p.p[0], y: p.p[1], z: p.p[2], dx: p.v[0] / v, dy: p.v[1] / v, dz: p.v[2] / v };
   }
   /* una salva: n proyectiles de los hombres de delante del bloque de (figuras con f.b === de) a puntos del bloque a,
-     que llegan en unos dur s. Devuelve cuántos salieron */
-  function salva(de, a, n, dur, tipo, punto) {
+     que llegan en unos dur s. Devuelve cuántos salieron.
+     ES3b: con op = { v, alto } cada proyectil sale a v m/s con el ángulo bajo (alto: false) o alto (alto: true) de angulos() hacia su punto (y dur no cuenta);
+     si el punto no está a su alcance, sale como hasta ahora */
+  function salva(de, a, n, dur, tipo, punto, op) {
     if (!activa) return 0;
     const men = TR.figs.filter(f => f.b === de); if (!men.length) return 0;
     const F = { x: Math.sin(de.ang), z: -Math.cos(de.ang) };
@@ -267,6 +270,10 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
       const f = delante[(i * 7) % delante.length], q = punto(i), t = dur * (0.9 + 0.2 * ((i * 0.618) % 1));
       const x0 = f.x + F.x * 0.4, z0 = f.z + F.z * 0.4, y0 = H(x0, z0) + 1.9, y1 = H(q.x, q.z) + 0.9;
       const V = [(q.x - x0) / t, (y1 - y0 + 0.5 * 9.81 * t * t) / t, (q.z - z0) / t];
+      if (op && op.v) {
+        const dh = Math.hypot(q.x - x0, q.z - z0), an = angulos(dh, op.v, G_PR, y1 - y0);
+        if (an) { const th = op.alto ? an.alto : an.bajo, c = Math.cos(th), s = Math.sin(th), u = [(q.x - x0) / dh, (q.z - z0) / dh]; V[0] = u[0] * op.v * c; V[1] = op.v * s; V[2] = u[1] * op.v * c; }
+      }
       proyectiles.push({ tipo, largo: (PROYECTIL[tipo] || PROYECTIL.jabalina).largo, p: [x0, y0, z0], v: V, de: cuerpo(f), t: 0 }); k++;   /* FI3u */
     }
     return k;

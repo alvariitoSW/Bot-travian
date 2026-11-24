@@ -16,7 +16,7 @@
      M.paso(dt)         un paso del combate (no hace nada en pausa)
      M.vida(id)         { n, de, f } hombres en pie, de cuántos, fracción
      M.util(id)         la orden que conviene iluminar al elegido, o null
-     M.anade({ id, nombre, corto, ordenes, vida, alOrden, alFrente, b })   ES3: un cuerpo más (los tiradores) en la tira */
+     M.anade({ id, nombre, corto, ordenes, vida, alOrden, alFrente, alUtil, b })   ES3: un cuerpo más (los tiradores) en la tira */
 import { centro, GRADO, D_CARGA } from './bloque-ia.js';
 
 const fr = a => ({ x: Math.sin(a), z: -Math.cos(a) }), de = a => ({ x: Math.cos(a), z: Math.sin(a) });
@@ -138,7 +138,7 @@ export function crearMando(C, { MO, avisa = () => {}, hueco = HUECO } = {}) {
   M.util = (id = M.elegido) => {
     if (S.ganador) return null;
     if (id === 'falange') { const u = C.ordenUtil(); return u === 'cargar' ? 'picas' : u === 'alto' ? 'alto' : null; }
-    const c = por(id); if (!c || !c.b || c.alOrden || !vivo(c)) return null;
+    const c = por(id); if (c && c.alUtil) return c.alUtil(); if (!c || !c.b || c.alOrden || !vivo(c)) return null;
     const b = c.b, ch = b.contactos.length > 0;
     if (b.orden === 'testudo') return null;   /* en testudo, «Cargar» no se ilumina */
     if (ch) return b.fila >= 0.7 && b.relevos > 0 && b.tRelevo < S.T ? 'relevo' : null;

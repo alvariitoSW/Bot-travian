@@ -45,7 +45,11 @@ const ORDEN = {
   picas: { t: 'Bajar picas', svg: '<path d="M6 26L26 10"/><path d="M10 27L28 14"/><path d="M23 9l4 0-1 4"/>' },
   cerrar: { t: 'Cerrar filas', svg: '<path d="M6 10h20M6 16h20M6 22h20"/><path d="M4 7l4 3-4 3M28 7l-4 3 4 3"/>' },
   retirada: CUARTO.retirada,
-  avanzar: { t: 'Avanzar', svg: '<path d="M9 22l7-7 7 7"/><path d="M16 15v13"/><path d="M9 12l7-7 7 7"/>' }
+  avanzar: { t: 'Avanzar', svg: '<path d="M9 22l7-7 7 7"/><path d="M16 15v13"/><path d="M9 12l7-7 7 7"/>' },
+  /* ES3b: los tiradores («Tirar» pasa a «Alto el fuego» mientras tiran: lo cambia gobierno/maquetas/bloque/tiradores.js) */
+  tirar: { t: 'Tirar', svg: '<path d="M6 26C6 14 12 8 24 6"/><path d="M6 26L24 6"/><path d="M19 5l5 1-1 5"/>' },
+  hostigar: { t: 'Hostigar', svg: '<path d="M9 14l7-7 7 7"/><path d="M16 7v10"/><path d="M23 22l-7 7-7-7"/><path d="M16 29V19"/>' },
+  retirarse: { t: 'Retirarse', svg: '<path d="M16 6v16"/><path d="M10 16l6 6 6-6"/><path d="M7 27h18"/>' }
 };
 
 export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
