@@ -392,8 +392,17 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ MR1 **Diseño de menús romanos** (17/11): papiro = leer, tablilla de cera = elegir, bronce = títulos e «ir a», sello rojo = la acción. Maqueta de Imperio (A y B), Gobierno, Senado e informe; capturas `capturas-tarea/MR1-*.jpg`.
 - ✅ MR3 **Diseño del menú principal** (17/11, pedido del usuario): portada, menú con la partida guardada, nueva campaña, carga y opciones; maqueta `maquetas/menus-romanos/principal.html`, capturas `capturas-tarea/MR3-*.jpg`.
 
+## Carril CR — Ciudad realista, por el taller de Arte (P186, aprobada por el usuario el 24/11/2026 como excepción a la 1.0)
+Skill `arte` (y `historia` para la ropa). Todo en maqueta aparte hasta que el usuario vea las capturas; al juego con interruptor «calidad alta / normal». Tope de descarga 70 MB. No toca la pantalla de ciudad hasta que cierre CDe3. Si una tarea pasa de su cifra en un 30 %, se para y se pregunta.
+- ⬜ CR2 **Ciudadanos con Meshy, generar** (≈0,6 M; tope 250 créditos de 706; antes del 23/12): patricio con toga, plebeyo con túnica, mujer con estola, esclavo, mercader y niño, de 280 a.C.; textos revisados con `historia`; una foto de cada uno para el usuario. Licencia CC BY-SA 3.0, «generado con Meshy por el usuario».
+- ⬜ CR3 **Ciudadanos, aligerar y animar** (≈2,0 M): como AL1–AL10 (niveles de detalle, esqueleto del juego, andar y quieto, túnica teñible); sustituyen a los muñecos de la ciudad en la maqueta. Después de CR2.
+- ⬜ CR4 **Maqueta de luz: amanecer y atardecer con el turno** (≈1,0 M): cielo nuevo, sol bajo y bruma; amanece al empezar el mes y atardece al pasar turno, sin noche cerrada; con la estación de Q11. Puede ir en paralelo a CR2.
+- ⬜ CR5 **Maqueta de bosque y fauna** (≈1,2 M; recoge E6): más árboles y arboledas alrededor de la ciudad, ganado, aves y animales CC0 (Quaternius, Poly Haven) con ficha y crédito; antes, 3–4 piezas candidatas en capturas para que el usuario apruebe el estilo. Después de CR4.
+- ⬜ CR6 **Al juego** (≈1,5 M): ciudadanos, luz, bosque y fauna a `js/gfx/city3d.js` con interruptor de calidad; jueces APTO. Después de CR3, CR5 y CDe3, y de que el usuario dé por buena la maqueta.
+- Después: carril RM (calles empedradas, ínsulas, texturas reales, Roma densa), que sale de la pausa por esta decisión.
+
 ## Carril RM — Roma 3D realista (P167, aprobada entera por el usuario el 17/11/2026 como excepción a la 1.0; plan `estudios/P167-roma-3d-realista.md`, donde se llaman R1 a R6)
-**En pausa desde el 18/11 (CM2)**: los objetivos de la 1.0 (`OBJETIVOS.md`) y la lista corta aprobada dejan Roma 3D para después de la 1.0. No se borra nada: RM1 a RM7 esperan aquí con su texto.
+**Sale de la pausa el 24/11 (P186, usuario: «Ya, como excepción»), detrás del carril CR.** Antes, en pausa desde el 18/11 (CM2): los objetivos de la 1.0 (`OBJETIVOS.md`) y la lista corta aprobada dejan Roma 3D para después de la 1.0. No se borra nada: RM1 a RM7 esperan aquí con su texto.
 Todo en maqueta aparte (`gobierno/maquetas/roma-colina/`) hasta RM6. Dirige Fable, construye Opus. Sin pagar nada: edificios y fondo por código, con imágenes de dominio público como referencia. Si una tarea pasa de su cifra en un 30 %, se para y se pregunta.
 - ⬜ (en pausa: después de la 1.0) RM1 **Mirador** (≈1,2 M): Roma con sus colinas y el Tíber, cámara desde el Janículo, luz y bruma nuevas, con el arte de hoy; contador de imágenes por segundo para que el usuario lo pruebe en el móvil.
 - ⬜ (en pausa: después de la 1.0) RM2 **Ciudad densa** (≈1,3 M): de 30 casas a varios cientos, ínsulas, calles torcidas, huertos; lo lejano simplificado. Después de RM1.
@@ -535,7 +544,7 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 - ✅ E3 Presupuesto por escena en `node gobierno/arte.mjs` (batalla 1,1 millones, ciudad 300 mil; provisional hasta D1).
 - ✅ E5 **Ambiente de la ciudad** (13/11): tono por estación, viñeta y contorno dorado de lo elegido en la ciudad 3D; interruptor «Ambiente» en Ajustes (apagado = como antes). +11 % de tiempo por fotograma con render por software. Parte `partes/2026-11-13-E5.md`.
 - ⬜ (en pausa: después de la 1.0) E5b **Contorno de barrio entero** (apuntada por E5): hoy el contorno sale en el edificio elegido, no en un barrio completo.
-- ⬜ (en pausa: después de la 1.0) E6 **Vida del campo con arte CC0** (13/11, apuntada; sin empezar): ganado, carros, cultivos, árboles y texturas de suelo de Quaternius y Poly Haven (CC0) para la ciudad y la llanura de batalla; skill `arte`, presupuesto de peso. Antes de construir, enseñar al usuario 3 o 4 piezas candidatas junto a 0 A.D. para que apruebe el estilo. ≈0,5 M.
+- ❎ (pasa a CR5 el 24/11) E6 **Vida del campo con arte CC0** (13/11, apuntada; sin empezar): ganado, carros, cultivos, árboles y texturas de suelo de Quaternius y Poly Haven (CC0) para la ciudad y la llanura de batalla; skill `arte`, presupuesto de peso. Antes de construir, enseñar al usuario 3 o 4 piezas candidatas junto a 0 A.D. para que apruebe el estilo. ≈0,5 M.
 - ✅ E11 Piezas estáticas aligeradas en nuestro formato (índices + 16 bits, `tools/indexar_static.mjs`): `.bin` de 10,4 MB a 3,7 MB, sin lectores nuevos (parte 2026-11-16-E11).
 
 ## Carril C — Mapa y campaña
