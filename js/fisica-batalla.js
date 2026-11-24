@@ -82,10 +82,12 @@ export const ESCUDO_ALTO = { y: 1.85, delante: 0.4 };   /* adelantado: tapa tamb
 export const MURO = { sube: 0.28, agacha: 0.1 };
 
 const xyz = v => Array.isArray(v) ? v : [v.x, v.y, v.z];
+let instancias = 0;
 const tipoF = h => h.tipo || 'falangita';
 
 export function crearFisica(op = {}) {
-  const H = op.H || (() => 0), ESC = op.escala || 1, parMin = op.parMin;   /* FI2: escala de los radios (1 en la falange) y, si se da, parMin(a, b) → distancia mínima propia de esa pareja (o undefined) */
+  const H = op.H || (() => 0), ESC = op.escala || 1, parMin = op.parMin, fijoC = !!op.caidoFijo, DMAX_PAR = op.parMax || 1;   /* FI2: escala de los radios (1 en la falange) y, si se da, parMin(a, b) → distancia mínima propia de esa pareja (o undefined).
+     LP5a: caidoFijo (los caídos no se arrastran: el vivo se aparta entero); parMax: lo más que puede dar parMin (m, por defecto 1) */
   let rivales = [], empujes = new Map();
 
   /* cuerpos que cuentan: tus hombres vivos y no huidos, y los del rival vivos */
@@ -102,7 +104,7 @@ export function crearFisica(op = {}) {
     for (const h of S.ene) if (!h.vivo) L.push(h);
     return L;
   }
-  const rad = h => (RADIO[tipoF(h)] ?? 0.25) * ESC, radC = h => (RADIO_CAIDO[tipoF(h)] ?? 0.35) * ESC, masa = h => MASA[tipoF(h)] || 1;
+  const rad = h => (RADIO[tipoF(h)] ?? 0.25) * ESC, radC = h => h.tendido && h.tendido.r ? h.tendido.r : (RADIO_CAIDO[tipoF(h)] ?? 0.35) * ESC, masa = h => MASA[tipoF(h)] || 1;
   /* dónde se dibuja un caído: donde cayó (h.x, h.z; la escena lo guarda en h.caido) más lo que lo han arrastrado (fx, fz) */
   const dondeC = h => [h.x + (h.fx || 0), h.z + (h.fz || 0)];
   const clave = (ix, iz) => ((ix + 32768) << 16) | ((iz + 32768) & 0xffff);
@@ -115,58 +117,108 @@ export function crearFisica(op = {}) {
   /* tope duro: nadie se aparta más de TOPE de su sitio; si lo toca, pierde la velocidad hacia fuera */
   const tope = h => { const m = Math.hypot(h.fx, h.fz); if (m > TOPE) { const ux = h.fx / m, uz = h.fz / m, vn = h.vx * ux + h.vz * uz; h.fx = ux * TOPE; h.fz = uz * TOPE; if (vn > 0) { h.vx -= ux * vn; h.vz -= uz * vn; } } };
   /* velocidad que dan las reglas (lo que se movió x, z en este paso); con tope, por si hubo un salto */
-  let prev = new WeakMap(), vivoAntes = new WeakMap();
+  /* LP5a: lo de antes de cada hombre va en él (h._fiK marca de qué física y de qué reinicio es: más rápido que un WeakMap) */
+  let marca = ++instancias * 1e6;
   function velReglas(h, dt) {
-    const p = prev.get(h); let ux = 0, uz = 0;
-    if (p && dt > 0) { ux = (h.x - p[0]) / dt; uz = (h.z - p[1]) / dt; const m = Math.hypot(ux, uz); if (m > V_MAX) { ux *= V_MAX / m; uz *= V_MAX / m; } }
+    const p = h._fiK === marca; let ux = 0, uz = 0;
+    if (p && dt > 0) { ux = (h.x - h._fiX) / dt; uz = (h.z - h._fiZ) / dt; const m = Math.hypot(ux, uz); if (m > V_MAX) { ux *= V_MAX / m; uz *= V_MAX / m; } }
     h.ux = ux; h.uz = uz;
   }
 
+  /* LP5a: rejilla por hash en arreglos planos (sin Map ni listas nuevas en cada paso): cada cuerpo cae en un cubo según su
+     celda de 1 m; los cubos se ordenan por cuenta. Dos celdas que caen en el mismo cubo solo cuestan alguna distancia de más */
+  let cap = 0, AX, AZ, BX, BZ, RR, IM, VX, VZ, UX, UZ, ORD, CEL, CNT, NB = 0;
+  function asegura(n) {
+    if (n > cap) { cap = Math.max(64, n * 2); [AX, AZ, BX, BZ, RR, IM, VX, VZ, UX, UZ] = Array.from({ length: 10 }, () => new Float64Array(cap)); ORD = new Int32Array(cap); CEL = new Int32Array(cap); }
+    let nb = 256; while (nb < n * 2) nb *= 2; if (nb !== NB) { NB = nb; CNT = new Int32Array(nb + 1); }
+  }
+  const cubo = (ix, iz) => (Math.imul(ix, 73856093) ^ Math.imul(iz, 19349663)) & (NB - 1);
+  /* ordena los n primeros por cubo (cuenta y reparte): ORD[CNT[k]..CNT[k+1]) son los del cubo k */
+  function ordena(n) {
+    CNT.fill(0);
+    for (let i = 0; i < n; i++) { const k = cubo(Math.floor(AX[i] / CELDA), Math.floor(AZ[i] / CELDA)); CEL[i] = k; CNT[k + 1]++; }
+    for (let k = 0; k < NB; k++) CNT[k + 1] += CNT[k];
+    const pos = ordena.pos && ordena.pos.length >= NB ? ordena.pos : (ordena.pos = new Int32Array(NB)); pos.set(CNT.subarray(0, NB));
+    for (let i = 0; i < n; i++) ORD[pos[CEL[i]]++] = i;
+  }
+  /* tope duro sobre los arreglos: nadie se aparta más de TOPE de su sitio; si lo toca, pierde la velocidad hacia fuera */
+  function topeA(i) {
+    const fx = AX[i] - BX[i], fz = AZ[i] - BZ[i], m = Math.hypot(fx, fz); if (m <= TOPE) return;
+    const ux = fx / m, uz = fz / m, vn = VX[i] * ux + VZ[i] * uz; AX[i] = BX[i] + ux * TOPE; AZ[i] = BZ[i] + uz * TOPE; if (vn > 0) { VX[i] -= ux * vn; VZ[i] -= uz * vn; }
+  }
+  function carga(L, M) {
+    const n = L.length; asegura(n);
+    for (let i = 0; i < n; i++) { const h = L[i]; BX[i] = h.x; BZ[i] = h.z; AX[i] = h.x + h.fx; AZ[i] = h.z + h.fz; RR[i] = rad(h); IM[i] = 1 / M[i]; VX[i] = h.vx; VZ[i] = h.vz; UX[i] = h.ux || 0; UZ[i] = h.uz || 0; }
+  }
+  function descarga(L) { for (let i = 0; i < L.length; i++) { const h = L[i]; h.fx = AX[i] - BX[i]; h.fz = AZ[i] - BZ[i]; h.vx = VX[i]; h.vz = VZ[i]; } }
+
   /* una pasada de choques entre vivos: se apartan a la suma de radios (cada uno según su masa) y el choque es
-     inelástico: la velocidad que se acercaban se reparte por masa (el impulso pasa de uno a otro) */
-  function choca(L, rMax, M) {
-    const G = rejilla(L, posV);
-    for (let i = 0; i < L.length; i++) {
-      const a = L[i], ra = rad(a), n = Math.ceil((ra + rMax) / CELDA), ax = a.x + a.fx, az = a.z + a.fz;
-      const cx = Math.floor(ax / CELDA), cz = Math.floor(az / CELDA), ia = 1 / M[i];
-      for (let dx = -n; dx <= n; dx++) for (let dz = -n; dz <= n; dz++) {
-        const c = G.get(clave(cx + dx, cz + dz)); if (!c) continue;
-        for (const j of c) {
-          if (j <= i) continue;
-          const b = L[j], pm = parMin ? parMin(a, b) : undefined, min = pm === undefined ? ra + rad(b) : Math.min(ra + rad(b), pm); let vx = (b.x + b.fx) - (a.x + a.fx), vz = (b.z + b.fz) - (a.z + a.fz), d = Math.hypot(vx, vz);
+     inelástico: la velocidad que se acercaban se reparte por masa (el impulso pasa de uno a otro).
+     parMin(a, b), si da un número, es la distancia de esa pareja (más corta: dos que se baten; más larga: escudo contra escudo) */
+  function choca(L, rMax) {
+    const n = L.length; ordena(n);
+    for (let i = 0; i < n; i++) {
+      const ra = RR[i], k = Math.ceil((ra + Math.max(rMax, DMAX_PAR / 2)) / CELDA), cx = Math.floor(AX[i] / CELDA), cz = Math.floor(AZ[i] / CELDA), ia = IM[i];
+      for (let dx = -k; dx <= k; dx++) for (let dz = -k; dz <= k; dz++) {
+        const kb = cubo(cx + dx, cz + dz), e = CNT[kb + 1];
+        for (let q = CNT[kb]; q < e; q++) {
+          const j = ORD[q]; if (j <= i) continue;
+          let vx = AX[j] - AX[i], vz = AZ[j] - AZ[i]; const sum = ra + RR[j], lim = sum > DMAX_PAR ? sum : DMAX_PAR;
+          if (vx > lim || vx < -lim || vz > lim || vz < -lim) continue;
+          const pm = parMin ? parMin(L[i], L[j]) : undefined, min = pm === undefined ? sum : pm; let d = Math.hypot(vx, vz);
           if (d >= min) continue;
           if (d < 1e-6) { const g = (i * 2.399 + j) % 6.283; vx = Math.cos(g); vz = Math.sin(g); d = 0; } else { vx /= d; vz /= d; }
-          const ib = 1 / M[j], wa = ia / (ia + ib), o = min - d;
-          a.fx -= vx * o * wa; a.fz -= vz * o * wa; b.fx += vx * o * (1 - wa); b.fz += vz * o * (1 - wa);
-          const vr = (b.ux + b.vx - a.ux - a.vx) * vx + (b.uz + b.vz - a.uz - a.vz) * vz;
-          if (vr < 0) { const J = -vr / (ia + ib); a.vx -= vx * J * ia; a.vz -= vz * J * ia; b.vx += vx * J * ib; b.vz += vz * J * ib; }
-          tope(a); tope(b);
+          const ib = IM[j], wa = ia / (ia + ib), o = min - d;
+          AX[i] -= vx * o * wa; AZ[i] -= vz * o * wa; AX[j] += vx * o * (1 - wa); AZ[j] += vz * o * (1 - wa);
+          const vr = (UX[j] + VX[j] - UX[i] - VX[i]) * vx + (UZ[j] + VZ[j] - UZ[i] - VZ[i]) * vz;
+          if (vr < 0) { const J = -vr / (ia + ib); VX[i] -= vx * J * ia; VZ[i] -= vz * J * ia; VX[j] += vx * J * ib; VZ[j] += vz * J * ib; }
+          topeA(i); topeA(j);
         }
       }
     }
   }
-  /* los vivos no pisan a los caídos: se apartan los dos según su masa (el caído pesa MASA_CAIDO y se arrastra, sin muelle:
-     queda donde lo dejan, como mucho a TOPE_CAIDO de donde cayó); el vivo pierde la velocidad que llevaba hacia él */
-  function noPisa(L, M, C) {
-    if (!C.length) return;
-    const G = rejilla(C, posV), n = Math.ceil((1.3 + 1.6) / CELDA);
+  /* los vivos no pisan a los caídos. El caído es un círculo en sus pies o, si la escena dice cómo yace (h.tendido = { dx, dz,
+     largo }: de los pies hacia la cabeza), una cápsula de ese largo. Con caidoFijo no se arrastra (masa infinita): el vivo se
+     aparta él entero. Si no, se apartan los dos según su masa (el caído pesa MASA_CAIDO, sin muelle: queda donde lo dejan, como
+     mucho a TOPE_CAIDO de donde cayó). El vivo pierde la velocidad que llevaba hacia él. Quien lleva h.salta pasa por encima */
+  let CX, CZ, CCEL, CORD, CCNT, CPOS, CL = 0, CNB = 0;
+  function noPisa(L, C) {
+    const nc = C.length; if (!nc) return;
+    if (nc > CL) { CL = nc * 2; CX = new Float64Array(CL); CZ = new Float64Array(CL); CCEL = new Int32Array(CL); CORD = new Int32Array(CL); }
+    let nb = 64; while (nb < nc * 2) nb *= 2; if (nb !== CNB) { CNB = nb; CCNT = new Int32Array(nb + 1); CPOS = new Int32Array(nb); }
+    const HB = nb - 1, cnt = CCNT, cel = CCEL, ord = CORD, CC = 2; cnt.fill(0);   /* celdas de 2 m: el caído tendido es largo */
+    const cub = (ix, iz) => (Math.imul(ix, 73856093) ^ Math.imul(iz, 19349663)) & HB;
+    let alcance = 0;
+    for (let j = 0; j < nc; j++) {
+      const b = C[j], t = b.tendido, l = t ? t.largo / 2 : 0; CX[j] = b.x + b.fx + (t ? t.dx * l : 0); CZ[j] = b.z + b.fz + (t ? t.dz * l : 0);   /* el centro del caído */
+      alcance = Math.max(alcance, radC(b) + l); const k = cub(Math.floor(CX[j] / CC), Math.floor(CZ[j] / CC)); cel[j] = k; cnt[k + 1]++;
+    }
+    for (let k = 0; k < nb; k++) cnt[k + 1] += cnt[k];
+    { const pos = CPOS; pos.set(cnt.subarray(0, nb)); for (let j = 0; j < nc; j++) ord[pos[cel[j]]++] = j; }
     for (let i = 0; i < L.length; i++) {
-      const a = L[i], ra = rad(a), k = ra > 0.5 ? n : 1, wa = (1 / M[i]) / (1 / M[i] + 1 / MASA_CAIDO);
+      if (L[i].salta) continue;   /* LP5a: el que pasa por encima (va deprisa: lo dice la escena) */
+      const ra = RR[i], k = Math.ceil((ra + alcance) / CC), wv = fijoC ? 1 : IM[i] / (IM[i] + 1 / MASA_CAIDO);
       for (let pase = 0; pase < 2; pase++) {
-        const ax = a.x + a.fx, az = a.z + a.fz, cx = Math.floor(ax / CELDA), cz = Math.floor(az / CELDA);
+        const cx = Math.floor(AX[i] / CC), cz = Math.floor(AZ[i] / CC); let toco = false;
         for (let dx = -k; dx <= k; dx++) for (let dz = -k; dz <= k; dz++) {
-          const c = G.get(clave(cx + dx, cz + dz)); if (!c) continue;
-          for (const j of c) {
-            const b = C[j], min = ra + radC(b); let vx = a.x + a.fx - b.x - b.fx, vz = a.z + a.fz - b.z - b.fz, d = Math.hypot(vx, vz);
-            if (d >= min) continue;
-            if (d < 1e-6) { vx = 1; vz = 0; } else { vx /= d; vz /= d; }
+          const kb = cub(cx + dx, cz + dz), e = cnt[kb + 1];
+          for (let q = cnt[kb]; q < e; q++) {
+            const j = ord[q], b = C[j], t = b.tendido, min = ra + radC(b);
+            /* el punto del caído más cerca del vivo (en la cápsula: sobre el segmento pies–cabeza) */
+            let px = b.x + b.fx, pz = b.z + b.fz;
+            if (t) { const s = Math.max(0, Math.min(t.largo, (AX[i] - px) * t.dx + (AZ[i] - pz) * t.dz)); px += t.dx * s; pz += t.dz * s; }
+            let vx = AX[i] - px, vz = AZ[i] - pz; if (vx > min || vx < -min || vz > min || vz < -min) continue;
+            const d = Math.hypot(vx, vz); if (d >= min) continue;
+            if (d < 1e-6) { vx = t ? -t.dz : 1; vz = t ? t.dx : 0; } else { vx /= d; vz /= d; }
             /* el caído ya no se deja arrastrar más: el vivo pasa por encima (las reglas lo llevan allí) */
-            if (Math.hypot(b.fx, b.fz) >= TOPE_CAIDO - 1e-6) continue;
-            const o = min - d; a.fx += vx * o * wa; a.fz += vz * o * wa; b.fx -= vx * o * (1 - wa); b.fz -= vz * o * (1 - wa);
-            const vn = (a.ux + a.vx) * vx + (a.uz + a.vz) * vz; if (vn < 0) { a.vx -= vx * vn * wa; a.vz -= vz * vn * wa; }
-            tope(a); const m = Math.hypot(b.fx, b.fz); if (m > TOPE_CAIDO) { b.fx *= TOPE_CAIDO / m; b.fz *= TOPE_CAIDO / m; }
+            if (!fijoC && Math.hypot(b.fx, b.fz) >= TOPE_CAIDO - 1e-6) continue;
+            const o = min - d; AX[i] += vx * o * wv; AZ[i] += vz * o * wv; toco = true;
+            if (!fijoC) { b.fx -= vx * o * (1 - wv); b.fz -= vz * o * (1 - wv); const m = Math.hypot(b.fx, b.fz); if (m > TOPE_CAIDO) { b.fx *= TOPE_CAIDO / m; b.fz *= TOPE_CAIDO / m; } }
+            const vn = (UX[i] + VX[i]) * vx + (UZ[i] + VZ[i]) * vz; if (vn < 0) { VX[i] -= vx * vn * wv; VZ[i] -= vz * vn * wv; }
+            topeA(i);
           }
         }
+        if (!toco) break;
       }
     }
   }
@@ -193,19 +245,22 @@ export function crearFisica(op = {}) {
         velReglas(h, dt);
         const ax = -K_MUELLE * h.fx - C_FRENO * h.vx, az = -K_MUELLE * h.fz - C_FRENO * h.vz;
         h.vx += ax * dt; h.vz += az * dt; h.fx += h.vx * dt; h.fz += h.vz * dt;
-      } else if (vivoAntes.get(h)) {
+      } else if (h._fiK === marca && h._fiV) {
         /* acaba de caer: hacia donde iba (su velocidad de dibujo y la de las reglas) o hacia donde le empujaban */
         const e = empujes.get(h), gx = h.vx + (h.ux || 0) * 0.3 + (e ? e.x / Math.max(dt, 1e-3) : 0), gz = h.vz + (h.uz || 0) * 0.3 + (e ? e.z / Math.max(dt, 1e-3) : 0);
         if (Math.hypot(gx, gz) > 0.05) h.fCae = Math.atan2(gx, gz);
         h.vx = h.vz = 0;
       }
-      vivoAntes.set(h, h.vivo); prev.set(h, [h.x, h.z]);
+      h._fiK = marca; h._fiV = h.vivo; h._fiX = h.x; h._fiZ = h.z;
     }
     /* los empujes que dejaron las picas en el último fotograma: mueven ya y dejan velocidad */
     for (const [h, e] of empujes) if (h.vivo) { h.fx += e.x; h.fz += e.z; if (dt > 0) { h.vx += e.x / dt * 0.5; h.vz += e.z / dt * 0.5; } tope(h); }
     empujes = new Map();
-    const L = cuerpos(S), M = L.map(masa), C = caidos(S); let rMax = 0; for (const h of L) rMax = Math.max(rMax, rad(h));
-    choca(L, rMax, M); noPisa(L, M, C); aprieta(S); noPisa(L, M, C); choca(L, rMax, M); choca(L, rMax, M);   /* al final, que los vivos no se solapen */
+    const L = cuerpos(S), C = caidos(S); let rMax = 0; for (const h of L) rMax = Math.max(rMax, rad(h));
+    carga(L, L.map(masa));
+    choca(L, rMax); noPisa(L, C); descarga(L); aprieta(S); carga(L, L.map(masa)); noPisa(L, C); choca(L, rMax); choca(L, rMax);   /* al final, que los vivos no se solapen */
+    if (fijoC) { noPisa(L, C); choca(L, rMax); }   /* LP5a: con caídos fijos, otra vuelta: que nadie acabe sobre un caído */
+    descarga(L);
     rivales = S.ene.filter(h => h.vivo);
   }
 
@@ -473,5 +528,5 @@ export function crearFisica(op = {}) {
   /* quita de la lista los que ya no vuelan (los clavados en un hombre muerto o los del suelo, cuando quien dibuja no los quiera) */
   function limpia(quedar = () => false) { for (let i = proyectiles.length - 1; i >= 0; i--) { const p = proyectiles[i]; if (p.est !== 'vuela' && !quedar(p)) proyectiles.splice(i, 1); } }
 
-  return { paso, pica, medir, lanza, vuela, dondeP, limpia, proyectiles, reinicia() { empujes = new Map(); rivales = []; prev = new WeakMap(); vivoAntes = new WeakMap(); proyectiles.length = 0; } };
+  return { paso, pica, medir, lanza, vuela, dondeP, limpia, proyectiles, reinicia() { empujes = new Map(); rivales = []; marca++; proyectiles.length = 0; } };
 }

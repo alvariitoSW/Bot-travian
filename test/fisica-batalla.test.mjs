@@ -206,5 +206,60 @@ t('FI3: mismo resultado con la misma semilla; vuela no mueve a nadie; 200 proyec
   assert.ok(fal.every(h => !h.fx && !h.fz), 'vuela movió a alguien'); assert.ok(ms < 1, ms);
 });
 
+/* ---------- LP5a: la física en la maqueta «Manípulo a pie» (gobierno/maquetas/bloque/fisica.js) ---------- */
+{
+  const BL = await import('../js/bloque.js'), { crearCombate } = await import('../js/bloque-ia.js');
+  const { crearTropas } = await import('../gobierno/maquetas/bloque/tropas.js'), FB = await import('../gobierno/maquetas/bloque/fisica.js');
+  /* una partida con el jugador automático, la física a cada fotograma de 1/30 s y las reglas a su paso de 0,05 s */
+  function partida(semilla, conFisica, segundos = 100) {
+    const C = crearCombate({ semilla, nivel: 'normal', motor: BL, avisa: () => {} }), S = C.S, TR = crearTropas({ S }), FS = FB.crearFisicaBloque({ S, TR, activa: conFisica, semilla });
+    const r = { mismoMin: Infinity, rivalMin: Infinity, pares045: 0, escudos: 0, colados: 0, pisados: 0, muestras: 0, saltos: 0, temblor: 0, giro: 0, ms: 0 };
+    const antes = new Map(); let acc = 0; const DTF = 1 / 30;
+    for (let k = 0; k < segundos / DTF && !S.ganador; k++) {
+      acc += DTF; while (acc >= 0.05) { C.bot('bueno'); C.paso(0.05); acc -= 0.05; }
+      TR.paso(DTF, S.T); FS.paso(DTF);
+      for (const f of TR.figs) {
+        const a = antes.get(f);
+        if (a) {
+          const vx = (f.x - a.x) / DTF, vz = (f.z - a.z) / DTF; if (Math.hypot(vx, vz) > 7) r.saltos++;
+          /* temblor: va y vuelve (la velocidad se da la vuelta) más de 1 cm cada vez */
+          if (a.vx !== undefined && vx * a.vx + vz * a.vz < 0 && Math.hypot(vx, vz) * DTF > 0.01 && Math.hypot(a.vx, a.vz) * DTF > 0.01) r.temblor++;
+          let dy = Math.abs(f.yaw - a.yaw) % (2 * Math.PI); if (dy > Math.PI) dy = 2 * Math.PI - dy; r.giro = Math.max(r.giro, dy / DTF);
+          a.x = f.x; a.z = f.z; a.vx = vx; a.vz = vz; a.yaw = f.yaw;
+        } else antes.set(f, { x: f.x, z: f.z, yaw: f.yaw });
+      }
+      if (k % 6) continue;
+      const m = FS.medir(); r.muestras++;
+      r.mismoMin = Math.min(r.mismoMin, m.mismo); r.rivalMin = Math.min(r.rivalMin, m.rival); r.escudos += m.escudos; r.colados += m.colados; r.pisados += m.pisados;
+      const F = TR.figs; for (let i = 0; i < F.length; i++) for (let j = i + 1; j < F.length; j++) { const a = F[i], b = F[j]; if (a.bando === b.bando && Math.abs(a.x - b.x) < 0.45 && Math.hypot(a.x - b.x, a.z - b.z) < MIN_DIST) r.pares045++; }
+      r.ms = m.ms;
+    }
+    r.fin = { ganador: S.ganador, T: +S.T.toFixed(2), bajas: S.bloques.map(b => b.U.enPie) };
+    return r;
+  }
+  /* las varas (LP5a, parte 2026-11-23-LP5a): escritas tras la primera medida, con margen; el «antes» es la misma partida sin física */
+  const con = { 3: partida(3, true), 11: partida(11, true) }, sin3 = partida(3, false);
+  for (const s in con) { const c = con[s], n = c.muestras;
+    console.log(`   semilla ${s} (${n} muestras) · con física: rival ≥ ${c.rivalMin.toFixed(2)} m · mismo bando ≥ ${c.mismoMin.toFixed(2)} m · parejas < 0,45 m ${(c.pares045 / n).toFixed(2)}/muestra · escudos en un rival ${(c.escudos / n).toFixed(2)} · colados ${(c.colados / n).toFixed(2)} · quietos sobre un caído ${(c.pisados / n).toFixed(2)} · saltos ${c.saltos} · temblores ${c.temblor} · giro máx ${c.giro.toFixed(1)} rad/s · ${c.ms} ms/paso`); }
+  { const o = sin3, m = o.muestras; console.log(`   semilla 3 · sin física (el antes): rival ≥ ${o.rivalMin.toFixed(2)} · mismo ≥ ${o.mismoMin.toFixed(2)} · parejas < 0,45 ${(o.pares045 / m).toFixed(2)} · escudos ${(o.escudos / m).toFixed(2)} · colados ${(o.colados / m).toFixed(2)} · sobre un caído ${(o.pisados / m).toFixed(2)} · temblores ${o.temblor}`); }
+  t('LP5a: en el choque, los rivales no se meten uno en otro (≥ 0,8 m; escudos en un rival ≤ 0,3 por muestra; colados ≤ 0,2)', () => {
+    for (const s in con) { const c = con[s], n = c.muestras; assert.ok(c.rivalMin >= 0.8, s + ' rival ' + c.rivalMin); assert.ok(c.escudos / n <= 0.3, s + ' escudos ' + c.escudos / n); assert.ok(c.colados / n <= 0.2, s + ' colados ' + c.colados / n); }
+  });
+  t('LP5a: los de un bando no se atraviesan (parejas a menos de 0,45 m ≤ 0,2 por muestra, 100 veces menos que sin física)', () => {
+    for (const s in con) { const c = con[s]; assert.ok(c.pares045 / c.muestras <= 0.2, s + ' ' + c.pares045 / c.muestras); }
+    assert.ok(con[3].pares045 / con[3].muestras * 100 <= sin3.pares045 / sin3.muestras + 1e-9, 'no mejora lo bastante');
+  });
+  t('LP5a: los caídos quedan en el suelo y nadie está de pie sobre ellos (≤ 2,5 por muestra, 20 veces menos que sin física)', () => {
+    for (const s in con) { const c = con[s]; assert.ok(c.pisados / c.muestras <= 2.5, s + ' ' + c.pisados / c.muestras); }
+    assert.ok(con[3].pisados / con[3].muestras * 20 <= sin3.pisados / sin3.muestras, 'no mejora lo bastante');
+  });
+  t('LP5a: nadie salta (> 7 m/s), gira de golpe (> 4,1 rad/s) ni tiembla (≤ 0,5 % de los fotogramas)', () => {
+    for (const s in con) { const c = con[s]; assert.strictEqual(c.saltos, 0, s + ' saltos'); assert.ok(c.giro <= 4.1, s + ' giro ' + c.giro); assert.ok(c.temblor / (c.muestras * 6 * 750) <= 0.005, s + ' temblor ' + c.temblor); }
+  });
+  t('LP5a: la física no cambia la partida (mismo final con y sin física) y cuesta < 4 ms por paso con ~800 hombres', () => {
+    assert.deepStrictEqual(con[3].fin, sin3.fin); for (const s in con) assert.ok(con[s].ms < 4, s + ' ' + con[s].ms);
+  });
+}
+
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);
