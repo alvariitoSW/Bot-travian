@@ -8,6 +8,10 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11 (vigía 4): RAM1 hecha: de 42 ramas antiguas solo 2 guardan algo útil. R1 (termas y acueducto 3D de E4, nunca entraron) → E4b abierta. R2 (estudio P161 «batalla dentro de la ciudad») → después de la 1.0.
+- 24/11 (vigía 4): CE12 avisa de que en la partida larga ningún bot toma Cartago (0/5). Se abre CG10 en Batallas para arreglarlo (sirve a L9, camino de las armas).
+- 24/11/2026 — **«1A, 2A»**: (1) una sesión corta revisa las ramas antiguas, rescata lo útil y aparta el resto sin borrar (RAM1); (2) nueva pestaña del cuadro «Tu móvil y lo que falta», una barra por apartado en 4 colores (CM4).
+- 24/11 (vigía 4): FU2 hecha (`4e8bae07`, juez de batallas APTO, 2,66 M). Se abre FU3 (falange en el motor único). CG9 reintenta su subida con el juez ya verde; pases de FU2 enviados a CDe4.
 - 24/11/2026 — **Subido a `main`: sonido sin inglés (SON12) y fragor de la lucha a pie (SON11)**, sobre `16827b68`; jueces completos **APTO 43/43** (4750 s); caché **v161**.
 - 24/11/2026 — **SON12 hecho: fuera el inglés** (regla del usuario). Rehechos sin palabras `clamor1` («hey»), `lucha1` («get back») y `coro1`; la música de batalla cambia a «Blackmoor Colossus Loop (No Vocals)» (mismo autor y licencia) porque el coro de la anterior cantaba en inglés. Informe: `estudios/SON12-ingles.md`. Duda para el usuario: el coro del menú («Heroic Demise») podría llevar letra; si la oye, se cambia de pieza.
 - 24/11/2026 — **Nada en inglés** (literal: «No quiero nada en inglés salvo voces de galos enemigos. Soy español»). Regla para todo el sonido (gritos, multitudes, fondos, música y coros); única excepción, las voces de los galos enemigos. Apuntada en la skill `sonido-efectos`. SON12 revisa todo el audio y quita o reasigna lo que tenga inglés.

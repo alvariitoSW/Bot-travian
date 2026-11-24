@@ -314,6 +314,78 @@ for (const id of cfgEquipos.orden) {
 }
 const equiposJs = 'var EQUIPOS = ' + JSON.stringify(EQ.map(e => ({ id: e.id, nombre: e.nombre, ids: e.ids, titulo: e.titulo, gana: !!e.gana, areas: e.areas, organos: e.organos }))).replace(/</g, '\\u003c') + ';\n  ' + equipoDe.toString();
 
+/* ---------- CM4 · Tu móvil y lo que falta: cada tarea de cada línea, en uno de 4 colores (calculado con git, sin red) ---------- */
+/* movil = ya en origin/main · subir = hecha en la rama de trabajo, no en main · obra = 🔶 o con sesión · rama = en otra rama sin unir · falta */
+const MOVIL_EST = { movil: 'en tu móvil', subir: 'hecho, sin subir', obra: 'en obra', rama: 'en una rama sin unir', falta: 'falta' };
+let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
+{
+  const { execSync } = await import('node:child_process');
+  const git = a => { try { return execSync('git ' + a, { cwd: RAIZ, stdio: ['ignore', 'pipe', 'ignore'], timeout: 60000, maxBuffer: 256 << 20 }).toString(); } catch (e) { return null; } };
+  const rama = 'origin/' + (config.rama || 'claude/roman-strategy-mobile-game-bx9oq2'), main = 'origin/main';
+  const hayGit = git('rev-parse --verify -q ' + main) !== null && git('rev-parse --verify -q ' + rama) !== null;
+  const version = ref => ((git('show ' + ref + ':sw.js') || '').match(/CACHE\s*=\s*'aqvila-(v[\w.]+)'/) || [])[1] || '';
+  // los commits que tocan algo fuera de gobierno/ (los apuntes del vigía nombran tareas que aún no están hechas)
+  const SEP = '\u0001';
+  const mensajes = rango => (git('log --no-merges --format=' + SEP + '%s%n%b ' + rango + ' -- . ":(exclude)gobierno"') || '').split(SEP).filter(Boolean);
+  const todasIds = [...new Set(lineas.flatMap(l => l.tareas || []))];
+  // MN4b o MN4c cuentan como MN4, salvo que el tablero las tenga como tareas propias (CG6b no es CG6)
+  const reId = new Map(todasIds.map(id => [id, new RegExp('(?<![\\w])' + id.replace(/[-]/g, '\\-') + '([a-z]{1,2})?(?![\\w]|-\\d)', 'g')]));
+  const nombra = (m, id, re) => [...m.matchAll(re)].some(x => !x[1] || !porId.has(id + x[1]));
+  const nombradas = msgs => { const s = new Set(); for (const m of msgs) for (const [id, re] of reId) if (!s.has(id) && nombra(m, id, re)) s.add(id); return s; };
+  let soloRama = new Set(), otras = new Map(), vMain = '', vRama = '', horaMain = null;
+  if (hayGit) {
+    vMain = version(main); vRama = version(rama);
+    horaMain = new Date(Number((git('log -1 --format=%ct ' + main) || '0').trim()) * 1000);
+    soloRama = nombradas(mensajes(main + '..' + rama));
+    // otras ramas remotas: lo que tienen y no está ni en la rama de trabajo ni en main
+    const refs = (git('for-each-ref "--format=%(refname:short)" refs/remotes/origin') || '').split('\n').map(s => s.trim()).filter(r => r && r !== 'origin' && r !== 'origin/HEAD' && r !== main && r !== rama);
+    for (const r of refs) for (const id of nombradas(mensajes(r + ' --not ' + rama + ' ' + main))) { if (!otras.has(id)) otras.set(id, []); otras.get(id).push(r.replace(/^origin\//, '')); }
+  } else avisa('CM4: sin las ramas de git (origin/main y la rama de trabajo); la pestaña «Tu móvil» sale sin colores de git');
+  const enSesion = new Set(sesiones.map(x => x.tarea).filter(Boolean));
+  const color = id => {
+    const t = porId.get(id);
+    if (t?.est === '✅') return soloRama.has(id) ? 'subir' : 'movil';
+    if (t?.est === '🔶' || enSesion.has(id)) return 'obra';
+    if (otras.has(id)) return 'rama';
+    return 'falta';
+  };
+  const ORDEN = ['movil', 'subir', 'obra', 'rama', 'falta'];
+  const llega = new Map();
+  const segsLinea = l => {
+    const ts = l.tareas || [];
+    let s = ts.map(id => ({ id, c: color(id) }));
+    // la línea manda: si no está hecha y sus tareas ya no dejan hueco, queda un trozo gris por lo que falta sin tarea
+    if (!ts.length) s = l.estado === 'hecha' ? [{ id: '', c: 'movil' }] : l.estado === 'medias' ? [{ id: '', c: 'movil' }, { id: '', c: 'falta' }] : [{ id: '', c: 'falta' }];
+    else if (l.estado !== 'hecha' && !s.some(x => x.c === 'falta')) s.push({ id: '', c: 'falta' });
+    for (const x of s) if (x.c === 'subir' && !llega.has(x.id)) llega.set(x.id, l);
+    return s.sort((a, b) => ORDEN.indexOf(a.c) - ORDEN.indexOf(b.c));
+  };
+  const tit = id => { const t = porId.get(id); return t ? plano((t.texto.match(/\*\*(.+?)\*\*/) || [])[1] || corto(t.texto)).replace(/\s*\([^)]*\)/g, '').replace(/\s*\([^)]*$/, '').trim() : ''; };
+  for (const o of organos) {
+    let filas = '';
+    for (const l of lineas.filter(x => x.organo === o.id)) {
+      const s = segsLinea(l), n = c => s.filter(x => x.c === c).length, pc = Math.round(100 * n('movil') / s.length);
+      const resumen = ORDEN.filter(c => n(c)).map(c => n(c) + ' ' + MOVIL_EST[c]).join(', ');
+      const detalle = (l.tareas || []).map(id => { const c = color(id); return '<li class="m-' + c + '" data-mid="' + esc(id) + '"><i aria-hidden="true"></i><b>' + esc(id) + '</b> <span>' + esc(tit(id)) + '</span> <em>' + esc(MOVIL_EST[c]) + (c === 'rama' ? ' (' + esc(otras.get(id).slice(0, 2).join(', ')) + ')' : '') + '</em></li>'; }).join('');
+      filas += '<details class="mlinea"><summary><span class="mcab"><span class="que">' + esc(l.titulo) + '</span><span class="pc">' + pc + ' %</span></span>' +
+        '<span class="mbarra" role="img" aria-label="' + esc(l.titulo + ': ' + resumen) + '">' + s.map(x => '<i class="m-' + x.c + '"' + (x.id ? ' data-mid="' + esc(x.id) + '"' : '') + '></i>').join('') + '</span></summary>' +
+        '<div class="cuerpo">' + (detalle ? '<ul class="mtareas">' + detalle + '</ul>' : '<p class="nota">Sin tareas en el tablero: el color sale del estado de la línea (' + esc((MARCA[l.estado] || MARCA.falta)[2]) + ').</p>') +
+        (l.estado !== 'hecha' && (l.tareas || []).length && s.at(-1).c === 'falta' && !s.at(-1).id ? '<p class="nota">El trozo gris del final es lo que la línea aún pide y no tiene tarea.</p>' : '') + '</div></details>';
+    }
+    htmlMovil += '<section aria-labelledby="tm-' + esc(o.id) + '"><h2 id="tm-' + esc(o.id) + '">' + esc(o.nombre) + '</h2><div class="mlineas">' + filas + '</div></section>';
+  }
+  const madrid = { timeZone: 'Europe/Madrid' }, hoyEs = d => d.toLocaleDateString('es-ES', madrid) === new Date().toLocaleDateString('es-ES', madrid);
+  if (horaMain) {
+    const dia = hoyEs(horaMain) ? 'de hoy' : 'del ' + horaMain.toLocaleDateString('es-ES', { ...madrid, day: 'numeric', month: 'long' });
+    const hora = horaMain.toLocaleTimeString('es-ES', { ...madrid, hour: '2-digit', minute: '2-digit' });
+    movilCab = 'Tu móvil tiene la versión <b>' + esc(vMain || '¿?') + '</b> ' + dia + ' a las <b>' + hora + '</b>; lo último terminado es <b>' + esc(vRama || '¿?') + '</b>.';
+  } else movilCab = 'No se pudo leer qué versión tiene tu móvil.';
+  const ls = [...llega.entries()]; llegaN = ls.length;
+  movilLlega = ls.length ? ls.slice(0, 8).map(([id, l]) => '<li><b>' + esc(id) + '</b> ' + esc(tit(id)) + ' <span class="nota">· ' + esc(l.titulo) + '</span></li>').join('') + (ls.length > 8 ? '<li class="nota">y ' + (ls.length - 8) + ' más</li>' : '')
+    : '<li class="nota">Nada: todo lo terminado ya está en tu móvil.</li>';
+  movilNota = 'Calculado por los mensajes de commit' + (hayGit ? ' a las ' + new Date().toLocaleTimeString('es-ES', { ...madrid, hour: '2-digit', minute: '2-digit' }) : '') + ': una tarea hecha cuenta como subida salvo que sus cambios solo estén en la rama de trabajo. Puede fallar si un commit no nombra su tarea. «En obra» se refresca solo con las sesiones abiertas.';
+}
+
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(lista.frase || ''), VIGIA: esc(config.vigia || ''),
@@ -321,7 +393,7 @@ const datos = {
   N_LINEAS: lineas.length, LISTA_PROPUESTA: htmlPropuesta, LISTA: htmlLista, RESTO: htmlResto, RESTO_RESUMEN: esc(resumenResto), N_NEVERA: nevera.length, NEVERA: htmlNevera,
   ESPERA: htmlEspera, COLA: htmlCola, N_ESP: vistas.length, TAB_DECIDIR_OCULTO: vistas.length ? '' : 'hidden',
   MARCHA: htmlMarcha, N_MARCHA: sesiones.length, PENDIENTE: htmlPendiente, CHIPS: htmlChips, N_ACTIVAS: nActivas, N_TODAS: listaPend.length, N_PAUSA: nPausa, N_HECHAS: nHechas, CARRILES: htmlCarriles,
-  ARTE: htmlArte, ARTE_INDICE: htmlArteIndice, N_ARTE: piezasArte.length, EQUIPOS: htmlEquipos, EQUIPOS_INDICE: htmlEquiposIndice, EQUIPOS_JS: equiposJs,
+  ARTE: htmlArte, ARTE_INDICE: htmlArteIndice, N_ARTE: piezasArte.length, EQUIPOS: htmlEquipos, EQUIPOS_INDICE: htmlEquiposIndice, EQUIPOS_JS: equiposJs, MOVIL: htmlMovil, MOVIL_CAB: movilCab, MOVIL_LLEGA: movilLlega, MOVIL_NOTA: esc(movilNota), N_LLEGA: llegaN,
   HECHOS: hechos.map(h => '<li>' + md(h) + '</li>').join(''), ENSENAR: htmlEnsenar, INFORMES: htmlInformes, CAPTURAS: htmlCapturas, CAPTURAS_NOTA: esc(notaCapturas),
 };
 const html = (await lee('cuadro.plantilla.html')).replace(/\{\{(\w+)\}\}/g, (_, k) => datos[k] ?? '');

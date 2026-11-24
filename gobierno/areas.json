@@ -137,7 +137,8 @@
         "test/batalla-rapida.test.mjs",
         "gobierno/captura-cg7.mjs",
         "js/gfx/cine-mando.js",
-        "js/gfx/estandartes.js"
+        "js/gfx/estandartes.js",
+        "test/fu2-oficial.test.mjs"
       ],
       "taller": [
         "assets/soldados/",
