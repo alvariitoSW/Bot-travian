@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11/2026 ~21:05 — Confirma ES1 en el chat del vigía: «1- ambos. 2-a 3 a 4a 5a 6- puede realizarse en una tarea a parte mientras se termina la 1.0? 7 a.» (sí: ES2–ES4 ya van en carril aparte, rama `es-combinada`). Repositorio `ai-3d-animator-skill` (animaciones procedurales de juguete para vídeo, MIT): **«el a»** → no se usa; a la nevera como idea vista.
 - 24/11/2026 ~21:00 — ES1 (diseño, `es1-combinada` 00c15ca): bando **«Los dos»** (eliges Pirro o Roma) y, literal, «Que se haga en una tarea a parte para poder unirlo a 1.0 antes o después». → ES2–ES4 en carril aparte, rama `es-combinada` (archivos propios del bloque; contrato para ui.js); el vigía decide si entra en la 1.0 según llegue. Resto de decisiones de ES1 §8: las recomendadas (2 manípulos +1 opcional, falange como bloque del motor, directo/parábola automático, pausa con órdenes, vara de 30 llamadas).
 - 24/11/2026 ~20:55 — (literal, vía ciudad) «Abre una sesión para que diseñen que en las escaramuzas puedas elegir la falange de picas con 2-3 manípulos a la vez y puedas poner detrás tropas de ataque a distancia y poder manejarlas también y tener su jugabilidad de tropa a distancia con sus físicas» → ES1 (solo diseño, rama `es1-combinada`, estudio `estudios/ES1-escaramuza-combinada.md`); la construcción se decide tras FU5 o como etapa nueva.
 - 24/11/2026 ~20:25 — (literal, vía ciudad) «Como va solo hay una sesión abierta por qué no avanzamos más?» → el vigía abre en paralelo y en ramas propias FU4 (`fu4-rivales`), FU5 (`fu5-muro`) y TH1 (`th1-tacticas`); CG9 prepara su unión con CDe4 en `cg9-tropas`.
@@ -535,6 +536,8 @@ Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; 
 - Fuera el 24/11, ya decididas: P185 (aprobada, «1A»: es TH1); P183 (después de la 1.0, «2A»: en pausa en el tablero); P158 (su primera pieza es GM22, «3B»; el resto, después de la 1.0, en el orden de `estudios/GM42-guerra-como-rome2.md`); P166, P168 a P172, P176 y P178 a P182 (cerradas, «1A»).
 
 ## Después de la 1.0 (nevera: ideas nuevas sin estudio ni maqueta; no se abren hasta la 1.0)
+- **Repositorio `ai-3d-animator-skill`** (visto el 24/11, usuario «a»): animaciones procedurales de juguete para vídeo (Three.js/Blender, MIT); no anima modelos con esqueleto. Solo como idea de suavizado de movimientos.
+- **Estudio P161 «batalla dentro de la ciudad»** (rescate R2 de RAM1, rama `ccr-3109a3a8-6hc0m0`, commit `15efae9a`).
 - 24/11 (usuario «3A») — Arqueros y honderos contra la falange a pie; brazos que no atraviesan escudos, picas ni cuerpos; rival a pie con soldados de Meshy (eran P186–P188). Maquetas de luz y hora del día (CR4, CR4b) y «motor de lucha» (CB1): se acaban como maqueta, no entran al juego hasta la 1.0.
 - 24/11/2026 — Cuando un elefante empuja, que tus filas se vean recular y doblarse un poco (de FE3).
 - (24/11) **Embellecer la ciudad (CD6)**: sale de la 1.0 por la agricultura («1 y 2»); después de la 1.0. (El camino de la ciencia, CE11, espera tu respuesta arriba.)
