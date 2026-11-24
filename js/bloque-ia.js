@@ -193,7 +193,8 @@ function pasoBloque(M, B, dt, v, enChoque, orden) {
 /* las bajas: caen los de delante y los de atrás cierran filas */
 function bajasB(M, B, enPie) {
   const V = B.hombres.filter(h => h.vivo); let n = V.length - enPie; if (n <= 0) return;
-  V.sort((a, b) => a.fila - b.fila || Math.abs(a.col - (B.cols - 1) / 2) - Math.abs(b.col - (B.cols - 1) / 2));
+  /* FU2: el hombre que eres tú (h.yo) no cae por las reglas mientras quede otro vivo: va el último (solo lo mata el duelo) */
+  V.sort((a, b) => (a.yo ? 1 : 0) - (b.yo ? 1 : 0) || a.fila - b.fila || Math.abs(a.col - (B.cols - 1) / 2) - Math.abs(b.col - (B.cols - 1) / 2));
   for (const h of V) { if (n-- <= 0) break; h.vivo = false; }
   M.cierraFilas(B);
 }

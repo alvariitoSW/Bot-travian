@@ -659,7 +659,7 @@
         const s = B.sect[e.i], c = s.c[e.l], dir = e.l === 0 ? 1 : -1; e.gr.visible = !c.roto && !(B.resultado && (B.resultado.como === 'victoria') === (e.l === 1));
         const fr = c.lineas[0], lv = lineas.get(fr), filas = lv ? Math.ceil(lv.fs.length / FILAS) : 1;
         const zz = zFrente(s) + dir * (0.8 + hueco(c) + filas * 1.25 + 0.5); e.gr.position.x += (xs(e.i) - e.gr.position.x) * 0.2; e.gr.position.z += (zz - e.gr.position.z) * Math.min(1, dt * 3);
-        e.gr.rotation.z = Math.sin(T * 1.7 + e.i) * 0.03 + (1 - c.moral) * 0.22 * Math.sin(T * 3 + e.i); e.tela.scale.y = 0.35 + 0.65 * Math.max(0, c.moral); e.tela.position.y = EST.palo - 0.18 - EST.alto / 2 * e.tela.scale.y;
+        e.gr.rotation.z = Math.sin(T * 1.7 + e.i) * 0.03 + (1 - Math.min(1, c.moral)) * 0.22 * Math.sin(T * 3 + e.i); e.tela.scale.y = 0.35 + 0.65 * Math.min(1, Math.max(0, c.moral)); e.tela.position.y = EST.palo - 0.18 - EST.alto / 2 * e.tela.scale.y;
         e.gr.scale.setScalar(escEst()); const ico = icono(fr && fr.tipo); if (ico !== e.ico) { e.ico = ico; estM.tile.setXY(e.k, Math.max(0, ICOS.indexOf(ico)) * 0.2, e.l === 0 ? 0.5 : 0); estM.tile.needsUpdate = true; }
         e.gr.updateMatrixWorld(true);
         for (const [m, o] of [[estM.palos, e.palo], [estM.telas, e.tela], [estM.orlas, e.orla]]) m.setMatrixAt(e.k, e.gr.visible ? o.matrixWorld : CERO_M);
@@ -730,7 +730,7 @@
         const lj = R.lejos(s); V3.set(xs(i), (EST.palo + 0.6) * escEst(), lj ? zFrente(s) - hueco(e) - 3 : zFrente(s) - (e.fondo || 6) + 1).project(camara);
         const x = (V3.x * 0.5 + 0.5) * ancho, y = (-V3.y * 0.5 + 0.5) * alto - 30; d.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(Math.max(54, y)) + 'px)';
         const fl = R.frente(e).fatiga > 0.6, cls = 'pend' + (e.postura === 'empujar' ? ' carga' : fl ? ' flaquea' : ''), txt = lj ? (e.tir && e.tir.estado === 'tira' ? 'tiran' : 'avanzan') : e.postura === 'empujar' ? 'cargan' : fl ? 'flaquean' : 'aguantan';
-        if (d.className !== cls) d.className = cls; if (d.firstChild.textContent !== txt) d.firstChild.textContent = txt; d.lastChild.firstChild.style.width = Math.round(100 * Math.max(0, e.moral)) + '%';
+        if (d.className !== cls) d.className = cls; if (d.firstChild.textContent !== txt) d.firstChild.textContent = txt; d.lastChild.firstChild.style.width = Math.round(100 * Math.min(1, Math.max(0, e.moral))) + '%';
       });
     }
     function cinta(texto, tono) { const c = $('cinta'); c.textContent = texto; c.className = 've' + (tono ? ' ' + tono : ''); cintaHasta = performance.now() + 2800; }
@@ -741,7 +741,7 @@
       if (root.Musica && ((e.tipo === 'choque' && /^Las líneas/.test(e.texto)) || e.tipo === 'caballeria' || e.tipo === 'relevo' || e.tipo === 'numidas-aviso')) root.Musica.agacha();   /* SON1-b: suena un cuerno */
       if (e.tipo === 'choque') { if (/^Las líneas/.test(e.texto)) { S.cuerno(0.8); setTimeout(() => S.cuernoRival(0.6), 700); setTimeout(() => S.choque(1, 1), 1400); } else S.choque(1, 1); }
       else if (e.tipo === 'pila') S.choque(0.4, 1.3);
-      else if (e.tipo === 'carga-enemiga') { if (tropa === 'elefantes') S.elefante(0.8); else if (tropa === 'falange') S.falange(0.7); else { S.carga(0.7); } }
+      else if (e.tipo === 'carga-enemiga') { if (tropa === 'elefantes') S.elefante(0.8); else if (tropa === 'falange') S.falange(0.7); else { S.carga(0.7, Math.min(1, B.sect.reduce((a, s) => a + (s.c[1].roto ? 0 : s.c[1].lineas.reduce((b, l) => b + (l.hombres || 0), 0)), 0) / 3000)); } }   /* SON10: la masa de debajo crece con el ejército rival */
       else if (e.tipo === 'elefantes-desbocados') { S.elefante(1); setTimeout(() => S.choque(0.8, 1), 500); }
       else if (e.tipo === 'caballeria') S.cuerno(0.7);
       else if (e.tipo === 'impacto') { S.carga(0.9); S.choque(1, 1); }
@@ -797,6 +797,21 @@
 
     /* ---------- SON1-b: banda sonora adaptativa y voces de los soldados (js/gfx/musica.js, js/voces.js; licencia de juego) ---------- */
     const vz = root.Voces ? root.Voces.nuevo() : null; let dialogoHasta = 0, tBanda = 0;
+    /* SON9: la arenga antes de la batalla y las preguntas de tus oficiales (js/dialogos.js, js/gfx/dialogos-ui.js). Desactivado en pruebas automáticas (navigator.webdriver), salvo con ?arenga=1 */
+    const DU = root.DialogosUI && root.Dialogos && root.DialogosUI.quiere(cfg) ? root.DialogosUI.crea({ padre: $('hud'), abajo: 'calc(env(safe-area-inset-bottom) + 200px)', abajoH: 'calc(env(safe-area-inset-bottom) + 96px)' }) : null;
+    let preg = null, tPreg = 0, arengando = false;
+    function preguntas(dt) {
+      if (!DU || preg || arengando || B.fase === 'fin' || !root.Dialogos.preguntasOn()) return;   /* ajuste «Preguntas de oficiales» */
+      tPreg -= dt; if (tPreg > 0) return; tPreg = 1;
+      const Dl = root.Dialogos, p = Dl.detectar(B); if (!p) return;
+      Dl.mostrada(B, p); preg = p; pausa = true; sel = p.sect; mirar(p.sect, 4, true); pintarCartas();
+      const sigue = r => { preg = null; pausa = false; if (!r.ok && r.no) cinta(r.no); pintarCartas(); guardaYa(); };
+      DU.pregunta(p, { alElegir: k => sigue(Dl.responder(B, p, k)), alTiempo: () => { const r = Dl.porTiempo(B, p); DU.habla(Dl.TIEMPO, { nombre: Dl.NOMBRE.tribuno, espera: 3 }); sigue(r); if (r.ok) cinta('Sin tu orden, el tribuno mantiene la línea'); } });
+    }
+    function arengar() {
+      arengando = true; pausa = true; $('cinta').classList.remove('ve');
+      DU.arenga(id => { root.Dialogos.arengar(B, id); arengando = false; pausa = false; pintarCartas(); const a = root.Dialogos.arenga(id); cinta(a ? a.efecto : 'Se acercan. Si te tiran, pulsa «Escudos»', a ? 'buena' : ''); cintaHasta = performance.now() + 5000; guardaYa(); });
+    }
     function dice(f, sect) {
       if (!f) return; const d = $('dialogo'), So = root.Sonido;
       d.className = 've ' + f.quien; d.children[0].textContent = root.Voces.NOMBRE[f.quien] + ':'; d.children[1].textContent = f.lat; d.children[2].textContent = f.es ? '— ' + f.es : ''; dialogoHasta = performance.now() + 3200;
@@ -885,7 +900,7 @@
       }
       pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true;
     }
-    function avanza(dt) { T += dt; R.paso(B, dt); if (vz) vz.t = B.t; eventos(); ambiente(dt); banda(dt); colocar(dt); mover(dt); proyectiles(dt); }
+    function avanza(dt) { T += dt; R.paso(B, dt); if (vz) vz.t = B.t; eventos(); ambiente(dt); banda(dt); preguntas(dt); colocar(dt); mover(dt); proyectiles(dt); }
     let raf = 0, cerrado = false, tFin = 0, retardo0 = false, antes = 0, acum = 0, cuadros = 0, lentos = 0, tHud = 0;
     function cuadro(ahora) {
       if (cerrado) return; raf = requestAnimationFrame(cuadro);
@@ -918,8 +933,8 @@
         if (FF && SOLD && SOLD.crearPila) { armas = SOLD.crearPila(escena, 1, FIS.FIG.PROY_MAX); salidas.push(() => armas.soltar()); }   /* FI4: las armas de la física, una malla */
         lista = true; $('carga').hidden = true; $('mando').hidden = false;
         if (root.Musica && B.fase !== 'fin') root.Musica.iniciar({ semilla: B.sem });   /* SON1-b: la banda sonora, con fundido de entrada */
-        if (root.Sonido && root.Sonido.cargaVoces && root.Voces) { root.Sonido.contexto(); root.Sonido.cargaVoces(root.Voces.FRASES.filter(f => f.pron).map(f => f.id).concat(root.Voces.GRIEGO.map(g => g.id))); }   /* SON2: las frases habladas, sin esperar */
-        if (B.fase === 'fin') fin(); else { cinta(retomada ? 'La batalla sigue donde la dejaste' : 'Se acercan. Si te tiran, pulsa «Escudos»'); cintaHasta = performance.now() + 6000; }
+        if (root.Sonido && root.Sonido.cargaVoces && root.Voces) { root.Sonido.contexto(); root.Sonido.cargaVoces(root.Voces.FRASES.filter(f => f.pron).map(f => f.id).concat(root.Voces.GRIEGO.map(g => g.id), root.Dialogos ? root.Dialogos.DICHOS.map(f => f.id) : [])); }   /* SON2: las frases habladas, sin esperar */
+        if (B.fase === 'fin') fin(); else if (DU && !retomada && B.t === 0 && !B.arenga) arengar(); else { cinta(retomada ? 'La batalla sigue donde la dejaste' : 'Se acercan. Si te tiran, pulsa «Escudos»'); cintaHasta = performance.now() + 6000; }
       } catch (e) { console.error(e); $('carga-p').textContent = 'No se ha podido cargar la batalla.'; $('carga-s').hidden = false; }
     }
 
@@ -929,7 +944,7 @@
     document.addEventListener('visibilitychange', alOcultar); window.addEventListener('pagehide', guardaYa);
     const tGuardar = setInterval(() => { if (lista && B && B.fase !== 'fin' && !pausa) guardaYa(); }, 4000);
     function cerrarTodo() {
-      cerrado = true; cancelAnimationFrame(raf); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos(); if (root.Musica) root.Musica.parar(1.5); clearInterval(tGuardar); clearTimeout(tFin); delete window.__gc;
+      cerrado = true; cancelAnimationFrame(raf); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos(); if (root.Musica) root.Musica.parar(1.5); clearInterval(tGuardar); clearTimeout(tFin); delete window.__gc; if (DU) DU.cerrar();
       document.removeEventListener('visibilitychange', alOcultar); window.removeEventListener('pagehide', guardaYa); for (const f of salidas) f();
       for (const m of mallas.values()) { try { soltarMalla(m); } catch (e) { /* ya liberada */ } }
       soltarSoldados();
@@ -941,7 +956,7 @@
     /* ganchos para las pruebas y las capturas */
     window.__gc = {
       terminar, get cerrado() { return cerrado; },
-      get lista() { return lista; }, get B() { return B; }, R, get flechas() { return flechas.length; },
+      get lista() { return lista; }, get B() { return B; }, get preg() { return preg; }, R, get flechas() { return flechas.length; },
       ordenar: (i, o) => { sel = i; ordenar(o); }, elegir,
       pausa: v => { pausa = v; },
       salta: seg => { for (let k = 0; k < seg * 20 && B.fase !== 'fin'; k++) avanza(0.05); },

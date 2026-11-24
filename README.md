@@ -77,7 +77,7 @@ como herramienta: el **centurión**, el **triario**, el **vélite** y siete galo
 movimientos de Quaternius (CC0 1.0); escudos y armas los pone el juego por código
 (`tools/blender/*_meshy_*.py`; detalle de cada uno en `assets/soldados/LICENSE.txt`).
 
-El sonido grabado de las batallas (`assets/sonido`, 36 sonidos) es todo **[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)**: de OpenGameArt (rubberduck, Kenney, artisticdude) y de Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia). Cada archivo con su fuente en `assets/sonido/LICENSE.txt`; `tools/sonido-fuentes.sh` y `tools/sonido.py` lo rehacen.
+El sonido grabado de las batallas (`assets/sonido`, 36 sonidos) es todo **[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)**: de OpenGameArt (rubberduck, Kenney, artisticdude) y de Freesound (marchelonia, ale-batec, salemaudio, joelcarrsound, WelvynZPorterSamples, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia). Cada archivo con su fuente en `assets/sonido/LICENSE.txt`; `tools/sonido-fuentes.sh` y `tools/sonido.py` lo rehacen.
 
 La letra de los títulos es **Cinzel**, de The Cinzel Project Authors, con licencia **[SIL OFL 1.1](https://openfontlicense.org)**
 (ver `assets/fuentes/LICENSE.txt`). Va incluida en el juego para que se vea igual sin conexión.

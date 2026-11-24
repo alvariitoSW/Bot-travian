@@ -54,8 +54,9 @@
   S.cuerno = function (v) {
     try { if (!listo()) return; v = vol(v === undefined ? 0.8 : v); if (!voz(1.2)) return; if (S.tiene('cuerno')) { S.muestra('cuerno', { v: 0.8 * v, i: 1 }); return; } const t = S.ctx.currentTime; tono(t, 0.5, 196, 190, 0.18 * v, 'sawtooth'); tono(t + 0.55, 0.65, 262, 255, 0.18 * v, 'sawtooth'); } catch (e) { /* silencio */ }
   };
-  S.carga = function (v) {
-    try { if (!listo()) return; v = vol(v); if (v < 0.03 || !voz(1.1)) return; if (S.tiene('clamor')) { S.muestra('clamor', { v: 0.7 * v }); for (let i = 0; i < 3; i++) S.muestra('paso', { v: 0.5 * v, retraso: i * 0.22, vel: 0.8 }); return; } const t = S.ctx.currentTime; ruido(t, 1.0, 220, 70, 0.4 * v); tono(t, 0.9, 70, 45, 0.25 * v, 'sine'); } catch (e) { /* silencio */ }
+  /* carga de infantería: el clamor de los que cargan y sus pasos; `tam` (0..1, el tamaño del ejército) sube el rugido de la masa que suena debajo (SON10) */
+  S.carga = function (v, tam) {
+    try { if (!listo()) return; v = vol(v); if (v < 0.03 || !voz(1.1)) return; if (S.tiene('clamor')) { S.muestra('clamor', { v: 0.7 * v }); const m = Math.max(0, Math.min(1, tam || 0)); if (m > 0.15 && S.tiene('masa')) S.muestra('masa', { v: 0.55 * v * m, retraso: 0.05 }); for (let i = 0; i < 3; i++) S.muestra('paso', { v: 0.5 * v, retraso: i * 0.22, vel: 0.8 }); return; } const t = S.ctx.currentTime; ruido(t, 1.0, 220, 70, 0.4 * v); tono(t, 0.9, 70, 45, 0.25 * v, 'sine'); } catch (e) { /* silencio */ }
   };
   /* GC5: cuerno del enemigo (más grave y áspero que el romano), barrito de elefante y redoble de la falange. Síntesis propia, sin archivos. */
   S.cuernoRival = function (v) {
@@ -69,7 +70,7 @@
   };
   /* ---------- GM43i: sonido grabado ----------
      BANCO: grupo → cuántas variantes hay (assets/sonido/<grupo><n>.mp3). Una variante al azar cada vez, sin repetir la última. */
-  const BANCO = { madera: 4, hierro: 4, escudo: 4, paso: 4, vuelo: 3, esfuerzo: 4, herido: 2, coro: 1, grito: 3, clamor: 2, cuerno: 2, lucha: 2, viento: 1, orden: 1, aclamacion: 2, panico: 2, canto: 2, quejido: 2, caida: 3, clava: 2, empuje: 2, tajo: 2 };   /* SON7: caídas, pila que se clavan, escudo contra escudo y gladio (tools/sonido-fragor.py) */
+  const BANCO = { madera: 4, hierro: 4, escudo: 4, paso: 4, vuelo: 3, esfuerzo: 3, herido: 5, coro: 1, grito: 5, clamor: 1, masa: 1, cuerno: 2, lucha: 1, viento: 1, orden: 1, aclamacion: 1, panico: 3, canto: 2, quejido: 3, caida: 3, clava: 2, empuje: 2, tajo: 2 };   /* SON11: caídas, pila que se clavan, escudo contra escudo y gladio (tools/sonido-fragor.py) */
   S.BANCO = BANCO;
   S.archivos = () => Object.entries(BANCO).flatMap(([g, n]) => Array.from({ length: n }, (_, i) => 'assets/sonido/' + g + (i + 1) + '.mp3'));
   S.buf = {}; S.ultima = {}; S.muestras = 0; S.fondos = {}; S.banco = null;

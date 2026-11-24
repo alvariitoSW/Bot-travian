@@ -64,7 +64,7 @@ export function crearTropas({ S, muroDelante = false }) {   /* FU1: muroDelante:
   function animacion(f, b, fila, dt, T) {
     if (f.esp) {
       if (T < f.esp.t0) { /* espera su turno */ }
-      else if (T - f.esp.t0 < DUR[f.esp.clip]) { if (f.clip !== f.esp.clip) { f.clip = f.esp.clip; f.t = 0; } f.t += dt; return; }
+      else if (T - f.esp.t0 < DUR[f.esp.clip] / (f.esp.vel || 1)) { if (f.clip !== f.esp.clip) { f.clip = f.esp.clip; f.t = 0; } f.t += dt * (f.esp.vel || 1); return; }   /* FU2: vel acelera o frena el gesto */
       else f.esp = null;
     }
     const enChoque = b.contactos && b.contactos.length > 0, huye = b.estado === 'huye' || b.estado === 'fuera';
@@ -130,8 +130,9 @@ export function crearTropas({ S, muroDelante = false }) {   /* FU1: muroDelante:
       /* bajas: caen los de delante (los del centro antes) y los de atrás cierran filas */
       const vivos = V.men.filter(f => f.vivo !== false); let sobran = vivos.length - Math.max(0, b.U.enPie);
       if (sobran > 0) {
-        const orden = vivos.slice().sort((a, c) => (Math.floor(a.slot / V.cols) - Math.floor(c.slot / V.cols)) || (Math.abs(a.slot % V.cols - (V.cols - 1) / 2) - Math.abs(c.slot % V.cols - (V.cols - 1) / 2)) + (hash(a.semilla) - hash(c.semilla)) * 3);
-        for (const f of orden) { if (sobran-- <= 0) break; cae(f, T); }
+        /* FU2: la figura marcada (tu rival del duelo) cae la primera, y se le quita la marca */
+        const orden = vivos.slice().sort((a, c) => ((c.marcado ? 1 : 0) - (a.marcado ? 1 : 0)) || (Math.floor(a.slot / V.cols) - Math.floor(c.slot / V.cols)) || (Math.abs(a.slot % V.cols - (V.cols - 1) / 2) - Math.abs(c.slot % V.cols - (V.cols - 1) / 2)) + (hash(a.semilla) - hash(c.semilla)) * 3);
+        for (const f of orden) { if (sobran-- <= 0) break; f.marcado = false; cae(f, T); }
         V.men = V.men.filter(f => f.vivo !== false); V.men.sort((a, c) => a.slot - c.slot); V.men.forEach((f, k) => { f.slot = k; });
       }
       const huye = b.estado === 'huye' || b.estado === 'fuera', corre = huye || b.orden === 'cargar' || b.estado === 'reforma';

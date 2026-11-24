@@ -255,7 +255,7 @@
   function fuerza(u) {
     const fondoF = Math.max(0.3, Math.min(1, u.n / (0.4 * u.n0))), F = FORMAS[u.forma];
     return (dd(u) ? 1 : cal(u.tropa)) * fondoF * (1 - 0.55 * u.fatiga) * (u.postura === 'empujar' ? 1.25 : 0.8) * (u.relevo > 0 || u.cambio > 0 ? 0.7 : 1) * (0.7 + 0.3 * Math.max(0, u.moral)) *
-      (u.impulso > 0 ? 1.15 * (F.choque || 1) : 1) * (u.frenada > 0 ? 0.8 : 1) * F.atk;
+      (u.impulso > 0 ? 1.15 * (F.choque || 1) : 1) * (u.frenada > 0 ? 0.8 : 1) * F.atk * (u.mod && u.postura === 'empujar' ? u.mod.empuja : 1);
   }
   const escala = u => limita(u.n0 / tam(u.tropa), 0.15, 3);
 
@@ -483,9 +483,9 @@
       if (dano[b.id] > 0) quitar(S, b, dano[b.id], danoM[b.id] / dano[b.id]);
       if (vivo(b) && lucha) {
         const rb = S.cont[b.id][0], Rb = rb ? razon(b, M[rb.id], 'frente') : null, fb = fuerza(b) * (Rb || 1), T = car(b.tropa);
-        b.moral -= morMul(b) * (dano[b.id] / b.n0 * MORAL_BAJA + TENSION * dt + (flanq[b.id] ? 0.028 : 0) * dt + (golpeF[b.id] > fb ? 0.013 * (golpeF[b.id] - fb) * dt : 0) + (b.fatiga > 0.85 ? 0.006 * dt : 0));
+        b.moral -= (b.mod ? b.mod.moral : 1) * morMul(b) * (dano[b.id] / b.n0 * MORAL_BAJA + TENSION * dt + (flanq[b.id] ? 0.028 : 0) * dt + (golpeF[b.id] > fb ? 0.013 * (golpeF[b.id] - fb) * dt : 0) + (b.fatiga > 0.85 ? 0.006 * dt : 0));
         if (b.postura === 'aguantar' && !flanq[b.id]) b.moral += 0.004 * dt;
-        b.fatiga = limita(b.fatiga + (b.postura === 'empujar' ? BASE_FATIGA * cansa(b) : -BASE_FATIGA * 0.22) * dt, 0, 1);
+        b.fatiga = limita(b.fatiga + (b.postura === 'empujar' ? BASE_FATIGA * cansa(b) * (b.mod ? b.mod.cansa : 1) : -BASE_FATIGA * 0.22) * dt, 0, 1);
         if (flanq[b.id] && !b.flanqueado && S.t - (b.tFlanco || -99) > 8) b.tFlanco = S.t, ev(S, S.cont[b.id].some(c => c.cara === 'retaguardia') ? 'retaguardia' : 'flanqueo', b, b.nom + (S.cont[b.id].some(c => c.cara === 'retaguardia') ? ': ¡les atacan por la espalda!' : ': ¡les atacan por el flanco!'));
         b.flanqueado = flanq[b.id];
         if (esEle(b.tropa) && !b.desboque && (b.fatiga > 0.7 || b.n < 0.5 * b.n0)) desbocar(S, b);
@@ -494,9 +494,9 @@
         const F = FORMAS[b.forma];
         if (F.cansa) b.fatiga = Math.min(1, b.fatiga + F.cansa * cansa(b) * dt);
         else if (!b.dest && (b.orden === 'quieto' || b.orden === 'aguantar')) b.fatiga = Math.max(0, b.fatiga - DESCANSO * dt);
-        if (S.t - b.fuego > 3 && b.moral < 1) b.moral = Math.min(1, b.moral + 0.002 * dt);
+        if (S.t - b.fuego > 3 && b.moral < (b.tope || 1)) b.moral = Math.min(b.tope || 1, b.moral + 0.002 * dt);
       }
-      b.moral = Math.min(1, b.moral);
+      b.moral = Math.min(b.tope || 1, b.moral);
       estado(S, b);
     }
     comprobarFin(S);
@@ -542,7 +542,7 @@
     const r = S.man[u.con]; if (!r || r.con !== u.id) { u.con = -1; return; }
     if (!vivo(u) || !vivo(r)) { u.con = r.con = -1; return; }
     const [fx, fy] = fwd(u), x = u.x, y = u.y, a = u.a, ox = r.x, oy = r.y;
-    r.x = x; r.y = y; r.a = a; r.moral = Math.min(1, r.moral + 0.1); r.relevo = 0; r.con = u.con = -1;
+    r.x = x; r.y = y; r.a = a; r.moral = Math.min(r.tope || 1, r.moral + 0.1); r.relevo = 0; r.con = u.con = -1;
     const atras = fondo(u) / 2 + fondo(r) / 2 + 2;
     u.x = x - fx * atras; u.y = y - fy * atras; u.dest = { x: ox, y: oy, a }; u.orden = 'mover'; u.obj = -1; u.carga = false;
     const t = u.tras; u.tras = r.id; r.tras = t === r.id ? -1 : t;

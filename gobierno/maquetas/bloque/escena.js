@@ -13,6 +13,10 @@
    salir, manda al padre postMessage({ aqvila: 'lp7', r: __bloque.lp7() }): hombres y en pie de cada bloque y dónde acabó el tuyo.
    FU1: ?formacion=testudo (por defecto, manípulo: lo de siempre) abre el testudo con el control del manípulo: formaciones/testudo.js
    (escenario «cruzar bajo las salvas», techo de escudos) y ?fase=salva|testudo|lucha… también lo salta. a-pie/ lleva aquí (?antiguo=1 = la escena vieja).
+   FU2: tú eres un hombre de la primera fila (oficial.js). En la vista del oficial se pelea con un dedo (dedos.js, modo pelea):
+   la cámara baja a tu hombro y mira al rival (camara.js), el HUD del duelo es duelo-hud.js. Arriba no hay duelo de dedos, pero
+   el duelo sigue (el galo te golpea igual: es lo más simple y las cifras de oficial.js están medidas así). ?fase=duelo salta al
+   choque sin congelar. Gancho: __bloque.oficial y __bloque.pide(gesto, datos).
    Gancho para pruebas: window.__bloque = { listo, C, S, dibuja(p0, p1), orden(n), estado() }. */
 import { THREE } from '../../../js/gfx/models.js';
 import { cargarSoldado, tropa } from '../../../js/gfx/soldado.js';
@@ -30,6 +34,8 @@ import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArm
 import { FIN_LUCHA } from '../../../js/falange.js';
 import { crear as formacionManipulo } from './formaciones/manipulo.js';
 import { crear as formacionTestudo } from './formaciones/testudo.js';
+import { crearOficial, GOLPE } from './oficial.js';   /* FU2: tú en la fila: el duelo del oficial (solo reglas) */
+import { crearDueloHud } from './duelo-hud.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => document.getElementById(id);
 const TESTUDO = Q.get('formacion') === 'testudo' && !Q.get('lp7');   /* FU1: la formación de la escena (cada una, su archivo en formaciones/) */
@@ -183,10 +189,11 @@ function creaEfectos() {
 }
 function suelta(P, N, x, y, z, vx, vy, vz, r, g, b, vida) { const i = P.k; P.k = (P.k + 1) % N; P.pos.set([x, y, z], i * 3); P.vel.set([vx, vy, vz], i * 3); P.col.set([r, g, b], i * 3); P.vida[i] = vida; P.col0 = P.col0 || new Float32Array(N * 3); P.col0.set([r, g, b], i * 3); }
 function avanza(P, N, m, dt, cae) {
-  for (let i = 0; i < N; i++) { if (P.vida[i] <= 0) continue; P.vida[i] -= dt; const k = Math.max(0, Math.min(1, P.vida[i]));
+  let vivas = 0;   /* FU2: sin partículas vivas, no se dibuja (una llamada menos bajo el techo) */
+  for (let i = 0; i < N; i++) { if (P.vida[i] <= 0) continue; vivas++; P.vida[i] -= dt; const k = Math.max(0, Math.min(1, P.vida[i]));
     for (let c = 0; c < 3; c++) { P.pos[i * 3 + c] += P.vel[i * 3 + c] * dt; P.col[i * 3 + c] = P.col0[i * 3 + c] * k; }
     P.vel[i * 3 + 1] -= cae * dt; if (P.vida[i] <= 0) P.pos[i * 3 + 1] = -99; }
-  m.geometry.attributes.position.needsUpdate = true; m.geometry.attributes.color.needsUpdate = true;
+  m.visible = vivas > 0; m.geometry.attributes.position.needsUpdate = true; m.geometry.attributes.color.needsUpdate = true;
 }
 let tPolvo = 0;
 function lineaDeChoque(dt) {
@@ -249,7 +256,8 @@ function nueva(n) {
   nivel = n; C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}));
   if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
   FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
-  window.__bloque.C = C; window.__bloque.S = C.S;
+  OF = crearOficial({ S: C.S, alAviso: alOficial }); rivF = null; sacude = 0;
+  window.__bloque.C = C; window.__bloque.S = C.S; window.__bloque.oficial = OF;
 }
 /* lo que prevé LP1 al dibujar: mira hacia el lado de la raya más cerca de donde mira ahora */
 function haciaDonde(p0, p1) {
@@ -270,14 +278,14 @@ function frenteDesdeRaya(p0, p1) { C.frente({ x: (p0.x + p1.x) / 2, z: (p0.z + p
 function salta(fase) {
   const S = C.S, tu = S.tuyo; let salva = false, choqueT = -1, n = 0;
   oyente = (t, d) => { if (t === 'salva' && d.blanco === tu) salva = true; };
-  const paso = () => { C.paso(0.1); TR.paso(0.1, S.T); FS.paso(0.1); n++; };
+  const paso = () => { C.paso(0.1); TR.paso(0.1, S.T); FS.paso(0.1); OF && OF.paso(0.1); n++; };
   if (S.escenario && fase !== 'dibuja' && fase !== 'gira') { const m = S.escenario.meta; C.frente({ x: m.x, z: m.z, ang: 0 }); }   /* FU1: cruzas hacia la colina */
   const hasta = (cond, conBot = true) => { while (!cond() && !S.ganador && S.T < 280) { if (conBot) C.bot('bueno'); paso(); } };
   if (fase === 'dibuja') { for (let i = 0; i < 20; i++) paso(); frenteDesdeRaya({ x: -4, z: -14 }, { x: 16, z: -24 }); for (let i = 0; i < 40; i++) paso(); }
   else if (fase === 'gira') { for (let i = 0; i < 20; i++) paso(); frenteDesdeRaya({ x: -16, z: 4 }, { x: -16, z: -14 }); for (let i = 0; i < 80; i++) paso(); }
   else if (fase === 'salva' || fase === 'testudo') { hasta(() => salva); if (fase === 'testudo') { C.orden('testudo'); for (let i = 0; i < 14; i++) paso(); } }
   else if (fase === 'carga') hasta(() => C.ordenUtil() === 'cargar');
-  else if (fase === 'choque' || fase === 'datos' || fase === 'lucha') { const dura = fase === 'lucha' ? 30 : 4; hasta(() => { if (tu.contactos.length && choqueT < 0) choqueT = S.T; return choqueT > 0 && S.T - choqueT > dura; }); }   /* lucha (LP5a): 30 s de choque, con caídos */
+  else if (fase === 'choque' || fase === 'datos' || fase === 'lucha' || fase === 'duelo') { const dura = fase === 'lucha' ? 30 : fase === 'duelo' ? 1 : 4; hasta(() => { if (tu.contactos.length && choqueT < 0) choqueT = S.T; return choqueT > 0 && S.T - choqueT > dura; }); }   /* lucha (LP5a): 30 s de choque, con caídos */
   else if (fase === 'flanco') hasta(() => !!S.flanco && !!S.flanco.de && Math.hypot(S.flanco.de.x - tu.x, S.flanco.de.z - tu.z) < 45);
   else if (fase === 'relevo') hasta(() => C.ordenUtil() === 'relevo');
   else if (fase === 'trabado' || fase === 'retirada') {   /* LP4b: trabado y perdiendo (fila agotada, sin relevos); luego «Retirada» */
@@ -296,6 +304,65 @@ function salta(fase) {
   return n;
 }
 
+/* ---------- FU2: el oficial (tú en la fila) ---------- */
+let OF = null, DH = null, rivF = null, sacude = 0;
+const figDe = h => h ? TR.figs.find(f => f.h === h) || null : null;
+/* el rival que se ve: la figura enemiga viva más cerca delante de tu hombre, a menos de 3,5 m; se guarda mientras viva */
+function buscaRival(fy) {
+  const F = fr(C.S.tuyo.ang), rb = OF.rival && OF.rival.b; let m = null, dm = 3.5 * 3.5, mb = null, dmb = dm;
+  for (const f of TR.figs) {
+    if (f.bando === fy.bando || f.vivo === false || f.h) continue;
+    const dx = f.x - fy.x, dz = f.z - fy.z, d2 = dx * dx + dz * dz; if (dx * F.x + dz * F.z <= 0) continue;
+    if (d2 < dm) { dm = d2; m = f; } if (f.b === rb && d2 < dmb) { dmb = d2; mb = f; }
+  }
+  return mb || m;   /* mejor uno del bloque con el que peleas: así la marca tumba a uno de ese bloque */
+}
+const pelea = () => { if (!C || !OF || !cam1 || !cam1.cerca() || !nivel) return 'nada'; const e = OF.estado(); return e.duelo ? 'duelo' : e.pilum > 0 ? 'pilum' : 'nada'; };
+function oficialPinta() {
+  if (!OF) return; const e = OF.estado(), fy = figDe(OF.yo()), T = C.S.T;
+  if (OF.rival && OF.rival.marcado) { if (rivF) rivF.marcado = true; OF.rival.marcado = false; rivF = null; }
+  if (rivF && rivF.vivo === false) rivF = null;
+  if (!e.duelo || !fy) rivF = null; else if (!rivF) rivF = buscaRival(fy);
+  if (rivF && fy) rivF.yaw = Math.atan2(fy.x - rivF.x, fy.z - rivF.z);   /* el galo te mira a ti */
+  /* mantener el escudo: la pose de cubrirse se queda a medio gesto mientras mantienes */
+  if (fy) {
+    if (e.parando) { if (!fy.esp || fy.esp.clip !== 'cubrirse') fy.esp = { clip: 'cubrirse', t0: T, vel: 1.4 }; else if (fy.clip === 'cubrirse' && fy.t > TR.DUR.cubrirse * 0.5) fy.esp.vel = 1e-4; }
+    else if (fy.esp && fy.esp.clip === 'cubrirse') fy.esp = null;
+  }
+}
+const gestoDe = (f, clip, vel = 1) => { if (f) f.esp = { clip, t0: C.S.T, vel }; };
+function chispas(n) {
+  const a = figDe(OF.yo()), b = rivF; if (!a) return; const x = b ? (a.x + b.x) / 2 : a.x, z = b ? (a.z + b.z) / 2 : a.z, y = H(x, z) + 1.3;
+  for (let j = 0; j < n; j++) suelta(chispa, CHISPA_N, x, y, z, (azarV() - 0.5) * 3, 1 + azarV() * 2, (azarV() - 0.5) * 3, 1, 0.8, 0.4, 0.4);
+}
+/* lo que cuenta oficial.js: gestos de las figuras, sonido, chispas y la sacudida (sonido y sacudida, solo si estás abajo) */
+function alOficial(tipo, d) {
+  const cerca = !!(cam1 && cam1.cerca()), son = f => { if (cerca) try { f(); } catch (err) { /* sin sonido */ } }, yo = figDe(OF && OF.yo());
+  switch (tipo) {
+    case 'arma': if (rivF && OF.rival) gestoDe(rivF, 'golpear', TR.DUR.golpear / ((OF.rival.tb || 0.9) + GOLPE)); break;
+    case 'golpe':
+      if (d.res === 'parado') { son(() => { Son.hierro(0, 0, 1); Son.madera(1, 0); }); chispas(10); gestoDe(rivF, 'encajar'); }
+      else if (d.res === 'aguanta') son(() => Son.madera(0.7, 0));
+      else { son(() => { Son.madera(0.8, 0); Son.esfuerzo(0, 1); Son.trueno(0.3); }); if (cerca) sacude = 0.35; }
+      break;
+    case 'estocada':
+      gestoDe(yo, 'golpear', 1.6);
+      if (d.res === 'mata') son(() => { Son.tierra(0); Son.herido(0); });
+      else if (d.res === 'entra') son(() => Son.herido(0));
+      else son(() => Son.hierro(0, 0, 0.6));
+      break;
+    case 'empuja': gestoDe(yo, 'encajar', 1.3); if (d.ok) { gestoDe(rivF, 'encajar'); son(() => Son.madera(0.8, 0)); } break;
+    case 'cae': if (cerca) sacude = 0.5; break;
+    case 'pilum': {
+      gestoDe(yo, 'lanzar'); son(() => Son.lanza());
+      if (FS && FS.activa) FS.salva(C.S.tuyo, null, 1, d.dur, 'pilum', () => d.a);
+      else { const y0 = H(d.de.x, d.de.z) + 1.8; vuelos.push({ x0: d.de.x, z0: d.de.z, y0, x1: d.a.x, z1: d.a.z, y1: H(d.a.x, d.a.z) + 0.2, t: 0, dur: d.dur, alto: 4 + Math.hypot(d.a.x - d.de.x, d.a.z - d.de.z) * 0.18 }); }
+      break;
+    }
+    case 'pilum-cae': if (d.mata) son(() => Son.herido(0)); break;
+  }
+}
+
 /* ---------- bucle ---------- */
 let tPrev = performance.now(), acum = 0;
 function bucle(ahora) {
@@ -303,13 +370,17 @@ function bucle(ahora) {
   if (C) {
     if (!congelado && nivel) {
       acum += dt; let k = 0; while (acum >= 0.05 && k < 4) { C.paso(0.05); acum -= 0.05; k++; } if (k === 4) acum = 0;
-      TR.paso(dt, C.S.T); FS.paso(dt); lineaDeChoque(dt);
+      OF.paso(dt); TR.paso(dt, C.S.T); FS.paso(dt); lineaDeChoque(dt);
       /* la raya del frente se queda mientras el bloque va hacia ella */
       const B = C.S.B; if (!dedos.activo()) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
       try { sonBloque(dt); } catch (e) { /* sin sonido */ }
     }
     FORM.paso(congelado ? 5 : dt);   /* FU1: el techo, tras mover a los hombres */
-    camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt); camara.updateMatrixWorld();
+    oficialPinta();
+    camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt);
+    if (sacude > 0) { sacude = Math.max(0, sacude - dt); const a = 0.25 * sacude; camara.position.x += (azarV() - 0.5) * a; camara.position.y += (azarV() - 0.5) * a; }
+    camara.updateMatrixWorld();
+    DH.pinta({ ve: !!(nivel && cam1 && cam1.t() > 0.5), est: OF.estado(), aro: rivF ? proyecta(rivF.x, 1.45, rivF.z) : null, dedo: dedos.dedoEn(), modo: pelea(), dt: congelado ? 0 : dt });
     mPolvo.material.opacity = cam1 ? 1 - 0.75 * cam1.t() : 1;   /* LP7: abajo, el polvo no tapa media pantalla */
     avanza(polvo, POLVO_N, mPolvo, congelado ? 0 : dt, -0.1); avanza(chispa, CHISPA_N, mChispa, congelado ? 0 : dt, 6); pintaVuelos(congelado ? 0 : dt);
     pintaSoldados(); hud.tick(dt); separaEstandartes($('ests')); campo && campo.tick(ahora / 1000);
@@ -343,8 +414,11 @@ window.__bloque = { listo: false, lp7: () => resultadoLP7(), vuelve: () => vuelv
 
 async function arranca() {
   hud = crearHud({ $, proyecta, ladoEnPantalla, Son });
-  dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H, libre: () => !cam1 || cam1.libre(), escala: () => cam1 ? 1 - 0.6 * cam1.t() : 1 });
-  cam1 = crearCamara({ camara, lienzo, H, estado: () => C && C.S, hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba' }); window.__bloque.vista = cam1;
+  dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H, libre: () => !cam1 || cam1.libre(), escala: () => cam1 ? 1 - 0.6 * cam1.t() : 1,
+    pelea, alGesto: (g, d) => { if (C && nivel && !congelado && OF && cam1 && cam1.cerca()) OF.pide(g, d); } });
+  cam1 = crearCamara({ camara, lienzo, H, estado: () => C && C.S, hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba',
+    yo: () => OF && OF.yo(), modo: () => { const e = OF && OF.estado(); return { duelo: !!(e && e.duelo && rivF), techo: !!(FORM.cerrado && FORM.cerrado()), rival: rivF ? { x: rivF.x, z: rivF.z } : null }; } }); window.__bloque.vista = cam1;
+  DH = crearDueloHud({ padre: $('hud') }); window.__bloque.pide = (g, d) => OF && OF.pide(g, d);
   escena.add(dedos.raya);
   creaSombras(); creaEfectos();
   $('carga-t').textContent = 'Formando el manípulo…';
@@ -369,7 +443,7 @@ async function arranca() {
   for (const b of document.querySelectorAll('[data-nivel]')) b.addEventListener('click', () => { $('inicio').hidden = true; nueva(b.dataset.nivel); });
   addEventListener('pointerdown', () => { try { Son.inicia(); } catch (e) { /* sin sonido */ } }, { once: true });
   try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'romano', rival: { esGriego: false, galos: true }, semilla: 43, abajo: '120px' }); Son.alSonar(() => BANDA.inicia()); window.__bloque.banda = BANDA; } catch (e) { console.log('[SON7] sin banda: ' + e.message); }   /* SON7 */
-  if (FASE) { nivel = nivel || 'normal'; nueva(nivel); salta(FASE); congelado = true; if (FASE === 'fin') hud.muestraFin(); }
+  if (FASE) { nivel = nivel || 'normal'; nueva(nivel); salta(FASE); congelado = FASE !== 'duelo';   /* FU2: ?fase=duelo deja la partida viva en el choque */ if (FASE === 'fin') hud.muestraFin(); }
   else if (!Q.get('nivel') && !LP7) { nivel = null; $('inicio').hidden = false; }
   if (LP7) { $('otra').hidden = true; $('salir2').textContent = 'Volver a la batalla'; if (LP7.objetivo) $('objetivo').textContent = LP7.objetivo;
     const cr = document.querySelector('#fin .creditos'); if (cr) cr.textContent = cr.textContent.replace(/^LP3 · [^)]*\)\. /, ''); }   /* el crédito, sin «contra galos» */
