@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11/2026 ~16:56 — **«Mantener el orden»** (B, preguntado por la sesión de ciudad tras su captura de la batalla de campaña con la pantalla vieja): CG4b sigue detrás de la fusión FU, CG9 y CDe4. No se vuelve a preguntar.
 - 24/11 (vigía 4): RAM1 hecha: de 42 ramas antiguas solo 2 guardan algo útil. R1 (termas y acueducto 3D de E4, nunca entraron) → E4b abierta. R2 (estudio P161 «batalla dentro de la ciudad») → después de la 1.0.
 - 24/11 (vigía 4): CE12 avisa de que en la partida larga ningún bot toma Cartago (0/5). Se abre CG10 en Batallas para arreglarlo (sirve a L9, camino de las armas).
 - 24/11/2026 — **«1A, 2A»**: (1) una sesión corta revisa las ramas antiguas, rescata lo útil y aparta el resto sin borrar (RAM1); (2) nueva pestaña del cuadro «Tu móvil y lo que falta», una barra por apartado en 4 colores (CM4).
