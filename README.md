@@ -70,6 +70,13 @@ El **falangita**, el **oficial de la falange** y el **hastatus** de las batallas
 niveles de detalle, se les puso el esqueleto del juego, manos de MakeHuman, escudo, sarisa o armas propios y teñido por bando
 (`tools/blender/falangita_meshy_*.py`, `tools/blender/hastatus_meshy_*.py`; detalle en `assets/soldados/LICENSE.txt`).
 
+Diez soldados más parten de modelos que el usuario generó con **[Meshy](https://www.meshy.ai)** con su **plan de pago**
+(23/11/2026) y se publican con licencia **[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)**, citando a Meshy
+como herramienta: el **centurión**, el **triario**, el **vélite** y siete galos (**galo grande**, **galo grande v2a** y **v2b**,
+**galo rápido** y **rápido B**, **galo lancero** y **jefe galo**). Se aligeraron igual, con manos y esqueleto de MakeHuman y
+movimientos de Quaternius (CC0 1.0); escudos y armas los pone el juego por código
+(`tools/blender/*_meshy_*.py`; detalle de cada uno en `assets/soldados/LICENSE.txt`).
+
 El sonido grabado de las batallas (`assets/sonido`, 36 sonidos) es todo **[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)**: de OpenGameArt (rubberduck, Kenney, artisticdude) y de Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia). Cada archivo con su fuente en `assets/sonido/LICENSE.txt`; `tools/sonido-fuentes.sh` y `tools/sonido.py` lo rehacen.
 
 La letra de los títulos es **Cinzel**, de The Cinzel Project Authors, con licencia **[SIL OFL 1.1](https://openfontlicense.org)**

@@ -113,7 +113,11 @@
         "js/bloque.js",
         "js/bloque-ia.js",
         "test/bloque.test.mjs",
-        "test/bloque-ia.test.mjs"
+        "test/bloque-ia.test.mjs",
+        "js/fisica-batalla.js",
+        "test/fisica-batalla.test.mjs",
+        "gobierno/maquetas/a-pie/fisica.js",
+        "gobierno/maquetas/falange/fisica.js"
       ],
       "taller": [
         "assets/soldados/",
@@ -138,9 +142,12 @@
           "test/nb7.test.mjs",
           "test/falange.test.mjs",
           "test/falange-rivales.test.mjs",
-          "test/bloque.test.mjs"
+          "test/bloque.test.mjs",
+          "test/bloque-ia.test.mjs",
+          "test/fisica-batalla.test.mjs"
         ],
         "navegador": [
+          "gobierno/jueces.mjs --area batallas",
           "gobierno/juez-guerra.mjs"
         ],
         "si_toca_arte": [
@@ -187,7 +194,15 @@
         "gobierno/maquetas/politica*/",
         "gobierno/maquetas/gobierno-turnos/",
         "gobierno/medidas-ciudad.json",
-        "gobierno/medir-ritmo.mjs"
+        "gobierno/medir-ritmo.mjs",
+        "js/ministros.js",
+        "js/necesidades.js",
+        "js/plan-senado.js",
+        "js/ciudad-menu.js",
+        "js/ministros-ui.js",
+        "test/ministros.test.mjs",
+        "test/necesidades.test.mjs",
+        "test/plan-senado.test.mjs"
       ],
       "taller": [],
       "juez": {
@@ -198,7 +213,9 @@
           "test/diplomacia.test.mjs",
           "test/encargos.test.mjs"
         ],
-        "navegador": [],
+        "navegador": [
+          "gobierno/jueces.mjs --area cerebro"
+        ],
         "si_toca_arte": [
           "gobierno/arte.mjs",
           "gobierno/fichas.mjs"
@@ -243,7 +260,9 @@
           "test/avisos.test.mjs",
           "test/pausas.test.mjs"
         ],
-        "navegador": [],
+        "navegador": [
+          "gobierno/jueces.mjs --area musculo"
+        ],
         "si_toca_arte": [
           "gobierno/arte.mjs"
         ],

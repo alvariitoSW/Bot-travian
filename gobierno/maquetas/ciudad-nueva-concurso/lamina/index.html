@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mapa antiguo ilustrado</title>
+<link rel="stylesheet" href="../comun/ui.css">
+<style>
+/* Tinte de la lámina: pergamino, borde de tinta, acento rojo óxido */
+:root{--ui-fondo:rgba(232,217,176,.95);--ui-fondo2:rgba(214,193,142,.97);--ui-texto:#3a2714;--ui-acento:#9c3a1c;--ui-acento2:#7a2a12;--ui-borde:#4a3320;--ui-linea:rgba(74,51,32,.45);--ui-tinta-acento:#fbeccc;
+--ui-papel:#efe0b6;--ui-papel2:#e0cc92;--ui-tinta:#3a2714;--ui-rojo:#9c3a1c;--ui-rojo2:#6e2410;
+--ui-fuente:Georgia,'Palatino Linotype','Times New Roman',serif;--ui-titulo:Georgia,'Palatino Linotype',serif}
+.barra,.tira,.ficha,.top .r,.fecha,.linea,.etq,.leyenda span{box-shadow:1px 2px 0 rgba(58,39,20,.35)}
+.barra button.gran{box-shadow:none}
+.fam .c{box-shadow:1px 2px 0 rgba(58,39,20,.4)}
+</style></head>
+<body><div id="app"><div id="lienzo"></div><div id="ui"></div></div>
+<script src="../comun/escena.js"></script>
+<script src="../comun/ui.js"></script>
+<script src="render.js"></script>
+<script>window.msLamina=dibujarCiudad(window.ESCENA,document.getElementById('lienzo'));montarUI();window.listo=true;</script>
+</body></html>
