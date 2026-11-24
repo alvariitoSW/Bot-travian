@@ -50,15 +50,15 @@
     const retiraCarga = () => { if (activa !== a) return; cerrar(); if (alTerminar) alTerminar(root.Guerra.resumen(cfg.estado)); };
     $('retirar').addEventListener('click', retiraCarga);
     try {
-      const [M, U, Gr, St] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js'), import('./gfx/sonido.js')]);
+      const [M, U, Gr, St, , FB] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js'), import('./gfx/sonido.js'), import('./fisica-batalla.js').catch(() => null)]);   /* FI4: la física de las figuras; sin ella, la batalla de siempre */
       if (activa !== a) return;
       const fin = r => { if (activa === a) { activa = null; el.remove(); } if (alTerminar) alTerminar(r); };
-      const P = pantalla(M, U, Gr, St, el, $, cfg, fin); a.cerrar = P.cerrarTodo; $('retirar').removeEventListener('click', retiraCarga);
+      const P = pantalla(M, U, Gr, St, el, $, cfg, fin, FB); a.cerrar = P.cerrarTodo; $('retirar').removeEventListener('click', retiraCarga);
     } catch (e) { console.error(e); const p = $('carga-p'); if (p) p.textContent = 'No se ha podido cargar la batalla.'; const s = $('carga-s'); if (s) s.hidden = false; }
     return el;
   }
 
-  function pantalla(M, U, Gr, St, el, $, cfg, alTerminar) {
+  function pantalla(M, U, Gr, St, el, $, cfg, alTerminar, FB) {
     const { THREE } = M, { preload, getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, UNIT_SCALE, zancadas } = U;
     const { loadGroundTextures, applyGround, crearCielo, texturaRuido } = Gr, { preloadStatic, staticInstances } = St, R = root.Guerra;
     const S = 9, FILAS = 7, PASO = 1.15, HUECO = 2.4, CAMPO = 7; let porFig = 8.6;      // medidas del campo, en metros de juego
@@ -68,6 +68,7 @@
     const NUEVO = { hastati: 'hastatus', principes: 'hastatus', vigiles: 'hastatus', galos: 'galo', libios: 'hastatus:libio', triarii: 'triario', velites: 'velite', milicia: 'velite:milicia', honderos: 'hondero', peltastas: 'peltasta', hoplitas: 'hoplita:griego', sagrada: 'hoplita:sagrada', falange: 'falangita', iberos: 'ibero' };      /* 'malla:pueblo' = esa malla con la paleta de ese pueblo (PUEBLOS en soldado.js) */
     const UMBRAL_N = [200, 90, 42];      /* alto en pantalla (px CSS) desde el que toca el nivel 0, 1 y 2; por debajo, el 3; fuera de pantalla, el 3 */
     const CERCA_N = 40;                  /* como mucho, tantas figuras en el nivel fino (gobierno/arte.json); las más cercanas; el resto baja al 1 */
+    const POCOS_N = 8;                   /* FI4: un nivel con tan pocas figuras de una tropa se suma al de al lado (una llamada menos) */
     const PARADA_N = 0.55;               /* la parada del soldado nuevo: este punto del clip «cubrirse» (escudo arriba) */
     const ALTO_HASTATUS = 2.11;          /* alto del hastatus nuevo con el penacho (m, medido en assets/soldados/hastatus.bin) */
     let SOLD = null, escN = 0.84, altoN = 1.78; const soldados = new Map(), V3N = new THREE.Vector3();
@@ -103,6 +104,10 @@
     let foco = { i: -1, hasta: 0, ultimo: -99 }, cintaHasta = 0, tocado = false, temblor = 0;
     const cam = { x: 0, y: 0, z: 6, d: 80, p: 0.6, a: 0 };
     const estand = [], pend = [], polvoN = 150; let polvo = null, marca = null;
+    /* FI4: la física de las figuras (js/fisica-batalla.js, crearFisicaFiguras): nadie se mete dentro de otro, la carga empuja y pila y
+       jabalinas se clavan o rebotan. Solo cambia dónde se dibuja cada figura (f.fx, f.fz) y por dónde vuelan las armas: las reglas
+       (js/guerra.js) no la leen. ?fisica=0 la apaga (el antes) */
+    const FIS = FB && FB.crearFisicaFiguras && !/[?&]fisica=0/.test(root.location ? root.location.search : '') ? FB : null; let FF = null, armas = null;
 
     function figura(key, lado, x, z) { const f = { key, lado, x, z, tx: x, tz: z, yaw: lado === 0 ? Math.PI : 0, ph: Math.random() * 5, est: 0, t0: 0, ataca: false, corre: false, idx: figs.length }; vivo(f); figs.push(f); return f; }
     /* GM34: campos solo de vista (no se guardan; se rehacen al montar). fase = ciclo de andar acumulado por distancia; ritmo = cadencia propia;
@@ -130,7 +135,7 @@
       let maxL = 1; for (const s of B.sect) for (const c of s.c) for (const l of c.lineas) maxL = Math.max(maxL, l.max);
       porFig = Math.max(1, Math.min(8.6, maxL / 12), maxL / 30);   // pocas figuras en un ejército pequeño; tope por línea en uno grande
       for (const s of B.sect) for (const c of s.c) for (const l of c.tir ? c.lineas.concat([c.tir]) : c.lineas) {
-        const n = Math.max(1, Math.round(l.max / porFig)), lv = { c, fs: [], tir: l === c.tir }; lineas.set(l, lv);
+        const n = Math.max(1, Math.round(l.max / porFig)), lv = { c, fs: [], tir: l === c.tir, id: lineas.size }; lineas.set(l, lv);
         for (let k = 0; k < n; k++) lv.fs.push(figura(l.tipo, c.lado, xs(s.i), (c.lado === 0 ? 1 : -1) * (16 + hueco(c))));
       }
       const mayor = comp => Object.keys(comp || {}).sort((a, b) => comp[b] - comp[a])[0];
@@ -143,6 +148,7 @@
       const cuenta = {}; for (const f of figs) { const id = f.key + f.lado; f.slot = cuenta[id] = (cuenta[id] || 0) + 1; f.slot--; }
       /* GM44c: escala del soldado nuevo = la que le da el alto del hastatus de 0 A.D. */
       { const ref = [...soldados.values()].find(S => S.nombre === 'hastatus'), uh = getUnit('hastati'); altoN = uh ? uh.height : 1.78; escN = altoN / (ref ? ref.alto : ALTO_HASTATUS); pasos.clear(); }   /* la zancada se vuelve a medir con la escala buena */
+      FF = FIS ? FIS.crearFisicaFiguras({ escala: altoN / 1.78, semilla: B.sem, avisa: alAviso }) : null;   /* FI4: los radios y los escudos, a la medida de la figura */
       for (const id in cuenta) {
         const key = id.slice(0, -1), lado = +id.slice(-1), u = getUnit(key); if (!u) continue;
         const N = soldados.get(id);
@@ -292,7 +298,7 @@
           while (!inicio && lv.fs.length > quiere) { const j = Math.floor(Math.random() * Math.min(FILAS, lv.fs.length)), f = lv.fs.splice(j, 1)[0]; matar(f); }
           const n = lv.fs.length, rs = (k === 0 && c.postura === 'empujar' ? 1.0 : 1.25) * ap, filas = Math.ceil(n / FILAS);
           lv.fs.forEach((f, j) => {
-            const r = Math.floor(j / FILAS), col = j % FILAS, enFila = Math.min(FILAS, n - r * FILAS), lx = (col - (enFila - 1) / 2) * PASO * ap, lz = d + r * rs; f.vm = vm; f.fila = r; f.sect = s.i;
+            const r = Math.floor(j / FILAS), col = j % FILAS, enFila = Math.min(FILAS, n - r * FILAS), lx = (col - (enFila - 1) / 2) * PASO * ap, lz = d + r * rs; f.vm = vm; f.fila = r; f.sect = s.i; f.cc = lv.id * 16 + col; f.g = lv.id;
             if (fl) { f.tx = fl.x + fl.sg * (lz - 0.8); f.tz = fl.z + lx; f.cara = -fl.sg * Math.PI / 2; }
             else { f.tx = xs(s.i) + lx; f.tz = zFrente(s) + dir * lz; f.cara = c.lado === 0 ? Math.PI : 0; }
             f.ataca = lucha && k === 0 && r < (c.postura === 'empujar' ? 2 : 1) && (c.postura === 'empujar' || Math.sin(T * 0.8 + f.ph * 3) > 0.1);
@@ -310,7 +316,7 @@
           while (!inicio && tv.fs.length > quiere) { const f = tv.fs.splice(Math.floor(Math.random() * tv.fs.length), 1)[0]; matar(f); }
           const fuera = t.estado === 'fuera' || t.estado === 'vuelve', FT = 9, base = fuera ? d + 0.5 : ini.get(c) - t.av * ESCV - 1.2;
           tv.fs.forEach((f, j) => {
-            const r = Math.floor(j / FT), col = j % FT, enFila = Math.min(FT, tv.fs.length - r * FT); f.fila = r; f.sect = s.i; const lx = (col - (enFila - 1) / 2) * PASO * 1.5 + Math.sin(f.ph * 7) * 0.3;
+            const r = Math.floor(j / FT), col = j % FT, enFila = Math.min(FT, tv.fs.length - r * FT); f.fila = r; f.sect = s.i; f.cc = -1 - f.idx; f.g = tv.id; const lx = (col - (enFila - 1) / 2) * PASO * 1.5 + Math.sin(f.ph * 7) * 0.3;
             f.tx = xs(s.i) + lx; f.tz = zFrente(s) + dir * (base + (fuera ? r * 1.6 : -r * 1.6)); f.cara = c.lado === 0 ? Math.PI : 0;
             f.ataca = t.estado === 'tira' && Math.sin(T * 1.3 + f.ph * 3) > -0.2; f.vm = fuera ? 0 : Math.max(vm, 0.9);
           });
@@ -323,6 +329,7 @@
 
     function jinetes() {
       const c = B.cab, lado = i => i === 0 ? -1 : 1;
+      for (const f of cab) { f.cc = -1 - f.idx; f.g = 'cab'; } for (const f of num) { f.cc = -1 - f.idx; f.g = 'num'; }
       cab.forEach((f, k) => {
         const ox = (k % 4 - 1.5) * 1.7, oz = Math.floor(k / 4) * 2;
         if (c.estado === 'yendo' || c.estado === 'cargando') {
@@ -404,7 +411,36 @@
         if (f.golpe && f.ve > 0.6) f.golpe = null;                          // si echa a andar de veras, deja el golpe
       }
       duelos();
+      if (FF && dt > 0) FF.paso(figs, dt, leeFig);
     }
+    /* FI4: lo que la física necesita de cada figura (ver el contrato de crearFisicaFiguras) */
+    const CLS = k => ((root.DATA && root.DATA.UNITS && root.DATA.UNITS[k]) || {}).cls;
+    function leeFig(f, c) {
+      if (f.est === 2) return false;
+      const vivo = f.est === 0 || f.est === 3 || (f.est === 1 && f.t0 > T), cl = CLS(f.key);
+      c.x = f.x; c.z = f.z; c.vivo = vivo; c.lado = f.lado; c.yaw = vivo ? f.yaw : f.yaw + (f.caida || 0);
+      c.tipo = cl === 'cav' || f.key === 'equites' || f.key === 'numidas' ? 'jinete' : cl === 'ele' ? 'elefante' : 'infante';
+      c.f = f.cc === undefined ? -1 - f.idx : f.cc; c.r = f.fila || 0; c.g = f.g;
+      const s = f.sect >= 0 && B.sect[f.sect], cu = s && s.c[f.lado];
+      c.guardia = cu && f.est === 0 && R.lejos(s) ? (cu.postura === 'testudo' ? (f.fila ? 'alto' : 'muro') : cu.postura === 'escudos' ? 'muro' : null) : null;
+      return true;
+    }
+    /* FI4: un arma que suelta la figura de hacia b (otra figura): vuela con la física. Sin física (o sin el soldado nuevo), nada */
+    function arroja(tipo, de, b, seg) {
+      if (!FF || !armas || !de || !b) return false;
+      const sc = escN * (de.talla || 1), fx = Math.sin(de.yaw), fz = Math.cos(de.yaw), x0 = de.x + (de.fx || 0) - fz * 0.2 * sc + fx * 0.35 * sc, z0 = de.z + (de.fz || 0) + fx * 0.2 * sc + fz * 0.35 * sc;
+      const bx = b.x + (b.fx || 0) + (Math.random() - 0.5) * 1.1, bz = b.z + (b.fz || 0) + (Math.random() - 0.5) * 1.1;
+      FF.lanza(tipo, de, [x0, 1.75 * sc, z0], [bx, altoN * (0.5 + Math.random() * 0.35), bz], seg); return true;
+    }
+    /* FI4: lo que dice la física al dar un arma: cerca de la cámara, suena el escudo o la madera (como mucho uno cada 0,1 s) */
+    let tSonA = 0;
+    function alAviso(a) {
+      const So = root.Sonido; if (!So || !So.tiene || !So.tiene('escudo') || T < tSonA || !(a.aviso === 'clava' || a.aviso === 'rebota') || a.en === 'suelo') return;
+      const cp = camara.position, v = So.cerca(Math.hypot(a.p.x - cp.x, cp.y, a.p.z - cp.z) * 1.6); if (v < 0.2) return; tSonA = T + 0.1;
+      So.muestra(a.en === 'escudo' ? (a.aviso === 'clava' ? 'madera' : 'escudo') : 'hierro', { v: 0.35 * v, vel: 0.95 + Math.random() * 0.15 });
+    }
+    /* FI4: pila, jabalinas y flechas de la física con la malla del pilum (PIL3): una llamada; la jabalina y la flecha, más cortas */
+    function pintarArmas() { if (!armas) return; armas.malla.count = FF.pintaArmas(armas.malla.instanceMatrix.array, armas.malla.instanceMatrix.count, altoN / 1.78); armas.malla.instanceMatrix.needsUpdate = true; }
     const fila = (clip, k) => clip.start + Math.min(clip.frames - 1, Math.floor((k - Math.floor(k)) * clip.frames));
     /* GM44c: nivel de detalle de cada figura nueva por su alto en pantalla (px CSS); fuera de pantalla, el 3; como mucho CERCA_N en el 0 */
     function niveles() {
@@ -419,10 +455,22 @@
         f.nv = nv; f.dc = d; if (nv === 0) finos.push(f);
       }
       if (finos.length > CERCA_N) { finos.sort((p, q) => p.dc - q.dc); for (let i = CERCA_N; i < finos.length; i++) finos[i].nv = 1; }
+      /* FI4: un nivel con muy pocas figuras de una tropa (≤ POCOS_N) se suma al nivel de al lado que ya se dibuja (el más basto
+         primero): una llamada de dibujo menos por cada uno, sin quitar a nadie. El 0 solo sube al 1, para no pasar de CERCA_N finos */
+      const cuenta = new Map();
+      for (const f of figs) { if (!f.vr || f.est === 2 || f.nv === undefined) continue; const id = f.key + f.lado, m = mallas.get(id); if (!m || !m.nv) continue; let c = cuenta.get(id); if (!c) cuenta.set(id, c = [0, 0, 0, 0]); c[f.nv]++; }
+      const pasa = new Map();
+      for (const [id, c] of cuenta) for (let k = 0; k < 4; k++) {
+        if (!c[k] || c[k] > POCOS_N) continue;
+        let a = -1; for (const j of k === 0 ? [1] : [k + 1, k + 2, k - 1, k - 2]) if (j >= 1 && j <= 3 && c[j] > 0 && (j < k || !pasa.has(id + ':' + j))) { a = j; break; }
+        if (a < 0) continue; c[a] += c[k]; c[k] = 0; pasa.set(id + ':' + k, a);
+      }
+      if (pasa.size) for (const f of figs) { const a = pasa.get(f.key + f.lado + ':' + f.nv); if (a !== undefined) f.nv = pasa.get(f.key + f.lado + ':' + a) ?? a; }
     }
     /* PIL3: el pilum que suelta f vuela al frente y se hinca en el suelo, a 10–22 m (en esta batalla la figura no sabe a quién tira). Solo se ve */
     let pila = null;
     function tirarPila(f, sc) {
+      if (FF && armas) { const s = B.sect[f.sect], o = s && lineas.get(s.c[1 - f.lado].lineas[0]), fr = o && o.fs.filter(g => g.est === 0 && g.fila < 2); if (fr && fr.length && arroja(CLS(f.key) === 'rng' ? 'jabalina' : 'pilum', f, alAzar(fr), Math.max(0.6, Math.hypot(f.x - fr[0].x, f.z - fr[0].z) / 17))) return; }   /* FI4: al de enfrente */
       if (!pila) { pila = SOLD.crearPila(escena, 1); salidas.push(() => pila.soltar()); }
       const fx = Math.sin(f.yaw), fz = Math.cos(f.yaw), x0 = f.x - fz * 0.2 * sc + fx * 0.35 * sc, z0 = f.z + fx * 0.2 * sc + fz * 0.35 * sc, r = 10 + Math.random() * 12, w = (Math.random() - 0.5) * 3;
       pila.lanza(x0, 1.75 * sc, z0, f.x + fx * r - fz * w, 0, f.z + fz * r + fx * w, T, true);
@@ -454,7 +502,7 @@
         }
         if (f.est === 1 && tm < 0) f.oxm = ox;                                                      // lo que ya había retrocedido al recibir
         const c = Math.cos(yaw) * sc, s = Math.sin(yaw) * sc, cy = Math.cos(yaw), sy = Math.sin(yaw), cr = Math.cos(f.gr || 0), sr = Math.sin(f.gr || 0), cp = Math.cos(gp), sp = Math.sin(gp);
-        const px = f.x - Math.sin(f.yaw) * ox, pz = f.z - Math.cos(f.yaw) * ox;
+        const px = f.x + (f.fx || 0) - Math.sin(f.yaw) * ox, pz = f.z + (f.fz || 0) - Math.cos(f.yaw) * ox;      /* FI4: + lo que la aparta la física */
         if (a) { a[o] = (cy * cr + sy * sp * sr) * sc; a[o + 1] = cp * sr * sc; a[o + 2] = (-sy * cr + cy * sp * sr) * sc; a[o + 3] = 0;
         a[o + 4] = (-cy * sr + sy * sp * cr) * sc; a[o + 5] = cp * cr * sc; a[o + 6] = (sy * sr + cy * sp * cr) * sc; a[o + 7] = 0;
         a[o + 8] = s * cp; a[o + 9] = -sp * sc; a[o + 10] = c * cp; a[o + 11] = 0; a[o + 12] = px; a[o + 13] = 0; a[o + 14] = pz; a[o + 15] = 1; }
@@ -464,10 +512,10 @@
           tr.vars(ii, f.vr); tr.pose(ii, k, tt, tr.muestra(k, tt));
           if (SOLD && SOLD.crearPila) { const su = k === 'lanzar2' ? SOLD.soltarDe(tr.s) : null; if (su != null && f.tl != null && f.tl < su && tt >= su && f.dc < 160) tirarPila(f, sc); f.tl = su != null ? tt : null; } }
         const q = f.idx * 16, e = f.est === 0 || f.est === 3 ? (f.key === 'equites' || f.key === 'numidas' ? 1.5 : 1) : 0;
-        sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x - Math.sin(f.yaw) * (f.ox || 0); sm[q + 13] = 0.03; sm[q + 14] = f.z - Math.cos(f.yaw) * (f.ox || 0); sm[q + 15] = 1;
+        sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x + (f.fx || 0) - Math.sin(f.yaw) * (f.ox || 0); sm[q + 13] = 0.03; sm[q + 14] = f.z + (f.fz || 0) - Math.cos(f.yaw) * (f.ox || 0); sm[q + 15] = 1;
       }
       for (const m of mallas.values()) { if (m.nv) { for (const t of m.nv) t.malla.instanceMatrix.needsUpdate = true; continue; } m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
-      sombras.instanceMatrix.needsUpdate = true; if (pila) pila.paso(T);
+      sombras.instanceMatrix.needsUpdate = true; if (pila) pila.paso(T); pintarArmas();
     }
 
     /* ---------- campo: suelo, cielo, árboles, estandartes, polvo ---------- */
@@ -502,12 +550,21 @@
       }
       for (const t in arboles) { const m = staticInstances(t, arboles[t]); if (m) escena.add(m); }
       /* un estandarte por cuerpo: es lo que se mira para saber cómo va */
+      /* FI4: los seis estandartes en tres llamadas de dibujo (antes 18): palos, orlas y telas instanciados; las telas, de un atlas.
+         Cada estandarte sigue siendo un grupo con sus tres piezas sin malla (palo, tela, orla): de ellas sale la matriz de cada copia */
+      estM = { palos: new THREE.InstancedMesh(new THREE.CylinderGeometry(0.06, 0.06, EST.palo, 6), new THREE.MeshLambertMaterial({ color: '#6b4a22' }), 6),
+        orlas: new THREE.InstancedMesh(new THREE.PlaneGeometry(EST.ancho + 0.3, 0.16), new THREE.MeshLambertMaterial({ color: '#e9c063', side: THREE.DoubleSide }), 6), telas: null, tile: null };
+      { const g = new THREE.PlaneGeometry(EST.ancho, EST.alto); estM.tile = new THREE.InstancedBufferAttribute(new Float32Array(12), 2); g.setAttribute('aTile', estM.tile);
+        const m = new THREE.MeshBasicMaterial({ map: atlasTelas(), side: THREE.DoubleSide, transparent: true, toneMapped: false });
+        m.onBeforeCompile = sh => { sh.vertexShader = 'attribute vec2 aTile;\n' + sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\n  vMapUv = vMapUv * vec2(0.2, 0.5) + aTile;'); };
+        estM.telas = new THREE.InstancedMesh(g, m, 6); }
+      for (const k in estM) if (estM[k] && estM[k].isInstancedMesh) { estM[k].frustumCulled = false; escena.add(estM[k]); }
       for (let l = 0; l < 2; l++) for (let i = 0; i < 3; i++) {
         /* GM5 (GM-K6d): estandarte alto con el icono de su tropa; la tela encoge con la moral */
-        const gr = new THREE.Group(), palo = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, EST.palo, 6), new THREE.MeshLambertMaterial({ color: '#6b4a22' })); palo.position.y = EST.palo / 2; gr.add(palo);
-        const tela = new THREE.Mesh(new THREE.PlaneGeometry(EST.ancho, EST.alto), new THREE.MeshBasicMaterial({ map: lienzoEstandarte(l, 'espada'), side: THREE.DoubleSide, transparent: true, toneMapped: false })); gr.add(tela);
-        const orla = new THREE.Mesh(new THREE.PlaneGeometry(EST.ancho + 0.3, 0.16), new THREE.MeshLambertMaterial({ color: '#e9c063', side: THREE.DoubleSide })); orla.position.y = EST.palo - 0.1; gr.add(orla);
-        escena.add(gr); estand.push({ gr, tela, l, i, ico: 'espada' });
+        const gr = new THREE.Group(), palo = new THREE.Object3D(); palo.position.y = EST.palo / 2; gr.add(palo);
+        const tela = new THREE.Object3D(); gr.add(tela);
+        const orla = new THREE.Object3D(); orla.position.y = EST.palo - 0.1; gr.add(orla);
+        escena.add(gr); estand.push({ gr, tela, palo, orla, l, i, ico: '', k: estand.length });
       }
       marca = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffd76a', map: texturaBrillo(), transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); marca.position.y = 0.05; marca.renderOrder = 2; escena.add(marca);
       const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(polvoN * 3), 3)); pg.setAttribute('aV', new THREE.BufferAttribute(new Float32Array(polvoN), 1));
@@ -518,10 +575,16 @@
       for (let i = 0; i < 3; i++) { const d = document.createElement('div'); d.className = 'pend'; d.innerHTML = '<span></span><i><b></b></i>'; $('pendones').appendChild(d); pend.push(d); }
     }
     /* ---------- GM5: estandartes con icono, brillo bajo el cuerpo elegido y flecha de la orden ---------- */
-    const EST = { palo: 6.2, ancho: 1.9, alto: 2.3 }, escEst = () => Math.max(1, Math.min(2.4, cam.d / 48));
+    const CERO_M = new THREE.Matrix4().makeScale(0, 0, 0), EST = { palo: 6.2, ancho: 1.9, alto: 2.3 }, escEst = () => Math.max(1, Math.min(2.4, cam.d / 48));
     const ICONO = { inf: 'espada', spear: 'lanza', rng: 'arco', cav: 'caballo', ele: 'elefante' };
     const icono = t => { const u = t && root.DATA && root.DATA.UNITS && root.DATA.UNITS[t]; return (u && ICONO[u.cls]) || 'espada'; };
-    const telas = new Map();
+    const telas = new Map(), ICOS = ['espada', 'lanza', 'arco', 'caballo', 'elefante']; let estM = null, atlasT = null;
+    /* FI4: las diez telas (dos bandos × cinco iconos) en una sola textura: 5 columnas, el bando 0 arriba */
+    function atlasTelas() {
+      if (atlasT) return atlasT; const W = 128, H = 156, cv = document.createElement('canvas'); cv.width = W * 5; cv.height = H * 2; const x = cv.getContext('2d');
+      for (let l = 0; l < 2; l++) ICOS.forEach((ico, k) => x.drawImage(lienzoEstandarte(l, ico).image, k * W, l * H));
+      atlasT = new THREE.CanvasTexture(cv); atlasT.colorSpace = THREE.SRGBColorSpace; atlasT.anisotropy = 4; salidas.push(() => atlasT.dispose()); return atlasT;
+    }
     /* la tela: color del bando, orla de oro e icono claro con borde oscuro, dibujado con código (sin arte nuevo) */
     function lienzoEstandarte(l, ico) {
       const id = l + ico; if (telas.has(id)) return telas.get(id);
@@ -597,8 +660,11 @@
         const fr = c.lineas[0], lv = lineas.get(fr), filas = lv ? Math.ceil(lv.fs.length / FILAS) : 1;
         const zz = zFrente(s) + dir * (0.8 + hueco(c) + filas * 1.25 + 0.5); e.gr.position.x += (xs(e.i) - e.gr.position.x) * 0.2; e.gr.position.z += (zz - e.gr.position.z) * Math.min(1, dt * 3);
         e.gr.rotation.z = Math.sin(T * 1.7 + e.i) * 0.03 + (1 - c.moral) * 0.22 * Math.sin(T * 3 + e.i); e.tela.scale.y = 0.35 + 0.65 * Math.max(0, c.moral); e.tela.position.y = EST.palo - 0.18 - EST.alto / 2 * e.tela.scale.y;
-        e.gr.scale.setScalar(escEst()); const ico = icono(fr && fr.tipo); if (ico !== e.ico) { e.ico = ico; e.tela.material.map = lienzoEstandarte(e.l, ico); }
+        e.gr.scale.setScalar(escEst()); const ico = icono(fr && fr.tipo); if (ico !== e.ico) { e.ico = ico; estM.tile.setXY(e.k, Math.max(0, ICOS.indexOf(ico)) * 0.2, e.l === 0 ? 0.5 : 0); estM.tile.needsUpdate = true; }
+        e.gr.updateMatrixWorld(true);
+        for (const [m, o] of [[estM.palos, e.palo], [estM.telas, e.tela], [estM.orlas, e.orla]]) m.setMatrixAt(e.k, e.gr.visible ? o.matrixWorld : CERO_M);
       }
+      for (const k of ['palos', 'telas', 'orlas']) estM[k].instanceMatrix.needsUpdate = true;
       const c = B.sect[sel].c[0]; marca.visible = !c.roto && B.fase !== 'fin';
       if (marca.visible) { const a = ini.get(c) || 0.8, f = Math.max(2, (c.fondo || 10) - a + 0.8); marca.scale.set(FILAS * PASO + 5, 1, f + 4.5); marca.position.x = xs(sel); marca.position.z = zFrente(B.sect[sel]) + a - 0.8 + f / 2 + 0.2; marca.material.opacity = 0.24 + 0.06 * Math.sin(T * 3); }
       animarFlechas(dt);
@@ -791,6 +857,10 @@
     /* una descarga de golpe: pila al llegar al choque */
     function rafaga(i, lado, n, seg, alto, color) {
       const s = B.sect[i], a = lineas.get(s.c[lado].lineas[0]), b = lineas.get(s.c[1 - lado].lineas[0]); if (!a || !b) return;
+      if (FF && armas) {   /* FI4: la descarga de pila sale de las dos primeras filas y la resuelve la física (escudo, cuerpo, suelo) */
+        const de = a.fs.filter(f => f.est === 0 && f.fila < 2), aq = b.fs.filter(f => f.est === 0 && f.fila < 3), tipo = lado === 0 || /^(hastati|principes|triarii)$/.test(a.fs[0] && a.fs[0].key) ? 'pilum' : 'jabalina';
+        if (de.length && aq.length) { for (let k = 0; k < n; k++) arroja(tipo, alAzar(de), alAzar(aq), seg * (0.85 + Math.random() * 0.3)); return; }
+      }
       for (let k = 0; k < n; k++) lanza(alAzar(a.fs), alAzar(b.fs), seg, alto, color);
     }
     let tTiro = 0;
@@ -802,7 +872,8 @@
           const t = c.tir; if (!t || t.estado !== 'tira') continue;
           const tv = lineas.get(t), o = s.c[1 - c.lado], A = R.tiroDe(t.tipo), V = VUELO[A.arma] || VUELO.jabalinas;
           const obj = t.blanco === 'tir' || (t.blanco === 'ambos' && Math.random() < 0.35) ? lineas.get(o.tir) : lineas.get(o.lineas[0]);
-          if (tv && obj && Math.random() < Math.min(1, tv.fs.length / 6)) lanza(alAzar(tv.fs), alAzar(obj.fs), V.seg, V.alto, V.color);
+          if (tv && obj && Math.random() < Math.min(1, tv.fs.length / 6)) { const tipo = A.arma === 'flechas' ? 'flecha' : A.arma === 'jabalinas' ? 'jabalina' : null;   /* FI4: jabalinas y flechas, con física; piedras, como siempre */
+            if (!tipo || !arroja(tipo, alAzar(tv.fs.filter(f => f.est === 0)), alAzar(obj.fs.filter(f => f.est === 0)), V.seg * (0.85 + Math.random() * 0.3))) lanza(alAzar(tv.fs), alAzar(obj.fs), V.seg, V.alto, V.color); }
         }
       }
       for (let k = 0; k < NP; k++) {
@@ -844,6 +915,7 @@
         if (cerrado) { soltarSoldados(); return; }
         if (!getUnit('hastati')) throw new Error('No se han podido cargar los soldados');
         campo(); const retomada = cfg.estado.fase === 'fin' || cfg.estado.t > 0; retardo0 = retomada; montar(cfg.estado, retomada); moverCamara(0, true);
+        if (FF && SOLD && SOLD.crearPila) { armas = SOLD.crearPila(escena, 1, FIS.FIG.PROY_MAX); salidas.push(() => armas.soltar()); }   /* FI4: las armas de la física, una malla */
         lista = true; $('carga').hidden = true; $('mando').hidden = false;
         if (root.Musica && B.fase !== 'fin') root.Musica.iniciar({ semilla: B.sem });   /* SON1-b: la banda sonora, con fundido de entrada */
         if (root.Sonido && root.Sonido.cargaVoces && root.Voces) { root.Sonido.contexto(); root.Sonido.cargaVoces(root.Voces.FRASES.filter(f => f.pron).map(f => f.id).concat(root.Voces.GRIEGO.map(g => g.id))); }   /* SON2: las frases habladas, sin esperar */
@@ -879,6 +951,8 @@
       cuadro: dt => { if (dt > 0) { if (B.fase !== 'fin') avanza(dt); else { T += dt; colocar(dt); mover(dt); } } moverCamara(dt, true); pintarFiguras(); renderer.render(escena, camara); },
       get lienzo() { return renderer.domElement; }, get figs() { return figs; }, paso,
       estado: () => ({ t: B.t, fase: B.fase, sel, res: B.resultado, figs: figs.filter(f => f.est === 0).length, tri: renderer.info.render.triangles, llamadas: renderer.info.render.calls }),
+      /* FI4: la medida de la física (null si está apagada) */
+      fisica: () => FF ? FF.medir() : null, get escena() { return escena; }, fisicaCero: () => FF && FF.cero(), get armas() { return FF ? FF.proyectiles.length : 0; },
     };
 
     return { cerrarTodo };

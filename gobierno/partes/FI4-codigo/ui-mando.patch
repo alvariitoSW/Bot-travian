@@ -1,0 +1,87 @@
+--- a/js/ui-mando.js
++++ b/js/ui-mando.js
+@@ -59,11 +59,11 @@
+     $('carga-no').addEventListener('click', sale); $('retirar').addEventListener('click', sale);
+     window.__mn = { lista: false, cerrado: false, S };
+     try {
+-      const [M, U, Gr, St, C] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js'), import('./gfx/campo-mando.js')]);
++      const [M, U, Gr, St, C, FB] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js'), import('./gfx/campo-mando.js'), import('./fisica-batalla.js').catch(() => null)]);   /* FI4: la física de las figuras */
+       if (activa !== a) return;
+       const fin = r => { if (activa === a) { activa = null; el.remove(); } if (alTerminar) alTerminar(r); };
+       $('retirar').removeEventListener('click', sale);
+-      const P = pantalla({ M, U, Gr, St, C }, el, $, cfg, S, fin); a.cerrar = P.cerrarTodo;
++      const P = pantalla({ M, U, Gr, St, C, FB }, el, $, cfg, S, fin); a.cerrar = P.cerrarTodo;
+     } catch (e) { console.error(e); const p = $('carga-p'); if (p) p.textContent = 'No se ha podido cargar la batalla.'; const s = $('carga-s'); if (s) s.hidden = false; }
+     return el;
+   }
+@@ -125,6 +125,16 @@
+       So.choque(0.25 + 0.2 * Math.min(4, emp), 0.8); tRuido = 1.1 + Math.random() * 0.8 - 0.15 * Math.min(4, emp);
+     }
+     let SOLD = null, escN = 0.84, altoN = 1.78; const soldados = new Map(), V3 = new THREE.Vector3();
++    /* FI4: la física de las figuras (js/fisica-batalla.js, crearFisicaFiguras): nadie se mete dentro de otro, la carga empuja y los pila
++       se clavan o rebotan. Solo cambia dónde se dibuja cada figura (f.fx, f.fz): el simulador no la lee. ?fisica=0 la apaga */
++    const FIS = mods.FB && mods.FB.crearFisicaFiguras && !/[?&]fisica=0/.test(root.location ? root.location.search : '') ? mods.FB : null; let FF = null;
++    const RAPIDO = /^(elefantes|equites|numidas|jinetes|tesalios|general)$/;
++    function leeFig(f, c) {
++      if (f.est === 2) return false;
++      c.x = f.x; c.z = f.z; c.yaw = f.yaw; c.vivo = f.est === 0; c.lado = f.lado; c.tipo = f.key === 'elefantes' ? 'elefante' : RAPIDO.test(f.key) ? 'jinete' : 'infante';
++      c.f = -1 - f.idx; c.r = f.fila || 0; c.g = f.m; c.guardia = f.est === 0 && f.forma === 'testudo' ? (f.fila ? 'alto' : 'muro') : null;
++      return true;
++    }
+     const nombreTropa = t => (root.DATA && root.DATA.UNITS && root.DATA.UNITS[t] && root.DATA.UNITS[t].n) || t;
+     const vivo = u => u.estado === 'firme' || u.estado === 'duda';
+     const yawDe = a => Math.atan2(Math.cos(a), -Math.sin(a));       /* ángulo del simulador (0 = +x) → giro de la figura (mira a +Z con 0) */
+@@ -318,13 +328,14 @@
+         }
+         const c = Math.cos(f.yaw) * sc, s = Math.sin(f.yaw) * sc;
+         a[o] = c; a[o + 1] = 0; a[o + 2] = -s; a[o + 3] = 0; a[o + 4] = 0; a[o + 5] = sc; a[o + 6] = 0; a[o + 7] = 0;
+-        a[o + 8] = s; a[o + 9] = 0; a[o + 10] = c; a[o + 11] = 0; a[o + 12] = f.x; a[o + 13] = 0; a[o + 14] = f.z; a[o + 15] = 1;
++        a[o + 8] = s; a[o + 9] = 0; a[o + 10] = c; a[o + 11] = 0; a[o + 12] = f.x + (f.fx || 0); a[o + 13] = 0; a[o + 14] = f.z + (f.fz || 0); a[o + 15] = 1;
+         const e = f.est === 0 ? (m.nv ? 1 : 1.5) * TALLA : 0;
+-        sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x; sm[q + 13] = 0.03; sm[q + 14] = f.z; sm[q + 15] = 1;
++        sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x + (f.fx || 0); sm[q + 13] = 0.03; sm[q + 14] = f.z + (f.fz || 0); sm[q + 15] = 1;
+       }
+       for (const m of mallas.values()) { if (m.nv) { for (const t of m.nv) t.malla.instanceMatrix.needsUpdate = true; continue; } m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
+       sombras.instanceMatrix.needsUpdate = true;
+-      if (pila) pila.paso(Tv);
++      if (pila && FF) { pila.malla.count = FF.pintaArmas(pila.malla.instanceMatrix.array, pila.malla.instanceMatrix.count, TALLA); pila.malla.instanceMatrix.needsUpdate = true; }   /* FI4: los de la física */
++      else if (pila) pila.paso(Tv);
+     }
+     /* PIL3: el pilum que suelta f vuela hacia un hombre de la tropa a la que tira Solo se ve: las bajas
+        las da el simulador. La mitad se hinca en el suelo cerca del blanco y se queda unos segundos; la otra mitad da en él y desaparece. */
+@@ -332,6 +343,8 @@
+       let b = null;
+       { const u = S.man[f.m], t = u && u.tirando >= 0 ? mans[u.tirando] : null; if (t && t.vivos.length) b = t.vivos[Math.floor(Math.random() * t.vivos.length)]; }
+       if (!b) return;
++      if (FF) { const sx = Math.sin(f.yaw), sz = Math.cos(f.yaw), x0 = f.x + (f.fx || 0) - sz * 0.2 * sc + sx * 0.35 * sc, z0 = f.z + (f.fz || 0) + sx * 0.2 * sc + sz * 0.35 * sc, bx = b.x + (b.fx || 0) + (Math.random() - 0.5) * 2 * TALLA, bz = b.z + (b.fz || 0) + (Math.random() - 0.5) * 2 * TALLA;
++        FF.lanza(f.key === 'velites' ? 'jabalina' : 'pilum', f, [x0, 1.75 * sc, z0], [bx, 1.1 * TALLA, bz], Math.max(0.5, Math.hypot(bx - x0, bz - z0) / 19)); return; }   /* FI4: lo resuelve la física */
+       const fx = Math.sin(f.yaw), fz = Math.cos(f.yaw), x0 = f.x - fz * 0.2 * sc + fx * 0.35 * sc, z0 = f.z + fx * 0.2 * sc + fz * 0.35 * sc, y0 = 1.75 * sc;   /* la mano derecha, sobre el hombro */
+       const dx = b.x - x0, dz = b.z - z0, dh = Math.hypot(dx, dz) || 1, ux = dx / dh, uz = dz / dh;
+       if (Math.random() < 0.5) { const r = (Math.random() - 0.5) * 3 * TALLA, w = (Math.random() - 0.5) * 2 * TALLA; pila.lanza(x0, y0, z0, b.x + ux * r - uz * w, 0, b.z + uz * r + ux * w, Tv, true); }
+@@ -629,7 +642,7 @@
+     function avanza(dtReal) {
+       const dt = S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, dtReal) * vel;
+       if (dt > 0) { acum += dt; let k = 0; while (acum >= PASO && k++ < 8) { acum -= PASO; pasoSim(); } if (acum > PASO) acum = PASO; }
+-      Tv += dt; colocar(dt, false);
++      Tv += dt; colocar(dt, false); if (FF && dt > 0) FF.paso(figs, dt, leeFig);
+       if (S.fase === 'fin' && !finVisto && !tFin) tFin = setTimeout(finYa, 1500);
+     }
+     function pinta(dt) { nCuadros++; pintarSuelo(); pintarFiguras(); if (entorno) entorno.tick(dt || 0, S, Sim, camara, alto * dpr); renderer.render(escena, camara); pintarBarras(); }
+@@ -658,6 +671,7 @@
+         entorno = await C.montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo: cfg.campo, renderer });
+         if (cerrado) { entorno.soltar(); soltarSoldados(); return; }
+         preparar(); camaraInicial(); colocar(0, true);
++        if (FIS) FF = FIS.crearFisicaFiguras({ escala: altoN * TALLA / 1.78 });   /* FI4: radios y escudos a la medida de la figura (TALLA) */
+         lista = true; if (banda) banda.inicia(); $('carga').hidden = true; pausa(S.pausa); pintarHud(true);
+         if (S.fase === 'fin') finYa();
+         else { cinta.push({ t: 'Toca un manípulo tuyo y arrástralo para moverlo', tono: '', hasta: performance.now() + 7000 }); }
+@@ -692,7 +706,8 @@
+          orden(n) una de las cuatro; subir() vuelve con las bajas de ahora */
+       camaraY: () => camara.position.y,
+       /* PIL3: pila en el aire o hincados ahora mismo */
+-      pila: () => pila ? pila.vivos.length : 0,
++      pila: () => pila ? (FF ? FF.proyectiles.length : pila.vivos.length) : 0,
++      fisica: () => FF ? FF.medir() : null, fisicaCero: () => FF && FF.cero(),   /* FI4 */
+       tiran: id => figs.filter(f => f.m === id && f.est === 0).map(f => movimiento(f)[0] + (f.nv < 2 ? '' : '·lejos')).join(' '),
+       bajar: id => bajar(id), subir: () => subir(),
+       apie: () => { if (!apie) return null; const b = dentro(), e = b && b.listo && b.estado ? b.estado() : null; return { id: apie.id, lista: !!e, plan: apie.P.plan, estado: e, r: b && b.lp7 ? b.lp7() : null }; },

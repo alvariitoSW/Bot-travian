@@ -117,7 +117,10 @@
         "js/fisica-batalla.js",
         "test/fisica-batalla.test.mjs",
         "gobierno/maquetas/a-pie/fisica.js",
-        "gobierno/maquetas/falange/fisica.js"
+        "gobierno/maquetas/falange/fisica.js",
+        "test/fi4-campo.mjs",
+        "test/fi4-captura.mjs",
+        "test/fi4-escaramuza.mjs"
       ],
       "taller": [
         "assets/soldados/",
