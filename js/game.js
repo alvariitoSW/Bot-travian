@@ -353,7 +353,7 @@
     if (merc()) return 'Las rutas comerciales van ahora por el mercado';
     const s = G.state, ca = s.cities[a], cb = s.cities[b], e = G.edge(a, b);
     if (!ca || !cb || ca.owner !== 'roma' || !e || a === b) return 'No hay camino';
-    if (G.rutaDe(a, b)) return 'Ya existe';
+    if (G.rutaDe(a, b)) return G.rutaDe(a, b).parada && G.hayGuerraCon(cb.owner) ? 'En guerra con ' + D.FACTIONS[cb.owner].n + ': la ruta está parada' : 'Ya existe';   // CE12
     if (!(ca.b.mercado > 0)) return 'Hace falta un mercado';
     if (e[2] && !(ca.b.puerto > 0)) return 'Hace falta un puerto';
     if (G.rutasDeCiudad(a) >= G.rutaMax(ca)) return 'Sin hueco: mejora el mercado';
@@ -392,7 +392,7 @@
     }
   };
   // el bien especial de una ciudad ajena con tratado llega a Roma
-  G.fuentesExtra.push(function (k) { const l = []; for (const r of G.rutasAbiertas()) if (r.f !== 'roma' && D.CITIES[r.b].esp === k && G.state.cities[r.b].owner === r.f) l.push(r.b); return l; });
+  G.fuentesExtra.push(function (k) { const l = []; for (const r of G.rutasAbiertas()) if (!r.parada && r.f !== 'roma' && D.CITIES[r.b].esp === k && G.state.cities[r.b].owner === r.f) l.push(r.b); return l; });
   /* ---------- felicidad e impuestos ---------- */
   G.impMult = c => (D.IMPUESTOS[c.imp] || D.IMPUESTOS.normal).mult;
   G.felicidadBase = function (c) {
