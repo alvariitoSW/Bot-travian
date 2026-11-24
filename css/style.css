@@ -1817,10 +1817,10 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #tira { display: flex; align-items: center; gap: 6px; height: 40px; pointer-events: auto; }
 #tira-b { flex: 1 1 auto; min-width: 0; height: 40px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; border-radius: 99px; background: rgba(18, 26, 36, .88); border: 1px solid rgba(241, 234, 217, .16); color: var(--ink); overflow: clip; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
 #tira-b[aria-expanded="true"] { border-color: var(--gold); }
-#tira-r { display: flex; align-items: center; gap: 10px; min-width: 0; overflow: clip; }
-#tira .tr { flex: none; display: inline-flex; align-items: center; gap: 3px; font-size: 13px; line-height: 1; white-space: nowrap; }
-#tira .tr .ico { width: 16px; height: 16px; flex: none; }
-#tira .tr b { font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+#tira-r { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: clip; }
+#tira .tr { flex: none; display: inline-flex; align-items: center; gap: 2px; font-size: 12px; line-height: 1; white-space: nowrap; }
+#tira .tr .ico { width: 15px; height: 15px; flex: none; }
+#tira .tr b { font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
 #tira .tr.full b { color: var(--gold); } #tira .tr.pierde b { color: #ff7060; }
 #tira #date { flex: none; font-size: 11px; color: var(--mute); white-space: nowrap; letter-spacing: .01em; }
 #tira #speed { flex: none; display: grid; place-items: center; width: 44px; min-width: 44px; height: 40px; padding: 0; border-radius: 99px; background: rgba(18, 26, 36, .88); border: 1px solid rgba(241, 234, 217, .16); color: var(--gold); font-size: 12px; letter-spacing: -1px; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
@@ -1845,9 +1845,10 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #tpanel .tp-ciu button { min-height: 44px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 4px 12px; border-radius: 12px; background: rgba(241, 234, 217, .07); border: 1px solid rgba(241, 234, 217, .14); color: var(--ink); font-size: 14px; font-weight: 650; text-align: left; overflow: clip; }
 #tpanel .tp-ciu button.on { border-color: var(--gold); color: var(--gold); }
 #tpanel .tp-ciu small { font-size: 11px; font-weight: 400; color: var(--mute); }
-#tpanel .tp-pie { display: flex; gap: 6px; margin-top: 10px; }
-#tpanel .tp-pie button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 8px; border-radius: 12px; background: rgba(241, 234, 217, .08); border: 1px solid rgba(241, 234, 217, .2); color: var(--ink); font-size: 14px; font-weight: 650; overflow: clip; white-space: nowrap; text-overflow: ellipsis; }
-#tpanel .tp-pie .tp-menu { flex: 0 0 96px; background: linear-gradient(var(--gold), var(--gold2)); border-color: rgba(255, 240, 200, .5); color: #1c1206; }
+#tpanel .tp-pie { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+#tpanel .tp-pie button { flex: 1 1 calc(50% - 6px); min-width: 0; min-height: 44px; padding: 0 8px; border-radius: 12px; background: rgba(241, 234, 217, .08); border: 1px solid rgba(241, 234, 217, .2); color: var(--ink); font-size: 14px; font-weight: 650; overflow: clip; white-space: nowrap; text-overflow: ellipsis; }
+#tpanel .tp-pie .tp-menu { flex: 1 1 calc(50% - 6px); background: linear-gradient(var(--gold), var(--gold2)); border-color: rgba(255, 240, 200, .5); color: #1c1206; }
+#tpanel .tp-pie .tp-menu:only-child { flex-basis: 100%; }
 /* lo de debajo sube: ya no hay segunda fila ni miga */
 #linea, #cubos { top: calc(54px + env(safe-area-inset-top)); }
 #toasts, #pausa { top: calc(118px + env(safe-area-inset-top)); }
@@ -1877,7 +1878,7 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 
 /* CDe3 (ajustes): la fecha pasa a una segunda línea recortada si no cabe (en turnos, en la ciudad, queda en el panel) */
 #top { z-index: 7; }
-#tira-b { flex-wrap: wrap; align-content: flex-start; column-gap: 8px; padding: 0 10px; }
+#tira-b { flex-wrap: wrap; align-content: flex-start; column-gap: 8px; padding: 0 8px; }
 #tira-r { height: 38px; gap: 8px; flex: 0 1 auto; }
 #tira .tr { font-size: 12px; } #tira .tr .ico { width: 15px; height: 15px; } #tira .tr b { font-size: 12.5px; }
 #tira #date { height: 38px; line-height: 38px; margin-left: auto; }
@@ -1899,3 +1900,12 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #linea.consejo:not(.abierta) { display: flex; align-items: center; gap: 6px; height: 30px; box-sizing: border-box; padding: 0 10px; max-height: 30px; overflow: clip; cursor: pointer; }
 #linea.consejo:not(.abierta) #l-texto { flex: 1; min-width: 0; font-size: 13px; line-height: 1; white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
 #linea.consejo:not(.abierta) #l-nota { display: none; }
+/* CDe3: a 390 px caben los 5 recursos de la tira: «Pasar turno» en dos líneas y fichas más juntas */
+@media (max-width: 440px) {
+  #tira { gap: 4px; }
+  #app[data-tab="ciudad"] #tira #turno:not([hidden]) { width: 62px; padding: 0 4px; font-size: 11px; line-height: 1.05; white-space: normal; text-align: center; }
+  #tira #speed, #app[data-vista="map"] #tira #speed { width: 40px; min-width: 40px; }
+  #tira-b { padding: 0 10px; }
+  #tira-r { gap: 6px; }
+  #tira .tr { gap: 1px; } #tira .tr .ico { width: 14px; height: 14px; } #tira .tr b { font-size: 12px; letter-spacing: -.01em; }
+}

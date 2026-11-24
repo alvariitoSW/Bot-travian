@@ -11,6 +11,7 @@ import * as Ciudad from './ciudad.js';
 import * as NEC from './necesidades.js';   // CDe1: necesidades de la ciudad (las usa game.js)
 import * as AGRO from './agricultura.js';   // CDe3: campos por suelo (los usa game.js)
 import { crearMenu } from './ciudad-menu.js';   // CD1b: botón «Construir» y su menú por familias
+import { abrirMercado, fijarAviso } from './mercado-ui.js';   // CDe3 2b: pantalla del mercado
 import { descargar, copiar, hacerPostal, guardarCopia, cargarCopia, contemplar } from './gfx/movil.js';   // CN18
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
@@ -324,17 +325,17 @@ const s_name = () => (S() && S().hero && S().hero.name) || 'General';
 /* ---------- HUD ---------- */
 /* CDe3: UNA tira arriba (recursos clave, fecha, velocidad y turno). Al tocarla se despliega #tpanel con todo lo demás.
    TIRA es la lista de lo que enseña la tira: la fase 2 la cambia en esta línea (si un nombre no está en s.res ni en s.bienes, no se pinta). */
-const TIRA = ['denarios', 'grano', 'materiales', 'hierro'];
+const TIRA = ['denarios', 'grano', 'aceite', 'vino', 'materiales'];
 const fmtK = n => { n = Math.floor(n); return n >= 10000 ? Math.round(n / 1000) + 'k' : n >= 1000 ? (n / 1000).toFixed(1).replace('.', ',') + 'k' : String(n); };
 const valorTira = (s, r) => s.res && typeof s.res[r] === 'number' ? s.res[r] : s.bienes && typeof s.bienes[r] === 'number' ? s.bienes[r] : null;
-const iconoTira = r => D.RES_ICON[r] || (D.ESPECIAL && D.ESPECIAL[r] && D.ESPECIAL[r].i) || '';
+const iconoTira = r => D.RES_ICON[r] || (window.MERCADO && window.MERCADO.PRODUCTOS[r] && window.MERCADO.PRODUCTOS[r].i) || (D.ESPECIAL && D.ESPECIAL[r] && D.ESPECIAL[r].i) || '';
 function buildTop() { $('tira-b').dataset.act = 'tira'; }
 /* la tira: icono y cifra corta de cada recurso de TIRA; en rojo si se va a perder al cerrar el mes, en oro si el almacén está lleno */
 function tiraPinta(s, p, pr, aviso) {
   const h = TIRA.map(r => {
     const v = valorTira(s, r); if (v === null) return '';
     const esRes = D.RES.indexOf(r) >= 0, cap = esRes ? G.capDe(r) : 0, pierde = !!(esRes && pr && pr[r] && pr[r].perdera >= 1 && aviso), lleno = !!(esRes && cap > 0 && s.alm && s.alm[r] >= cap - 1);
-    return '<span class="tr' + (pierde ? ' pierde' : lleno ? ' full' : '') + '" title="' + esc(RES_NOM[r] || (D.ESPECIAL && D.ESPECIAL[r] && D.ESPECIAL[r].n) || r) + ': ' + fmt(v) + (pierde ? ' · se perderán ' + pr[r].perdera : lleno ? ' (almacén lleno)' : '') + '">' + iconoTira(r) + '<b>' + fmtK(v) + '</b></span>';
+    return '<span class="tr' + (pierde ? ' pierde' : lleno ? ' full' : '') + '" title="' + esc(RES_NOM[r] || (window.MERCADO && window.MERCADO.PRODUCTOS[r] && window.MERCADO.PRODUCTOS[r].n) || (D.ESPECIAL && D.ESPECIAL[r] && D.ESPECIAL[r].n) || r) + ': ' + fmt(v) + (pierde ? ' · se perderán ' + pr[r].perdera : lleno ? ' (almacén lleno)' : '') + '">' + iconoTira(r) + '<b>' + fmtK(v) + '</b></span>';
   }).join('');
   setTxt('tira-r', h);
 }
@@ -343,15 +344,17 @@ function tpanelHtml() {
   const s = S(), c = s.cities[cityOk()], p = G.prod(), pr = G.previsionCierre(), aviso = G.fraccionMes() >= D.AVISO_CIERRE;
   const fila = r => { const cap = G.capDe(r), v = Math.round(p[r]), pierde = pr[r].perdera >= 1 && aviso, lleno = s.alm[r] >= cap - 1;
     return '<div class="tp-f' + (pierde ? ' pierde' : lleno ? ' full' : '') + '"><i>' + D.RES_ICON[r] + '</i><span>' + esc(RES_NOM[r] || r) + '</span><b>' + fmt(s.res[r]) + '</b><em>' + (v >= 0 ? '+' : '') + v + ' al mes</em><small>almacén ' + fmt(s.alm[r]) + ' de ' + fmt(cap) + (pierde ? ' · se pierden ' + pr[r].perdera : '') + '</small></div>'; };
-  const b = G.bienes(), pb = G.bienesPerdera(), ks = Object.keys(D.BIENES || {}).filter(k => (b[k] || 0) > 0);
+  const b = G.bienes(), pb = G.bienesPerdera(), NUEVOS = ['aceite', 'vino', 'verdura', 'lana'], ks = Object.keys(D.BIENES || {}).filter(k => (b[k] || 0) > 0 && NUEVOS.indexOf(k) < 0);
+  const mesN = Math.floor(s.t + 1e-9), mensual = k => { let q = 0; try { for (const id of G.myCities()) q += (G.agroProduccion(s, id, mesN) || {})[k] || 0; } catch (e) { q = 0; } return Math.round(q); };
+  const filaN = k => { const P = window.MERCADO && window.MERCADO.PRODUCTOS[k], q = mensual(k); return '<div class="tp-f' + (pb[k] >= 1 ? ' pierde' : '') + '"><i>' + (P ? P.i : '') + '</i><span>' + esc(P ? P.n : k) + '</span><b>' + fmt(b[k] || 0) + '</b><em>' + (q > 0 ? '+' + q + ' al mes' : '') + '</em></div>'; };
   const bien = k => '<span class="tp-bn' + (pb[k] >= 1 ? ' pierde' : '') + '" title="' + esc(D.ESPECIAL[k].n) + '">' + D.ESPECIAL[k].i + ' ' + esc(D.ESPECIAL[k].n) + ' <b>' + Math.floor(b[k]) + '</b></span>';
   const guerra = UI.tab === 'map' || UI.tab === 'army', nm = s.marches.filter(m => m.owner === 'roma').length;
-  return '<div class="tp-fecha"><span>' + esc(G.dateStr(s.t)) + '</span><span>' + esc(G.estacion(s.t)) + '</span></div><div class="tp-sec">' + esc(D.CITIES[cityOk()].n.toUpperCase()) + ' · RECURSOS</div>' + D.RES.map(fila).join('') +
+  return '<div class="tp-fecha"><span>' + esc(G.dateStr(s.t)) + '</span><span>' + esc(G.estacion(s.t)) + '</span></div><div class="tp-sec">' + esc(D.CITIES[cityOk()].n.toUpperCase()) + ' · RECURSOS</div>' + D.RES.map(fila).join('') + NUEVOS.map(filaN).join('') +
     '<div class="tp-pob"><i>' + D.POP_ICON + '</i><span>Población</span><b>' + fmt(c.pop || 0) + '</b><small>Hombres para reclutar en tus ciudades: ' + fmt(G.hombres()) + '</small></div>' +
     (guerra ? '<div class="tp-pob"><i>' + D.GUERRA_ICON.casco + '</i><span>Reclutas aquí</span><b>' + fmt(G.recruits(c)) + '</b><small>' + nm + (nm === 1 ? ' marcha' : ' marchas') + ' en curso</small></div>' : '') +
     (ks.length ? '<div class="tp-sec">BIENES GUARDADOS</div><div class="tp-bienes">' + ks.map(bien).join('') + '</div>' : '') +
     '<div class="tp-sec">TUS CIUDADES</div><div class="tp-ciu">' + cityMenuHtml() + '</div>' +
-    '<div class="tp-pie"><button type="button" data-act="hoja" data-v="ciudad">Ficha de ' + esc(D.CITIES[cityOk()].n) + '</button><button type="button" data-act="cuentas">Cuentas</button><button type="button" class="tp-menu" data-act="menumodo">Menú</button></div>';
+    '<div class="tp-pie"><button type="button" data-act="hoja" data-v="ciudad">Ficha de ' + esc(D.CITIES[cityOk()].n) + '</button><button type="button" data-act="cuentas">Cuentas</button><button type="button" data-act="mercadoui">Mercado</button><button type="button" class="tp-menu" data-act="menumodo">Menú</button></div>';
 }
 function tpanelPinta(forzar) { const e = $('tpanel'); if (!e || e.hidden || !S()) return; const h = G.fundando() ? '<div class="tp-pie"><button type="button" class="tp-menu" data-act="menumodo">Menú</button></div>' : tpanelHtml();   // antes de fundar: solo «Menú»
   if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
@@ -682,7 +685,7 @@ function marketHtml() {
   const r2 = rate * (UI.mt === 'hierro' ? D.HIERRO_COMPRA : 1);   // CE2: el hierro comprado rinde menos (escasea fuera de las vetas)
   const pr = G.previsionCierre(), sobra = D.RES.filter(r => r !== 'denarios' && pr[r].perdera >= 1), b = G.bienes(), ks = Object.keys(D.BIENES).filter(k => (b[k] || 0) >= 1);
   const sinVeta = !G.myCities().some(id => G.vetaHierro(id));
-  return '<div class="market mar mar-merc"><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
+  return '<div class="market mar mar-merc"><div class="btns"><button class="btn" data-act="mercadoui">Abrir el mercado (precios, rutas y Senado)</button></div><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
     '<div class="btns" style="flex-direction:row">' + [100, 500, 2000].map(n => '<button class="btn" data-act="trade" data-n="' + n + '" data-need=\'' + JSON.stringify({ [UI.mf]: n }) + '\'>' + n + ' ' + D.RES_ICON[UI.mf] + ' → ' + Math.floor(n * r2) + ' ' + D.RES_ICON[UI.mt] + '</button>').join('') + '</div>' +
     (UI.mt === 'hierro' ? '<div class="mnota">El hierro comprado sale caro: rinde el ' + Math.round(D.HIERRO_COMPRA * 100) + ' % del cambio.' + (sinVeta ? ' Solo hay vetas en Etruria y en Hispania.' : '') + '</div>' : '') +
     (sobra.length ? '<div class="mrow msob"><span>Sobra</span>' + sobra.map(r => '<button class="btn" data-act="cuvender" data-v="' + r + '">Vender lo que sobra · ' + D.RES_ICON[r] + ' ' + pr[r].perdera + '</button>').join('') + '</div>' : '') +
@@ -753,23 +756,9 @@ function repartoHtml(c) {
   };
   return '<div class="sec">Aldeanos</div><div class="empty">Mueve aldeanos de un trabajo a otro. El total no cambia. Aserradero y cantera dan materiales.' + (veta ? '' : ' Aquí no hay vetas de hierro: la mina rinde poco.') + '</div>' + G.REPARTO_RES.map(fila).join('');
 }
-function rutasHtml(c, id) {
+function rutasHtml(c, id) {   // CDe3 2b: las rutas viejas ya no se ofrecen; todo va por el mercado nuevo
   if (c.owner !== 'roma') return '';
-  const s = S(), cn = x => D.CITIES[x].n, abiertas = G.rutasAbiertas().filter(r => r.a === id || r.b === id);
-  let h = '<div class="mar mar-rut"><div class="sec mar-t">Rutas comerciales</div><div class="empty mar-card">Huecos: ' + G.rutasDeCiudad(id) + ' / ' + G.rutaMax(c) + '. Los tratados de Roma y Cartago ya repartían dónde comerciar (Polibio 3.22-25).</div>';
-  for (const r of abiertas) {
-    const o = r.a === id ? r.b : r.a;
-    h += '<div class="empty mar-card">⚖️ <b>' + cn(r.a) + ' ↔ ' + cn(r.b) + '</b> · +' + Math.round(G.rutaRenta(r)) + ' denarios/mes · ' + (G.rutaMar(r) ? 'por mar' : 'por tierra') + (r.f !== 'roma' && D.ESPECIAL[D.CITIES[r.b].esp] ? ' · bien: ' + D.ESPECIAL[D.CITIES[r.b].esp].i + ' ' + D.ESPECIAL[D.CITIES[r.b].esp].n : '') +
-      (r.a === id ? '<div class="btns"><button class="btn ghost" data-act="rutacerrar" data-v="' + r.a + '>' + r.b + '">Cerrar ruta</button></div>' : '') + '</div>';
-  }
-  for (const o of G.neighbors(id)) {
-    if (G.rutaDe(id, o)) continue;
-    const mot = G.rutaPuede(id, o), ajena = s.cities[o].owner !== 'roma', e = D.ESPECIAL[D.CITIES[o].esp];
-    const verbo = ajena ? 'Firmar tratado con ' + cn(o) : 'Abrir ruta con ' + cn(o);
-    if (mot && !/^Faltan/.test(mot)) h += '<div class="empty mar-card mar-off">' + verbo + ' · ' + esc(mot) + '</div>';
-    else h += '<div class="empty mar-card"><div class="btns"><button class="btn ' + (mot ? 'no' : '') + '" data-act="ruta" data-v="' + id + '>' + o + '" data-need=\'' + JSON.stringify({ denarios: D.RUTA_COSTE }) + '\'>' + verbo + ' · ' + D.RUTA_COSTE + ' ' + D.RES_ICON.denarios + '</button></div>' + (ajena && e ? '<div class="ds">Aporta el bien: ' + e.i + ' ' + e.n + '</div>' : '') + '</div>';
-  }
-  return h + '</div>';
+  return '<div class="mar mar-rut"><div class="sec mar-t">Rutas comerciales</div><div class="empty mar-card">Hay ' + G.rutasTotal(S()) + ' rutas en marcha. Las rutas y los viajes se hacen en el mercado.<div class="btns"><button class="btn" data-act="mercadoui" data-v="rutas">Abrir rutas del mercado</button></div></div></div>';
 }
 /* C3: diplomacia con la facción dueña de una ciudad ajena (alianza o tributo) */
 function dipHtml(c) {
@@ -811,7 +800,7 @@ const RO_HIEDRA = '<div class="ro-hiedra" aria-hidden="true"><svg viewBox="0 0 2
 function viewCity(enHoja) {   // ficha de la ciudad (K12a): felicidad, lo que falta y atajos. MN1: va en la hoja de ROMA ▾ (enHoja) y, sin 3D, en la pestaña Ciudad
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma', f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', R = 52, C = 2 * Math.PI * R;
   const falta = roma ? espFalta() : [], fic = falta.slice(0, 3).map(k => '<button class="gfic" data-act="hoja" data-v="estado">' + ICO_ALERTA + '<span>' + D.ESPECIAL[k].n + '</span></button>').join('') + (falta.length > 3 ? '<button class="gfic" data-act="hoja" data-v="estado"><span>+' + (falta.length - 3) + '</span></button>' : '');
-  const at = (id, ico, nom, sub, off) => '<button class="gat ro-bronce' + (off ? ' off' : '') + '"' + (off ? ' disabled' : ' data-act="' + (id === 'cron' ? 'tab" data-v="log' : 'hoja" data-v="' + id) + '"') + '>' + ico + '<b>' + nom + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
+  const at = (id, ico, nom, sub, off) => '<button class="gat ro-bronce' + (off ? ' off' : '') + '"' + (off ? ' disabled' : ' data-act="' + (id === 'cron' ? 'tab" data-v="log' : id === 'mercado' ? 'mercadoui' : id === 'rutas' ? 'mercadoui" data-v="rutas' : 'hoja" data-v="' + id) + '"') + '>' + ico + '<b>' + nom + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
   const mer = G.tradeRate() > 0;
   return '<div class="ro ro-gob"><div class="ro-palo"></div><div class="ro-papiro gob"><div class="gnomb"><h2 class="ro-ansata">' + d.n + '</h2><p>' + (UI.city === 'roma' ? 'Capital' : esc(G.tipoDe(c).n)) + ' <span class="ro-flecha"></span> ' + Math.floor(c.pop) + ' habitantes</p></div>' +
     '<button class="gani" data-act="hoja" data-v="estado" aria-label="Felicidad ' + f + ' por ciento: ver el estado"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="gpista" cx="60" cy="60" r="' + R + '"/><circle class="gval" cx="60" cy="60" r="' + R + '" style="stroke:' + (f >= 60 ? 'var(--good)' : f >= 40 ? 'var(--gold)' : 'var(--bad)') + '" stroke-dasharray="' + (C * Math.max(0, Math.min(100, f)) / 100).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 60 60)"/></svg><span class="gcen"><span class="gcara">' + cara + '</span><b>' + f + ' %</b><small>Felicidad</small></span>' + RO_LAUREL + '</button>' +
@@ -912,7 +901,7 @@ function viewImperio() {
       '<div class="imp-l2">' + (r.ob.length ? '<div class="imp-obs">' + r.ob.map(q => impObraHtml(q, 'imp-obra')).join('') + '</div>' : '<span class="imp-sin">sin obra</span>') +
       (r.causa ? '<em class="imp-tag ' + r.tono + '">' + r.causa + '</em>' : '') + '</div></div></div>';
   }
-  h += '</div><div class="mar-pie"><button class="btn cu-go ro-bronce" data-act="cuentas">' + svgIco('<path d="M5 4h12l2 2v14H5zM8 9h8M8 13h8M8 17h5"/>') + '<span>Este año</span><small>cuentas y tributo</small></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="hero">' + svgIco('<path d="M5 15c0-5 3-9 7-9s7 4 7 9v3h-4v-3H9v3H5zM12 6V3M9 3h6"/>') + '<span>General</span></button></div>';
+  h += '</div><div class="mar-pie"><button class="btn cu-go ro-bronce" data-act="cuentas">' + svgIco('<path d="M5 4h12l2 2v14H5zM8 9h8M8 13h8M8 17h5"/>') + '<span>Este año</span><small>cuentas y tributo</small></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="hero">' + svgIco('<path d="M5 15c0-5 3-9 7-9s7 4 7 9v3h-4v-3H9v3H5zM12 6V3M9 3h6"/>') + '<span>General</span></button><button class="btn cu-go ro-bronce" data-act="mercadoui">' + svgIco('<path d="M12 4v16M6 20h12M4 8h16"/><path d="M4 8l-3 6h6zM20 8l-3 6h6z"/>') + '<span>Mercado</span><small>precios, rutas, Senado</small></button></div>';
   return h + '</div><div class="ro-palo"></div></div>';
 }
 /* pone una pieza en una ciudad: la mejora (op.mej = id de la pieza) o una nueva en su mejor sitio. Devuelve {ok, motivo, obra} */
@@ -1884,6 +1873,7 @@ document.addEventListener('click', function (e) {
     case 'ciud': if (G.darCiudadania(UI.city)) render(); break;
     case 'dipalianza': { const r = G.dipAlianza(v); if (r.ok) { toast('🤝 ' + D.FACTIONS[v].n + ' firma el foedus con Roma.', 'good'); render(); } else toast(r.motivo); break; }
     case 'diptributo': { const r = G.dipTributo(v); if (r.ok) { toast('📜 ' + D.FACTIONS[v].n + ' pagará ' + r.mensual + ' denarios al mes.', 'good'); render(); } else toast(r.motivo); break; }
+    case 'mercadoui': { if (UI.hoja) hojaCierra(); tpanelCierra(); abrirMercado(UI.city, v); break; }
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
     case 'rutacerrar': { const q = v.split('>'); if (G.rutaCerrar(q[0], q[1])) { toast('Ruta cerrada.'); render(); } break; }
     case 'tipos': modal(tiposModal()); break;
@@ -1975,7 +1965,7 @@ window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.ci
 document.addEventListener('visibilitychange', () => { if (document.hidden && S() && !UI.menu) G.save(); });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
-buildTop(); buildTabs(); initBandeja();
+fijarAviso((x, k) => toast(x, k)); buildTop(); buildTabs(); initBandeja();
 /* CDe1-B: botón «Ministros» de la ciudad */
 function abreMinistros(dentro) {
   if (!window.MINISTROS_UI || !S()) return;
