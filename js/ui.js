@@ -271,8 +271,10 @@ function showMenu() {
 function novedadesHtml() {
   const N = window.NOVEDADES; if (!N || !N.length) return '';
   const ver = e => '<section class="nv-v"><p class="ro-rubrica">Versión v' + e.v + ' · ' + esc(e.fecha) + '</p><ul>' + e.cosas.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></section>';
-  return '<button class="mver" data-act="novedades">Versión v' + N[0].v + ' · Novedades</button>' +
-    (UI.novedades ? '<div class="mnov" data-act="novedades"><div class="nv-hoja ro-papiro"><div class="nv-t"><p class="mtit">Lo nuevo</p><button class="mvolver" data-act="novedades">Cerrar</button></div>' + ver(N[0]) + (N.length > 1 ? '<p class="nv-ant">Antes</p>' + N.slice(1, 4).map(ver).join('') : '') + '</div></div>' : '');
+  const A = N.avance, barra = A ? '<div class="mav"><p>Hacia la 1.0: <b>' + A.hecho + ' % hecho</b> · queda ' + (100 - A.hecho) + ' %</p><div class="mprog"><i style="width:' + A.hecho + '%"></i></div></div>' : '';
+  const falta = A && A.pendientes.length ? '<section class="nv-v"><p class="ro-rubrica">Hacia la 1.0: ' + A.hecho + ' % hecho · lo que queda</p><ul>' + A.pendientes.map(p => '<li>' + esc(p.t) + ' <small>(' + p.e + ')</small></li>').join('') + '</ul></section>' : '';
+  return barra + '<button class="mver" data-act="novedades">Versión v' + N[0].v + ' · Novedades</button>' +
+    (UI.novedades ? '<div class="mnov" data-act="novedades"><div class="nv-hoja ro-papiro"><div class="nv-t"><p class="mtit">Lo nuevo</p><button class="mvolver" data-act="novedades">Cerrar</button></div>' + ver(N[0]) + (N.length > 1 ? '<p class="nv-ant">Antes</p>' + N.slice(1, 4).map(ver).join('') : '') + (falta ? '<p class="nv-ant">Lo que falta</p>' + falta : '') + '</div></div>' : '');
 }
 { let tv = 0; const sf = () => { clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 150); };   // Saber: no repintar entre pulsar y soltar
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('.sv')) { UI.svDown = true; clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 1500); } }, true);

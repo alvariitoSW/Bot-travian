@@ -12,8 +12,8 @@ const page = await b.newPage({ viewport: { width: 390, height: 844 } }); const e
 page.on('pageerror', e => errs.push(e.message)); page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
 await page.goto('http://127.0.0.1:' + srv.address().port + '/'); await page.waitForTimeout(6000);
 const foto = n => page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea/CDe3-' + n + '.jpg'), type: 'jpeg', quality: 80 });
-await foto('menu-version');
-await page.click('#menu .mver'); await page.waitForTimeout(600); await foto('novedades');
+await page.evaluate(() => { const m = document.getElementById('menu'); m.scrollTop = 420; }); await page.waitForTimeout(300); await foto('menu-version');
+await page.click('#menu .mver'); await page.waitForTimeout(600); await foto('novedades'); await page.evaluate(() => { const h = document.querySelector('#menu .nv-hoja'); h.scrollTop = h.scrollHeight; }); await page.waitForTimeout(300); await foto('novedades-falta');
 await page.click('#menu .nv-hoja li'); await page.waitForTimeout(300); const sigue = await page.$('#menu .mnov');
 await page.click('#menu .nv-t .mvolver'); await page.waitForTimeout(300); const cerrada = !(await page.$('#menu .mnov'));
 console.log('tocar el papiro no cierra:', !!sigue, '· Cerrar cierra:', cerrada, '· errores:', errs.filter(e => !/Failed to load resource/.test(e)));
