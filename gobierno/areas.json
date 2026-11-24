@@ -229,7 +229,13 @@
         "js/este-ano.js",
         "js/este-ano-ui.js",
         "test/caminos.test.mjs",
-        "test/este-ano.test.mjs"
+        "test/este-ano.test.mjs",
+        "js/calles.js",
+        "js/calles-ui.js",
+        "js/gfx/calles3d.js",
+        "test/calles.test.mjs",
+        "gobierno/maquetas/calles/",
+        "gobierno/maquetas/mercado/"
       ],
       "taller": [],
       "juez": {
@@ -241,7 +247,8 @@
           "test/encargos.test.mjs",
           "test/caminos.test.mjs",
           "test/este-ano.test.mjs",
-          "test/gobernador.test.mjs"
+          "test/gobernador.test.mjs",
+          "test/calles.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area cerebro"

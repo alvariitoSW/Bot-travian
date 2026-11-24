@@ -2062,9 +2062,18 @@ const finCarga = () => { if (cuenta.u && cuenta.c) CG.todoListo(); };
 CG.fase('Dibujando el mapa', 45); CG.menuListo();
 loadIndex().then(idx => { const ks = Object.keys(idx); cuenta.t += ks.length; cuenta.i++; return Promise.all(ks.map(k => preload([k]).then(unoMas, unoMas))); }).then(() => { UI.dirty = true; cuenta.u = true; finCarga(); }, () => { cuenta.u = true; finCarga(); });
 loadStaticIndex().then(idx => { const ks = Object.keys(idx).filter(k => !k.startsWith('__')); cuenta.t += ks.length + 1; cuenta.i++; return Promise.all([...ks.map(k => preloadStatic([k]).then(unoMas, unoMas)), loadGroundTextures().then(unoMas, unoMas)]); }).then(() => {
-  try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ planoBase: true, onPick: tocarCiudad, onPlano: () => { if (UI.tab === 'city') renderCity3D(); } }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
+  try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ planoBase: true, onPick: tocarCiudad, onPlano: () => { if (UI.tab === 'city') renderCity3D(); }, onCalle: pts => { const r = G.trazarCalle(UI.city, pts); if (!r.ok) toast(r.motivo || 'No se puede trazar'); else renderCity3D(); return r; }, onCallesSalir: () => document.body.classList.remove('encalles') }, gestosCiudad)); $('citywrap').hidden = true; botonCalles(); if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
   cuenta.c = true; finCarga();
 }, () => { cuenta.c = true; finCarga(); });
 window.UI = UI; UI.maniobra = window.UIManiobra; UI.guerra = window.UIGuerra; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 
+
+/* CD2a (CDe4): botón «Calles» en la fila de «Construir»; mientras se trazan, la bandeja de abajo se esconde */
+function botonCalles() {
+  const barra = document.getElementById('cbar'); if (!barra || document.getElementById('kbtn') || !UI.cityV || !UI.cityV.calles) return;
+  const b = document.createElement('button'); b.id = 'kbtn'; b.type = 'button'; b.className = 'cbar-b'; b.setAttribute('aria-label', 'Trazar calles');
+  b.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21 9 3M20 21 15 3M12 5v2M12 11v2M12 17v2"/></svg><b>Calles</b>';
+  b.addEventListener('click', () => { if (UI.menuC && UI.menuC.cerrar) UI.menuC.cerrar(); document.body.classList.add('encalles'); UI.cityV.calles(true); });
+  barra.appendChild(b);
+}

@@ -1811,3 +1811,5 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #app[data-vista="city"] #miga-b { padding: 0 13px; font-size: 13px; }
 #app[data-vista="city"][data-miga="1"] #linea, #app[data-vista="city"][data-miga="1"] #cubos { top: calc(150px + env(safe-area-inset-top)); }
 #app[data-vista="city"][data-miga="1"] #ctop { top: calc(150px + env(safe-area-inset-top)); }
+/* CD2a (CDe4): trazando calles, fuera la bandeja de abajo */
+body.encalles #cbar, body.encalles #tabs3 { display: none !important; }
