@@ -206,8 +206,8 @@ function lanzaFisica(de, a, n, dur, tipo) { if (!FS || !FS.activa) return lanza(
 function pintaVuelos(dt) {
   let n = 0;
   /* LP5a: los de la física (en vuelo, clavados en escudos y cuerpos, en el suelo): la punta y la dirección las da el motor */
-  if (FS && FS.activa) for (const p of FS.Fi.proyectiles) {
-    if (n >= 160) break; const d = FS.Fi.dondeP(p), L = LARGO[p.tipo] || 1.5;
+  if (FS && FS.activa) for (const p of FS.proyectiles) {   /* FI3u */
+    if (n >= 160) break; const d = FS.dondeP(p), L = LARGO[p.tipo] || 1.5;   /* FI3u */
     E3.set(d.dx, d.dy, d.dz); if (E3.lengthSq() < 1e-8) continue; E3.normalize(); P3.set(d.x - E3.x * L / 2, d.y - E3.y * L / 2, d.z - E3.z * L / 2);
     QT.setFromUnitVectors(Z1, E3); E3.set(1, 1, L / 1.7); M4.compose(P3, QT, E3); mJab.setMatrixAt(n++, M4);
   }
