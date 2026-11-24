@@ -1750,6 +1750,18 @@
       "tarea": "CM1",
       "archivo": "gobierno/capturas-tarea/CM1-4-decidir.jpg",
       "pie": "Cuadro nuevo: tres preguntas con «Decide tú»"
+    },
+    {
+      "tarea": "CB3",
+      "archivo": "gobierno/capturas-tarea/CB3-2-horizontal-choque.jpg",
+      "pie": "CB3: en «Bajar a pie» el motor de lucha decide quién cae en el frente",
+      "ancha": true
+    },
+    {
+      "tarea": "CB2",
+      "archivo": "gobierno/capturas-tarea/CB2-3-horizontal-parada.jpg",
+      "pie": "CB2: el cuerpo a cuerpo de cerca, con física y soldados de Meshy",
+      "ancha": true
     }
   ],
   "informes": [

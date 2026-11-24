@@ -263,7 +263,11 @@
         "FU3",
         "FU4",
         "FU5",
-        "FU6"
+        "FU6",
+        "CB1",
+        "CB2",
+        "CB3",
+        "CB2b"
       ]
     },
     {
@@ -354,9 +358,13 @@
         "FU3",
         "FU4",
         "FU5",
-        "FU6"
+        "FU6",
+        "CB1",
+        "CB2",
+        "CB3",
+        "CB2b"
       ],
-      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha. Falange nueva (FA1 a FA7): falangita y oficial macedonios, cuatro rivales (caballería, elefantes, falange, hoplitas), picas que se rompen y espada (FE2), elefantes que se ensartan (FE1). El 24/11: la falange con el mismo control que «Manípulo a pie» (LP6) y desde la batalla grande (LP7b), elefantes que ya no rebotan y pesan como elefantes (FE3) y el galo que suelta el escudo con dos pila clavados (FI3u).",
+      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha. Falange nueva (FA1 a FA7): falangita y oficial macedonios, cuatro rivales (caballería, elefantes, falange, hoplitas), picas que se rompen y espada (FE2), elefantes que se ensartan (FE1). El 24/11: la falange con el mismo control que «Manípulo a pie» (LP6) y desde la batalla grande (LP7b), elefantes que ya no rebotan y pesan como elefantes (FE3) y el galo que suelta el escudo con dos pila clavados (FI3u). Desde el 24/11, en «Bajar a pie» el escudo, el arma y el cansancio de cada hombre deciden quién cae en el frente (CB3).",
       "captura": "gobierno/capturas-tarea/FE3-despues-h.jpg"
     },
     {
