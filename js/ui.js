@@ -482,7 +482,7 @@ function bienesCu(mercado) {
 }
 function renderCuentas(forzar) { const e = $('cuentas'); if (!e || e.hidden || !S() || (UI.cuDown && !forzar)) return; const h = cuentasHtml(); if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
 /* K12a: HOJA INFERIOR única (menú, ajustes, mercado, rutas, pueblo…). #hoja es el panel y #hscrim el telón que oscurece. Cuerpo = HOJAS[id].html() */
-const CREDITOS = 'Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Hastatus y galo de las batallas: cuerpo y esqueleto de MakeHuman 1.3.2, movimientos de Quaternius (Universal Animation Library), licencia CC0 1.0<br>Falangita, oficial de la falange y hastatus: modelos generados con Meshy (meshy.ai), licencia CC BY 4.0 (creativecommons.org/licenses/by/4.0)<br>Centurión, triario, vélite, galo grande (y v2a, v2b), galo rápido (y B), galo lancero y jefe galo: modelos generados por el usuario con Meshy (meshy.ai, herramienta), licencia CC BY-SA 3.0 (creativecommons.org/licenses/by-sa/3.0)<br>Personajes de las clases sociales: modelos generados por el usuario con Meshy (meshy.ai, herramienta), licencia CC BY-SA 3.0<br>Iconos de recursos y menús: arte propio del Proyecto AQVILA, licencia CC BY-SA 3.0<br>Sonido grabado: OpenGameArt (rubberduck, Kenney, artisticdude) y Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, HowardV, IENBA, marconi68, Morshuman, Archeos, RepDac3, DeqstersLab, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia), licencia CC0 1.0<br>Voces de los soldados: síntesis de AQVILA con Piper (Open Home Foundation) y la voz española es_ES-sharvard-medium, entrenada con el Corpus Sharvard de Vincent Aubanel, Maria Luisa García Lecumberri y Martin Cooke (Univ. de Edimburgo), licencia CC BY 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
+const CREDITOS = 'Láminas del menú y miniaturas de edificios: renders de modelos de 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0 (assets/laminas/LICENSE.txt)<br>Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Hastatus y galo de las batallas: cuerpo y esqueleto de MakeHuman 1.3.2, movimientos de Quaternius (Universal Animation Library), licencia CC0 1.0<br>Falangita, oficial de la falange y hastatus: modelos generados con Meshy (meshy.ai), licencia CC BY 4.0 (creativecommons.org/licenses/by/4.0)<br>Centurión, triario, vélite, galo grande (y v2a, v2b), galo rápido (y B), galo lancero y jefe galo: modelos generados por el usuario con Meshy (meshy.ai, herramienta), licencia CC BY-SA 3.0 (creativecommons.org/licenses/by-sa/3.0)<br>Personajes de las clases sociales: modelos generados por el usuario con Meshy (meshy.ai, herramienta), licencia CC BY-SA 3.0<br>Iconos de recursos y menús: arte propio del Proyecto AQVILA, licencia CC BY-SA 3.0<br>Sonido grabado: OpenGameArt (rubberduck, Kenney, artisticdude) y Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, HowardV, IENBA, marconi68, Morshuman, Archeos, RepDac3, DeqstersLab, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia), licencia CC0 1.0<br>Voces de los soldados: síntesis de AQVILA con Piper (Open Home Foundation) y la voz española es_ES-sharvard-medium, entrenada con el Corpus Sharvard de Vincent Aubanel, Maria Luisa García Lecumberri y Martin Cooke (Univ. de Edimburgo), licencia CC BY 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
 const HOJA_ALT = [420, 600, 770];
 const ICO_AJ = svgIco('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'), ICO_MERC = svgIco('<path d="M4 8h15l-3-3M20 16H5l3 3"/>'), ICO_RUTA = svgIco('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>'),
   ICO_PUEB = svgIco('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M18 14c2 1 3 3 3 6"/>'), ICO_CRON = svgIco('<path d="M7 4h11v13a3 3 0 0 1-3 3H6M7 4a2 2 0 0 0-2 2v2h2M7 4v12a3 3 0 0 1-3 3 2 2 0 0 0 2 1M10 9h5M10 13h5"/>'),
@@ -939,7 +939,7 @@ function viewImperio() {
   const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.ob.length, obras: r => !!r.ob.length, animo: r => r.f < 40 }[F] || (() => true);
   const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
   const cara = f => '<span class="ro-punto ' + (f >= 60 ? 'bien' : f >= 40 ? 'med' : 'mal') + '"></span>';
-  let h = '<div class="imp mar mar-imp ro ro-imp"><div class="ro-palo"></div><div class="ro-papiro"><div class="mar-top"><h2 class="ro-ansata">Imperio</h2>' + impCaminos() + '<div class="imp-res ro-cifras"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' + RO_HIEDRA +
+  let h = '<div class="imp mar mar-imp ro ro-imp"><div class="ro-palo"></div><div class="ro-papiro"><div class="mar-top"><h2 class="ro-ansata">Imperio</h2>' + (window.laminaHtml ? laminaHtml('imperio') : '') + '' + impCaminos() + '<div class="imp-res ro-cifras"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' + RO_HIEDRA +
     (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
     '<div class="imp-chips ro-tablilla">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div></div><div class="imp-lista mar-lista">';
   if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
@@ -1115,12 +1115,12 @@ function fichaHtml(c, sd) {
   const E = G.ciudadE(UI.city), cn = D.CITIES[UI.city].n, lleno = c.obras.length >= G.huecos(c);
   let ico, nom, sub, que, nv, cuerpo = '', e = null, P = null, ob = null;
   if (sd.k === 'foro') {
-    ico = bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
+    ico = (window.miniEdif && miniEdif('foro', c.b.foro || 1, 'p')) || bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
     cuerpo = nivelesHtml(c, 'foro') + '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. El foro sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (c.owner === 'roma' ? arcaHtml(c) : '');
   } else {
     e = sd.e || null; ob = sd.o || c.obras.find(q => q.eid === e.id) || null; P = Ciudad.EDIF[e ? e.tipo : sd.o.pieza];
     const bid = P.bid, dg = bid === 'templo' ? G.diosDe(c) : null, k = e ? (e.mejora || 0) : 0;
-    ico = bid ? bIco(bid) : ICO_OBRA; nom = dg ? 'Templo de ' + dg.n : P.nombre; que = QUE_CE2[e ? e.tipo : sd.o.pieza] || P.que || '';
+    ico = (bid && window.miniEdif && miniEdif(bid, e ? k + 1 : 0, 'p')) || (bid ? bIco(bid) : ICO_OBRA); nom = dg ? 'Templo de ' + dg.n : P.nombre; que = QUE_CE2[e ? e.tipo : sd.o.pieza] || P.que || '';
     nv = e ? 'NIVEL ' + ROM[k + 1] : 'EN OBRA'; sub = cn + (e ? ' · nivel ' + ROM[k + 1] + (e.ruina ? ' · en ruinas' : '') : ' · se está levantando');
     if (bid && bid !== 'muralla' && e && !e.ruina) cuerpo += nivelesHtml(c, bid);
     if (ob) cuerpo += '<div class="obra"><div class="prog" data-t0="' + ob.t0 + '" data-t1="' + ob.t1 + '"><i></i></div><span class="rem"></span></div>' + (plazoTxt(ob) ? '<div class="plz' + (ob.pausa ? ' pausa' : '') + '">' + plazoTxt(ob) + '</div>' : '') + (e ? '<div class="nota">Sube a nivel ' + ROM[ob.mejora + 1] + '. Mientras dura la obra no se puede mejorar ni derribar.</div>' : '');
@@ -1130,6 +1130,7 @@ function fichaHtml(c, sd) {
       else if (m) {
         const co = sin0(costePieza(c, P, m.coste)), dur = durPieza(c, P, k + 1), pp = G.planPago(co, dur), need1 = pp.primera, tp = topeForo(c, bid);
         cuerpo += '<div class="costes" style="--n:' + Object.keys(co).length + '">' + Object.keys(co).map(r => '<span class="cos" data-need=\'' + JSON.stringify({ [r]: need1[r] || 0 }) + '\'>' + D.RES_ICON[r] + '<b>' + fmt(need1[r] || 0) + '</b><small data-have="' + r + '"></small></span>').join('') + '</div>' + (pp.nc > 1 ? '<div class="plz">cuota inicial · total ' + Object.keys(co).map(r => D.RES_ICON[r] + ' ' + fmt(co[r])).join(' ') + ' en ' + pp.nc + ' cuotas</div>' : '');
+        if (bid && window.miniEdif && miniEdif(bid, k + 1)) cuerpo += '<div class="as-mejora">' + miniEdif(bid, k + 1, 'g') + '<span class="as-flecha"></span>' + miniEdif(bid, k + 2, 'g nuevo') + '</div>';
         cuerpo += '<div class="nota">La obra tarda <b>' + mesesEst(dur) + '</b>.</div>';
         cuerpo += tp ? '<div class="nota nv5-no">⚠ ' + esc(G.ultimoMotivo === 'Sube antes el Foro' ? G.ultimoMotivo : 'Sube antes el Foro') + ': ningún edificio pasa de su nivel. El Foro sube con las casas.</div>' : fe ? faltaBtn(fe) : '<div class="fila"><button class="bmain' + (lleno ? ' no' : '') + '" data-act="mejpz" data-v="' + e.id + '"' + (lleno ? '' : " data-need='" + JSON.stringify(need1) + "'") + '>' + ICO_OBRA + 'Mejorar a ' + ROM[k + 2] + '</button></div>' + '<div class="nota">' + (lleno ? sinHuecoTxt(c) + '. ' : '') + obrasTxt(c) + (lleno ? '.' : '') + '</div>';
       } else if (!e.ruina && P.mejoras) cuerpo += '<div class="nota">Nivel máximo alcanzado.</div>';
@@ -1140,7 +1141,7 @@ function fichaHtml(c, sd) {
     }
   }
   const bid = P && P.bid, extra = (bid === 'templo' ? diosBloque(c, 'templo') : '') + (bid === 'mercado' ? marketHtml() : '') + (bid === 'herreria' ? forjaHtml(c) : '') + (bid === 'escuela' ? escuelaHtml(c) : '') + (e && e.tipo === 'granero' && c.owner === 'roma' ? graneroHtml(c) : '') + (bid && e && !e.ruina && c.owner === 'roma' && reclutaDe(bid).length ? reclutarHtml(c, bid) : '');
-  return '<div class="ficha"><div class="greca"></div><div class="cab"><span class="ic">' + ico + '</span><div class="cn"><h2>' + esc(nom) + '</h2><p>' + esc(sub) + '</p></div><button class="x" data-act="cclose" aria-label="Cerrar la ficha">' + ICO_X + '</button></div>' +
+  return '<div class="ficha"><div class="greca"></div><div class="cab"><span class="ic"' + (/as-mini/.test(ico) ? ' style="width:auto;height:auto;border:0;background:none;border-radius:0;margin-right:4px"' : '') + '>' + ico + '</span><div class="cn"><h2>' + esc(nom) + '</h2><p>' + esc(sub) + '</p></div><button class="x" data-act="cclose" aria-label="Cerrar la ficha">' + ICO_X + '</button></div>' +
     '<div class="cuerpo">' + (que ? '<div class="efecto"><span class="nv">' + nv + '</span><span>' + esc(que) + '</span></div>' : '') + cuerpo + (extra ? '<div class="fxd">' + extra + '</div>' : '') + '</div></div>';
 }
 /* ---------- CN4: una línea de contexto arriba y una bandeja de fichas abajo (nunca dos paneles) ----------
@@ -1327,7 +1328,7 @@ function reclutarHtml(c, bid) {
 }
 function viewArmy() {
   const s = S(), c = s.cities[UI.city], p = G.prod();
-  let h = '<h2 class="vtit">Tropas</h2>' + cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
+  let h = '<h2 class="vtit">Tropas</h2>' + (window.laminaHtml ? laminaHtml('tropas') : '') + cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
   h += '<div class="empty">' + popHtml(c) + '</div>';
   h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' denarios (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' denarios · 🛡️ Guardia urbana al defender: ' + (20 + 20 * G.nivelMuralla(c)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
   h += reclutarHtml(c);
@@ -1387,7 +1388,7 @@ function svTarjeta(id) {
 }
 function viewSaber() {
   const s = S(), V = G.invVista();
-  let h = '<div class="ro ro-mos"><div class="ro-palo"></div><div class="ro-papiro sv mos mos-sab"><div class="mos-cab"><h2 class="ro-ansata">Saber</h2>', gu = '';   // K12c: cabecera fija, cuerpo con scroll, «volver» abajo
+  let h = '<div class="ro ro-mos"><div class="ro-palo"></div><div class="ro-papiro sv mos mos-sab"><div class="mos-cab"><h2 class="ro-ansata">Saber</h2>' + (window.laminaHtml ? laminaHtml('saber') : '') + '', gu = '';   // K12c: cabecera fija, cuerpo con scroll, «volver» abajo
   if (!V.nHechas && !V.cola) gu += '<div class="sv-guia"><b>Primera vez</b><ol><li>Investiga Preceptores griegos.</li><li>Construye la Escuela y pon gente a estudiar desde su ficha.</li><li>En cada par elige uno: el otro se cierra.</li></ol></div>';
   const hc = h; h = '';
   h += '<div class="sv-ed"><b>Edad ' + ['I', 'II', 'III', 'IV'][V.edad - 1] + ' · ' + esc(V.edadNombre) + '</b>';
@@ -1625,7 +1626,7 @@ function viewSenado() {
   const efecto = e => { const a = []; if (e.denarios) a.push((e.denarios > 0 ? '+' : '') + e.denarios + ' denarios'); if (e.favorSenado) a.push((e.favorSenado > 0 ? '+' : '') + e.favorSenado + ' favor del Senado'); if (e.favorPueblo) a.push((e.favorPueblo > 0 ? '+' : '') + e.favorPueblo + ' favor del pueblo'); return a.join(', ') || 'nada'; };
   // MR2b: rollo de papiro (como Imperio); misión y encargo en tabla de bronce
   const pie = '</div><div class="ro-palo"></div></div>';
-  let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn sen-' + t + '">' + senTabs(t, !!sala);
+  let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn sen-' + t + '">' + senTabs(t, !!sala) + (window.laminaHtml ? laminaHtml('senado') : '');
   if (t === 'bandos') {
     o += sn2Bandos() || '<div class="empty sn-nada">Los bandos del Senado aún no se reúnen.</div>';
     return o + pie;
