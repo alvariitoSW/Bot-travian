@@ -130,7 +130,7 @@ export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3:
       if (!h.vivo) { cae(f, T); continue; }
       /* LP5a: anda hacia su hombre de LP1 (no se pega a él): así, si la física lo aparta, vuelve a su paso, sin saltos */
       const hv = Math.hypot(h.x - (f.hx ?? h.x), h.z - (f.hz ?? h.z)) / Math.max(dt, 1e-3); f.hx = h.x; f.hz = h.z;
-      const o = ofsDe(bf); sigue(f, h.x, h.z, dt);
+      const o = ofsDe(bf); sigue(f, h.x + (h.fx || 0), h.z + (h.fz || 0), dt);   /* FU4: más lo que aparta la física de cuerpos (h.fx, h.fz; solo la falange los tiene) */
       const dx = f.tx + o.x - f.x, dz = f.tz + o.z - f.z, d = Math.hypot(dx, dz), m0 = Math.min(d, Math.min(5, hv + 0.6 + d * 2.5) * dt);
       const m = d > 1e-4 ? anda(f, dx / d, dz / d, m0) : (f.px = f.pz = 0);
       const v = m / Math.max(dt, 1e-3); f.v += (v - f.v) * Math.min(1, dt * 6);
@@ -167,7 +167,7 @@ export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3:
   /* tras saltar en el tiempo (capturas): todos en su hueco y mirando al frente */
   function asienta() {
     for (const b of S.bloques) if (b.vis) for (const f of b.vis.men) { const p = hueco(b, f), o = ofsDe(b); f.tx = p.x; f.tz = p.z; f.x = p.x + o.x; f.z = p.z + o.z; f.yaw = b.estado === 'huye' ? -b.ang : Math.PI - b.ang; f.v = 0; }
-    for (const f of figs) if (f.h) { const o = ofsDe(f.b); f.tx = f.h.x; f.tz = f.h.z; f.x = f.h.x + o.x; f.z = f.h.z + o.z; f.yaw = f.h.yaw; }
+    for (const f of figs) if (f.h) { const o = ofsDe(f.b); f.tx = f.h.x + (f.h.fx || 0); f.tz = f.h.z + (f.h.fz || 0); f.x = f.tx + o.x; f.z = f.tz + o.z; f.yaw = f.h.yaw; }
     for (const f of caidos) { f.t = DUR.morir; if (f.yawCae !== undefined) f.yaw = f.yawCae; }
   }
   return { figs, caidos, paso, asienta, lanzan, DUR, ofs };

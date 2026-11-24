@@ -14,6 +14,8 @@
            fin }               LP6: null (lo de siempre) o FIN_LUCHA. Con fin, los dos bandos luchan hasta que les queda ese tanto por uno
                                (sin miedo por bajas), ganar terreno no hace romper a nadie y en el choque «la lucha» mata sola en cada
                                latido (lucha()). Es lo que usa la maqueta con el control del bloque: los hombres pelean solos
+           vivo }              FU4: true = el rival se mueve solo (sin espejo: gira y anda con retraso y tope), es más numeroso (144 a pie;
+                               jinetes ×1,5) y los dos bandos luchan hasta el 15 % (fuerza fin = FIN_LUCHA). Sin vivo, todo como antes
    F = { S, reinicia(), paso(dt), toque(), estocada(), gira(dir), fila(i, abajo), orden(n), marcado(), frente(), bot(modo), resumen() }
 
    EL ESTADO S (lo lee la escena para dibujar; los rivales lo leen y escriben solo lo suyo)
@@ -95,6 +97,19 @@ export const P_FLANCO = 0.35, ANG_FLANCO = 97 * Math.PI / 180, R_FLANCO = 14, MA
 export const ENFRIA = 1.2, P_COMPAS = 0.7, P_FUERA = 0.35, P_COLADO = 0.9;
 export const V_ROM = 1.3, V_CARGA = 4.0, V_HUYE = 4.6, D_PILA = 19;
 export const COLS_R = 12, DX_R = 0.85, DZ_R = 1.4, N_R = 96;
+/* FU4 (modo vivo): el rival ve tu giro con REACCION s de retraso, gira a GIRO_RIV y su ancla anda a V_ANCLA como mucho. Licencia de juego */
+export const N_VIVO = 144, REACCION = 1.2, GIRO_RIV = 5 * Math.PI / 180, V_ANCLA = 1.3;
+/* FU4: en vivo el rival hiere más en la lucha (×HIERE_VIVO a la tirada de herir de lucha()): el que gana también pierde gente */
+export const HIERE_VIVO = 1.7;
+/* FU4: el ancla o (x, z, ang, gVisto, tVe) de un bloque rival sigue tu muro: ve tu giro con retraso, gira con tope y anda hasta d m
+   delante del pivote, en la dirección que ha visto. Lo usan los manípulos y los muros de js/falange-rivales.js */
+export function sigueMuro(S, o, d, dt) {
+  if (o.gVisto == null) { o.gVisto = S.giro; o.tVe = null; }
+  if (Math.abs(S.giro - o.gVisto) > 0.5 * Math.PI / 180) { if (o.tVe == null) o.tVe = S.T + REACCION; else if (S.T >= o.tVe) { o.gVisto = S.giro; o.tVe = null; } } else o.tVe = null;
+  o.ang = hacia(o.ang, o.gVisto, GIRO_RIV * dt);
+  const a = o.gVisto, tx = S.xF + Math.sin(a) * d, tz = S.zF - Math.cos(a) * d, dx = tx - o.x, dz = tz - o.z, dd = Math.hypot(dx, dz);
+  if (dd > 1e-6) { const k = Math.min(dd, V_ANCLA * dt); o.x += dx / dd * k; o.z += dz / dd * k; }
+}
 const GIRO_BOT = 57 * Math.PI / 180;
 const lim = (x, a, b) => Math.max(a, Math.min(b, x));
 const hacia = (v, o, d) => v < o ? Math.min(o, v + d) : Math.max(o, v - d);
@@ -149,18 +164,18 @@ export const MANIPULOS = {
   crea(S, azar) {
     const { F, D } = ejes(S.giro);
     const v = S.riv = { x: S.xF + F.x * 52, z: S.zF + F.z * 52, ang: S.giro, ang0: S.giro, fase: 'marcha', tPila: -9, tSalva: -9, salva: false, tChoque: -9, tFlanco: 1e9, tCalma: -9, flActivo: false, calma: false };
-    S.ene = [];
-    for (let i = 0; i < N_R; i++) {
+    S.ene = []; const nR = S.vivo ? N_VIVO : N_R;   /* FU4: en vivo, 144 (12 × 12) */
+    for (let i = 0; i < nR; i++) {
       const c = i % COLS_R, r = Math.floor(i / COLS_R), l = (c - (COLS_R - 1) / 2) * DX_R + (azar() - 0.5) * 0.25, d = r * DZ_R;
       S.ene.push({ i, c, r, r0: r, x: v.x + D.x * l + F.x * d, z: v.z + D.z * l + F.z * d, yaw: Math.atan2(-F.x, -F.z), vivo: true, muere: 0, est: 'marcha', tipo: 'infante', toca: null,
         jz: (azar() - 0.5) * 0.35, vMas: 0.92 + azar() * 0.16, fase: azar() * 3, pilum: r <= 1, intento: 0, tAtk: -9, tRecibe: -9, sinP: 0, llego: false });
     }
-    S.R = crearUnidad({ hombres: N_R, nombre: 'El manípulo', ref: N_R });
+    S.R = crearUnidad({ hombres: nR, nombre: 'El manípulo', ref: nR });
   },
   paso(S, dt) {
     const M = S.motor, v = S.riv; if (!v || S.ganador) return;
     const Fp = M.frente(), dA = Math.max(Fp - 0.2, 0.3);
-    if (S.fase === 'choque' && v.fase !== 'choque') { v.fase = 'choque'; v.tChoque = S.T; v.tFlanco = S.T + 14; v.ang0 = v.ang; }
+    if (S.fase === 'choque' && v.fase !== 'choque') { v.fase = 'choque'; v.tChoque = S.T; v.tFlanco = S.T + 14; v.ang0 = v.ang; if (S.vivo) { v.gVisto = S.giro; v.tVe = null; } }
     if (v.fase !== 'choque') {
       const dx = S.xF - v.x, dz = S.zF - v.z, dd = Math.hypot(dx, dz) || 1;
       v.ang = Math.atan2(-dx / dd, dz / dd);
@@ -179,8 +194,8 @@ export const MANIPULOS = {
       const Fl = S.flanco;
       if (Fl && Fl.tR != null) v.tCalma = Fl.tR + 4;
       v.calma = !!(Fl && Fl.estado === 'viene') || S.T < v.tCalma;
-      v.ang = v.calma ? S.giro : hacia(v.ang, v.ang0, V_GIRO * dt);
-      const { F } = ejes(v.ang); v.x = S.xF + F.x * dA; v.z = S.zF + F.z * dA;
+      if (S.vivo) sigueMuro(S, v, dA, dt);   /* FU4: sin espejo; sus hombres van a su hueco con mueve */
+      else { v.ang = v.calma ? S.giro : hacia(v.ang, v.ang0, V_GIRO * dt); const { F } = ejes(v.ang); v.x = S.xF + F.x * dA; v.z = S.zF + F.z * dA; }
       if (v.flActivo && !Fl) { v.flActivo = false; v.tFlanco = S.T + 20 + M.azar() * 10; }
       if (!Fl && !v.flActivo && S.T >= v.tFlanco) {
         const lado = M.azar() < 0.5 ? 1 : -1, n = 8 + Math.floor(M.azar() * 3);
@@ -259,7 +274,7 @@ export const MANIPULOS = {
 export function crearFalange(m = {}) {
   const rival = m.rival || MANIPULOS, avisaExt = m.avisa || (() => {});
   const N = Math.max(24, Math.min(192, Math.round(m.hombres || 96))), FILAS = Math.max(2, Math.round(N / FILES)), MF = FILES * FILAS;
-  const FIN = m.fin ?? null;   /* LP6 */
+  const VIVO = !!m.vivo, FIN = VIVO ? FIN_LUCHA : m.fin ?? null;   /* LP6; FU4: en vivo, siempre hasta el 15 % */
   const LOC = m.locomocion || null, ZAN = m.zancadas || { walk: 1.5, run: 2.2 }, semilla = m.semilla ?? 1;
   const S = {}; let azar, azarB, caja = null, kPulso = 0, tLoco = -9, kBot = -99;
   const avisa = (tipo, datos = {}) => avisaExt(tipo, datos);
@@ -335,7 +350,7 @@ export function crearFalange(m = {}) {
     for (const k of Object.keys(S)) delete S[k];
     Object.assign(S, { T: 0, fase: 'marcha', ganador: null, causa: null, rival: rival.nombre, xF: 0, zF: -10, giro: 0, girando: 0, filas: [false, false, false, false, false],
       flanco: null, pulso: 0, orden: null, coh: 100, ganado: 0, yo: { i: FILES / 2 - 1, tEstocada: -9, blanco: null, muertes: 0 }, fal: [], ene: [], U: null, R: null,
-      terreno: null, enRoto: 0, proyectiles: [], motor,
+      terreno: null, enRoto: 0, proyectiles: [], motor, vivo: VIVO,
       choque: false, tChoque: -9, tOrden: -9, toques: { buenos: 0, malos: 0 }, riv: null, kUsado: -99, seguidos: 0, pend: 0, tMataFl: 0, hayFl: false, entraronFrente: false, tRompe: -9 });
     for (let i = 0; i < MF; i++) {
       const f = i % FILES, r = Math.floor(i / FILES), p = puesto(f, r);
@@ -422,7 +437,7 @@ export function crearFalange(m = {}) {
           if (T >= h.tMata) {
             h.tMata = T + MATA_FRENTE; h.tAtk = T; let v = null, dm = 1e9;
             for (const f of S.fal) if (f.vivo && !f.huye && f.r <= 1) { const d = dist(f, h); if (d < dm) { dm = d; v = f; } }
-            if (v) { caeFalangita(v, 'colado'); cohesion(-6); U.anima(-0.02); }
+            if (v) { caeFalangita(v, 'colado'); cohesion(-6); if (!VIVO) U.anima(-0.02); }
           }
         } else {
           const l = local(h.x, h.z);
@@ -432,12 +447,12 @@ export function crearFalange(m = {}) {
       if (nFl && T >= S.tMataFl) {
         S.tMataFl = T + MATA_FLANCO; cx /= nFl; cz /= nFl; let v = null, dm = 1e9;
         for (const f of S.fal) if (f.vivo && !f.huye) { const d = Math.hypot(f.x - cx, f.z - cz); if (d < dm) { dm = d; v = f; } }
-        if (v) { caeFalangita(v, 'flanco'); cohesion(-8); U.anima(-0.01); }
+        if (v) { caeFalangita(v, 'flanco'); cohesion(-8); if (!VIVO) U.anima(-0.01); }   /* FU4: en vivo, sin miedo */
       }
-      if ((nFl || nFr) && S.coh <= 0) U.anima(-0.15 * dt);
-      if (S.choque && S.coh < 25) U.anima(-0.03 * dt);
+      if ((nFl || nFr) && S.coh <= 0 && !VIVO) U.anima(-0.15 * dt);   /* FU4: en vivo tampoco rompe por eso: los de dentro matan hasta el 15 % */
+      if (S.choque && S.coh < 25 && !VIVO) U.anima(-0.03 * dt);   /* FU4: en vivo, sin miedo: se lucha hasta el 15 % */
       /* el muro que cede pierde el ánimo (licencia de juego): cuanto más terreno perdido, más deprisa */
-      if (S.choque && S.ganado < 0) U.anima(0.01 * S.ganado * dt);
+      if (S.choque && S.ganado < 0 && !VIVO) U.anima(0.01 * S.ganado * dt);
     }
     /* el flanco: se acaba unos segundos después de resolverse */
     const Fl = S.flanco;
@@ -490,11 +505,11 @@ export function crearFalange(m = {}) {
   function lucha() {
     const b = bajadas(), o = S.orden, k = S.coh / 100, L = LUCHA, Fp = frente();
     const qR = (L.r0 + L.rB * b) * (o === 'empujar' ? L.empuja : o === 'aguantar' ? L.aguanta : 1) * (0.5 + 0.5 * k) * (1 - 0.4 * S.U.cansancio);
-    const qF = (L.f0 + L.fA * (BAJAN - b)) * (o === 'empujar' ? L.empuja : o === 'aguantar' ? L.aguanta : 1) * (2 - k);
+    const qF = (L.f0 + L.fA * (BAJAN - b)) * (o === 'empujar' ? L.empuja : o === 'aguantar' ? L.aguanta : 1) * (2 - k) * (VIVO ? HIERE_VIVO : 1);
     for (const h of S.ene) {
       if (!h.vivo || h.est === 'dentro' || h.est === 'huye' || h.est === 'vuelve' || h.tipo === 'elefante' || h.tipo === 'jinete') continue;
       /* en la lucha: el que toca tus puntas o el que está en su primera fila a menos de 2,5 m de ellas (empujando, se separan) */
-      if (h.toca !== 'puntas') { if (h.est !== 'muro' && h.est !== 'asalta') continue; const l = local(h.x, h.z); if (l.delante < -0.5 || l.delante > Fp + 2.5 || Math.abs(l.lado) > medio + 0.6) continue; }
+      if (h.toca !== 'puntas') { if (h.est !== 'muro' && h.est !== 'asalta' && !(VIVO && h.est === 'empuja' && h.r === 0)) continue;   /* FU4: la primera fila de un muro rival */ const l = local(h.x, h.z); if (l.delante < -0.5 || l.delante > Fp + 2.5 || Math.abs(l.lado) > medio + 0.6) continue; }
       h.tAtk = S.T;
       if (azar() < qR) { caeRival(h); continue; }
       if (azar() < qF) { let v = null, dm = 1e9; for (const f of S.fal) if (f.vivo && !f.huye && f.r <= 1) { const d = dist(f, h) + f.r; if (d < dm) { dm = d; v = f; } } if (v) caeFalangita(v, 'lucha'); }
@@ -582,7 +597,7 @@ export function crearFalange(m = {}) {
   }
   function resumen() {
     return { ganador: S.ganador, causa: S.causa, T: +S.T.toFixed(3), ganado: +S.ganado.toFixed(3), coh: +S.coh.toFixed(2), enPieU: S.U.enPie, enPieR: S.R.enPie,
-      tuyas: S.yo.muertes, toquesBuenos: S.toques.buenos, toquesMalos: S.toques.malos };
+      tuyas: S.yo.muertes, toquesBuenos: S.toques.buenos, toquesMalos: S.toques.malos, perdidos: S.U.hombres - S.U.enPie, matados: S.R.hombres - S.R.enPie };   /* FU4: para el HUD */
   }
   reinicia();
   return { S, reinicia, paso, toque, estocada, gira, fila, orden, marcado, frente, bot, resumen, motor };   /* FU3b: motor, para el gesto de la falange (falangita.js) */

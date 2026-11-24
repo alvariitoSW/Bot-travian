@@ -24,7 +24,7 @@ export function crearAcciones(m = {}) {
   /* LP6: contra los manípulos se lucha hasta el 15 % (FIN_LUCHA, la lucha sola del motor). Los elefantes ya lo traen de FE1; caballería,
      falange e hoplitas siguen con su regla (?fin=0 vuelve a lo de antes también con los manípulos) */
   const fin = m.fin !== undefined ? m.fin : nombre === 'manipulos' && Q.get('fin') !== '0' ? FIN_LUCHA : null;
-  const F = crearFalange({ semilla, rival: rivalDe(nombre) || undefined, avisa: m.avisa, H: m.H, hombres: m.hombres, locomocion: { crearPaso, velocidad, pisa }, zancadas: zan, fin });
+  const F = crearFalange({ semilla, rival: rivalDe(nombre) || undefined, avisa: m.avisa, H: m.H, hombres: m.hombres, locomocion: { crearPaso, velocidad, pisa }, zancadas: zan, fin, vivo: !!m.vivo });   /* FU4: el rival vivo (lo pide combate() del bloque) */
   const S = F.S;
   /* azar propio del dibujo (no toca las tiradas del motor) */
   let sV = 7; const azarV = () => { sV = (sV * 16807) % 2147483647; return (sV - 1) / 2147483646; };

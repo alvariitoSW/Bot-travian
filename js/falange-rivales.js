@@ -27,7 +27,7 @@
    ensartadas: probable. Luchar hasta el 15 % y todas las cifras: licencia de juego. Ficha: gobierno/historia/FE1-elefantes-contra-picas.md.
    Licencia de juego: el compás, las oleadas, las fintas, los segundos de aviso y todas las cifras de este archivo. */
 
-import { FIN_LUCHA } from './falange.js';   /* FE1: la regla del 15 % es una sola, la del motor */
+import { FIN_LUCHA, crearUnidad, sigueMuro } from './falange.js';   /* FU4: la unidad con fin y el ancla que sigue tu muro (modo vivo) */   /* FE1: la regla del 15 % es una sola, la del motor */
 export { FIN_LUCHA };
 
 /* ---------- PUENTE con el estado S y el motor de FA1. Todo lo que se supone de S pasa por aquí; con S.motor se usan sus
@@ -208,10 +208,10 @@ function mira(S, riv) { sincroniza(S); if (!S.ganador && !motorCompleto(S) && ro
 const caballeria = {
   nombre: 'caballeria',
   crea(S, azar) {
-    const riv = base(S, azar, 'caballeria'), v = variedadDe(S, riv), n = 10 + Math.min(4, Math.floor(v.fuerza * 5));
+    const riv = base(S, azar, 'caballeria'), v = variedadDe(S, riv), n0 = 10 + Math.min(4, Math.floor(v.fuerza * 5)), n = S.vivo ? Math.round(n0 * 1.5) : n0;   /* FU4: en vivo, ×1,5 */
     Object.assign(riv, { n0: n, lado1: v.lado, ang: 0, pasada: 0, p: null, tFase: 0 });
     for (let i = 0; i < n; i++) { const h = hombre(i, 'jinete', 'forma'); h.off = (i - (n - 1) / 2) * 1.8; riv.hombres.push(h); }
-    S.ene = riv.hombres.slice(); S.R = unidadRival(S, n, 'Ala de jinetes');
+    S.ene = riv.hombres.slice(); S.R = S.vivo ? crearUnidad({ hombres: n, nombre: 'Ala de jinetes', ref: n, fin: FIN_LUCHA, miedo: false }) : unidadRival(S, n, 'Ala de jinetes');
     colocaJinetes(S, riv, 0, CAB_RADIO, false);
   },
   paso(S, dt) {
@@ -241,7 +241,7 @@ const caballeria = {
       if (T - riv.tFase >= CAB_VUELVE) nuevaPasada(S, riv);
     }
     const vivos = riv.hombres.filter(h => h.vivo).length;
-    if (riv.animo <= CAB_ROMPE || vivos < riv.n0 / 3) rompe(S, riv, 'animo');
+    if (!S.vivo && (riv.animo <= CAB_ROMPE || vivos < riv.n0 / 3)) rompe(S, riv, 'animo');   /* FU4: en vivo rompe su unidad, al 15 % */
     mira(S, riv);
   },
   choque(S, h) {
@@ -263,7 +263,7 @@ const caballeria = {
         const donde = espalda ? 'espalda' : 'flanco', k = cierra ? 0.5 : 1; p.cierra = cierra;
         /* con el motor real, los que entran matan por su cuenta (motor.entra): no se duplican bajas ni cohesión */
         if (!motorCompleto(S)) { cambiaCoh(S, -CAB_COH[donde] * k); bajas(S, Math.round(CAB_MUERTOS[donde] * k), 'flanco'); }
-        anima(S, -0.05);
+        if (!S.vivo) anima(S, -0.05);   /* FU4: en vivo, sin miedo */
         riv.animo = Math.min(1, riv.animo + CAB_ENTRA_ANIMO); riv.causa = 'flanco';
         estadoFlanco(S, 'dentro'); avisa(S, 'flancoEntra', { lado: p.lado });
       }
@@ -469,9 +469,11 @@ function creaEmpuje(nombre) {
     crea(S, azar) {
       const riv = base(S, azar, nombre);
       Object.assign(riv, { fase: 'empuje', cuenta: 4, coh: 100, cans: 0, pendientes: [], prev: null, latido: 0, muertos: 0, contacto: nombre === 'falange' ? 2 * ALCANCE : ALCANCE + 0.3 });
-      for (let i = 0; i < 96; i++) { const h = hombre(i, nombre === 'falange' ? 'piquero' : 'infante', 'empuja'); h.f = i % 12; h.r = Math.floor(i / 12); riv.hombres.push(h); }
-      S.ene = riv.hombres.slice(); S.R = unidadRival(S, 96, nombre === 'falange' ? 'Falange rival' : 'Muro hoplita');
-      coloca(S, riv, 5);
+      const n = S.vivo ? 144 : 96, nom = nombre === 'falange' ? 'Falange rival' : 'Muro hoplita';   /* FU4: en vivo, 144 */
+      for (let i = 0; i < n; i++) { const h = hombre(i, nombre === 'falange' ? 'piquero' : 'infante', 'empuja'); h.f = i % 12; h.r = Math.floor(i / 12); riv.hombres.push(h); }
+      S.ene = riv.hombres.slice(); S.R = S.vivo ? crearUnidad({ hombres: n, nombre: nom, ref: n, fin: FIN_LUCHA, miedo: false }) : unidadRival(S, n, nom);
+      if (S.vivo) { riv.vivo = true; const p = pivote(S); Object.assign(riv, { x: p.x, z: p.z, ang: giroDe(S), gVisto: giroDe(S), tVe: null }); colocaVivo(S, riv, 0, true); }
+      else coloca(S, riv, 5);
     },
     paso(S, dt) {
       const riv = S.riv; if (!riv || S.ganador) return; riv.T += dt;
@@ -479,7 +481,7 @@ function creaEmpuje(nombre) {
       marcaChoque(S); const pu = pulsoDe(S), Tn = tiempoDe(S);
       if (pu !== null) { if (riv.prev !== null && pu < riv.prev - 0.5) riv.pendientes.push({ bT: Tn - pu * PULSO, contacto: null, res: null }); riv.prev = pu; }
       while (riv.pendientes.length && Tn >= riv.pendientes[0].bT + 0.3 && !S.ganador) R.choque(S, riv.pendientes.shift());
-      if (!riv.roto) coloca(S, riv, bajadasDe(S));
+      if (!riv.roto) { if (riv.vivo) colocaVivo(S, riv, dt, false); else coloca(S, riv, bajadasDe(S)); }
       mira(S, riv);
     },
     choque(S, h) {
@@ -498,11 +500,13 @@ function creaEmpuje(nombre) {
         if (empuja) { if (!mandaMeta(S)) metros(S, riv, EMP_METROS * d); riv.coh -= EMP_COH * d; r = 'frena'; } else { riv.coh -= 3 * d; r = 'para'; }
       } else if (o === 'aguantar' && acierto) { cambiaCoh(S, 2 * d); r = 'para'; }
       else { metros(S, riv, EMP_METROS * d); cambiaCoh(S, EMP_COH * d); riv.muertos -= EMP_MUERTOS * d; riv.causa = 'empuje'; r = 'entra'; }
-      if (riv.muertos >= 1) { bajas(S, Math.floor(riv.muertos), 'empuje'); riv.muertos -= Math.floor(riv.muertos); }
+      if (riv.muertos >= 1 && !riv.vivo) { bajas(S, Math.floor(riv.muertos), 'empuje'); riv.muertos -= Math.floor(riv.muertos); }
       riv.cans = Math.max(0, Math.min(1, riv.cans + (riv.fase === 'oleada' ? 0.03 : riv.fase === 'gastado' ? -0.04 : 0.005)));
-      riv.coh = Math.max(0, Math.min(100, riv.coh)); riv.animo = riv.coh / 100; riv.latido++;
-      const vivos = riv.hombres.filter(x => x.vivo), quedan = Math.round(96 * (0.5 + 0.5 * riv.coh / 100));
-      for (let k = vivos.length - 1; k >= quedan && k >= 0; k--) { caeRival(S, vivos[k]); vivos[k].est = 'cae'; causa(S, 1); }
+      riv.coh = Math.max(0, Math.min(100, riv.coh)); if (!riv.vivo) riv.animo = riv.coh / 100; riv.latido++;
+      if (!riv.vivo) {   /* FU4: en vivo las bajas de los dos bandos las hace lucha() del motor */
+        const vivos = riv.hombres.filter(x => x.vivo), quedan = Math.round(96 * (0.5 + 0.5 * riv.coh / 100));
+        for (let k = vivos.length - 1; k >= quedan && k >= 0; k--) { caeRival(S, vivos[k]); vivos[k].est = 'cae'; causa(S, 1); }
+      }
       if (--riv.cuenta <= 0) {
         const sig = { empuje: 'prepara', prepara: 'oleada', oleada: 'gastado', gastado: 'empuje' }[riv.fase];
         riv.fase = sig; riv.cuenta = sig === 'prepara' ? 1 : sig === 'oleada' ? EMP_OLEADA : sig === 'gastado' ? EMP_GASTADO : 2 + Math.floor(riv.azar() * 2);
@@ -510,7 +514,7 @@ function creaEmpuje(nombre) {
         if (sig === 'gastado') avisa(S, 'gastado', { latidos: EMP_GASTADO });
       }
       if (!mandaMeta(S) && riv.linea >= EMP_META) rompe(S, riv, 'empuje');
-      else if (riv.coh <= 0) rompe(S, riv, 'animo');
+      else if (riv.coh <= 0 && !riv.vivo) rompe(S, riv, 'animo');   /* FU4: en vivo no rompe por cohesión */
       else if (!mandaMeta(S) && riv.linea <= -EMP_META) decide(S, 'rival', 'empuje');
       h.contacto = 'latido'; h.res = r; return r;
     },
@@ -520,6 +524,20 @@ function creaEmpuje(nombre) {
     const z0 = nombre === 'hoplitas' && b < 3 ? 1.5 : riv.contacto /* el hoplita se queda a la punta de las sarisas; con menos de 3 filas se mete debajo */, g = 0;
     const clave = z0 + '|' + g + '|' + pivote(S).x + '|' + pivote(S).z + '|' + riv.hombres.filter(h => h.vivo).length; if (riv.clave === clave) return; riv.clave = clave;
     for (const h of riv.hombres) { if (!h.vivo) continue; const q = enCampo(S, z0 + h.r * 0.95, (h.f - 5.5) * 0.78); h.x = q.x; h.z = q.z; h.yaw = -g; }
+  }
+  /* FU4 (modo vivo): la línea tiene ancla y ángulo propios (sigueMuro: retraso y tope de giro) y sus hombres andan a su puesto.
+     La fila se cuenta entre los vivos de cada columna: cuando cae uno de delante, el de detrás da un paso. La falange rival se
+     queda a ALCANCE + 2 m (las puntas cruzadas: así le alcanza la lucha del motor); el hoplita, como siempre */
+  function colocaVivo(S, riv, dt, salta) {
+    const b = bajadasDe(S), z0 = nombre === 'hoplitas' ? (b < 3 ? 1.5 : riv.contacto) : ALCANCE + 2;
+    if (salta) { const p = pivote(S); riv.x = p.x + Math.sin(riv.ang) * z0; riv.z = p.z - Math.cos(riv.ang) * z0; } else sigueMuro(S, riv, z0, dt);   /* el ancla: el centro de su primera fila */
+    const Fx = Math.sin(riv.ang), Fz = -Math.cos(riv.ang), Dx = Math.cos(riv.ang), Dz = Math.sin(riv.ang), yaw = Math.atan2(-Fx, -Fz), cnt = new Array(FILES).fill(0);
+    for (const h of riv.hombres) {
+      if (!h.vivo || h.est === 'huye' || h.est === 'dentro') continue;
+      h.r = cnt[h.f]++; const l = (h.f - 5.5) * 0.78, d = h.r * 0.95, tx = riv.x + Fx * d + Dx * l, tz = riv.z + Fz * d + Dz * l;
+      if (salta || !M(S).mueve) { h.x = tx; h.z = tz; } else M(S).mueve(h, tx, tz, 2.2, dt);
+      h.yaw = yaw;
+    }
   }
   return R;
 }
