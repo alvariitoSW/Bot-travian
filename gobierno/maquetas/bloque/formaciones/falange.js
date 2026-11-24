@@ -4,7 +4,8 @@
    presenta a la escena del bloque con la forma del combate de js/bloque-ia.js. No hay ni una cifra nueva.
    Contrato de las formaciones: el de formaciones/manipulo.js (id, ordenes, objetivo, escenario, muroDelante, util, mods, guardia, monta,
    paso, alAviso), y además:
-     combate(m) → C, con m = { semilla (1), rival ('manipulos' por defecto; los nombres de js/falange-rivales.js), avisa, H, hombres, fin, vestir }
+     combate(m) → C, con m = { semilla (1), rival ('manipulos' por defecto; los nombres de js/falange-rivales.js), avisa, H, hombres, fin, vestir, vivo }
+       vivo (FU4): true = el rival se mueve solo y es más numeroso, y se lucha hasta el 15 % (crearFalange con vivo). C.resumen() trae perdidos y matados.
        vestir: true = crearAcciones de la maqueta (viste a cada hombre para el dibujo, y con ello cambian las tiradas); por defecto, crearFalange directo.
        fin: FIN_LUCHA por defecto (como la maqueta con el control del bloque: se lucha hasta el 15 %); null = las reglas de FA1 tal cual.
      C = { S, paso(dt), frente({ x, z, ang }), dibujaFrente(p0, p1), orden(n), ordenUtil(), giroUtil(), bot(modo), trabado(), resumen(),
@@ -36,13 +37,13 @@ const GANADOR = { falange: 'tuyo', rival: 'enemigo' };
 const CUENTA0 = () => ({ flanqueado: 0, salvas: 0, salvasTestudo: 0, pilum: 0, relevos: 0, cargas: 0, fintas: 0, retiradas: 0, muertosSuelta: 0, rotaRetira: 0, retiradasGalas: 0 });
 
 export function combate(m = {}) {
-  const fin = m.fin !== undefined ? m.fin : FIN_LUCHA;
+  const vivo = !!m.vivo, fin = vivo ? FIN_LUCHA : m.fin !== undefined ? m.fin : FIN_LUCHA;   /* FU4: m.vivo (por defecto no) = rival que se mueve solo, más numeroso, hasta el 15 % */
   /* las reglas, con lo mismo que les pone crearAcciones (locomoción y zancadas de la maqueta). OJO: crearAcciones además «viste» a cada
      hombre ANTES del primer paso del motor (h.paso, h.fase) y eso cambia las tiradas: con vestir: true se usa tal cual (la partida de la
      maqueta de la falange); sin él, la de crearFalange directo (mismas cifras que FA1) */
   const nombre = m.rival || 'manipulos', semilla = m.semilla ?? 1;
-  const A = m.vestir ? crearAcciones({ semilla, rival: nombre, avisa: m.avisa, H: m.H, hombres: m.hombres, fin })
-    : crearFalange({ semilla, rival: rivalDe(nombre) || undefined, avisa: m.avisa, H: m.H, hombres: m.hombres, locomocion: { crearPaso, velocidad, pisa }, zancadas: { walk: 1.5, run: 2.2 }, fin });
+  const A = m.vestir ? crearAcciones({ semilla, rival: nombre, avisa: m.avisa, H: m.H, hombres: m.hombres, fin, vivo })
+    : crearFalange({ semilla, rival: rivalDe(nombre) || undefined, avisa: m.avisa, H: m.H, hombres: m.hombres, locomocion: { crearPaso, velocidad, pisa }, zancadas: { walk: 1.5, run: 2.2 }, fin, vivo });
   const F = A.S, M = crearMando({ S: F, acc: A, avisa: m.avisa });
   const tuyo = { id: 'falange', bando: 'r', tipo: 'falange', papel: 'tuyo', x: 0, z: 0, ang: 0, ancho: (FILES - 1) * DX, fondo: 0, U: F.U, coh: 100, fila: 0,
     relevos: 0, vueltas: 0, retiradas: 0, k: 0, orden: null, estado: 'forma', contactos: [], obj: null, tRelevo: -1 };
@@ -210,9 +211,10 @@ export function crear() {
       for (const f of ctx.TR.figs) if (f.h) figs.set(f.h, f);
       if (forma.bajadas && !bajadasAntes) tB = Tm; bajadasAntes = forma.bajadas;
       const uB = (Tm - tB) / T_BAJADAS, estoca = uB >= 0 && uB < 1 ? Math.sin(Math.PI * uB) : 0;
-      let ns = 0, nm = 0;
+      let ns = 0, nm = 0; const yo = ctx.ocultaYo ? ctx.ocultaYo() : null, FI = ctx.FI;   /* FU4 */
+      if (forma.mide) forma.picas = [];
       for (const h of F.fal) {
-        const f = figs.get(h); if (!f || !h.vivo) continue;
+        const f = figs.get(h); if (!f || !h.vivo || h === yo) continue;   /* FU4: en la vista del oficial su propia sarisa (o muñón) no tapa la cámara */
         if (V.camP && F.yo && h === F.fal[F.yo.i] && !h.picaRota && Math.hypot(V.camP.x - f.x, V.camP.z - f.z) < 1.7 && V.camP.y < 3.4) continue;   /* FU3c: en la vista del oficial su sarisa no se pinta (salía como una tabla ante la cámara) */
         const primera = h.r === 0, kB = h.huye ? 0 : suave(primera && forma.bajadas ? 1 : (h.kB || 0)), al = alzada(h.f, h.r, h.kA ?? abanicoObj(h.r, 0)), pb = bajada(h.r), giro = f.yaw - Math.PI;
         V.DA.set(Math.sin(al.lado), Math.cos(al.delante), -Math.sin(al.delante)).normalize(); V.DB.set(0, Math.sin(pb), -Math.cos(pb));
@@ -231,6 +233,8 @@ export function crear() {
           V.G.set(Math.sin(a), 0.1, -Math.cos(a)).normalize();
           V.P.copy(r.P).lerp(V.Pg, g); V.D.copy(r.D).lerp(V.G, g).normalize();
         }
+        if (!h.picaRota && FI) { const r = FI.pica(h, V.P, V.D, SARISA); if (r && r.ret) V.P.addScaledVector(V.D, -r.ret); }   /* FU4: la punta se para en el cuerpo o el escudo que toca (js/fisica-batalla.js) */
+        if (forma.mide && !h.picaRota && kB > 0.5) forma.picas.push({ h, P: V.P.toArray(), D: V.D.toArray(), L: SARISA });
         V.Q.setFromUnitVectors(V.Z1, V.D); V.M.compose(V.P, V.Q, h.picaRota ? V.Em : V.E);
         if (h.picaRota) mun.setMatrixAt(nm++, V.M); else sar.setMatrixAt(ns++, V.M);
       }

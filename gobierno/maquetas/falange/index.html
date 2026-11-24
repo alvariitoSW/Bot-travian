@@ -7,12 +7,11 @@
 <title>AQVILA · Falange a pie</title>
 <base href="../../../">
 <script>
-/* FU3: «Falange a pie» contra manípulos es ahora la escena del bloque con ?formacion=falange (el mismo motor de la falange, con el control
-   del bloque). Se conservan los otros parámetros. Los demás rivales (?rival=galos, elefantes…) siguen aquí hasta FU4; ?antiguo=1 deja
-   esta escena vieja, para comparar y para sus capturas. */
+/* FU4: «Falange a pie» es ahora la escena del bloque con ?formacion=falange&rival=… para TODOS los rivales (manípulos, elefantes,
+   caballería, falange, hoplitas): el mismo motor de la falange, con el control del bloque. Se conservan los otros parámetros.
+   Solo ?antiguo=1 deja esta escena vieja (hasta FU6), para comparar y para sus capturas. */
 (function () { try {
   var q = new URLSearchParams(location.search); if (q.get('antiguo') === '1') return;
-  if (q.get('rival') && q.get('rival') !== 'manipulos') return;
   q.set('formacion', 'falange');
   location.replace(new URL('gobierno/maquetas/bloque/', document.baseURI).href + '?' + q.toString());
 } catch (e) { /* si falla, se queda la escena vieja */ } })();

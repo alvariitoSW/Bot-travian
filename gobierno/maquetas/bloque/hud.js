@@ -211,9 +211,10 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
   /* la tarjeta del final: qué pasó, qué más pesó y qué costó */
   function muestraFin() {
     if (finHecho) return; finHecho = true;
-    const r = C.resumen(), gana = r.ganador === 'tuyo', mm = Math.floor(r.T / 60), ss = String(Math.round(r.T % 60)).padStart(2, '0');
-    $('fin-t').textContent = gana ? 'Victoria' : r.ganador === 'enemigo' ? 'Derrota' : 'Tablas';
-    $('fin-p').textContent = (gana ? 'Rompiste su centro' : 'Tu manípulo rompió') + ` en ${mm}:${ss}. Perdiste ${r.perdidos} de ${S.tuyo.U.hombres}; cayeron ${r.matados} de ${rival(S).los}.` + (S.tuyo.U.fin ? ' Lucharon hasta quedar el 15 %.' : '');
+    /* FU4: el resumen de la falange dice 'falange'/'rival'; su S.ganador ya viene traducido a 'tuyo'/'enemigo' */
+    const r = C.resumen(), fal = !!S.fal, gan = fal ? S.ganador : r.ganador, gana = gan === 'tuyo', mm = Math.floor(r.T / 60), ss = String(Math.round(r.T % 60)).padStart(2, '0');
+    $('fin-t').textContent = gana ? 'Victoria' : gan === 'enemigo' ? 'Derrota' : 'Tablas';
+    $('fin-p').textContent = (gana ? (fal ? 'Rompiste a ' + rival(S).los : 'Rompiste su centro') : gan === 'enemigo' ? (fal ? 'Tu falange se rompió' : 'Tu manípulo rompió') : 'La lucha acabó') + ` en ${mm}:${ss}. Perdiste ${r.perdidos} de ${S.tuyo.U.hombres}; cayeron ${r.matados} de ${rival(S).los}.` + (S.tuyo.U.fin ? ' Lucharon hasta quedar el 15 %.' : '');
     const peso = [], costo = [];
     if (r.salvasTestudo) peso.push(r.salvasTestudo === r.salvas ? `El testudo paró ${r.salvas > 1 ? 'las ' + r.salvas + ' salvas' : 'la salva'} de jabalinas.` : `El testudo paró ${r.salvasTestudo} de ${r.salvas} salvas de jabalinas.`);
     if (cuenta.pilum) peso.push(`Tu pilum mató a ${cuenta.pilum} antes del choque.`);
@@ -225,7 +226,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     if (cuenta.jabSin) costo.push(`Las jabalinas mataron a ${cuenta.jabSin} sin testudo.`);
     if (cuenta.agotadaSinRelevo || (!r.relevos && r.perdidos > 30)) costo.push('Tu fila se agotó sin relevo.');
     if (r.fintas && r.flanqueado) costo.push('Su jefe fintó: amagó un lado y entró por el otro.');
-    if (!r.cargas) costo.push('No cargaste: chocaron sin tu golpe de carga.');
+    if (!r.cargas && !fal) costo.push('No cargaste: chocaron sin tu golpe de carga.');
     $('fin-c').innerHTML = (peso.length ? '<p><b>Lo que más pesó:</b> ' + peso.slice(0, 2).join(' ') + '</p>' : '') + (costo.length ? '<p><b>Lo que costó:</b> ' + costo.slice(0, 2).join(' ') + '</p>' : '');
     $('fin').hidden = false; $('ests').style.visibility = 'hidden';
   }
