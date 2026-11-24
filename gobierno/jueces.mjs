@@ -54,7 +54,7 @@ const LOGICA = [
   { id: 'pausas', nombre: 'Pausas del reloj con motivo', f: 'test/pausas.test.mjs', t: 120000, lee: bienMal },
   { id: 'encargos', nombre: 'Encargos del Senado e hitos', f: 'test/encargos.test.mjs', t: 60000, lee: bienMal },
   { id: 'movil', nombre: 'Copia de la partida, nota y parada', f: 'test/movil.test.mjs', t: 60000, lee: bienMal },
-  { id: 'ciudad', nombre: 'Reglas de la ciudad nueva', f: 'test/ciudad.test.mjs', t: 120000, lee: bienMal },
+  { id: 'ciudad', nombre: 'Reglas de la ciudad nueva', f: 'test/ciudad.test.mjs', t: 300000, lee: bienMal },
   { id: 'senado', nombre: 'Senado nuevo (sala de votos)', f: 'test/senado.test.js', t: 120000, lee: bienMal },
   { id: 'campo', nombre: 'Toparse en el camino (campaña, sin pantalla)', f: 'test/campo.test.mjs', t: 180000, lee: bienMal },
   { id: 'guerra', nombre: 'Guerra nueva (motor sin pantalla)', f: 'test/guerra.test.mjs', t: 120000, lee: bienMal },

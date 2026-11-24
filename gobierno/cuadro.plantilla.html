@@ -266,11 +266,65 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 .mtareas li i { align-self: start; margin-top: 2px; }
 .mtareas li span { min-width: 0; overflow-wrap: anywhere; }
 .mtareas em { grid-column: 3; font-style: normal; color: var(--tenue); font-size: 13px; }
+
+/* CM5: camino a la 1.0, juzgarla y hacia la 2.0 */
+.camino { border: 1.5px solid var(--bronce); gap: 12px; }
+.cpct { display: flex; align-items: baseline; gap: 10px; }
+.cpct b { font: 700 44px/1 var(--rotulo); color: var(--purpura); font-variant-numeric: tabular-nums; }
+.cpct span { font-size: 15px; color: var(--tenue); }
+.cbarra { position: relative; height: 22px; border-radius: 8px; background: var(--seg-falta); overflow: clip; }
+.cbarra span { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--seg-bien), var(--seg-medias)); border-radius: 8px 0 0 8px; }
+.cbarra i { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--tabla); opacity: .85; }
+.pasos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.paso { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px dashed var(--raya); }
+.paso .pn { flex: none; font: 700 16px var(--rotulo); color: var(--bronce); width: 16px; }
+.paso .pq { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; line-height: 1.3; }
+.paso .pd { font-size: 13px; color: var(--tenue); font-variant-numeric: tabular-nums; }
+.paso .pd b { color: var(--tinta); } .paso .nw { white-space: nowrap; }
+.paso.p-si .pq { color: var(--tenue); }
+.riesgos { font-size: 14px; line-height: 1.4; background: var(--suave); border-left: 3px solid var(--aviso); padding: 8px 12px; border-radius: 0 8px 8px 0; }
+.aviso-j { font-size: 14px; font-weight: 600; color: var(--aviso); }
+.juzgar .plegable > summary, .hacia2 .plegable > summary { display: flex; flex-direction: column; }
+.juzgar .sub, .hacia2 .sub { font-weight: 400; font-size: 13px; color: var(--tenue); }
+.jlista { gap: 8px; } .jlista .rotulo { margin-top: 8px; }
+.juicio { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 1px dashed var(--raya); }
+.jq { display: flex; flex-direction: column; gap: 2px; font-size: 15px; line-height: 1.35; }
+.jq span { color: var(--tenue); font-size: 14px; }
+.jv.j-bien { color: var(--bien); font-weight: 600; } .jv.j-mal { color: var(--mal); font-weight: 600; }
+.boton.fino.elegido { border-color: var(--purpura); background: var(--purpura); color: var(--sobre-purpura); }
 </style>
 
 <div class="hoja">
 
   <div class="vista" data-vista="juego" id="juego">
+    <!-- CM5 (24/11): la 1.0 arriba del todo: cuánto falta, juzgarla y lo que viene después -->
+    <section class="ficha camino" aria-labelledby="t-camino">
+      <h2 id="t-camino">Camino a la 1.0</h2>
+      <div class="cpct"><b>{{PCT10}} %</b><span>hecho · queda {{PCT10_QUEDA}} %</span></div>
+      <div class="cbarra" role="img" aria-label="{{PCT10}} % hecho de la 1.0"><span style="width:{{PCT10}}%"></span>{{CAMINO_MARCAS}}</div>
+      <p class="nota">{{CAMINO_CUANDO}}</p>
+      <ol class="pasos">{{CAMINO}}</ol>
+      {{RIESGOS}}
+    </section>
+
+    <section class="ficha juzgar" aria-labelledby="t-juzgar">
+      <h2 id="t-juzgar">Juzgar la 1.0</h2>
+      <p class="aviso-j">Se juzga cuando la barra llegue al 100 %. Puedes adelantarte: los botones ya guardan.</p>
+      <details class="plegable"><summary><span data-jn>Pruebas en tu móvil: {{N_LINEAS}}</span><span class="sub">Una por línea de la 1.0. Toca para verlas.</span></summary>
+        <ul class="lista jlista">{{JUICIO}}</ul>
+      </details>
+    </section>
+
+    <section class="ficha hacia2" aria-labelledby="t-hacia2">
+      <h2 id="t-hacia2">Hacia la 2.0</h2>
+      <button class="boton lleno grande" data-abrir="p2">Proponer algo para la 2.0</button>
+      <div class="cambio" id="p2" hidden><label class="quien" for="p2-texto">Qué quieres en la 2.0</label><textarea id="p2-texto" placeholder="Por ejemplo: jugar con Cartago"></textarea>
+        <div class="fila"><button class="boton lleno" data-pedir="2.0" data-texto="p2-texto" data-titulo="Propuesta para la 2.0">Guardar propuesta</button></div></div>
+      <details class="plegable"><summary>Punto de partida: {{N_NEVERA}} ideas apuntadas para después de la 1.0</summary>
+        <ul class="nevera-l">{{NEVERA}}</ul>
+      </details>
+    </section>
+
     <header class="estandarte">
       <div class="lema">
         <h1>AQVILA</h1>
@@ -358,6 +412,14 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
       <p class="grande">{{MOVIL_CAB}}</p>
       <p><b>Llegará a tu móvil en la próxima subida</b> <span class="nota">({{N_LLEGA}})</span></p>
       <ul class="mllega">{{MOVIL_LLEGA}}</ul>
+      <!-- CM6 (24/11, pedido del usuario: «Habría que poner algún botón o algo para actualizarlo desde el propio artifact»):
+           el botón llama al vigía con la orden «sube» (VIGIA.md §6). Pide confirmación aquí mismo: subir a main publica el juego. -->
+      <button class="boton lleno grande" data-subir-abrir>Subir lo terminado a mi móvil</button>
+      <div class="cambio" id="subir-ok" hidden>
+        <p>El vigía pasará los jueces completos (alrededor de una hora) y, si salen bien, lo subirá a tu juego. Si algo falla, no sube nada y te lo dice.</p>
+        <div class="fila"><button class="boton lleno" data-subir>Sí, súbelo</button><button class="boton fino" data-subir-no>Ahora no</button></div>
+      </div>
+      <p class="nota" data-subir-estado></p>
     </section>
     <section aria-label="Qué significa cada color">
       <ul class="leyenda">
@@ -473,7 +535,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
   var todos = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
   var db = null, avisoT = 0;
   var sinUso = 'Aquí no se pueden guardar pedidos (hace falta abrir la página con tu sesión de Claude). Mientras tanto, dilo en el chat.';
-  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta', abrir: 'Encargo', orden: 'Orden', nevera: 'A la nevera', arte: 'Cambio de arte', mejora: 'Mejora' };
+  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta', abrir: 'Encargo', orden: 'Orden', nevera: 'A la nevera', arte: 'Cambio de arte', mejora: 'Mejora', '2.0': 'Para la 2.0' };
   {{EQUIPOS_JS}}
   var nomEquipo = function (id) { for (var i = 0; i < EQUIPOS.length; i++) if (EQUIPOS[i].id === id) return EQUIPOS[i].nombre; return id; };
   var EST = { trabajando: ['trabaja', 'trabajando'], esperando: ['espera', 'te espera'], terminada: ['acabada', 'ha acabado'] };
@@ -541,7 +603,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 
   function aviso(txt) { var a = $('aviso'); a.textContent = txt; a.hidden = false; clearTimeout(avisoT); avisoT = setTimeout(function () { a.hidden = true; }, 3500); }
   function apagar(motivo) {
-    todos('[data-pedir],[data-lote="abrir"],[data-lote="priorizar"]').forEach(function (b) { b.disabled = true; });
+    todos('[data-pedir],[data-juzgar],[data-lote="abrir"],[data-lote="priorizar"]').forEach(function (b) { b.disabled = true; });
     $('pedidos-nota').textContent = motivo;
   }
 
@@ -559,7 +621,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
     $('porap-t').textContent = frase;
     todos('[data-porap-t]').forEach(function (e) { e.textContent = frase; });
     todos('[data-porap]').forEach(function (e) { e.hidden = !np; });
-    pendientes.slice(0, 8).forEach(function (x) { var li = document.createElement('li'), k = document.createElement('b'), t = document.createElement('span'); k.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.ref && x.tipo !== 'respuesta' ? ' · ' + x.ref : ''); t.textContent = (x.titulo || '') + ((x.tipo === 'respuesta' || x.tipo === 'nevera' || x.tipo === 'arte' || x.tipo === 'mejora') && x.texto ? ': ' + x.texto : ''); li.appendChild(k); li.appendChild(t); lista.appendChild(li); });
+    pendientes.slice(0, 8).forEach(function (x) { var li = document.createElement('li'), k = document.createElement('b'), t = document.createElement('span'); k.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.ref && x.tipo !== 'respuesta' ? ' · ' + x.ref : ''); t.textContent = (x.titulo || '') + ((x.tipo === 'respuesta' || x.tipo === 'nevera' || x.tipo === '2.0' || x.tipo === 'arte' || x.tipo === 'mejora') && x.texto ? ': ' + x.texto : ''); li.appendChild(k); li.appendChild(t); lista.appendChild(li); });
     if (np > 8) { var mas = document.createElement('li'); mas.textContent = 'y ' + (np - 8) + ' más, abajo en «Tus pedidos».'; lista.appendChild(mas); }
     vacio.hidden = pendientes.length + aplicados.length > 0;
     pendientes.concat(aplicados).forEach(function (x) {
@@ -637,6 +699,24 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
         : 'No se pudo llamar al vigía' + (err && err.message ? ' (' + err.message + ').' : '.') + chat);
     });
   }
+  /* CM6: subir a main desde el cuadro: la misma llamada al vigía, con la orden «sube» en el texto */
+  function estadoSubir(t) { todos('[data-subir-estado]').forEach(function (e) { e.textContent = t; }); }
+  document.addEventListener('click', function (ev) {
+    if (ev.target.closest('[data-subir-abrir]')) { $('subir-ok').hidden = false; return; }
+    if (ev.target.closest('[data-subir-no]')) { $('subir-ok').hidden = true; return; }
+    var b = ev.target.closest('[data-subir]'); if (!b) return;
+    if (!mcp || !VIGIA) { estadoSubir('Desde aquí no se puede llamar al vigía. Escribe «sube» en el chat de Claude.'); return; }
+    b.disabled = true; estadoSubir('Llamando al vigía para subir…');
+    var orden = 'SUBE (orden del usuario con el botón «Subir lo terminado a mi móvil» del cuadro, ' + new Date().toISOString() + '). Haz la subida a main de gobierno/VIGIA.md §6 con todo lo terminado de la rama de trabajo: jueces completos APTO antes, novedades y caché como manda §6; si algo falla, no subas y apúntalo en estado/vigia. Al acabar, publica el cuadro.';
+    mcp.callTool('Claude Code Remote', 'fire_trigger', { trigger_id: VIGIA, text: orden }).then(function () {
+      $('subir-ok').hidden = true;
+      estadoSubir('Pedido. El vigía pasa los jueces (alrededor de una hora) y sube si salen bien. Cuando llegue, esta pestaña dirá que tu móvil tiene la versión nueva.');
+      if (db) db.collection('pedidos').doc('orden-subir').set({ tipo: 'orden', ref: 'subir', titulo: 'Subir a main', texto: 'Botón «Subir lo terminado a mi móvil»', estado: 'pendiente', creado: new Date().toISOString() }).catch(function () {});
+    }, function (err) {
+      b.disabled = false;
+      estadoSubir('No se pudo llamar al vigía' + (err && err.message ? ' (' + err.message + ')' : '') + '. Escribe «sube» en el chat de Claude.');
+    });
+  });
   function pintarVigia(v) {
     if (!v) return;
     var bs = todos('[data-llamar]'), ll = new Date(v.llamado || v.empezado || 0).getTime(), fin = new Date(v.terminado || 0).getTime() || 0;
@@ -656,9 +736,35 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
     var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar' || tipo === 'abrir' || tipo === 'orden';
     var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : tipo === 'abrir' ? 'abrir-' : tipo === 'orden' ? 'orden-' : 'decision-') + ref.replace(/[^A-Za-z0-9_-]/g, '-')) : col.doc();
     b.disabled = true;
-    destino.set(doc).then(function () { aviso(tipo === 'nevera' ? 'Guardada en la nevera.' : tipo === 'arte' ? 'Apuntado para el equipo de Arte. Llama al vigía para que se lo pase.' : tipo === 'mejora' ? 'Apuntado para el equipo de ' + nomEquipo(ref) + '. Llama al vigía para que se lo pase.' : 'Apuntado. Llama al vigía para que lo aplique.'); if (caja) caja.value = ''; if (b.dataset.cierra) cerrarHoja(); })
+    destino.set(doc).then(function () { aviso(tipo === 'nevera' ? 'Guardada en la nevera.' : tipo === '2.0' ? 'Guardada para la 2.0.' : tipo === 'arte' ? 'Apuntado para el equipo de Arte. Llama al vigía para que se lo pase.' : tipo === 'mejora' ? 'Apuntado para el equipo de ' + nomEquipo(ref) + '. Llama al vigía para que se lo pase.' : 'Apuntado. Llama al vigía para que lo aplique.'); if (caja) caja.value = ''; if (b.dataset.cierra) cerrarHoja(); })
       .catch(function (e) { aviso(e && e.code === 'invalid_argument' ? 'No tienes permiso para guardar aquí. Dilo en el chat.' : 'No se pudo guardar. Prueba otra vez.'); })
       .then(function () { b.disabled = false; });
+  }
+
+  // CM5: juzgar la 1.0. Colección «juicio», un documento por línea (L1…): { veredicto: bien|mal, nota, cuando, titulo }
+  function juzgar(b) {
+    var ref = b.dataset.ref, ver = b.dataset.juzgar, caja = b.dataset.texto ? $(b.dataset.texto) : null, nota = caja ? caja.value.trim() : '';
+    if (!/^[\w-]+$/.test(ref)) return;
+    b.disabled = true;
+    db.collection('juicio').doc(ref).set({ veredicto: ver, nota: nota, cuando: new Date().toISOString(), titulo: b.dataset.titulo || '' })
+      .then(function () { aviso(ver === 'bien' ? 'Apuntado: «' + (b.dataset.titulo || ref) + '» está bien.' : 'Apuntado como «Mal»' + (nota ? ' con tu nota.' : '.')); if (caja) { caja.value = ''; caja.closest('.cambio').hidden = true; } })
+      .catch(function () { aviso('No se pudo guardar. Prueba otra vez.'); })
+      .then(function () { b.disabled = false; });
+  }
+  function pintarJuicio(docs) {
+    var hechos = {}; docs.forEach(function (d) { hechos[d.id] = d.data() || {}; });
+    var total = 0, n = 0, mal = 0;
+    todos('[data-juicio]').forEach(function (li) {
+      var id = li.dataset.juicio, x = hechos[id], v = li.querySelector('[data-jv]'); total++;
+      li.querySelectorAll('[data-juzgar="bien"]').forEach(function (k) { k.classList.toggle('elegido', !!x && x.veredicto === 'bien'); });
+      li.querySelectorAll('[data-abrir^="jm-"]').forEach(function (k) { k.classList.toggle('elegido', !!x && x.veredicto === 'mal'); });
+      v.className = 'jv nota';
+      if (!x || !x.veredicto) { v.textContent = 'Sin juzgar.'; return; }
+      n++; if (x.veredicto === 'mal') mal++;
+      v.classList.add(x.veredicto === 'bien' ? 'j-bien' : 'j-mal');
+      v.textContent = (x.veredicto === 'bien' ? '✔ Bien' : '✘ Mal') + (x.cuando ? ', ' + hace(x.cuando) : '') + (x.nota ? ': «' + x.nota + '»' : '');
+    });
+    todos('[data-jn]').forEach(function (e) { e.textContent = n ? 'Has juzgado ' + n + ' de ' + total + (mal ? ' · ' + mal + ' mal' : '') : 'Pruebas en tu móvil: ' + total; });
   }
 
   document.addEventListener('click', function (ev) {
@@ -679,6 +785,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
     if (b.dataset.abrir) { var c = $(b.dataset.abrir); c.hidden = !c.hidden; if (!c.hidden) c.querySelector('textarea').focus(); return; }
     if (!db) return;
     if (b.dataset.pedir) pedir(b);
+    else if (b.dataset.juzgar) juzgar(b);
     else if (b.dataset.deshacer) { b.disabled = true; db.collection('pedidos').doc(b.dataset.deshacer).delete().then(function () { aviso('Pedido retirado.'); }, function () { b.disabled = false; aviso('No se pudo retirar.'); }); }
   });
 
@@ -693,6 +800,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
       pintar(snap.docs);
     }, function () { clearTimeout(reloj); apagar('Se ha perdido la conexión con tus pedidos. Dilo en el chat o vuelve a abrir la página.'); });
     try { db.collection('estado').onSnapshot(function (snap) { snap.docs.forEach(function (d) { if (d.id === 'vigia') pintarVigia(d.data()); }); }, function () { }); } catch (e) { }
+    try { db.collection('juicio').onSnapshot(function (snap) { pintarJuicio(snap.docs); }, function () { }); } catch (e) { }
     try { db.collection('sesiones').onSnapshot(function (snap) { pintarSesiones(snap.docs); }, function () { }); } catch (e) { }
   });
 })();

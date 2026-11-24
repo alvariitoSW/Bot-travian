@@ -194,7 +194,8 @@ function pasoBloque(M, B, dt, v, enChoque, orden) {
 function bajasB(M, B, enPie) {
   const V = B.hombres.filter(h => h.vivo); let n = V.length - enPie; if (n <= 0) return;
   /* FU2: el hombre que eres tú (h.yo) no cae por las reglas mientras quede otro vivo: va el último (solo lo mata el duelo) */
-  V.sort((a, b) => (a.yo ? 1 : 0) - (b.yo ? 1 : 0) || a.fila - b.fila || Math.abs(a.col - (B.cols - 1) / 2) - Math.abs(b.col - (B.cols - 1) / 2));
+  /* CB3: el que el motor de lucha tumbó (h.marcado) cae el primero */
+  V.sort((a, b) => (a.yo ? 1 : 0) - (b.yo ? 1 : 0) || (b.marcado ? 1 : 0) - (a.marcado ? 1 : 0) || a.fila - b.fila || Math.abs(a.col - (B.cols - 1) / 2) - Math.abs(b.col - (B.cols - 1) / 2));
   for (const h of V) { if (n-- <= 0) break; h.vivo = false; }
   M.cierraFilas(B);
 }
@@ -202,6 +203,14 @@ function bajasB(M, B, enPie) {
 export function crearCombate(m = {}) {
   const semilla = m.semilla ?? 1, nivel = NIVEL[m.nivel] ? m.nivel : 'normal', P = NIVEL[nivel];
   const avisa = (t, d) => { try { (m.avisa || (() => {}))(t, d); } catch (e) { /* la pantalla no tumba las reglas */ } };
+  /* CB3: m.lucha === 'motor': los muertos de la lucha formada los decide js/combate.js (js/combate-tropas.js crearLucha, hombre a
+     hombre, y llama a C.baja). Las reglas siguen con la cohesión, la moral, la rotura, la huida, el pilum, las salvas y el soltarse.
+     Las reglas quedan de SUELO: cada caído del motor descuenta uno de lo que golpes() iba a tumbar en ese bloque (b.acum, hasta
+     DEUDA de adelanto). Si los hombres que se ven no llegan a tocarse (dos bloques que las reglas meten uno en otro y la física
+     aparta, un choque de esquina, una persecución), caen por reglas como antes; si el motor mata más deprisa, decide él.
+     DEUDA: licencia de juego. Sin m.lucha, todo como antes */
+  const DEUDA = 6;
+  const LUCHA = m.lucha === 'motor';
   const azar = azarSemilla(semilla * 7919 + NIVELES.indexOf(nivel) * 31 + 3);
   const S = { T: 0, nivel, ganador: null, causa: null, bloques: [], salva: null, flanco: null, cuenta: { flanqueado: 0, salvas: 0, salvasTestudo: 0, pilum: 0, relevos: 0, cargas: 0, fintas: 0, retiradas: 0, muertosSuelta: 0, rotaRetira: 0, retiradasGalas: 0 } };
   let id = 0, kIlumina = null, tBot = -9, tGiro = -9;
@@ -752,7 +761,16 @@ export function crearCombate(m = {}) {
     return { ganador: S.ganador, causa: S.causa, T: +S.T.toFixed(1), nivel, perdidos: tuyo.U.hombres - tuyo.U.enPie, enPie: tuyo.U.enPie,
       matados: muertosG, flanqueado: S.cuenta.flanqueado > 0, ...S.cuenta, reservaFase: S.ia.fase, ladoReserva: S.ia.lado };
   }
-  return { S, paso, orden, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
+  /* CB3: una baja que decide el motor de lucha (combate-tropas.js): cuenta como las de golpes() */
+  function baja(b, n = 1) {
+    const k = Math.min(n, b.U.enPie); if (k <= 0) return 0; b.U.baja(k);
+    if (LUCHA) b.acum = Math.max(-DEUDA, (b.acum || 0) - k);   /* lo que ya tumbó el motor no lo tumban las reglas */
+    for (const c of b.contactos) causa(c.b, k / b.contactos.length);
+    if (B && b === tuyo) bajasB(MO, B, tuyo.U.enPie);
+    return k;
+  }
+  S.lucha = LUCHA ? 'motor' : 'reglas';
+  return { S, paso, orden, baja, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
 }
 
 /* una partida entera con un bot (para las pruebas y el juez) */

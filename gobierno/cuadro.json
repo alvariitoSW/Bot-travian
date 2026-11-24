@@ -1750,6 +1750,18 @@
       "tarea": "CM1",
       "archivo": "gobierno/capturas-tarea/CM1-4-decidir.jpg",
       "pie": "Cuadro nuevo: tres preguntas con «Decide tú»"
+    },
+    {
+      "tarea": "CB3",
+      "archivo": "gobierno/capturas-tarea/CB3-2-horizontal-choque.jpg",
+      "pie": "CB3: en «Bajar a pie» el motor de lucha decide quién cae en el frente",
+      "ancha": true
+    },
+    {
+      "tarea": "CB2",
+      "archivo": "gobierno/capturas-tarea/CB2-3-horizontal-parada.jpg",
+      "pie": "CB2: el cuerpo a cuerpo de cerca, con física y soldados de Meshy",
+      "ancha": true
     }
   ],
   "informes": [
@@ -2014,22 +2026,28 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "CDe3",
-      "titulo": "Cerebro · CDe3 Pantalla de ciudad mínima con agricultura y mercado (Opus)",
-      "nota": "En obra; tiene los archivos comunes",
-      "url": "https://claude.ai/code/session_01QiKC38arYpjMywJKEFfHi5"
+      "tarea": "FU3b",
+      "titulo": "Corazón · FU3b Acabado de la falange (Opus)",
+      "nota": "Trabajando: uniendo con la rama del juego",
+      "url": "https://claude.ai/code/session_01QiKC39JYodiemJ7VRrBPtm"
     },
     {
-      "tarea": "FI4",
-      "titulo": "Corazón · FI4 Física en escaramuzas y batalla de campaña (Opus)",
-      "nota": "Rehace sus proyectiles sobre el motor de FI3u",
-      "url": "https://claude.ai/code/session_01QiKC39cWnfXfbC6vm6DgPf"
+      "tarea": "CDe4",
+      "titulo": "Cerebro · CDe4 Enganche final de ciudad (Opus)",
+      "nota": "Jueces finales y subida",
+      "url": "https://claude.ai/code/session_01QiKC37ZgabEz43UnogKGaC"
     },
     {
-      "tarea": "CM3",
-      "titulo": "Gobierno · CM3 Cuadro: apartados Arte y Equipos (Fable)",
-      "nota": "Abierta el 24/11 por tu pedido",
-      "url": "https://claude.ai/code/session_01QiKC36kp2Z4r1erTKvPf9H"
+      "tarea": "JZ1",
+      "titulo": "Gobierno · JZ1 Jueces más rápidos (Opus)",
+      "nota": "En obra",
+      "url": "https://claude.ai/code/session_01QiKC37dciLpjvdGgsyTstr"
+    },
+    {
+      "tarea": "CE12",
+      "titulo": "Cerebro · CE12 Equilibrio de los cuatro caminos (Opus)",
+      "nota": "Terminó un turno; espera revisión",
+      "url": "https://claude.ai/code/session_01QiKC36JC97ssiidJjxNmkx"
     }
   ],
   "vigia": "trig_01W71MJ9W2Z2cBMbH8cD57fL"
