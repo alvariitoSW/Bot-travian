@@ -71,7 +71,7 @@
   },
   "areas": {
     "batallas": {
-      "nombre": "Ministerio de Batallas (con su taller de arte)",
+      "nombre": "Ministerio de Batallas (ejércitos, mando, campo y pantallas)",
       "en_vigor": true,
       "guia": ".claude/skills/ministerio-batallas/SKILL.md",
       "objetivo": "OBJETIVOS.md, órgano Corazón: se puede lograr el camino de las armas; hay una sola batalla, con el testudo a pie alcanzable desde el juego.",
@@ -87,11 +87,8 @@
         "js/ui-mando.js",
         "js/ui-maniobra.js",
         "js/ui-escaramuza.js",
-        "js/gfx/soldado.js",
-        "js/gfx/units.js",
         "js/gfx/campo-mando.js",
         "js/gfx/sonido.js",
-        "js/gfx/models.js",
         "css/guerra.css",
         "css/mando.css",
         "css/maniobra.css",
@@ -110,28 +107,10 @@
         "gobierno/captura-batalla.mjs",
         "gobierno/captura-gm*.mjs",
         "gobierno/maquetas/a-pie/",
-        "gobierno/maquetas/falange/",
         "gobierno/maquetas/testudo-*/",
         "gobierno/maquetas/guerra-*/",
-        "gobierno/maquetas/soldado-*/",
         "gobierno/maquetas/piezas-batalla/",
         "gobierno/estudios/REF-batallas-referencias.md",
-        "js/falange.js",
-        "js/falange-rivales.js",
-        "test/falange.test.mjs",
-        "test/falange-rivales.test.mjs",
-        "js/bloque.js",
-        "js/bloque-ia.js",
-        "test/bloque.test.mjs",
-        "test/bloque-ia.test.mjs",
-        "js/fisica-batalla.js",
-        "test/fisica-batalla.test.mjs",
-        "gobierno/maquetas/a-pie/fisica.js",
-        "gobierno/maquetas/falange/fisica.js",
-        "test/fi4-campo.mjs",
-        "test/fi4-captura.mjs",
-        "test/fi4-escaramuza.mjs",
-        "test/fu1-testudo.test.mjs",
         "js/batalla-rapida.js",
         "js/ui-batalla-rapida.js",
         "test/batalla-rapida.test.mjs",
@@ -140,16 +119,7 @@
         "js/gfx/estandartes.js",
         "test/fu2-oficial.test.mjs"
       ],
-      "taller": [
-        "assets/soldados/",
-        "assets/units/",
-        "tools/blender/",
-        "tools/glb_a_static.mjs",
-        "tools/build_units.mjs",
-        "tools/resolve_units.py",
-        "gobierno/entornos/batallas-taller.sh",
-        "gobierno/entornos/batallas-taller.md"
-      ],
+      "taller": [],
       "juez": {
         "logica": [
           "test/guerra.test.mjs",
@@ -366,6 +336,92 @@
           "test/fragor.test.mjs"
         ],
         "navegador": [],
+        "si_toca_arte": [
+          "gobierno/arte.mjs",
+          "gobierno/fichas.mjs"
+        ]
+      }
+    },
+    "combate": {
+      "nombre": "Departamento de Combate: motor de lucha, físicas, cuerpos y animaciones de los soldados (con el taller de arte de soldados)",
+      "en_vigor": true,
+      "guia": ".claude/skills/ministerio-combate/SKILL.md",
+      "objetivo": "OBJETIVOS.md, órgano Corazón (líneas L17 y L18): la lucha se siente real. Cada soldado se cubre con el escudo y golpea con la otra mano; cuenta el arma que lleva; los manípulos combaten y se relevan como en la época.",
+      "propios": [
+        "js/fisica-batalla.js",
+        "test/fisica-batalla.test.mjs",
+        "gobierno/maquetas/a-pie/fisica.js",
+        "gobierno/maquetas/falange/fisica.js",
+        "js/gfx/soldado.js",
+        "js/gfx/units.js",
+        "js/gfx/models.js",
+        "gobierno/maquetas/soldado-*/",
+        "js/combate.js",
+        "js/combate-*.js",
+        "test/combate*.test.mjs",
+        "js/gfx/golpes.js",
+        "gobierno/maquetas/a-pie/acciones.js",
+        "gobierno/maquetas/a-pie/esqueleto.js",
+        "gobierno/maquetas/a-pie/soldado.js",
+        "gobierno/maquetas/a-pie/locomocion.js",
+        "gobierno/maquetas/a-pie/proyectiles.js",
+        "gobierno/maquetas/combate-*/",
+        "gobierno/juez-combate.mjs",
+        "gobierno/captura-combate*.mjs",
+        "gobierno/maquetas/falange/",
+        "js/falange.js",
+        "js/falange-rivales.js",
+        "test/falange.test.mjs",
+        "test/falange-rivales.test.mjs",
+        "js/bloque.js",
+        "js/bloque-ia.js",
+        "test/bloque.test.mjs",
+        "test/bloque-ia.test.mjs",
+        "test/fi4-campo.mjs",
+        "test/fi4-captura.mjs",
+        "test/fi4-escaramuza.mjs",
+        "test/fu1-testudo.test.mjs",
+        "js/combate-tropas.js",
+        "test/combate-bloque.test.mjs",
+        "gobierno/captura-cb3.mjs"
+      ],
+      "taller": [
+        "assets/soldados/",
+        "assets/units/",
+        "tools/blender/",
+        "tools/glb_a_static.mjs",
+        "tools/build_units.mjs",
+        "tools/resolve_units.py",
+        "gobierno/entornos/batallas-taller.sh",
+        "gobierno/entornos/batallas-taller.md"
+      ],
+      "da_a": {
+        "_regla": "Combate da el motor; Batallas lo usa. Batallas no cambia js/combate.js ni js/fisica-batalla.js: pide el cambio como pase. Combate no cambia las escenas ni las pantallas de Batallas: entrega la función y Batallas la conecta.",
+        "batallas": [
+          "js/falange.js",
+          "js/falange-rivales.js",
+          "js/bloque.js",
+          "js/bloque-ia.js",
+          "gobierno/maquetas/a-pie/escena.js",
+          "js/guerra.js",
+          "js/battle.js"
+        ]
+      },
+      "juez": {
+        "logica": [
+          "test/bloque-ia.test.mjs",
+          "test/bloque.test.mjs",
+          "test/combate-bloque.test.mjs",
+          "test/combate-poses.test.mjs",
+          "test/combate.test.mjs",
+          "test/falange-rivales.test.mjs",
+          "test/falange.test.mjs",
+          "test/fisica-batalla.test.mjs",
+          "test/guerra.test.mjs"
+        ],
+        "navegador": [
+          "gobierno/juez-guerra.mjs"
+        ],
         "si_toca_arte": [
           "gobierno/arte.mjs",
           "gobierno/fichas.mjs"
