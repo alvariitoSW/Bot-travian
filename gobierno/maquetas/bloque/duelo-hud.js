@@ -66,3 +66,57 @@ export function crearDueloHud({ padre }) {
   }
   return { pinta };
 }
+
+/* FU3b · El gesto de la falange en pantalla (falangita.js), con el mismo estilo que el duelo de arriba.
+   Acometida del rival: sobre el frente, «¡Bajad sarisas! ↓» con una barra que se llena (rival.t). Con hueco abierto: un anillo rojo en el
+   suelo, donde falta el hombre (con su cuenta atrás hueco.t), y «Arrastra al de atrás al hueco». El eco (¡Ensartado!, ¡Muro cerrado!, Brecha
+   en la falange) sale 1,2 s en el centro-alto. Nada roba toques al lienzo (pointer-events: none): los gestos los lee dedos.js.
+   Contrato: crearFalangitaHud({ padre }) → { pinta({ ve, est, frente: [px, py, visible], hueco: [px, py, visible] | null, dt }), anillo() → { x, y, r } | null } */
+export function crearFalangitaHud({ padre }) {
+  const st = document.createElement('style');
+  st.textContent = `#fal,#fal *{pointer-events:none}
+#fal-aviso{position:absolute;left:0;top:0;width:210px;margin-left:-105px;margin-top:-100px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;transition:opacity .12s}
+#fal-aviso.ve{opacity:1}
+#fal-aviso b{display:block;padding:5px 14px;border-radius:12px;background:rgba(160,38,30,.94);font:700 17px Cinzel,Georgia,serif;color:#fff;white-space:nowrap;overflow:clip;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#fal-aviso i{display:block;width:170px;height:9px;border-radius:5px;background:rgba(0,0,0,.55);overflow:clip}
+#fal-aviso i u{display:block;height:100%;width:0;border-radius:5px;background:#e9c063;text-decoration:none}
+#fal-hueco{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 186px);transform:translateX(-50%);max-width:90%;padding:5px 14px;border-radius:12px;background:rgba(160,38,30,.94);font:700 15px Cinzel,Georgia,serif;color:#fff;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .12s}
+#fal-hueco.ve{opacity:1}
+#fal-eco{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 132px);transform:translateX(-50%);max-width:86%;padding:6px 16px;border-radius:12px;font:700 17px Cinzel,Georgia,serif;letter-spacing:.02em;color:#fff;text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .15s}
+#fal-eco.ve{opacity:1}
+#fal-eco.bien{background:rgba(38,120,58,.9)}
+#fal-eco.mal{background:rgba(160,38,30,.92)}
+#fal svg.anillo{position:absolute;left:0;top:0;width:72px;height:72px;margin:-36px 0 0 -36px;overflow:visible;display:none}
+#fal svg.anillo circle{fill:none;stroke-linecap:round}
+@media (orientation:landscape){
+  #fal-eco{top:calc(env(safe-area-inset-top) + 66px);font-size:15px}
+  #fal-hueco{top:calc(env(safe-area-inset-top) + 104px);font-size:14px}
+}`;
+  document.head.appendChild(st);
+  const raiz = document.createElement('div'); raiz.id = 'fal'; raiz.hidden = true;
+  const R2 = 28, C2 = 2 * Math.PI * R2;
+  raiz.innerHTML = `<div id="fal-aviso"><b>¡Bajad sarisas! ↓</b><i><u></u></i></div><div id="fal-hueco">Arrastra al de atrás al hueco</div><div id="fal-eco"></div>
+<svg class="anillo" viewBox="-36 -36 72 72"><circle r="${R2}" stroke="rgba(0,0,0,.5)" stroke-width="9"/><circle id="fal-cuenta" r="${R2}" stroke="#ff5a44" stroke-width="6" transform="rotate(-90)" stroke-dasharray="${C2}"/><circle r="${R2 + 7}" stroke="#ff5a44" stroke-width="2" stroke-dasharray="4 5"/></svg>`;
+  (padre || document.body).appendChild(raiz);
+  const $ = s => raiz.querySelector(s), aviso = $('#fal-aviso'), barra = $('#fal-aviso u'), huecoR = $('#fal-hueco'), eco = $('#fal-eco'), anilloS = $('svg.anillo'), cuenta = $('#fal-cuenta');
+  let ecoVisto = '', ecoHasta = 0, reloj = 0, pos = null;
+  function pinta({ ve, est, frente, hueco, dt = 0 }) {
+    reloj += dt; raiz.hidden = !ve || !est; pos = null; if (raiz.hidden) return;
+    const acomete = !!(est.rival && est.rival.fase === 'acomete');
+    aviso.classList.toggle('ve', acomete);
+    if (acomete && frente) {
+      const w = innerWidth, x = Math.max(110, Math.min(w - 110, frente[0])), y = Math.max(176, Math.min(innerHeight - 190, frente[1]));
+      aviso.style.transform = `translate(${x}px,${y}px)`; barra.style.width = Math.round(100 * est.rival.t) + '%';
+    }
+    const hu = est.hueco;
+    huecoR.classList.toggle('ve', !!hu);
+    if (hu && hueco && hueco[2]) {
+      anilloS.style.display = 'block'; anilloS.style.transform = `translate(${hueco[0]}px,${hueco[1]}px)`; cuenta.style.strokeDashoffset = C2 * (1 - Math.max(0, Math.min(1, hu.t)));
+      pos = { x: hueco[0], y: hueco[1], r: 60 };
+    } else anilloS.style.display = 'none';
+    const clave = est.eco.texto + '|' + est.eco.t;
+    if (est.eco.texto && clave !== ecoVisto) { ecoVisto = clave; ecoHasta = reloj + ECO_S; eco.textContent = est.eco.texto; eco.className = est.eco.tipo || ''; }
+    eco.classList.toggle('ve', reloj < ecoHasta);
+  }
+  return { pinta, anillo: () => pos };
+}

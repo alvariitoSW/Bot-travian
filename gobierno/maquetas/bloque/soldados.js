@@ -37,9 +37,10 @@ export const paleta = (nombre, bando) => PAL[bando + ':' + nombre] !== undefined
    paleta: objeto de PUEBLOS/gama o null (la suya). Si el modelo es 'hastatus' se queda el centurión de oficial */
 const SERIE = { r: SOLDADOS.r, g: SOLDADOS.g };
 export function ponBandos(r, g) {
-  SOLDADOS.r = r && r.modelo ? { tropa: [r.modelo], oficial: r.modelo === 'hastatus' ? 'centurion' : r.modelo } : SERIE.r;
+  SOLDADOS.r = r && r.modelo ? { tropa: [r.modelo], oficial: r.oficial || (r.modelo === 'hastatus' ? 'centurion' : r.modelo) } : SERIE.r;   /* FU3: r.oficial (el de la falange) */
   SOLDADOS.g = g && g.modelo ? { galos: [g.modelo], nobles: [g.modelo], jefe: g.modelo, tiradores: [g.modelo] } : SERIE.g;
   for (const [b, x] of [['r', r], ['g', g]]) if (x && x.modelo) { PAL[b + ':' + x.modelo] = x.paleta || null; if (!(x.modelo in ARMAS)) ARMAS[x.modelo] = null; }
+  if (r && r.oficial) { PAL['r:' + r.oficial] = r.palOficial || r.paleta || null; if (!(r.oficial in ARMAS)) ARMAS[r.oficial] = null; }
 }
 
 /* todos los modelos de un bando, sin repetir */

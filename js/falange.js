@@ -585,5 +585,5 @@ export function crearFalange(m = {}) {
       tuyas: S.yo.muertes, toquesBuenos: S.toques.buenos, toquesMalos: S.toques.malos };
   }
   reinicia();
-  return { S, reinicia, paso, toque, estocada, gira, fila, orden, marcado, frente, bot, resumen };
+  return { S, reinicia, paso, toque, estocada, gira, fila, orden, marcado, frente, bot, resumen, motor };   /* FU3b: motor, para el gesto de la falange (falangita.js) */
 }

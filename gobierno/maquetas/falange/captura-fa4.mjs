@@ -29,7 +29,7 @@ const lista = page => page.waitForFunction('window.__tp && window.__tp.lista ===
 const V = [390, 844], Hz = [844, 390];
 async function abre(q, w, h, d = dpr) {
   const ctx = await br.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: d, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page);
-  await page.goto(URL0 + q); await lista(page); await page.waitForTimeout(1500); return { ctx, page };
+  await page.goto(URL0 + q + (q.includes('?') ? '&' : '?') + 'antiguo=1'); await lista(page); await page.waitForTimeout(1500); return { ctx, page };
 }
 const cuadro = page => page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
 const SEMILLA = op.semilla || '20261123', G = 180 / Math.PI;

@@ -13,7 +13,9 @@ import { AGOTADA, COH_ORDEN, centro } from '../../../js/bloque-ia.js';
 const NOMBRE = { tuyo: 'Tu manípulo', amiga: 'Compañeros', centro: 'Su centro', ala: 'Galos', reserva: 'Su jefe', tiradores: 'Tiradores' };
 /* LP7: desde la batalla grande el rival puede no ser galo: S.rival = { los: 'los cartagineses', Los: 'Cartagineses' } (si no, galos) */
 const RIVAL = { los: 'los galos', Los: 'Galos' };
-const rival = S => (S && S.rival) || RIVAL;
+/* FU3: la falange da su rival por nombre (js/falange-rivales.js) */
+const RIVAL_NOMBRE = { manipulos: { los: 'los manípulos', Los: 'Los manípulos' } };
+const rival = S => (S && S.rival && (typeof S.rival === 'string' ? RIVAL_NOMBRE[S.rival] : S.rival)) || RIVAL;
 const lim = (x, a, b) => Math.max(a, Math.min(b, x));
 
 /* la palabra y el color del estandarte de un bloque: verde «fresca/firme», ámbar «cede/cansada», rojo «huye» */
@@ -25,6 +27,7 @@ export function palabraDe(b) {
   if (b.fila >= AGOTADA) return ['ambar', 'agotada'];
   if (b.fila >= 0.4) return ['ambar', 'cansada'];
   if (b.bando === 'r' && b.orden === 'testudo') return ['verde', 'testudo'];
+  if (b.bando === 'r' && (b.forma === 'muro' || b.forma === 'abierto')) return ['verde', b.forma === 'muro' ? 'muro' : 'abierto'];   /* FU5 */
   if (b.contactos && b.contactos.length) return ['verde', 'firme'];
   return ['verde', 'fresca'];
 }
@@ -34,6 +37,16 @@ const CUARTO = {
   alto: { o: 'alto', t: 'Alto', svg: '<path d="M7 11h18M7 16h18M7 21h18"/>' },
   retirada: { o: 'retirada', t: 'Retirada', svg: '<path d="M16 6v16"/><path d="M10 16l6 6 6-6"/><path d="M7 27h18"/>' },
 };
+/* FU3: las órdenes de cada formación, con su palabra y su dibujo (las del manípulo están en index.html) */
+const ORDEN = {
+  testudo: { t: 'Testudo', svg: '<path d="M5 19c0-6 5-11 11-11s11 5 11 11"/><path d="M5 19h22M10 19v6M16 19v6M22 19v6M8.5 13.5h15M16 8v11"/>' },
+  cargar: { t: 'Cargar', svg: '<path d="M9 20l7-7 7 7"/><path d="M9 27l7-7 7 7"/><path d="M16 4v8"/><path d="M13 7l3-3 3 3"/>' },
+  relevo: { t: 'Relevo', svg: '<path d="M10 25V9M6 13l4-4 4 4"/><path d="M22 7v16M18 19l4 4 4-4"/>' },
+  alto: CUARTO.alto,
+  picas: { t: 'Bajar picas', svg: '<path d="M6 26L26 10"/><path d="M10 27L28 14"/><path d="M23 9l4 0-1 4"/>' },
+  cerrar: { t: 'Cerrar filas', svg: '<path d="M6 10h20M6 16h20M6 22h20"/><path d="M4 7l4 3-4 3M28 7l-4 3 4 3"/>' },
+  avanzar: { t: 'Avanzar', svg: '<path d="M9 22l7-7 7 7"/><path d="M16 15v13"/><path d="M9 12l7-7 7 7"/>' }
+};
 
 export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
   let C = null, S = null, tocado = false, ests = [], tGrito = 0, tDatos = 0, salva = false, finHecho = false, tFin = -1, tAvisoTrabado = -9, cuarto = 'alto', suelta = 0;
@@ -41,6 +54,13 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
   const botones = [...document.querySelectorAll('.orden')];
   const b4 = botones.find(el => el.dataset.o === 'alto');
   if (b4) { const sm = document.createElement('small'); sm.id = 'retiradas'; sm.hidden = true; b4.appendChild(sm); }
+  let conRetirada = true;
+  /* FU3: pone los cuatro botones de la formación (lista de 4 órdenes); retirada: false = el cuarto no pasa a «Retirada» al trabarse */
+  function ordenes(lista, { retirada = true, tuyo } = {}) {
+    conRetirada = retirada; if (tuyo) NOMBRE.tuyo = tuyo;
+    lista.forEach((o, i) => { const el = botones[i], c = ORDEN[o]; if (!el || !c) return; el.dataset.o = o; el.setAttribute('aria-label', c.t); el.querySelector('b').textContent = c.t; el.querySelector('svg').innerHTML = c.svg;
+      const sm = el.querySelector('small#relevos'); if (sm) sm.hidden = o !== 'relevo'; });
+  }
   function ponCuarto(k) {
     if (!b4 || k === cuarto) return; cuarto = k; const c = CUARTO[k];
     b4.dataset.o = c.o; b4.setAttribute('aria-label', c.t); b4.querySelector('b').textContent = c.t; b4.querySelector('svg').innerHTML = c.svg;
@@ -125,7 +145,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     const tu = S.tuyo;
     /* órdenes: la vigente rellena, la útil iluminada */
     const trab = !S.ganador && !tu.U.roto && (C.trabado() || tu.estado === 'retira');
-    ponCuarto(trab ? 'retirada' : 'alto');
+    ponCuarto(trab && conRetirada ? 'retirada' : 'alto');
     const util = C.ordenUtil();
     const g = C.giroUtil(); pintaGiro(g);
     if (g && tu.vueltas && !giroVisto) { giroVisto = true; grito('¡Su jefe vuelve! Girad'); } else if (!g) giroVisto = false;
@@ -209,5 +229,5 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     $('fin-c').innerHTML = (peso.length ? '<p><b>Lo que más pesó:</b> ' + peso.slice(0, 2).join(' ') + '</p>' : '') + (costo.length ? '<p><b>Lo que costó:</b> ' + costo.slice(0, 2).join(' ') + '</p>' : '');
     $('fin').hidden = false; $('ests').style.visibility = 'hidden';
   }
-  return { pon, tick, aviso, muestraFin, grito };
+  return { pon, tick, aviso, muestraFin, grito, ordenes };
 }

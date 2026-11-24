@@ -18,7 +18,7 @@ export const TECHO = { ancho: 0.95, largo: 1.3, grueso: 0.05, delante: ESCUDO_AL
 const suave = x => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 
 /* el scutum visto desde arriba: rojo con borde oscuro, lomo y un umbo de bronce; el largo va en la v (de adelante a atrás) */
-function texturaScutum(THREE) {
+export function texturaScutum(THREE) {
   const c = document.createElement('canvas'); c.width = 128; c.height = 176; const g = c.getContext('2d');
   g.fillStyle = '#9c2a1e'; g.fillRect(0, 0, 128, 176);
   const gr = g.createLinearGradient(0, 0, 128, 0); gr.addColorStop(0, 'rgba(0,0,0,.28)'); gr.addColorStop(0.5, 'rgba(255,255,255,.12)'); gr.addColorStop(1, 'rgba(0,0,0,.28)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 176);
