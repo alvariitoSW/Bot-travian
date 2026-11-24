@@ -929,7 +929,7 @@ export function capaSuelo(nombre, canvas, rect, opc = {}) {
   }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx);
   const tex = new THREE.CanvasTexture(canvas); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide, opacity: op }));
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: !!opc.bajoCasas || false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide, opacity: op }));  /* bajoCasas: la mancha queda bajo los tejados, no los tiñe */
   m.renderOrder = 20 + (opc.orden || 0); m.frustumCulled = false; scene.add(m); capasSuelo.set(nombre, { malla: m, k });
 }
 /* ganchos para la vista (barrio-ui.js los usa por la instancia, sin importar este módulo) */

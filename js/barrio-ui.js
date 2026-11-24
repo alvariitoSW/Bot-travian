@@ -228,7 +228,7 @@ function pintarManchas(D) {
     const t = lienzo(W, H), g = t.getContext('2d'), br = bolita(), pon = (x, z, rad) => g.drawImage(br, (x - r.x0) * k - rad, (z - r.z0) * k - rad, rad * 2, rad * 2);
     for (const c of D.casas) if (c.barrio === b.i) pon(c.x, c.z, R);
     pon(b.x, b.z, R * 1.3);
-    tintar(cv, t, COL_ESTADO[b.estado], 0.46, 0.7);
+    tintar(cv, t, COL_ESTADO[b.estado], 0.36, 0.7);
   }
   return cv;
 }
@@ -277,14 +277,14 @@ export function montarBarrioUI(vista, ctx) {
   /* ----- capas del suelo ----- */
   function pintarCapas() {
     const D = est.D; if (!D) return;
-    if (est.capa) { vista.quitarCapa('barrios'); const cv = pintarZona(D, zonaNecesidad(D, est.capa), COL_NEC[est.capa], 0.5); vista.capaSuelo('zonas', cv, D.rect, { orden: 1 }); }
-    else { vista.quitarCapa('zonas'); vista.capaSuelo('barrios', pintarManchas(D), D.rect, { orden: 0 }); }
+    if (est.capa) { vista.quitarCapa('barrios'); const cv = pintarZona(D, zonaNecesidad(D, est.capa), COL_NEC[est.capa], 0.5); vista.capaSuelo('zonas', cv, D.rect, { orden: 1, bajoCasas: true }); }
+    else { vista.quitarCapa('zonas'); vista.capaSuelo('barrios', pintarManchas(D), D.rect, { orden: 0, bajoCasas: true }); }
     pintarRemedio(); ponerEtiquetas(); est.firma = ''; posicionar();
   }
   function pintarRemedio() {
     const D = est.D, b = est.barrio >= 0 && D ? D.barrios[est.barrio] : null, r = b && b._rem;
     if (!r || r.celda === null || r.celda === undefined) { vista.quitarCapa('remedio'); return; }
-    vista.capaSuelo('remedio', pintarZona(D, zonaServicio(D, r.servicio, r.celda).keys(), COL_NEC[r.necesidad] || '#2f8fe0', 0.5), D.rect, { orden: 2 });
+    vista.capaSuelo('remedio', pintarZona(D, zonaServicio(D, r.servicio, r.celda).keys(), COL_NEC[r.necesidad] || '#2f8fe0', 0.5), D.rect, { orden: 2, bajoCasas: true });
   }
 
   /* ----- etiquetas de barrio ----- */
