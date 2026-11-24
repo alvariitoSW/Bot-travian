@@ -100,8 +100,8 @@
     const sinHueco = [];
     r.faltas.forEach(f => {
       if (huecos <= 0) { sinHueco.push(f); return; }
-      const t = candidatos(f.necesidad).find(x => !usados[x]);
-      if (!t) return;
+      const t = candidatos(f.necesidad).find(x => !usados[x] && !(enBuild(x) && nivel(x) >= MAXL()));   // un edificio de D.BUILD al máximo no gasta hueco
+      if (!t) { sinHueco.push(f); return; }
       usados[t] = true; poner(t, f.necesidad, f.barrio, texto(f));
     });
     // (5) lo que no cupo, a su ministro
