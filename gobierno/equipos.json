@@ -1,0 +1,30 @@
+{
+  "_ayuda": "Equipos de trabajo que enseña el apartado «Equipos» del cuadro de mando (CM3, 24/11). Salen de MINISTERIOS.md y areas.json: las áreas, más Físicas (dentro de Batallas) y las dos ramas del Cerebro. Lo lee cuadro.mjs y, ya dentro de la página, el navegador para repartir las sesiones vivas. Una sesión, un parte o una tarea se reparte así, por orden: 1) si el principio de su título casa con el «titulo» de un equipo con «gana» (Físicas y Sonido: su asunto manda sobre el ID); 2) el primer equipo cuyo «ids» case con el ID de la tarea (FA2, CD5b…); 3) el primero cuyo «titulo» case; 4) la etiqueta area: de la sesión («areas») o, para las tareas del tablero, el órgano de su línea («organos»). Las expresiones son de JavaScript, sin distinguir mayúsculas.",
+  "equipos": [
+    { "id": "fisicas", "nombre": "Físicas", "de": "dentro de Batallas",
+      "que": "Los cuerpos que chocan, empujan y caen, y los pila y jabalinas que vuelan, rebotan o se clavan.",
+      "gana": true, "ids": "^FI\\d", "titulo": "físic|fisic|proyectil", "areas": [], "organos": [] },
+    { "id": "sonido", "nombre": "Sonido", "de": "taller común",
+      "que": "Cómo suena todo el juego: batalla, ciudad, voces y música, con su mezcla y sus licencias.",
+      "gana": true, "ids": "^SON?\\d", "titulo": "sonido|música|musica|voces|banda sonora", "areas": ["sonido"], "organos": [] },
+    { "id": "politica", "nombre": "Política", "de": "rama del Cerebro",
+      "que": "El Senado y sus bandos, las leyes, los ministros, las clases sociales y la diplomacia.",
+      "ids": "^(SN|PO|CD3|CD4|CE6|CE10|Q6)", "titulo": "senado|polític|politic|ministros|diplomac|clases sociales", "areas": [], "organos": [] },
+    { "id": "arte", "nombre": "Arte", "de": "taller común",
+      "que": "Los modelos, las texturas y sus licencias: soldados, personajes, edificios y el presupuesto de peso.",
+      "ids": "^(MS|AL|CR|UR|PIL|E)\\d", "titulo": "^taller", "areas": ["arte"], "organos": [] },
+    { "id": "gobierno", "nombre": "Gobierno", "de": "cómo se trabaja",
+      "que": "El vigía, este cuadro, los jueces, las subidas del juego y las cuentas del gasto.",
+      "ids": "^(MIN|CM|SB|RD)\\d", "titulo": "^gobierno|^subida|vigía|vigia", "areas": ["gobierno", "subida"], "organos": [] },
+    { "id": "musculo", "nombre": "Mapa y menús", "de": "Músculo",
+      "que": "El mapa del Mediterráneo, los menús, el manejo con el dedo, la fluidez y que funcione sin conexión.",
+      "ids": "^(MN|MR|C|J|K|V|D)\\d", "titulo": "^músculo|^musculo", "areas": ["musculo"], "organos": ["musculo"] },
+    { "id": "ciudades", "nombre": "Ciudades", "de": "rama del Cerebro",
+      "que": "La ciudad que construyes y ves crecer, sus barrios y necesidades, los recursos, el campo y el mercado.",
+      "ids": "^(CD|CI|CN|CV|AG|CE|B|O|Q)[e\\d]", "titulo": "^cerebro|^ciudad", "areas": ["cerebro"], "organos": ["cerebro"] },
+    { "id": "batallas", "nombre": "Batallas", "de": "Corazón",
+      "que": "La batalla de manípulos, el testudo y la falange a pie, las escaramuzas y la campaña militar.",
+      "ids": "^(LP|FA|FE|TP|CG|GM|GC|BG|ES|CB|NB|N|A)\\d", "titulo": "^corazón|^corazon|^combate", "areas": ["batallas"], "organos": ["corazon"] }
+  ],
+  "orden": ["batallas", "fisicas", "ciudades", "politica", "musculo", "arte", "sonido", "gobierno"]
+}

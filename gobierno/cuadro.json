@@ -2014,29 +2014,23 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "FA2",
-      "titulo": "Corazón · FA2 Falangita macedonio y oficial (Fable dirige, Opus construye)",
-      "nota": "Ola 1 de la falange, abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC37EkYPrnF1g5nLbW5x"
+      "tarea": "CDe3",
+      "titulo": "Cerebro · CDe3 Pantalla de ciudad mínima con agricultura y mercado (Opus)",
+      "nota": "En obra; tiene los archivos comunes",
+      "url": "https://claude.ai/code/session_01QiKC38arYpjMywJKEFfHi5"
     },
     {
-      "tarea": "MIN5",
-      "titulo": "Gobierno · MIN5 Paso «Falange a pie» de jueces.mjs (Opus)",
-      "nota": "Abierta el 23/11; de paso en jueces.mjs",
-      "url": "https://claude.ai/code/session_01QiKC39HxLF4D3B1zUxMuEm"
+      "tarea": "FI4",
+      "titulo": "Corazón · FI4 Física en escaramuzas y batalla de campaña (Opus)",
+      "nota": "Rehace sus proyectiles sobre el motor de FI3u",
+      "url": "https://claude.ai/code/session_01QiKC39cWnfXfbC6vm6DgPf"
     },
     {
-      "tarea": "AL11",
-      "titulo": "Gobierno · AL11 Pases de los soldados de Meshy y enganche en «Manípulo a pie» (Opus)",
-      "nota": "Abierta el 23/11; de paso en sw.js, registro.js y créditos",
-      "url": "https://claude.ai/code/session_01QiKC36gwMwPtQroFEAPQmA"
-    },
-    {
-      "tarea": "SB2",
-      "titulo": "Subida · SB2 Jueces completos sobre v149 antes de subir a main (Opus)",
-      "nota": "Abierta el 24/11; con APTO se sube a main (orden del usuario)",
-      "url": "https://claude.ai/code/session_01QiKC3Awu8jtqF4GEGvKeaQ"
+      "tarea": "CM3",
+      "titulo": "Gobierno · CM3 Cuadro: apartados Arte y Equipos (Fable)",
+      "nota": "Abierta el 24/11 por tu pedido",
+      "url": "https://claude.ai/code/session_01QiKC36kp2Z4r1erTKvPf9H"
     }
   ],
-  "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
+  "vigia": "trig_01W71MJ9W2Z2cBMbH8cD57fL"
 }

@@ -697,10 +697,38 @@ async function escudoGalo() {
   const slot = [...cuenta].sort((a, b) => b[1] - a[1])[0][0], c = new THREE.Vector3(); let k = 0;
   for (let i = 0; i < n; i++) if (esEscudo(i) && fuerte(i) === slot) { c.x += P[i * 3]; c.y += P[i * 3 + 1]; c.z += P[i * 3 + 2]; k++; }
   GESC = { slot, slots: meta.slots, c: c.divideScalar(k) };
+  GESC.escV = new Float32Array(n); for (let i = 0; i < n; i++) GESC.escV[i] = esEscudo(i) ? 1 : 0;   /* FI3u: qué vértices son del escudo */
+  GESC.tumba = tumbaEscudo(P, n, esEscudo);   /* FI3u */
   /* TP8 1a: unos puntos de la espada del galo (pieza 2 del atlas, la de las armas), con su hueso: para medir si atraviesa */
   const arma = []; for (let i = 0; i < n; i++) if (CELL[i] === 2) arma.push(i);
   GESC.arma = arma.filter((_, j) => j % Math.max(1, Math.floor(arma.length / 40)) === 0).map(i => ({ p: new THREE.Vector3(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]), slot: fuerte(i) }));
 }
+/* FI3u (César, BG 1.25): el galo con dos pila clavados en el escudo lo suelta. El escudo queda en el suelo, tumbado con la cara
+   arriba: es una figura más de la malla de los galos que solo dibuja su escudo, quieto (sin huesos). Los pila clavados siguen en él */
+const ESC_MAX = 12;   /* FI3u */
+function tumbaEscudo(P, n, esEscudo) {   /* FI3u: del escudo en reposo al escudo tumbado: el eje más fino (su cara) hacia arriba */
+  const c = new THREE.Vector3(), C = [0, 0, 0, 0, 0, 0, 0, 0, 0], d = new THREE.Vector3(); let k = 0;
+  for (let i = 0; i < n; i++) if (esEscudo(i)) { c.x += P[i * 3]; c.y += P[i * 3 + 1]; c.z += P[i * 3 + 2]; k++; } c.divideScalar(k);
+  for (let i = 0; i < n; i++) if (esEscudo(i)) { d.set(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]).sub(c); const a = d.toArray(); for (let r = 0; r < 3; r++) for (let s = 0; s < 3; s++) C[r * 3 + s] += a[r] * a[s] / k; }
+  const t = C[0] + C[4] + C[8], v = new THREE.Vector3(0.3, 0.5, 0.8);   /* el eje de menos varianza = el de más en (t·I − C) */
+  for (let it = 0; it < 60; it++) { const a = v.toArray(); v.set(...[0, 1, 2].map(r => t * a[r] - (C[r * 3] * a[0] + C[r * 3 + 1] * a[1] + C[r * 3 + 2] * a[2]))).normalize(); }
+  if (v.x * c.x + v.z * c.z > 0) v.negate();   /* FI3u: la cara pintada, arriba (medido en la foto: con el otro signo salía la madera) */
+  let alto = 0; for (let i = 0; i < n; i++) if (esEscudo(i)) alto = Math.max(alto, Math.abs(d.set(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]).sub(c).dot(v)));
+  const R = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(v, new THREE.Vector3(0, 1, 0))).multiply(new THREE.Matrix4().makeTranslation(-c.x, -c.y, -c.z));
+  return { R, alto: alto + 0.01 };
+}
+function sueltaEscudo(g) {   /* FI3u: lo llama la física (proyectiles.js) cuando el galo vivo lleva dos pila clavados en el escudo */
+  const L = S.galos.suelo || (S.galos.suelo = []); if (!GESC || !GESC.tumba || L.length >= ESC_MAX) return false;
+  const I = g.inst.elements, sc = Math.hypot(I[0], I[1], I[2]), f = new THREE.Vector3(I[8], 0, I[10]).normalize();
+  const x = I[12] - f.x * 0.8 + f.z * 0.35, z = I[14] - f.z * 0.8 - f.x * 0.35, yaw = Math.atan2(f.x, f.z) + 0.5 + ((g.i * 0.618) % 1) * 2.5;   /* detrás y a su izquierda */
+  const M = new THREE.Matrix4().compose(new THREE.Vector3(x, H(x, z) + GESC.tumba.alto * sc, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw), new THREE.Vector3(sc, sc, sc)).multiply(GESC.tumba.R);
+  g.escSuelo = M; g.sinEscudo = true; L.push(M); return true;
+}
+/* FI3u: el sombreador de los galos: aSinEsc 1 = sin escudo (esconde sus vértices); 2 = solo el escudo, quieto en el suelo */
+const escSuelto = vs => vs.replace('attribute float aFrame;', 'attribute float aFrame;\nattribute float aEscV;\nattribute float aSinEsc;')
+  .replace('#include <defaultnormal_vertex>', 'if (aSinEsc > 1.5) objectNormal = normal;\n#include <defaultnormal_vertex>')
+  .replace('vec3 transformed = (sk * vec4(position, 1.0)).xyz;', 'vec3 transformed = aSinEsc > 1.5 ? position : (sk * vec4(position, 1.0)).xyz;')
+  .replace('#include <project_vertex>', '#include <project_vertex>\n  if ((aSinEsc > 1.5 ? 1.0 - aEscV : aEscV * aSinEsc) > 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);');
 /* la matriz del escudo de un galo en el mundo, en su fotograma de ahora */
 function huesoEscudoGalo(g, out) {
   return out.multiplyMatrices(g.inst, huesoT(FIG_G.tab, GESC.slot, g.A, g.B, g.mx, _gb));
@@ -792,11 +820,17 @@ function planSalva(quien, bueno) {
     if (mio) S.ojo = p;
   }
 }
+/* FI3u: el pilum que va al escudo apunta a la mitad de arriba de la tabla, a 12–20 cm del centro (el umbo, de hierro, lo hace rebotar siempre).
+   Fijo para cada pilum (por su sitio en PILA), sin tocar el azar de las reglas */
+function fueraUmbo(p, out) {
+  const k = PILA.indexOf(p) + 1, a = ((k * 0.6180339887) % 1) * 6.2832, r = 0.12 + ((k * 0.7548776662) % 1) * 0.08;
+  out.x += Math.cos(a) * r; out.y += Math.abs(Math.sin(a)) * r * 1.3; return out;   /* solo hacia arriba: el arco nunca sale más bajo que antes (más bajo, la cola rozaba el escudo del de delante) */
+}
 /* dónde estará el blanco de un pilum dentro de «quedan» segundos */
 function destino(p, quedan, out) {
   const g = p.g; if (!g) return out.set(p.p0.x, H(p.p0.x, p.p0.z - 20), p.p0.z - 20);
   const dz = g.vivo ? g.v * quedan : 0;
-  if (p.tipo === 'escudo' && GESC && g.vivo) { out.copy(GESC.c).applyMatrix4(huesoEscudoGalo(g, _gm)); out.z += dz; return out; }
+  if (p.tipo === 'escudo' && GESC && g.vivo) { out.copy(GESC.c).applyMatrix4(huesoEscudoGalo(g, _gm)); out.z += dz; fueraUmbo(p, out); return out; }   /* FI3u: a la tabla, no al umbo */
   if (p.tipo === 'mata' || p.tipo === 'escudo') return out.set(g.x, H(g.x, g.z + dz) + 1.25, g.z + dz);
   const x = g.x + p.dx, z = g.z + dz + p.dz; return out.set(x, H(x, z), z);
 }
@@ -851,7 +885,7 @@ function alChocar() {
 /* ---------- el paso de la simulación ---------- */
 const FIS = crearFisicaEscena({ H });   /* FI2: la física del dibujo (?fisica=0 la apaga) */
 const MF3 = new THREE.Matrix4(), FP = crearProyectilesEscena({ H, ySup, geoV: geoVenablo, geoP: geoPilum }), PF3 = new THREE.Vector3(), DF3 = new THREE.Vector3(), QF3 = new THREE.Quaternion();   /* FI3: venablos y pila con física */
-FP.conecta({ S, FL, PILA, M4: THREE.Matrix4, galoEsc: (g, o) => huesoEscudoGalo(g, o), gesc: () => GESC, galoHueso: (g, k, o) => o.multiplyMatrices(g.inst, huesoT(FIG_G.tab, k, g.A, g.B, g.mx, _gb)), figG: () => FIG_G, yo: () => S.romanos[YO], roto: () => S.roto });   /* FI3 */
+FP.conecta({ S, FL, PILA, M4: THREE.Matrix4, galoEsc: (g, o) => g.escSuelo ? o.copy(g.escSuelo) : huesoEscudoGalo(g, o) /* FI3u */, sueltaEscudo /* FI3u */, gesc: () => GESC, galoHueso: (g, k, o) => o.multiplyMatrices(g.inst, huesoT(FIG_G.tab, k, g.A, g.B, g.mx, _gb)), figG: () => FIG_G, yo: () => S.romanos[YO], roto: () => S.roto });   /* FI3 */
 function paso(dt) {
   S.T += dt; const T = S.T, yo = S.romanos[YO], co = S.romanos[CMP];
   S.k += Math.sign((S.escudos ? 1 : 0) - S.k) * Math.min(Math.abs((S.escudos ? 1 : 0) - S.k), dt * 1.6);
@@ -1048,14 +1082,15 @@ function malla(tipo, n, color) {
   mat.onBeforeCompile = (sh, r) => { antes(sh, r); cine(sh, 1.3); }; mat.customProgramCacheKey = () => 'aqvila-real-cine';
   const m = new THREE.InstancedMesh(g, mat, n);
   /* TP1: los galos mezclan dos filas, como los romanos (sombreador de units.js retocado en enemigo.js) */
-  let fr2 = null, mx = null;
+  let fr2 = null, mx = null, sE = null;   /* FI3u: sE */
   if (tipo === 'galos') {
     const ia = () => { const x = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); x.setUsage(THREE.DynamicDrawUsage); return x; }; fr2 = ia(); mx = ia(); g.setAttribute('aFrame2', fr2); g.setAttribute('aMix', mx);
-    mat.onBeforeCompile = (sh, r) => { antes(sh, r); sh.vertexShader = conMezcla(sh.vertexShader); cine(sh, 1.3); }; mat.customProgramCacheKey = () => 'apie-galos-mezcla';
+    mat.onBeforeCompile = (sh, r) => { antes(sh, r); sh.vertexShader = escSuelto(conMezcla(sh.vertexShader)); cine(sh, 1.3); }; mat.customProgramCacheKey = () => 'apie-galos-mezcla-fi3u';   /* FI3u */
+    sE = ia(); g.setAttribute('aSinEsc', sE); if (GESC && GESC.escV && GESC.escV.length === g.attributes.position.count) g.setAttribute('aEscV', new THREE.BufferAttribute(GESC.escV, 1));   /* FI3u */
   }
-  m.frustumCulled = false; escena.add(m); figuras[tipo] = { m, u, fr: g.attributes.aFrame, fr2, mx };
+  m.frustumCulled = false; escena.add(m); figuras[tipo] = { m, u, fr: g.attributes.aFrame, fr2, mx, sE };   /* FI3u: sE */
   /* TP8b-E2: los galos lejanos, con el sencillo (mismo material y huesos) */
-  if (tipo === 'galos') { const gL = sencillo(g, REJILLA), ia = () => { const x = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); x.setUsage(THREE.DynamicDrawUsage); return x; }, L = { fr: ia(), fr2: ia(), mx: ia() };
+  if (tipo === 'galos') { const gL = sencillo(g, REJILLA), ia = () => { const x = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); x.setUsage(THREE.DynamicDrawUsage); return x; }, L = { fr: ia(), fr2: ia(), mx: ia(), sE: ia() }; gL.setAttribute('aSinEsc', L.sE);   /* FI3u: sE */
     gL.setAttribute('aFrame', L.fr); gL.setAttribute('aFrame2', L.fr2); gL.setAttribute('aMix', L.mx); L.m = new THREE.InstancedMesh(gL, mat, n); L.m.frustumCulled = false; escena.add(L.m); figuras[tipo].L = L;
     console.log(`[E2] triángulos por galo: ${g.attributes.position.count / 3} detallado / ${gL.attributes.position.count / 3} sencillo`); }
   return figuras[tipo];
@@ -1086,8 +1121,8 @@ function sencillo(geo, n) {
 function reparte(D, L, lista, K) {
   const cp = camara.position; for (const h of lista) { const x = S.choque && h.xd !== undefined ? h.xd : h.x, z = S.choque && h.zd !== undefined ? h.zd : h.z; h.dCam = (x - cp.x) ** 2 + (z - cp.z) ** 2; }
   const orden = lista.slice().sort((a, b) => a.dCam - b.dCam); D.n = 0; L.n = 0;
-  orden.forEach((h, j) => { const o = j < K ? D : L, s = o.n++; o.m.setMatrixAt(s, h.oculto ? CERO : h.inst); o.fr.array[s] = h.A; o.fr2.array[s] = h.B; o.mx.array[s] = h.mx; if (o.vA) o.vA.array.set(o.vh.subarray(h.i * 4, h.i * 4 + 4), s * 4); });
-  for (const o of [D, L]) { o.m.count = o.n; o.m.instanceMatrix.needsUpdate = true; o.fr.needsUpdate = o.fr2.needsUpdate = o.mx.needsUpdate = true; if (o.vA) o.vA.needsUpdate = true; }
+  orden.forEach((h, j) => { const o = j < K ? D : L, s = o.n++; o.m.setMatrixAt(s, h.oculto ? CERO : h.inst); o.fr.array[s] = h.A; o.fr2.array[s] = h.B; o.mx.array[s] = h.mx; if (o.vA) o.vA.array.set(o.vh.subarray(h.i * 4, h.i * 4 + 4), s * 4); if (o.sE) o.sE.array[s] = h.sinEscudo ? 1 : 0; });   /* FI3u: sE */
+  for (const o of [D, L]) { o.m.count = o.n; o.m.instanceMatrix.needsUpdate = true; o.fr.needsUpdate = o.fr2.needsUpdate = o.mx.needsUpdate = true; if (o.vA) o.vA.needsUpdate = true; if (o.sE) o.sE.needsUpdate = true; }   /* FI3u: sE */
 }
 /* TP1b · la cresta del centurión: medio disco rojo, de oreja a oreja (transversal), sobre el casco. Pieza hecha por código,
    anclada al punto del casco del modelo: va con la cabeza (también si cae). Y la marca del rival de delante: un aro en el suelo,
@@ -1175,6 +1210,7 @@ function dibuja() {
   P.m.instanceMatrix.needsUpdate = true; P.fr.needsUpdate = true;
   const G = figuras.galos;
   reparte(G, G.L, S.galos, CERCA);
+  for (const e of S.galos.suelo || []) { const s = G.n++; G.m.setMatrixAt(s, e); G.fr.array[s] = G.fr2.array[s] = G.mx.array[s] = 0; G.sE.array[s] = 2; } G.m.count = G.n;   /* FI3u: escudos soltados */
   /* venablos: en vuelo, clavados en un escudo (van con él) o en tierra */
   FL.forEach((f, i) => {
     if (f.est === 0 || (f.est === 1 && T < f.t0)) { flechas.setMatrixAt(i, CERO); return; }
@@ -1458,7 +1494,7 @@ window.__tp = {
      otro lado del plano de su escudo (metros; negativo: no llega). El plano pasa por el centro del escudo y mira al rival */
   contacto: () => contacto(),
   fisica: () => FIS.medida(), fisicaEmpieza: () => FIS.empieza(), fisicaActiva: FIS.activa,   /* FI2 */
-  proyectiles: () => FP.medida(), proyectilesMide: () => FP.mide(S), proyectilesActiva: FP.activa,   /* FI3: medida de venablos y pila */
+  proyectiles: () => FP.medida(), proyectilesMide: () => FP.mide(S), proyectilesActiva: FP.activa, sueltaEscudo: g => sueltaEscudo(g),   /* FI3u: para la foto (captura-fi3u.mjs forzar=1) */   /* FI3: medida de venablos y pila */
   lucha: () => ({ ...ACC.medLucha(), relevos: S.duelos.filter(d => d.activo && !d.sec && d.r.j === 0 && d.r.r > 0).length, dibujadosCaidos: S.romanos.filter(h => !h.vivo).length }),
   gesto: () => { const yo = S.romanos[YO], P = new THREE.Vector3(), Qm = new THREE.Quaternion(); pilumEnMano(yo, P, Qm); const punta = P.clone().addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(Qm), PUNTA); return { mano: enPantalla(ancla(yo, HU.espada, [0, 0, 0], new THREE.Vector3())), punta: enPantalla(punta), conPilum: !yo.tiro, galo: enPantalla(new THREE.Vector3(0, H(0, frenteGalo()) + 1.2, frenteGalo())) }; },
   galos: () => ({ vivos: S.galos.filter(g => g.vivo).length, porPila: S.caidos, hueco: +hueco().toFixed(2), clavados: PILA.filter(p => p.est === 4).length, enTierra: PILA.filter(p => p.est === 3).length, enAire: PILA.filter(p => p.est === 2).length, corren: S.galos.filter(g => g.vivo && g.v > 3).length, andan: S.galos.filter(g => g.vivo && g.v > 0.25 && g.v <= 3).length }),
@@ -1472,8 +1508,8 @@ window.__tp = {
   { const td = await new THREE.TextureLoader().loadAsync('gobierno/maquetas/testudo-luz-campo/arte/detalle.png'); td.wrapS = td.wrapT = THREE.RepeatWrapping; td.anisotropy = 4; DET.value = td; }
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
-  await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); malla('galos', N_GF + RESERVA_G, '#3456a8'); preparaGalos();
-  try { await escudoGalo(); } catch (e) { console.warn('Sin escudo galo para clavar pila', e); }
+  await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); try { await escudoGalo(); } catch (e) { console.warn('Sin escudo galo para clavar pila', e); }   /* FI3u: antes de la malla (sus piezas) */
+  malla('galos', N_GF + RESERVA_G + ESC_MAX, '#3456a8'); preparaGalos();   /* FI3u: + ESC_MAX escudos en el suelo */
   ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, cinta, nombre, get HOM() { return HOM; }, alcance: ANTES ? undefined : alcance, golpe: ANTES ? undefined : golpe, aliento: !ANTES });
   try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'romano', rival: { esGriego: false, galos: true }, semilla: 43, abajo: '124px' }); Son.alSonar(() => BANDA.inicia()); window.__tp.banda = BANDA; } catch (e) { console.log('[SON4] sin banda: ' + e.message); }
   reinicia();
