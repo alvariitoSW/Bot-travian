@@ -59,7 +59,10 @@
         "CD4",
         "CD5a",
         "CD5b",
-        "CD6"
+        "CD6",
+        "CDe1",
+        "CDe2",
+        "CDe3"
       ],
       "falta": "Que la ciudad grande cuente en la economía (CI3b, tras CE3), el gobierno visible en la ciudad (dentro de CS2) y el pulido que queda de la ciudad romana (pregunta CI1c del cuadro)."
     },
@@ -75,7 +78,8 @@
         "CE2",
         "CE3",
         "CE4",
-        "CE5"
+        "CE5",
+        "AG1"
       ],
       "falta": "Reinventada entera (CE1, 18/11): edificios, tropas y tiempos (CE3), comercio con precios (CE4) y «Este año» con el tributo de guerra (CE5)."
     },
@@ -94,7 +98,7 @@
       "id": "L4",
       "organo": "cerebro",
       "titulo": "Un solo Senado, con intrigas",
-      "estado": "medias",
+      "estado": "hecha",
       "veras": "Una sala viva con hasta siete bandos, cada uno con su gran familia. Ves debatir a los senadores; los jefes de bando son tus consejeros; hay banquetes, juegos y ritos.",
       "hecho": "Senado de familias (CE6): hasta siete bandos con su familia (Fabios, Emilios, Escipiones; entran Valerios, Fulvios, Claudios y Sempronios al crecer Roma), de 30 a 300 escaños por población y provincia, humor por tus actos, una petición por bando y estación; tratos y tribuno. Desde MN2 (20/11) el Senado tiene cuatro pestañas: Hoy se vota, Bandos, Tu carrera y Fiestas.",
       "falta": "Sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
@@ -184,7 +188,13 @@
         "CG5",
         "CG7",
         "CG8",
-        "CG9"
+        "CG9",
+        "MS1",
+        "MS2",
+        "AL1",
+        "AL11",
+        "PIL3",
+        "FI4"
       ]
     },
     {
@@ -214,9 +224,15 @@
         "LP2",
         "LP3",
         "LP4",
-        "LP5",
         "LP6",
-        "LP7"
+        "LP7",
+        "LP4b",
+        "LP5a",
+        "LP7b",
+        "FE1",
+        "FE2",
+        "FI3",
+        "FI5"
       ]
     },
     {
@@ -252,7 +268,10 @@
       "veras": "Juegas una campaña entera en tu móvil sin tirones y sin red. Con tu visto bueno, se publica la 1.0.",
       "falta": "Tu prueba, los arreglos que salgan de ella y publicar.",
       "tareas": [
-        "V10b"
+        "V10b",
+        "SB1",
+        "SB2",
+        "SB3"
       ]
     },
     {
@@ -292,9 +311,17 @@
         "LP2",
         "LP3",
         "LP4",
-        "LP5",
         "LP6",
-        "LP7"
+        "LP7",
+        "FI3",
+        "FI4",
+        "FI5",
+        "PIL3",
+        "FE1",
+        "FE2",
+        "LP5a",
+        "LP4b",
+        "LP7b"
       ],
       "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha."
     },
@@ -309,7 +336,8 @@
         "MN1",
         "MN2",
         "MN3",
-        "MN4"
+        "MN4",
+        "MIN5"
       ]
     }
   ],
