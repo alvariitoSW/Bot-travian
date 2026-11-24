@@ -128,7 +128,8 @@
         "gobierno/captura-th1.mjs",
         "test/fu3c-falange.test.mjs",
         "test/fu3-falange.test.mjs",
-        "test/fu3b-falange.test.mjs"
+        "test/fu3b-falange.test.mjs",
+        "test/fu4-rivales.test.mjs"
       ],
       "taller": [],
       "juez": {
@@ -150,7 +151,8 @@
           "test/fu3b-falange.test.mjs",
           "test/fu3c-falange.test.mjs",
           "test/fu5-formaciones.test.mjs",
-          "test/tacticas.test.mjs"
+          "test/tacticas.test.mjs",
+          "test/fu4-rivales.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",
