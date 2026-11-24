@@ -104,18 +104,26 @@ export function azarSemilla(s) {
 
 /* Pieza «unidad» (copiada de la maqueta): enPie, animo, cansancio, roto. Con ánimo 0,12 o menos, o con menos de un tercio, rompe */
 export const ROMPE = 0.12;
-export function crearUnidad({ hombres, nombre = '', ref = hombres }) {
+/* FE1 (usuario, 24/11: «que luchen hasta que quedan el 15 %»): la constante única del final de una lucha. Una unidad con
+   fin = FIN_LUCHA rompe cuando le queda el 15 % de sus hombres (o menos), no antes por bajas; con miedo = false las bajas, el
+   cansancio y el ir perdiendo no le quitan ánimo: solo se lo quitan las reglas de cohesión de este archivo (anima directo).
+   Hoy la usan los elefantes (js/falange-rivales.js); el resto de escaramuzas puede adoptarla igual. Licencia de juego. */
+export const FIN_LUCHA = 0.15;
+export function crearUnidad({ hombres, nombre = '', ref = hombres, fin = null, miedo = true }) {
   const peso = 0.75 / ref;
   const u = {
-    nombre, hombres, enPie: hombres, animo: 0.8, cansancio: 0, roto: false, tRoto: -1, hizo: 0, sufrio: 0, T: 0,
+    nombre, hombres, enPie: hombres, animo: 0.8, cansancio: 0, roto: false, tRoto: -1, hizo: 0, sufrio: 0, T: 0, fin, miedo,
     get aliento() { return 1 - u.cansancio; },
-    baja(n = 1) { u.enPie = Math.max(0, u.enPie - n); u.sufrio += n; u.anima(-peso * n); },
+    baja(n = 1) { u.enPie = Math.max(0, u.enPie - n); u.sufrio += n; if (u.miedo) u.anima(-peso * n); else u.mira(); },
     causa(n = 1) { u.hizo += n; u.anima(0.012 * n); },
     anima(x) { if (u.roto) return; u.animo = Math.min(1, Math.max(0, u.animo + x)); u.mira(); },
     cansa(dt, x) { u.cansancio = Math.min(1, Math.max(0, u.cansancio + dt * x)); },
-    mira() { if (!u.roto && (u.animo <= ROMPE || u.enPie < u.hombres / 3)) { u.roto = true; u.tRoto = u.T; u.animo = 0; } },
+    /* sin fin: rompe con menos de un tercio (lo de siempre); con fin (FIN_LUCHA), cuando quedan fin·hombres o menos */
+    pocos() { return u.fin == null ? u.enPie < u.hombres / 3 : u.enPie <= u.hombres * u.fin; },
+    mira() { if (!u.roto && (u.animo <= ROMPE || u.pocos())) { u.roto = true; u.tRoto = u.T; u.animo = 0; } },
     tic(dt) {
       u.T += dt; const k = Math.pow(0.5, dt / 6); u.hizo *= k; u.sufrio *= k;
+      if (!u.miedo) return;
       if (u.cansancio > 0.7) u.anima(-0.004 * dt);
       if (u.combate() === 'perdiendo') u.anima(-0.006 * dt);
     },
@@ -459,7 +467,7 @@ export function crearFalange(m = {}) {
       S.ganador = U.roto ? 'rival' : 'falange'; S.tRompe = T; S.orden = null; S.girando = 0;
       if (!S.causa) {
         const u = U.roto ? U : R;
-        S.causa = U.roto && nFl ? 'flanco' : U.roto && nFr ? 'hueco' : u.enPie < u.hombres / 3 ? 'bajas' : 'animo';
+        S.causa = U.roto && nFl ? 'flanco' : U.roto && nFr ? 'hueco' : u.pocos ? (u.pocos() ? 'bajas' : 'animo') : u.enPie < u.hombres / 3 ? 'bajas' : 'animo';
       }
       if (U.roto) for (const h of S.fal) { if (h.vivo) h.huye = true; } else for (const h of S.ene) { if (h.vivo) h.est = 'huye'; }
       avisa('rompe', { ganador: S.ganador, causa: S.causa });
@@ -470,7 +478,7 @@ export function crearFalange(m = {}) {
   /* se abre un hueco: el romano de primera fila más cercano a ti se cuela */
   function abreHueco() {
     const yo = S.fal[S.yo.i]; if (!yo) return; let c = null, dm = 1e9;
-    for (const h of S.ene) if (h.vivo && (h.toca === 'puntas' || h.est === 'muro') && h.est !== 'dentro' && h.est !== 'rodea' && h.est !== 'carga' && h.est !== 'vuelve') { const d = dist(h, yo); if (d < dm) { dm = d; c = h; } }
+    for (const h of S.ene) if (h.vivo && h.tipo !== 'elefante' /* FE1: una bestia no se cuela; la lucha la lleva su rival */ && (h.toca === 'puntas' || h.est === 'muro') && h.est !== 'dentro' && h.est !== 'rodea' && h.est !== 'carga' && h.est !== 'vuelve') { const d = dist(h, yo); if (d < dm) { dm = d; c = h; } }
     if (c) { entra(c, 'frente'); avisa('grito', { texto: 'Hueco: se cuela uno' }); }
   }
   /* ---------- lo que hace el jugador ---------- */

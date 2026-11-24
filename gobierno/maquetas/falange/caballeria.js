@@ -54,7 +54,7 @@ export async function montaRival(ctx) {
       peso() { return { llamadas: 2, triangulos: tropa.triangulos() + sombras.triangulos(), figuras: tropa.figuras() }; },
       desfase() {
         const S = ctx.estado(); let m = 0; if (!S || !S.ene) return 0;
-        for (const h of S.ene) { const d = D.get(h); if (d && h.vivo && !d.propio) m = Math.max(m, Math.hypot(d.x - h.x, d.z - h.z)); }
+        for (const h of S.ene) { const d = D.get(h); if (d && h.vivo && !d.propio) m = Math.max(m, Math.hypot(d.x - h.x - (h.fx || 0), d.z - h.z - (h.fz || 0))); }
         return m;
       },
     };

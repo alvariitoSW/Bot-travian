@@ -181,9 +181,10 @@
       flecha = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, -0.5), new THREE.MeshBasicMaterial({ color: '#ffd76a', transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false }));
       flecha.renderOrder = 3; flecha.visible = false; escena.add(flecha);
       salidas.push(() => { tex.dispose(); geo.dispose(); });
+      if (SOLD && SOLD.crearPila) { pila = SOLD.crearPila(escena, TALLA); salidas.push(() => pila.soltar()); }   /* PIL3: pila en el aire */
       for (const u of S.man) { const b = document.createElement('div'); b.className = 'mn-e' + (u.lado ? ' ene' : ''); b.innerHTML = '<i class="h"><b></b></i><i class="m"><b></b></i><i class="f"><b></b></i>'; $('capa').appendChild(b); mans[u.id].barra = b; }
     }
-    let sombras = null, rects = null, fantasmas = null, flecha = null;
+    let sombras = null, rects = null, fantasmas = null, flecha = null, pila = null;
     function texturaRect() {
       const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
       g.fillStyle = 'rgba(255,255,255,0.22)'; g.fillRect(0, 0, 64, 64);
@@ -277,8 +278,10 @@
         let a, o, sc;
         if (m.nv) {
           const tr = m.nv[f.nv], ii = tr.sig(); if (ii < 0) continue; a = tr.malla.instanceMatrix.array; o = ii * 16; sc = escN * f.talla * TALLA;
-          const k = tr.s.j.clips[clip] ? clip : 'quieto', cl = tr.s.j.clips[k], dur = (cl.n - 1) / cl.fps, tt = modo === 's' ? val : modo === 'c' ? (val - Math.floor(val)) * dur : Math.min(1, Math.max(0, val)) * dur;
+          const k0 = clip === 'lanzar' && tr.s.j.clips.lanzar2 && ((tr.s.j.muestra || {}).lanzar2 || []).length === 3 ? 'lanzar2' : clip;      /* lanzamiento nuevo (pilum, jabalina, venablo): quien lo trae lo usa; el hondero sigue con el suyo */
+          const k = tr.s.j.clips[k0] ? k0 : 'quieto', cl = tr.s.j.clips[k], dur = (cl.n - 1) / cl.fps, tt = modo === 's' ? val : modo === 'c' ? (val - Math.floor(val)) * dur : Math.min(1, Math.max(0, val)) * dur;
           tr.vars(ii, f.vr); tr.pose(ii, k, tt, tr.muestra(k, tt));
+          if (pila) { const su = k === 'lanzar2' ? SOLD.soltarDe(tr.s) : null; if (su != null && f.tl != null && f.tl < su && tt >= su && f.dc < 160) tirarPila(f, sc); f.tl = su != null ? tt : null; }   /* PIL3: suelta el arma: vuela */
         } else {
           a = m.malla.instanceMatrix.array; o = f.slot * 16; sc = UNIT_SCALE * TALLA;
           const Cl = m.u.clips, cl = Cl[VIEJO[clip]] || Cl.attack_melee || Cl.idle;
@@ -292,6 +295,19 @@
       }
       for (const m of mallas.values()) { if (m.nv) { for (const t of m.nv) t.malla.instanceMatrix.needsUpdate = true; continue; } m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
       sombras.instanceMatrix.needsUpdate = true;
+      if (pila) pila.paso(Tv);
+    }
+    /* PIL3: el pilum que suelta f vuela hacia un hombre de la tropa a la que tira (o hacia tu galo en el duelo). Solo se ve: las bajas
+       las da el simulador. La mitad se hinca en el suelo cerca del blanco y se queda unos segundos; la otra mitad da en él y desaparece. */
+    function tirarPila(f, sc) {
+      let b = null;
+      if (f.dLanza && duelo && apie && f === apie.f) b = duelo.g;
+      else { const u = S.man[f.m], t = u && u.tirando >= 0 ? mans[u.tirando] : null; if (t && t.vivos.length) b = t.vivos[Math.floor(Math.random() * t.vivos.length)]; }
+      if (!b) return;
+      const fx = Math.sin(f.yaw), fz = Math.cos(f.yaw), x0 = f.x - fz * 0.2 * sc + fx * 0.35 * sc, z0 = f.z + fx * 0.2 * sc + fz * 0.35 * sc, y0 = 1.75 * sc;   /* la mano derecha, sobre el hombro */
+      const dx = b.x - x0, dz = b.z - z0, dh = Math.hypot(dx, dz) || 1, ux = dx / dh, uz = dz / dh;
+      if (Math.random() < 0.5) { const r = (Math.random() - 0.5) * 3 * TALLA, w = (Math.random() - 0.5) * 2 * TALLA; pila.lanza(x0, y0, z0, b.x + ux * r - uz * w, 0, b.z + uz * r + ux * w, Tv, true); }
+      else pila.lanza(x0, y0, z0, b.x - ux * 0.45 * TALLA, 1.15 * TALLA, b.z - uz * 0.45 * TALLA, Tv, false);
     }
 
     /* ---------- rectángulos en el suelo, fantasmas y flecha ---------- */
@@ -735,6 +751,10 @@
       terminar, ver: () => verFormas,
       /* CG6: a pie. bajar(id) devuelve '' o el motivo; palanca(dx, dy) de −1 a 1 (dy −1 = adelante, como en pantalla; 0, 0 la suelta) */
       camaraY: () => camara.position.y,
+      /* PIL3: pila en el aire o hincados ahora mismo */
+      pila: () => pila ? pila.vivos.length : 0,
+      girar: a => { if (apie) { apie.yaw += a; apie.f.yaw = apie.yaw; camaraApie(0, true); } },
+      tiran: id => figs.filter(f => f.m === id && f.est === 0).map(f => movimiento(f)[0] + (f.nv < 2 ? '' : '·lejos')).join(' '),
       bajar: id => bajar(id), subir: () => subir(),
       /* CG6b: tu duelo. golpe('golpear' | 'parar' | 'empujar' | 'pilum') lo hace en el siguiente cuadro; duelo() su estado o null */
       golpe: que => { if (!duelo) return 'No hay duelo'; pide = que; return ''; },
