@@ -87,6 +87,23 @@
       const n0 = l => { const o = {}; for (const u of S.man) if (u.lado === l) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return o; };
       if (root.Banda) banda = root.Banda.crea({ padre: el, propio: root.Banda.propioDe(n0(0), cfg.pueblo || (cfg.ejercitos && cfg.ejercitos.pueblo)), rival: root.Banda.rivalDe(n0(1)), semilla: S.sem, abajo: '96px' });
     } catch (e) { banda = null; }
+    /* SON9: la arenga antes de la batalla y las preguntas de tus oficiales (js/dialogos.js, js/gfx/dialogos-ui.js). Solo si hablas como romano; desactivado en pruebas
+       automáticas (navigator.webdriver), salvo con ?arenga=1. Mientras eliges, la batalla espera (con un tope de 8 s en las preguntas). */
+    const romano = (() => { try { const o = {}; for (const u of S.man) if (u.lado === 0) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return !root.Banda || root.Banda.propioDe(o, cfg.pueblo || (cfg.ejercitos && cfg.ejercitos.pueblo)) === 'romano'; } catch (e) { return true; } })();
+    const DU = romano && root.DialogosUI && root.Dialogos && root.DialogosUI.quiere(cfg) ? root.DialogosUI.crea({ padre: $('hud'), abajo: '150px', abajoH: '96px' }) : null;
+    let preg = null, tPreg = 0, arengando = false;
+    function preguntas(dtReal) {
+      if (!DU || preg || arengando || apie || S.pausa || S.fase === 'fin') return;
+      tPreg -= dtReal; if (tPreg > 0) return; tPreg = 1;
+      const Dl = root.Dialogos, p = Dl.detectar(S); if (!p) return;
+      Dl.mostrada(S, p); preg = p; sel = [p.uid]; pausa(true); pintarHud(true);
+      const sigue = r => { preg = null; pausa(false); if (!r.ok && r.no) aviso(r.no); pintarHud(true); };
+      DU.pregunta(p, { alElegir: k => sigue(Dl.responder(S, p, k)), alTiempo: () => { const r = Dl.porTiempo(S, p); DU.habla(Dl.TIEMPO, { nombre: Dl.NOMBRE.tribuno, espera: 3 }); sigue(r); if (r.ok) aviso('Sin tu orden, el tribuno mantiene la línea'); } });
+    }
+    function arengar() {
+      arengando = true; pausa(true);
+      DU.arenga(id => { root.Dialogos.arengar(S, id); arengando = false; pausa(false); pintarHud(true); const a = root.Dialogos.arenga(id); if (a) aviso(a.efecto); });
+    }
     /* SON5: efectos de la batalla, los mismos que en la campaña (js/ui-guerra.js: suena y ambiente) desde los mismos momentos que traduce Voces.deSim.
        Todo sale por Sonido.maestro; Sonido ya sabe callarse (apagado, sin toque aún, app oculta). Cada cuerno agacha la música. */
     let primerChoque = false, tRuido = 0;
@@ -641,7 +658,7 @@
       if (banda && !S.pausa && S.fase !== 'fin') banda.tic(Math.min(0.1, real) * vel, () => root.Banda.resumenSim(S), () => S.man.some(u => u.lado === 0 && u.estado === 'duda'));
       ambiente(Math.min(0.1, real) * vel);   /* SON4-5: música y fragor siguen también a pie */
       if (apie) return;   /* LP7: a pie pinta la capa; aquí no se dibuja (un solo lienzo trabajando) */
-      avanza(real); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos();
+      avanza(real); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos(); preguntas(real);
       if (ahora - tHud > 250) { tHud = ahora; pintarHud(); }
     }
 
@@ -660,12 +677,13 @@
         preparar(); camaraInicial(); colocar(0, true);
         lista = true; if (banda) banda.inicia(); $('carga').hidden = true; pausa(S.pausa); pintarHud(true);
         if (S.fase === 'fin') finYa();
+        else if (DU && !S.arenga && S.t === 0) arengar();
         else { cinta.push({ t: 'Toca un manípulo tuyo y arrástralo para moverlo', tono: '', hasta: performance.now() + 7000 }); }
       } catch (e) { console.error(e); $('carga-p').textContent = 'No se ha podido cargar la batalla.'; $('carga-s').hidden = false; }
     }
 
     function cerrarTodo() {
-      cerrado = true; cancelAnimationFrame(raf); clearTimeout(tFin); if (banda) banda.quita(); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos();   /* SON5: cállalo todo (fragor, música) */   /* window.__mn se queda con cerrado = true para las pruebas */
+      cerrado = true; cancelAnimationFrame(raf); clearTimeout(tFin); if (DU) DU.cerrar(); if (banda) banda.quita(); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos();   /* SON5: cállalo todo (fragor, música) */   /* window.__mn se queda con cerrado = true para las pruebas */
       for (const f of salidas) f();
       for (const m of mallas.values()) { try { if (m.nv) for (const t of m.nv) { escena.remove(t.malla); t.dispose(); } else { escena.remove(m.malla); m.malla.geometry.dispose(); } } catch (e) { /* ya liberada */ } }
       soltarSoldados(); if (entorno) entorno.soltar();

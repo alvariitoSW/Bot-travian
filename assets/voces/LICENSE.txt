@@ -181,3 +181,18 @@ lista (todas: CC BY 3.0, voz es_ES-sharvard-medium, Piper):
  ib-roto-enemigo-20.mp3
  ib-victoria-21.mp3
  ib-derrota-22.mp3
+
+SON9 (24/11/2026) añade 11 archivos más, los de js/dialogos.js (DICHOS): la arenga antes de la batalla y lo que dicen los oficiales
+(mismos Piper, voz, receta y licencia CC BY 3.0 de arriba; centurión = general y oficiales, una toma; soldado = la tropa, dos tomas). Total: 149 archivos.
+ dl-arenga-hogares.mp3   «Pro Roma, pro aris et focis, pugnate!»  (el general)
+ dl-arenga-botin.mp3     «Praeda et gloria vestra erit, milites! Fortiter pugnate!»  (el general)
+ dl-arenga-auspicios.mp3 «Di nobiscum sunt! Auspicia laeta sunt, milites!»  (el general)
+ dl-clamor.mp3           «Imperator! Imperator!»  (la tropa, tras la arenga)
+ dl-q-elefantes.mp3      «Elephanti! Elephanti veniunt!»  (tribuno)
+ dl-q-caballeria.mp3     «Equites hostium a latere!»  (primipilo)
+ dl-q-flanco.mp3         «Imperator, acies cedit!»  (tribuno)
+ dl-q-triarios.mp3       «Triarii parati sunt. Quid imperas?»  (primipilo)
+ dl-q-cansancio.mp3      «Defessi sunt, imperator.»  (primipilo)
+ dl-q-flaquea.mp3        «Hostis labat! Instemus!»  (tribuno)
+ dl-q-tiempo.mp3         «Tenebo aciem!»  (tribuno, cuando no contestas a tiempo)
+Todo el texto latino es licencia de juego (restitución sencilla; fuentes y dictamen en gobierno/historia/SON9-dialogos.md).
