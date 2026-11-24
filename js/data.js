@@ -75,7 +75,7 @@
   /* CDe1/CDe2: las necesidades de barrio (js/necesidades.js) tienen consecuencia (dureza «Duro»): gente que se va, votos y favor, y la revuelta deja sin impuestos
      a las casas de ese barrio hasta que se calma. Se ven y se remedian en la ficha del barrio (CD5b). Licencia de juego. */
   D.NEC_CASTIGOS = true;
-  D.NEC_PERDIDA = 0.005;   // CDe2: parte de los vecinos del barrio que se va por estación (una vez por barrio) con hambre, fiebres o abandono. Antes 1,5 %; medido con el bot de campaña y el investigador
+  D.NEC_PERDIDA = 0.003;   // CDe2: parte de los vecinos del barrio que se va por estación (una vez por barrio) con hambre, fiebres o abandono. Antes 1,5 %; medido con el bot de campaña (larga y corta) y el investigador
   D.FAMILIAS = [['principales', 'Principales'], ['infra', 'Infraestructura'], ['politica', 'Política y culto'], ['militar', 'Militar'], ['produccion', 'Producción'], ['viviendas', 'Viviendas'], ['puerto', 'Puerto']];
   D.FAMILIA_PIEZA = { fuente: 'infra', granero: 'principales', taller: 'produccion', salinas: 'produccion', zanja: 'infra', dique: 'infra', compitum: 'viviendas' };   // piezas de ciudad.js sin edificio de D.BUILD
   /* CDe1-C: las diez obras que eran «Pronto» ya se construyen: viven en EDIF de ciudad.js y su familia está en D.FAMILIA_PIEZA.
