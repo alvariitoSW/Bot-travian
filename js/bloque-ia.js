@@ -701,8 +701,33 @@ export function crearCombate(m = {}) {
   }
   function amiga(b, dt) {
     if (b.U.roto) return mueveHuida(b, dt);
+    /* ES2: una compañera con orden del mando (js/mando-varios.js) carga o para como tu manípulo; sin orden, todo como antes */
+    if (b.orden === 'cargar' && !enChoque(b)) {
+      const v = delanteDe(b, 80, 70 * GRADO);
+      if (v) { const c = centro(v.o), f = fr(b.ang), k = v.o.fondo / 2 + 8; b.obj = { x: c.x + f.x * k, z: c.z + f.z * k, ang: b.ang };
+        if (v.o.estado === 'huye' || retirando(v.o)) b.coh = Math.max(0, b.coh - 2.5 * dt); } else b.obj = null;
+    }
+    if (b.orden === 'alto') b.obj = null;
     if (enChoque(b) && b.fila >= AGOTADA && b.relevos > 0 && b.tRelevo < S.T) { b.relevos--; b.tRelevo = S.T + T_RELEVO; }
     mueve(b, dt);
+    if (b.orden === 'marcha' && !b.obj) b.orden = null;
+  }
+  /* ES2: las órdenes y el frente de cualquier bloque tuyo (la falange es S.tuyo; los manípulos, S.amigas). Para tuyo, las de siempre */
+  function ordenDe(b, n) {
+    if (b === tuyo) return orden(n);
+    if (S.ganador || !ORDENES.includes(n) || b.U.roto || b.estado === 'fuera' || b.estado === 'retira') return false;
+    if (n === 'retirada') return retirada(b, D_RETIRA);
+    if (b.estado === 'reforma') b.estado = enChoque(b) ? 'choque' : 'forma';
+    if (n === 'testudo' && b.orden === 'testudo') { b.orden = 'alto'; b.tOrden = S.T; b.obj = null; return true; }
+    if (n === 'relevo') { if (b.relevos <= 0 || b.tRelevo > S.T) return false; b.relevos--; b.tRelevo = S.T + T_RELEVO; b.coh = Math.max(0, b.coh - 4); S.cuenta.relevos++; b.agotada = false; return true; }
+    if (n === 'cargar') { if (b.orden !== 'cargar') { S.cuenta.cargas++; b.cargaAl = true; } b.obj = null; }
+    if (n === 'alto') b.obj = null;
+    b.orden = n; b.tOrden = S.T; return true;
+  }
+  function frenteDe(b, o) {
+    if (b === tuyo) return frente(o);
+    if (S.ganador || !o || b.U.roto || b.estado === 'fuera' || b.estado === 'retira') return;
+    b.obj = { x: o.x, z: o.z, ang: o.ang }; if (b.orden === 'cargar' || b.orden === 'alto' || b.orden === null) b.orden = 'marcha';
   }
   function fin() {
     const { centro: C, reserva: R, alas } = ene;
@@ -770,7 +795,7 @@ export function crearCombate(m = {}) {
     return k;
   }
   S.lucha = LUCHA ? 'motor' : 'reglas';
-  return { S, paso, orden, baja, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
+  return { S, paso, orden, ordenDe, frenteDe, baja, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
 }
 
 /* una partida entera con un bot (para las pruebas y el juez) */
