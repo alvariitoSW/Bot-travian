@@ -75,7 +75,7 @@
     return {
       cartago: !!(cities[objetivo] && cities[objetivo].owner === 'roma'), corta, objetivo: corta ? ((D.CITIES[objetivo] && D.CITIES[objetivo].n) || objetivo) : null, plazas,
       denarios: num(s.res && s.res.denarios) + num(s.alm && s.alm.denarios),
-      rutas: obj(s.mercado) ? lista(mer.rutas).length : lista(s.rutas).length,   // mercado.js migra las rutas viejas sin borrarlas: no contar dos veces
+      rutas: obj(s.mercado) ? lista(mer.rutas).filter((r) => r && !r.parada).length : lista(s.rutas).filter((r) => r && !r.parada).length,   // mercado.js migra las rutas viejas sin borrarlas: no contar dos veces
       acuerdos, cargo, favorSenado, bandos, planesBien,
       barrios: { cubiertos, total }, nivelUrbe: Math.max(1, num(c.barrio) || 1)
     };

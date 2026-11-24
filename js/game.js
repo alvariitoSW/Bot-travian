@@ -297,7 +297,7 @@
     }
     for (const m of s.marches) if (m.owner === 'roma') for (const k in m.units) up += m.units[k] * D.UNITS[k].up;
     p.grano -= up; p.pc = pc; p.upkeep = up; p.comida = comPop + up; p.det = det;
-    p.rutas = 0; if (!merc()) for (const r of G.rutasAbiertas()) p.rutas += G.rutaRenta(r);   // CDe3-F2a: con el mercado nuevo las rutas pagan en el cierre de mes (MERCADO.mes), no aquí
+    p.rutas = 0; if (!merc()) for (const r of G.rutasAbiertas()) if (!r.parada) p.rutas += G.rutaRenta(r);   // CDe3-F2a: con el mercado nuevo las rutas pagan en el cierre de mes (MERCADO.mes), no aquí
     p.denarios += p.rutas; det.rutas = p.rutas;
     p.mant = G.mantenimiento(); p.denarios -= p.mant.total;
     p.sabios = G.pagaSabios(gOk);   // solo dato: se cobra al cerrar el mes (G.cierreMes), no entra en p.denarios
@@ -382,7 +382,8 @@
       const ca = s.cities[r.a], cb = s.cities[r.b];
       if (ca.owner !== 'roma') { G.rutaCerrar(r.a, r.b, D.CITIES[r.a].n + ' ya no es tuya'); continue; }
       if (cb.owner !== r.f) { if (cb.owner === 'roma') { r.f = 'roma'; G.log('⚖️ ' + D.CITIES[r.b].n + ' ya es tuya: la ruta pasa a ser interior.'); } else { G.rutaCerrar(r.a, r.b, D.CITIES[r.b].n + ' cambió de dueño'); } continue; }
-      if (r.f !== 'roma' && G.hayGuerraCon(r.f)) G.rutaCerrar(r.a, r.b, 'guerra con ' + D.FACTIONS[r.f].n);
+      if (r.f !== 'roma' && G.hayGuerraCon(r.f)) { if (!r.parada) { r.parada = true; G.log('⚖️ Ruta parada por la guerra con ' + D.FACTIONS[r.f].n + ': ' + D.CITIES[r.a].n + ' ↔ ' + D.CITIES[r.b].n + '.', 'bad'); } }   // CE12: se para, no se cierra; no paga hasta la paz
+      else if (r.parada) r.parada = false;
     }
   };
   // el bien especial de una ciudad ajena con tratado llega a Roma
