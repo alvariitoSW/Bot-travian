@@ -204,7 +204,7 @@ async function navegador() {
       await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
       const guardada = await estado(() => localStorage.getItem('aqvila-save-v1'));
       if (!(await page.locator('#hoja .esc').count())) { await page.click('#menu .mesc'); await espera(800); }
-      await page.click('[data-act="escempieza"]');
+      await page.click('[data-act="escempieza"]'); await page.waitForSelector('#br-el [data-k="vivo"]', { timeout: 20000 }).then(() => estado(() => document.querySelector('#br-el [data-k="vivo"]').click())).catch(() => { });   // CG7 (CDe4): «Al combate» pregunta vivo, rápida o resolver: se elige «Jugar en vivo»
       await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
       if (!(await estado(() => !!(window.__mn && window.__mn.lista)))) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('escaramuza-carga') };
       await estado(() => window.__mn.pausa(true)); await espera(1500);
@@ -243,7 +243,7 @@ async function navegador() {
       /* el menú se toca en vertical; tras el paso anterior la hoja del resultado (.esc-fin) sigue en la página, así que se mira el botón */
       if (!(await page.locator('[data-act="escempieza"]').count())) { await page.click('#menu .mesc'); await espera(800); }
       await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
-      await page.click('[data-act="escempieza"]');
+      await page.click('[data-act="escempieza"]'); await page.waitForSelector('#br-el [data-k="vivo"]', { timeout: 20000 }).then(() => estado(() => document.querySelector('#br-el [data-k="vivo"]').click())).catch(() => { });   // CG7 (CDe4): «Al combate» pregunta vivo, rápida o resolver: se elige «Jugar en vivo»
       await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
       if (!(await estado(() => !!(window.__mn && window.__mn.lista)))) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('apie-carga') };
       await estado(() => window.__mn.pausa(false)); await espera(800);
