@@ -8,6 +8,11 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11/2026 ~18:27 — La falange sin duelo de espada (aprobado), pero (literal) «en la falange hay que hacer algo parecido para mejorar la jugabilidad» → FU3b fase 2: gesto propio (bajar sarisas a tiempo, sostener el empuje, cerrar el hueco, othismos); ≤120 min en total.
+- 24/11/2026 ~18:25 — «Lo que falta que se haga en otra sesión rápidamente» (lo sin terminar de FU3) → FU3b en la rama `fu3-falange`; FU3 + FU3b suben juntas.
+- 24/11/2026 ~17:55 — Pedido (literal): «Hay que cambiar lo de los jueces para que no repitan la historia entera y tarden tanto» → JZ1 (sesión de ciudad, rama `jz1-jueces`; sin bajar varas).
+- 24/11/2026 ~17:05 — Pedido (literal): «Y esto no lo puedo ver así parecido en el cuadro de mando para ver lo que tarda en acabarse la 1.0 y poder juzgarla y así después pasar a la 2.0?» → CM5.
+- 24/11/2026 ~16:56 — **«Mantener el orden»** (B, preguntado por la sesión de ciudad tras su captura de la batalla de campaña con la pantalla vieja): CG4b sigue detrás de la fusión FU, CG9 y CDe4. No se vuelve a preguntar.
 - 24/11 (vigía 4): RAM1 hecha: de 42 ramas antiguas solo 2 guardan algo útil. R1 (termas y acueducto 3D de E4, nunca entraron) → E4b abierta. R2 (estudio P161 «batalla dentro de la ciudad») → después de la 1.0.
 - 24/11 (vigía 4): CE12 avisa de que en la partida larga ningún bot toma Cartago (0/5). Se abre CG10 en Batallas para arreglarlo (sirve a L9, camino de las armas).
 - 24/11/2026 — **«1A, 2A»**: (1) una sesión corta revisa las ramas antiguas, rescata lo útil y aparta el resto sin borrar (RAM1); (2) nueva pestaña del cuadro «Tu móvil y lo que falta», una barra por apartado en 4 colores (CM4).

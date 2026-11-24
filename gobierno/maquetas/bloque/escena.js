@@ -25,6 +25,7 @@ import * as Son from '../a-pie/sonido.js';
 import * as BL from '../../../js/bloque.js';
 import { crearCombate, centro, NIVELES, SALVA_VUELO } from '../../../js/bloque-ia.js';
 import { crearTropas } from './tropas.js';
+import { crearLucha } from '../../../js/combate-tropas.js';   /* CB3: el motor de lucha decide los golpes y los caídos */
 import { crearFisicaBloque } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
 import { crearHud } from './hud.js';
 import { crearDedos } from './dedos.js';
@@ -48,6 +49,8 @@ if (FALANGE) {   /* tus falangitas de FA2 (azules, su oficial con penacho) contr
   document.title = 'AQVILA · Falange a pie'; const pal = gama('#3a64a8', PUEBLOS.falangita);
   ponBandos({ modelo: 'falangita', oficial: 'oficial-falange', paleta: pal, palOficial: Object.assign({}, pal, { escudos: PUEBLOS.falangita.escudos }) }, { modelo: 'hastatus' });
 }
+/* CB3: ?lucha=reglas vuelve a las bajas por reglas de bloque; por defecto deciden el motor de lucha (js/combate.js) */
+const LUCHA = Q.get('lucha') === 'reglas' ? 'reglas' : 'motor'; let LU = null, acumL = 0;
 let LP7 = null; try { LP7 = Q.get('lp7') ? JSON.parse(Q.get('lp7')) : null; } catch (e) { console.warn('lp7 mal escrito', e); }
 const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
@@ -266,12 +269,13 @@ function avisa(tipo, d) {
   } catch (e) { /* sin sonido */ }
 }
 function nueva(n) {
-  nivel = n; if (FORM.combate) return nuevaFormacion();
-  C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}));
+  nivel = n; if (FORM.combate) { LU = null; return nuevaFormacion(); }
+  C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa, lucha: LUCHA }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}));
   if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
+  LU = LUCHA === 'motor' ? crearLucha({ C, TR, semilla }) : null;
   FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
   OF = crearOficial({ S: C.S, alAviso: alOficial }); rivF = null; sacude = 0;
-  window.__bloque.C = C; window.__bloque.S = C.S; window.__bloque.oficial = OF;
+  window.__bloque.C = C; window.__bloque.LU = LU; window.__bloque.S = C.S; window.__bloque.oficial = OF;
 }
 /* FU3: la partida de una formación con su propio combate (la falange): sus reglas, sus hombres de verdad, sin física del bloque
    (el motor de la falange ya los separa y sus pila son suyos) y sin el duelo de dedos del oficial (el pellizco a su vista sí) */
@@ -308,7 +312,7 @@ function frenteDesdeRaya(p0, p1) { if (FORM.combate) return C.dibujaFrente(p0, p
 function salta(fase) {
   const S = C.S, tu = S.tuyo; let salva = false, choqueT = -1, n = 0;
   oyente = (t, d) => { if (t === 'salva' && d.blanco === tu) salva = true; };
-  const paso = () => { C.paso(0.1); TR.paso(0.1, S.T); FS.paso(0.1); OF && OF.paso(0.1); n++; };
+  const paso = () => { C.paso(0.1); TR.paso(0.1, S.T); FS.paso(0.1); LU && LU.paso(0.1); OF && OF.paso(0.1); n++; };
   if (S.escenario && fase !== 'dibuja' && fase !== 'gira') { const m = S.escenario.meta; C.frente({ x: m.x, z: m.z, ang: 0 }); }   /* FU1: cruzas hacia la colina */
   const hasta = (cond, conBot = true) => { while (!cond() && !S.ganador && S.T < 280) { if (conBot) C.bot('bueno'); paso(); } };
   if (fase === 'dibuja') { for (let i = 0; i < 20; i++) paso(); frenteDesdeRaya({ x: -4, z: -14 }, { x: 16, z: -24 }); for (let i = 0; i < 40; i++) paso(); }
@@ -401,7 +405,9 @@ function bucle(ahora) {
   if (C) {
     if (!congelado && nivel) {
       acum += dt; let k = 0; while (acum >= 0.05 && k < 4) { C.paso(0.05); acum -= 0.05; k++; } if (k === 4) acum = 0;
-      OF.paso(dt); TR.paso(dt, C.S.T); FS.paso(dt); lineaDeChoque(dt);
+      OF.paso(dt); TR.paso(dt, C.S.T); FS.paso(dt);
+      if (LU) { acumL += dt; while (acumL >= 0.05) { LU.paso(0.05); acumL -= 0.05; } }   /* CB3: el motor de lucha a paso fijo */
+      lineaDeChoque(dt);
       /* la raya del frente se queda mientras el bloque va hacia ella */
       const B = C.S.B; if (!dedos.activo()) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
       try { sonBloque(dt); } catch (e) { /* sin sonido */ }

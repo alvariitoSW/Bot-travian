@@ -386,8 +386,43 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
   movilNota = 'Calculado por los mensajes de commit' + (hayGit ? ' a las ' + new Date().toLocaleTimeString('es-ES', { ...madrid, hour: '2-digit', minute: '2-digit' }) : '') + ': una tarea hecha cuenta como subida salvo que sus cambios solo estén en la rama de trabajo. Puede fallar si un commit no nombra su tarea. «En obra» se refresca solo con las sesiones abiertas.';
 }
 
+/* ---------- CM5 · La 1.0 arriba del todo: camino (gobierno/camino.json), juzgarla (colección «juicio») y hacia la 2.0 ---------- */
+/* El % es el del menú del juego (bitácora 24/11): (hechas + ½ a medias) / total de lineas de lista.json. */
+const pct10 = lineas.length ? Math.round(100 * (lineas.filter(l => l.estado === 'hecha').length + lineas.filter(l => l.estado === 'medias').length / 2) / lineas.length) : 0;
+const ESPANA = { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' };
+const horaEs = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString('es-ES', ESPANA); };
+const EST_CAMINO = { hecho: ['si', '✔', 'hecho'], prueba: ['medias', '◐', 'en prueba'], esperando: ['falta', '○', 'esperando'] };
+let camino = { pasos: [], riesgos: [] }; try { camino = JSON.parse(await lee('camino.json')); } catch (e) { avisa('CM5: falta o no se lee gobierno/camino.json'); }
+let htmlCamino = '', htmlMarcasCamino = '', caminoCuando = '';
+for (const [i, p] of (camino.pasos || []).entries()) {
+  if (!EST_CAMINO[p.estado]) avisa('CM5: el paso ' + (i + 1) + ' de camino.json tiene un estado raro («' + p.estado + '»); vale hecho, prueba o esperando');
+  const [c, s, t] = EST_CAMINO[p.estado] || EST_CAMINO.esperando;
+  const cuando = p.hora ? '~' + horaEs(p.hora) + (p.hasta ? '–' + horaEs(p.hasta) : '') : (p.cuando || '');
+  htmlCamino += '<li class="paso p-' + c + '"><span class="pn">' + (i + 1) + '</span><span class="pq">' + md(p.que || '') + '<span class="pd"><b>' + esc(cuando) + '</b>' + (p.pct != null ? ' · <span class="nw">al acabar ' + esc(p.pct) + ' %</span>' : '') + '</span></span>' +
+    '<span class="marca ' + c + '"><i aria-hidden="true">' + s + '</i>' + t + '</span></li>';
+  if (p.pct != null && p.pct > pct10 && p.pct < 100) htmlMarcasCamino += '<i style="left:' + Number(p.pct) + '%" title="Paso ' + (i + 1) + ': ' + esc(p.pct) + ' %"></i>';
+}
+if (!htmlCamino) htmlCamino = '<li class="nota">Aún no hay plan apuntado en gobierno/camino.json.</li>';
+const ultimo = (camino.pasos || []).filter(p => p.hora).at(-1);
+if (ultimo) caminoCuando = 'Fin previsto: <b>~' + esc(horaEs(ultimo.hora)) + '</b> (hora de España).';
+if (camino.actualizado) { const d = new Date(camino.actualizado); caminoCuando += (caminoCuando ? ' ' : '') + 'Plan puesto al día ' + (isNaN(d) ? esc(camino.actualizado) : 'el ' + d.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long' }) + ' a las ' + horaEs(camino.actualizado)) + '.'; }
+else avisa('CM5: camino.json sin «actualizado»');
+const htmlRiesgos = (camino.riesgos || []).length ? '<p class="riesgos"><b>Riesgos:</b> ' + (camino.riesgos || []).map(md).join(' · ') + '</p>' : '';
+// juzgar: una prueba por línea de la lista, en el orden de los órganos
+const htmlJuicio = organos.map(o => {
+  const ls = lineas.filter(l => l.organo === o.id); if (!ls.length) return '';
+  return '<p class="rotulo">' + esc(o.nombre) + '</p>' + ls.map(l => { const id = esc(l.id);
+    return '<li class="juicio" data-juicio="' + id + '"><p class="jq"><b>' + esc(l.titulo) + '</b><span>Prueba: ' + esc((l.veras || '').charAt(0).toLowerCase() + (l.veras || '').slice(1)) + '</span></p>' +
+      '<p class="jv nota" data-jv="' + id + '">Sin juzgar.</p>' +
+      '<div class="fila"><button class="boton fino" data-juzgar="bien" data-ref="' + id + '" data-titulo="' + esc(l.titulo) + '">Bien</button><button class="boton fino" data-abrir="jm-' + id + '">Mal + nota</button></div>' +
+      '<div class="cambio" id="jm-' + id + '" hidden><label class="quien" for="jt-' + id + '">Qué falla en «' + esc(l.titulo) + '»</label><textarea id="jt-' + id + '"></textarea>' +
+      '<div class="fila"><button class="boton lleno" data-juzgar="mal" data-ref="' + id + '" data-titulo="' + esc(l.titulo) + '" data-texto="jt-' + id + '">Guardar «Mal»</button></div></div></li>'; }).join('');
+}).join('');
+if (!lineas.length) avisa('CM5: no hay líneas que juzgar en lista.json');
+
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
+  PCT10: pct10, PCT10_QUEDA: 100 - pct10, CAMINO: htmlCamino, CAMINO_MARCAS: htmlMarcasCamino, CAMINO_CUANDO: caminoCuando, RIESGOS: htmlRiesgos, JUICIO: htmlJuicio,
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(lista.frase || ''), VIGIA: esc(config.vigia || ''),
   ORGANOS: htmlOrganos, COMPROBACIONES: htmlComprob, TE_ESPERAN: htmlTeEsperan,
   N_LINEAS: lineas.length, LISTA_PROPUESTA: htmlPropuesta, LISTA: htmlLista, RESTO: htmlResto, RESTO_RESUMEN: esc(resumenResto), N_NEVERA: nevera.length, NEVERA: htmlNevera,

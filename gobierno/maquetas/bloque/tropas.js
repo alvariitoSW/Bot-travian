@@ -8,6 +8,8 @@
      figs[]   hombres en pie: { bando 'r'|'g', x, z, yaw, clip, t, semilla, talla, b }  (yaw: mira hacia (sen yaw, cos yaw))
      caidos[] hombres caídos: los mismos campos, con clip 'morir' (se quedan donde cayeron) */
 
+import { clipLucha } from '../../../js/combate-tropas.js';   /* CB3: la pose desde el motor de lucha */
+
 const fr = a => ({ x: Math.sin(a), z: -Math.cos(a) }), de = a => ({ x: Math.cos(a), z: Math.sin(a) });
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
 /* azar fijo por hombre (no toca el azar de la partida) */
@@ -70,6 +72,15 @@ export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3:
       else f.esp = null;
     }
     const enChoque = b.contactos && b.contactos.length > 0, huye = b.estado === 'huye' || b.estado === 'fuera';
+    /* CB3: el que lucha en el motor (combate-tropas.js) se mueve como dice el motor: golpe, parada (escudo arriba) o guardia */
+    if (!huye && f.hc && f.hc.activo && !(b.bando === 'r' && b.orden === 'testudo')) {
+      const c = clipLucha(f.hc, T, DUR);
+      if (c) {
+        if (c.t === null) { if (f.clip !== 'guardia') { f.clip = 'guardia'; f.t = hash(f.semilla * 11) * 3; } f.t += dt; }
+        else { f.clip = c.clip; f.t = c.t; }
+        return;
+      }
+    }
     let clip;
     if (huye) clip = 'correr';
     else if (b.bando === 'r' && b.orden === 'testudo') clip = muroDelante && fila === 0 ? 'guardia' : 'cubrirse';
