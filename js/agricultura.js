@@ -67,11 +67,11 @@ const MULT = { estercolero: 1.2, era: 1.15, noria: 1.3, redil: 1.25 };
    cada MES sin guardar bien; suelos = suelos donde su campo rinde «bien» (sale de la tabla de CAMPOS); base = producción anual
    de una parcela de nivel 1 (licencia de juego). */
 const PROD = [
-  ['grano', 'Grano', 'trigo', 'si', 0, ['comida', 'tropa'], 1, 36],
-  ['aceite', 'Aceite', 'olivar', 'si', 0, ['comida', 'comercio', 'culto', 'banos'], 0.5, 10],
-  ['vino', 'Vino', 'vina', 'bodega', 0.07, ['comercio', 'fiesta', 'culto', 'tropa'], 0.3, 10],
-  ['verdura', 'Verdura', 'huerto', 'no', 0.3, ['comida', 'comercio'], 0.8, 24],
-  ['lana', 'Lana', 'pasto', 'si', 0, ['comercio', 'taller', 'tropa'], 0, 8]
+  ['grano', 'Grano', 'trigo', 'si', 0, ['comida', 'tropa'], 1, 300],
+  ['aceite', 'Aceite', 'olivar', 'si', 0, ['comida', 'comercio', 'culto', 'banos'], 0.5, 192],
+  ['vino', 'Vino', 'vina', 'bodega', 0.07, ['comercio', 'fiesta', 'culto', 'tropa'], 0.3, 192],
+  ['verdura', 'Verdura', 'huerto', 'no', 0.3, ['comida', 'comercio'], 0.8, 240],
+  ['lana', 'Lana', 'pasto', 'si', 0, ['comercio', 'taller', 'tropa'], 0, 72]
 ];
 export const PRODUCTOS = Object.fromEntries(PROD.map(([id, nombre, campo, guarda, estropea, usos, alimento, base]) => [id, {
   id, nombre, campo, guarda, estropea, usos, alimento, base,

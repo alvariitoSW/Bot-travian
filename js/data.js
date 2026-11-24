@@ -83,7 +83,8 @@
     agri_lagar: { n: 'Lagar', fam: 'agricultura', i: '🍷', agro: 1, mejora: 'lagar', campo: 'vina', cost: { materiales: 100, denarios: 250 }, time: 1, d: 'Sin él el vino rinde la mitad.' },
     agri_bodega: { n: 'Bodega de dolias', fam: 'agricultura', i: '🏺', agro: 1, mejora: 'bodega', campo: 'vina', cost: { materiales: 80, denarios: 200 }, time: 1, d: 'El vino se guarda sin perderse y vale más.' },
     agri_noria: { n: 'Noria o riego', fam: 'agricultura', i: '⚙️', agro: 1, mejora: 'noria', campo: 'huerto', cost: { materiales: 70, denarios: 180 }, time: 1, d: 'El huerto rinde un 30 % más y se da bien en llano y tierra baja.' },
-    agri_redil: { n: 'Redil', fam: 'agricultura', i: '🐏', agro: 1, mejora: 'redil', campo: 'pasto', cost: { materiales: 40, denarios: 100 }, time: 1, d: 'Lana un 25 % mayor y estiércol para el trigo vecino.' }
+    agri_redil: { n: 'Redil', fam: 'agricultura', i: '🐏', agro: 1, mejora: 'redil', campo: 'pasto', cost: { materiales: 40, denarios: 100 }, time: 1, d: 'Lana un 25 % mayor y estiércol para el trigo vecino.' },
+    agri_villa: { n: 'Villa', fam: 'agricultura', i: '🏛️', agro: 1, villa: 1, cost: { materiales: 200, denarios: 400 }, time: 1, d: 'Casa de campo con capataz: todos los campos de la ciudad rinden un 10 % más.' }
   };
   /* CD1b: familias del menú «Construir» (CD0 §2). Licencia de juego: es una agrupación para el jugador. */
   /* CDe1/CDe2: las necesidades de barrio (js/necesidades.js) tienen consecuencia (dureza «Duro»): gente que se va, votos y favor, y la revuelta deja sin impuestos

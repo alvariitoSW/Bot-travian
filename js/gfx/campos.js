@@ -51,6 +51,12 @@ let DAME = null;
 export function opciones(o = {}) { for (const k of ['mejoras', 'mes', 'forzar']) if (k in o) OPC[k] = o[k]; firma = ''; estQ = -1; return { ...OPC }; }
 /* el juego dice qué mejoras tiene cada parcela: f({campo, suelo, x, z}) → [ids] */
 export function fijarMejoras(f) { DAME = f; firma = ''; }
+/* el juego dice qué ha plantado el jugador y qué ha abierto la ciencia: f() → { clave, hechos: [ids de saber], plantados: [{ campo, suelo, mejoras, granja }] }.
+   Con esto, los cuadros de la vega que el jugador plantó llevan su cultivo y sus mejoras, y los campos cerrados por la ciencia no se pintan. */
+let DATOS = null;
+export function fijarPlantado(f) { DATOS = f; firma = ''; }
+const datos = () => { if (!DATOS) return null; try { return DATOS() || null; } catch (e) { return null; } };
+export const claveDatos = () => { const d = datos(); return d ? d.clave : ''; };
 /* lista de campos puestos (para rótulos, fichas y pruebas) */
 export function parcelas() { return pars.map(p => ({ x: p.cx, z: p.cz, campo: p.campo, suelo: p.suelo, nota: p.nota, labor: p.lab, mejoras: p.mej.slice(), lado: p.lu })); }
 
@@ -112,7 +118,7 @@ function suelo(x, z) {
 /* el campo que mejor encaja, con algo de variedad (peso = rinde²); en las granjas el trigo pesa el triple (su grano es el pan) */
 function elegir(su, i, j, sem, granja) {
   if (OPC.forzar) { const f = OPC.forzar(su, i, j); if (f) return f; }
-  const lista = Agro.consejo(su); if (!lista.length) return { campo: 'pasto', nota: 'regular' };
+  const dt = datos(), lista = Agro.consejo(su, [], dt ? dt.hechos : undefined); if (!lista.length) return { campo: 'pasto', nota: 'regular' };
   const pesos = lista.map(x => x.rinde * x.rinde * (granja && x.campo === 'trigo' ? 3 : 1)), tot = pesos.reduce((a, b) => a + b, 0); let r = hash(i, j, sem) * tot;
   for (let q = 0; q < lista.length; q++) { r -= pesos[q]; if (r <= 0) return lista[q]; } return lista[0];
 }
@@ -120,18 +126,21 @@ const nombreCampo = c => (typeof c === 'string' ? c : c.campo);
 
 function nuevoPar(c, su, o, U, V, sem) {
   const lu = hyp(U), lv = hyp(V), ch = typeof c === 'string' ? { campo: c, nota: Agro.encaje(c, su).nota } : c;
-  return { campo: ch.campo, nota: ch.nota, suelo: su, o, U, V, lu, lv, c: U[0] / lu, s: U[1] / lu, cx: o[0] + (U[0] + V[0]) / 2, cz: o[1] + (U[1] + V[1]) / 2, sem, mej: [], strips: [], olivos: [], lab: '', filas: [] };
+  return { campo: ch.campo, nota: ch.nota, suelo: su, o, U, V, lu, lv, c: U[0] / lu, s: U[1] / lu, cx: o[0] + (U[0] + V[0]) / 2, cz: o[1] + (U[1] + V[1]) / 2, sem, fijas: ch.fijas || null, mej: [], strips: [], olivos: [], lab: '', filas: [] };
 }
 const W = (p, fu, fv) => [p.o[0] + p.U[0] * fu + p.V[0] * fv, p.o[1] + p.U[1] * fu + p.V[1] * fv];
 
 /* parcelas: granjas (campo propio) y cuadros de la vega alineados con el foro */
 function franjas(E) {
   const CI = C.CI, arb = []; cuadros = []; pars = [];
+  /* lo plantado por el jugador, en cola por suelo: cada cuadro de la vega con ese suelo toma el siguiente */
+  const dt = datos(), colaP = {}, colaG = {};
+  if (dt) for (const q of dt.plantados || []) (q.granja ? colaG : colaP)[q.suelo] = ((q.granja ? colaG : colaP)[q.suelo] || []).concat([q]);
   const libre = (x, z) => { const i = Math.floor((x - CI.X0) / CI.C), j = Math.floor((z - CI.Z0) / CI.C); if (i < 0 || j < 0 || i >= CI.N || j >= CI.N) return Math.abs(x) < 900 && Math.abs(z) < 900; const k = j * CI.N + i; return !E.ocup[k] && E.dVia[k] > 9; };
   const tierra = (x, z) => C.distRio(x, z) > 26 && C.altura(x, z) > C.NIVEL_RIO + 0.8;
   /* (a) las granjas: su campo */
   for (const e of E.edificios) { if (e.tipo !== 'granja' || !e.campo || e.obra || e.ruina) continue; const [a, b, , d] = e.campo, U = [b[0] - a[0], b[1] - a[1]], V = [d[0] - a[0], d[1] - a[1]];
-    const sem = Math.round(e.x * 3 + e.z), su = suelo(a[0] + (U[0] + V[0]) / 2, a[1] + (U[1] + V[1]) / 2); pars.push(nuevoPar(elegir(su, sem, 7, 5, true), su, a, U, V, sem)); }
+    const sem = Math.round(e.x * 3 + e.z), su = suelo(a[0] + (U[0] + V[0]) / 2, a[1] + (U[1] + V[1]) / 2); const gq = colaG[su] && colaG[su].shift(), ch0 = dt && !OPC.forzar ? { campo: 'trigo', nota: Agro.encaje('trigo', su).nota } : elegir(su, sem, 7, 5, true); pars.push(nuevoPar(gq ? { campo: ch0.campo || ch0, nota: ch0.nota || Agro.encaje(ch0.campo || ch0, su).nota, fijas: gq.mejoras } : ch0, su, a, U, V, sem)); pars[pars.length - 1].granja = true; }
   /* (b) la vega */
   const f = E.foro, c = Math.cos(f.ang), s = Math.sin(f.ang), mu = (u, v) => [f.x + c * u - s * v, f.z + s * u + c * v], esc = {};
   for (const a of E.arboles) (esc[a.pieza] = esc[a.pieza] || []).push(a.esc); for (const k in esc) { esc[k].sort((x, y) => x - y); esc[k] = esc[k][esc[k].length >> 1]; }
@@ -145,11 +154,13 @@ function franjas(E) {
       if (!libre(q[0], q[1]) || !tierra(q[0], q[1]) || (E.fundada && C.CI.cercado(E, h[0], h[1])) || (urbe && C.CI.enUrbe(E, h2[0], h2[1]))) { ok = false; break; } }
     if (!ok) continue; const ys = pts.map(q => C.altura(q[0], q[1])); if (Math.max(...ys) - Math.min(...ys) > DESNIVEL_MAX) continue;
     if (granjas.some(g => Math.hypot(g.x - p[0], g.z - p[1]) < 46)) continue; if (hash(i, j, E.semilla) < 0.18) continue;
-    const su = suelo(p[0], p[1]), ch = elegir(su, i, j, 23, false), o = mu(cx - LADO / 2 + MARGEN, cz - LADO / 2 + MARGEN), L = LADO - 2 * MARGEN, U = [c * L, s * L], V = [-s * L, c * L];
-    pars.push(nuevoPar(ch, su, o, U, V, i * 31 + j)); cuadros.push({ x: p[0], z: p[1], c, s });
+    const su = suelo(p[0], p[1]), pl = colaP[su] && colaP[su].shift(), ch = pl ? { campo: pl.campo, nota: Agro.encaje(pl.campo, su, pl.mejoras).nota, fijas: pl.mejoras || [] } : elegir(su, i, j, 23, false), o = mu(cx - LADO / 2 + MARGEN, cz - LADO / 2 + MARGEN), L = LADO - 2 * MARGEN, U = [c * L, s * L], V = [-s * L, c * L];
+    pars.push(nuevoPar(ch, su, o, U, V, i * 31 + j)); if (pl) pars[pars.length - 1].plantado = true; cuadros.push({ x: p[0], z: p[1], c, s });
     /* seto de cipreses u olivos en una linde del cuadro de trigo */
     if (nombreCampo(ch) === 'trigo' && hash(i, j, 11) < 0.3) { const pz = hash(i, j, 13) < 0.5 ? 'cipres' : 'olivo', e0 = esc[pz] || 1; for (let t = 3; t < LADO - 2; t += pz === 'cipres' ? 6 : 9) { const q = mu(cx - LADO / 2 + t, cz - LADO / 2 + 0.2); if (tierra(q[0], q[1]) && libre(q[0], q[1])) arb.push({ x: q[0], z: q[1], pieza: pz, esc: e0 * (0.85 + 0.3 * hash(t, i, j)), ang: t, tono: hash(j, t, i) }); } }
   }
+  /* lo plantado que no tuvo cuadro de su suelo en la vega se pone en cuadros sueltos: el jugador siempre ve su campo (el suelo de la vega manda en el nombre del encaje) */
+  if (dt) for (const q of [].concat(...Object.values(colaP))) { const lib = pars.filter(x => !x.plantado && !x.granja), p = lib.find(x => Agro.encaje(q.campo, x.suelo, q.mejoras || []).nota !== 'no') || lib[0]; if (!p) break; p.campo = q.campo; p.nota = Agro.encaje(q.campo, p.suelo, q.mejoras).nota; p.fijas = q.mejoras || []; p.plantado = true; }
   /* olivos de cada olivar: rejilla de 8 m en hileras (los dibuja city3d con arbolesExtra) */
   const eO = esc.olivo || 1;
   for (const p of pars) if (p.campo === 'olivar') { const nu = Math.max(2, Math.round(p.lu / 8.5)), nv = Math.max(2, Math.round(p.lv / 8.5));
@@ -240,7 +251,7 @@ function mejora(p, id, i) {
   else if (id === 'era') { disco(x, z, 4.3, [0.86, 0.79, 0.62], 0.09, 18); disco(x, z, 0.6, [0.60, 0.52, 0.40], 0.12, 6); }
   else if (id === 'estercolero') { cono(x, z, 3.0, 1.6, [0.38, 0.27, 0.17]); const m = F(3.2, 1.2, 0); cono(m[0], m[2], 1.6, 0.9, [0.34, 0.25, 0.16]); }
 }
-function mejorasDe(p) { const o = OPC.mejoras; if (o === 'ninguna') return []; if (o === 'todas') return Agro.mejorasDe(p.campo); if (DAME) { try { return DAME({ campo: p.campo, suelo: p.suelo, x: p.cx, z: p.cz }) || []; } catch (e) { return []; } } return []; }
+function mejorasDe(p) { const o = OPC.mejoras; if (o === 'ninguna') return []; if (o === 'todas') return Agro.mejorasDe(p.campo); if (p.fijas) return p.fijas.filter(m => Agro.MEJORAS[m] && Agro.MEJORAS[m].campo === p.campo); if (DAME) { try { return DAME({ campo: p.campo, suelo: p.suelo, x: p.cx, z: p.cz }) || []; } catch (e) { return []; } } return []; }
 
 const laborDe = (campo, est) => (OPC.mes != null ? Agro.labor(campo, OPC.mes) : Agro.laborEstacion(campo, est));
 function piezas(est) {
@@ -287,7 +298,7 @@ const estDeMes = m => (m === 11 || m <= 1 ? 3 : m < 5 ? 0 : m < 8 ? 1 : 2);
 /* rehace la malla si cambió algo que la mueve; devuelve true si cambió (para repintar árboles) */
 export function poner(E, k, fe) {
   if (!CAMPOS || !mA) return false;
-  const fi = E && E.fundada ? E.semilla + '|' + E.edificios.filter(e => e.tipo === 'granja').map(e => Math.round(e.x) + ',' + (e.obra ? 1 : 0) + (e.ruina ? 1 : 0)).join(';') + '|' + E.vias.length + '|' + E.parcelas.length + '|' + E.edificios.length + '|' + E.muralla.fase : '';
+  const fi = E && E.fundada ? E.semilla + '|' + E.edificios.filter(e => e.tipo === 'granja').map(e => Math.round(e.x) + ',' + (e.obra ? 1 : 0) + (e.ruina ? 1 : 0)).join(';') + '|' + E.vias.length + '|' + E.parcelas.length + '|' + E.edificios.length + '|' + E.muralla.fase + '|' + claveDatos() : '';
   if (fi === firma) { estacion(k, fe); return false; } firma = fi;
   if (!fi) { mA.visible = mB.visible = mP.visible = mO.visible = false; cuadros = []; extra = []; pars = []; tapaSet = new Set(); return true; }
   franjas(E); for (const p of pars) p.mej = mejorasDe(p); suelos(E); estQ = -1; claveP = ''; estacion(k, fe); return true;
