@@ -239,11 +239,11 @@ t('P.mes: ciudad perdida', () => {
 t('juicio final: bien (+2 a todos), regular, mal (−3 a los que no hicieron)', () => {
   const s = nueva(); s.cities.roma.b.foro = 5; aprobado(s, [['roma', 'cuartel', 0], ['roma', 'granja', 1], ['roma', 'mina', 2], ['roma', 'cantera', 3]]);
   s.cities.roma.b.cuartel = 2; s.cities.roma.b.granja = 4; s.cities.roma.b.mina = 3; s.cities.roma.b.cantera = 4;
-  const r = P.mes(s, 12); assert.strictEqual(s.planSenado.plan, null); assert.strictEqual(s.planSenado.historial[0].juicio, 'bien');
+  const r = P.mes(s, 12); assert.strictEqual(s.planSenado.plan, null); assert.strictEqual(s.planSenado.historial[0].juicio, 'bien'); assert.strictEqual(s.planSenado.bienTotal, 1, 'CE12: bienTotal suma los planes «bien»');
   assert.deepStrictEqual(r.efectos.filter(x => x.tipo === 'humor').map(x => [x.bando, x.d]), [['ter', 2], ['mer', 2], ['mil', 2]]);
   assert.ok(r.efectos.find(x => x.tono === 'good'));
   const s2 = nueva(); s2.cities.roma.b.foro = 5; aprobado(s2, [['roma', 'cuartel', 0], ['roma', 'granja', 1], ['roma', 'mina', 2], ['roma', 'cantera', 3]]);
-  const r2 = P.mes(s2, 12); assert.strictEqual(s2.planSenado.historial[0].juicio, 'mal'); assert.deepStrictEqual(s2.planSenado.historial[0].hechas, 0);
+  const r2 = P.mes(s2, 12); assert.strictEqual(s2.planSenado.historial[0].juicio, 'mal'); assert.strictEqual(s2.planSenado.bienTotal, 0); assert.deepStrictEqual(s2.planSenado.historial[0].hechas, 0);
   assert.deepStrictEqual(r2.efectos.filter(x => x.tipo === 'humor').map(x => [x.bando, x.d]).sort(), [['mil', -3], ['ter', -3]]);
   assert.ok(r2.efectos.find(x => x.tono === 'bad'));
   const s3 = nueva(); s3.cities.roma.b.foro = 5; aprobado(s3, [['roma', 'cuartel', 0], ['roma', 'granja', 1], ['roma', 'mina', 2], ['roma', 'cantera', 3]]);

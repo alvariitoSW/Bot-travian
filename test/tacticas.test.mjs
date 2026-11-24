@@ -77,9 +77,9 @@ t('galos: pegan más al principio y la furia se apaga; avisos de furia y de apag
 });
 
 t('triarios: con los hastati hechos pedazos se alzan, aguantan más y sale «Res ad triarios»', () => {
-  const m = [{ lado: 0, tropa: 'hastati', x: -200, y: -100 }, { lado: 0, tropa: 'hastati', x: 200, y: -100 }, { lado: 0, tropa: 'triarii', x: 0, y: -20, moral: 0.7 }, { lado: 1, tropa: 'libios', x: 0, y: 20 }];
+  const m = [{ lado: 0, tropa: 'hastati', x: -200, y: -100 }, { lado: 0, tropa: 'hastati', x: 200, y: -100 }, { lado: 0, tropa: 'triarii', x: 0, y: -20, moral: 0.7 }, { lado: 1, tropa: 'libios', x: 0, y: 20 }, { lado: 1, tropa: 'libios', x: 40, y: 20 }];   /* UN2: dos manípulos libios (con las tropas de CG9, uno solo ya no rompe a los triarios ni sin tácticas) */
   const fix = S => { S.man[0].n = 30; S.man[1].n = 30; };
-  const o = cargan([3], 2), a = corre(m, o, 300, false, fix), b = corre(m, o, 300, true, fix);
+  const o = cargan([3, 4], 2), a = corre(m, o, 300, false, fix), b = corre(m, o, 300, true, fix);
   cifras('triarios: ruptura (s)', r1(rompe(a, 2)), r1(rompe(b, 2)), 'bajas triarios ' + Math.round(bajas(a, 0)) + '/' + Math.round(bajas(b, 0)) + ', bajas libios ' + Math.round(bajas(a, 1)) + '/' + Math.round(bajas(b, 1)));
   assert.ok(rompe(b, 2) > rompe(a, 2), 'con tácticas aguantan más');
   assert.ok(/Res ad triarios/.test(aviso(b, 'triarios').texto)); assert.equal(avisos(b, 'triarios'), 1);

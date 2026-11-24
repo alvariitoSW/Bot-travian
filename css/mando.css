@@ -20,7 +20,9 @@
 #mn .mn-e.roto{opacity:.55}
 #mn .mn-e i{display:block;height:3px;background:rgba(255,255,255,.14);overflow:clip}
 #mn .mn-e i b{display:block;height:100%;width:100%}
-#mn .mn-e i.h b{background:#f1ead9}
+#mn .mn-e i.h{display:flex;background:rgba(0,0,0,.55)}
+#mn .mn-e i.h b{background:#f1ead9;flex:none}
+#mn .mn-e i.h b.her{background:#e0a030;width:0}
 #mn .mn-e i.m b{background:var(--verde)}
 #mn .mn-e i.f b{background:var(--ambar)}
 

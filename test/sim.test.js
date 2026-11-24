@@ -218,7 +218,7 @@ for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in
   assert.strictEqual(D.CITIES.emporion.esp, 'vino'); assert(G.especiales().vino, 'el tratado con Emporion da su bien');
   // se rompe al atacar a esa facción
   s.cities.roma.units = { hastati: 50 }; assert(G.send('roma', 'emporion', { hastati: 20 }));
-  assert(!G.rutaDe('roma', 'emporion'), 'atacar a la facción cierra el tratado'); assert(!G.especiales().vino, 'sin tratado se pierde el bien');
+  assert(G.rutaDe('roma', 'emporion') && G.rutaDe('roma', 'emporion').parada, 'atacar a la facción para el tratado (CE12: se para, no se cierra)'); assert(!G.especiales().vino, 'sin tratado se pierde el bien');
   assert(G.rutaPuede('roma', 'emporion') && /guerra/i.test(G.rutaPuede('roma', 'emporion')), 'no se firma en guerra');
   // cambio de dueño de b ajena
   G.newGame('Test'); s = G.state; s.res.denarios = 1000; s.cities.roma.b.mercado = 3; s.cities.capua.b.mercado = 1;

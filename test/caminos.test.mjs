@@ -6,11 +6,11 @@ const CAM = require('../js/caminos.js');
 let n = 0;
 const t = (nombre, f) => { f(); n++; };
 
-const buena = (o) => Object.assign({ cartago: false, plazas: 0, denarios: 0, rutas: 0, acuerdos: 0, cargo: 'ninguno', favorSenado: 0, bandos: [], planesBien: 0, barrios: { cubiertos: 0, total: 5 }, nivelUrbe: 1 }, o || {});
+const buena = (o) => Object.assign({ cartago: false, plazas: 0, denarios: 0, renta: 0, ciudades: 1, casasUrbe: 0, casasTotal: 0, rutas: 0, acuerdos: 0, cargo: 'ninguno', favorSenado: 0, bandos: [], planesBien: 0, barrios: { cubiertos: 0, total: 5 }, nivelUrbe: 1 }, o || {});
 const armasOk = { cartago: true, plazas: 8 };
-const comercioOk = { denarios: CAM.CIFRAS.comercio.denarios, rutas: CAM.CIFRAS.comercio.rutas, acuerdos: CAM.CIFRAS.comercio.acuerdos };   // CE12: sigue a las cifras
-const politicaOk = { cargo: 'princeps', bandos: [{ id: 'a', humor: 70, escanos: 10 }], planesBien: 2 };
-const ciudadOk = { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4 };
+const comercioOk = { renta: CAM.CIFRAS.comercio.rentaPorCiudad, rutas: CAM.CIFRAS.comercio.rutas, acuerdos: CAM.CIFRAS.comercio.acuerdos };   // CE12: sigue a las cifras
+const politicaOk = { cargo: 'princeps', bandos: [{ id: 'a', humor: 70, escanos: 10 }], planesBien: CAM.CIFRAS.politica.planesBien };   // CE12: sigue a las cifras
+const ciudadOk = { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4, casasUrbe: CAM.CIFRAS.ciudad.casasPorCiudad, casasTotal: CAM.CIFRAS.ciudad.casasPorCiudad };
 const junta = (...fs) => buena(Object.assign({}, ...fs));
 
 t('necesarios', () => { assert.strictEqual(CAM.necesarios(4), 3); assert.strictEqual(CAM.necesarios(5), 4); assert.strictEqual(CAM.necesarios(), 3); });
@@ -73,7 +73,7 @@ t('3 de 4 da victoria y se mantiene', () => {
   void f;
 });
 t('marcarVista', () => {
-  const s = {}; for (let m = 1; m <= 12; m++) CAM.paso(s, junta(armasOk, ciudadOk, politicaOk), m);
+  const s = {}; for (let m = 1; m <= Math.max(CAM.CIFRAS.sostener.armas, CAM.CIFRAS.sostener.ciudad, CAM.CIFRAS.sostener.politica); m++) CAM.paso(s, junta(armasOk, ciudadOk, politicaOk), m);
   assert.strictEqual(CAM.vista(s, {}).nuevaVictoria, true); CAM.marcarVista(s); assert.strictEqual(CAM.vista(s, {}).nuevaVictoria, false);
 });
 t('migrar con basura', () => {
@@ -92,10 +92,10 @@ t('determinismo y nunca s.over', () => {
 });
 t('avisos solo 8', () => { const s = {}; for (let m = 1; m <= 40; m++) CAM.paso(s, m % 4 === 0 ? buena(armasOk) : buena(), m); assert.ok(s.caminos.avisos.length <= 8); });
 t('vista con textos', () => {
-  const v = CAM.vista({}, buena({ plazas: 5, denarios: 2140, cartago: true }));
+  const v = CAM.vista({}, buena({ plazas: 5, renta: 140, cartago: true }));
   assert.strictEqual(v.total, 4); assert.strictEqual(v.necesarios, 3);
   const a = v.caminos[0].hitos, c = v.caminos[1].hitos;
-  assert.strictEqual(a[0].texto, 'Hecho'); assert.strictEqual(a[1].texto, '5 de ' + CAM.CIFRAS.armas.plazas); assert.strictEqual(c[0].texto, '2.140 de ' + CAM.CIFRAS.comercio.denarios.toLocaleString('de-DE') + ' denarios');
+  assert.strictEqual(a[0].texto, 'Hecho'); assert.strictEqual(a[1].texto, '5 de ' + CAM.CIFRAS.armas.plazas); assert.strictEqual(c[0].texto, '140 de ' + CAM.CIFRAS.comercio.rentaPorCiudad.toLocaleString('de-DE') + ' denarios al año');
   v.caminos.forEach((k) => k.hitos.forEach((h) => assert.ok(typeof h.texto === 'string' && h.texto.length)));
 });
 t('bandos hostiles', () => {
@@ -103,6 +103,31 @@ t('bandos hostiles', () => {
   const h = CAM.evaluar(f).caminos[2].hitos[1]; assert.strictEqual(h.ok, false); assert.ok(h.v <= 0.99);
 });
 t('fuentes', () => { assert.ok(CAM.FUENTES.every((x) => x.tema && x.cita && ['histórico', 'licencia de juego'].includes(x.dictamen))); });
+t('comercio: la renta es la neta del año anterior y el umbral crece con las ciudades', () => {
+  const R = CAM.CIFRAS.comercio.rentaPorCiudad, libro = { v: 1, anio: -270, c: { roma: { denarios: { entra: { impuestos: R * 3, comercio: 50 }, sale: { obras: R * 2 } } }, _imperio: { denarios: { entra: {}, sale: { legiones: 10 } } } } };
+  const s = { t: 30, cities: { roma: { owner: 'roma', b: {}, barrio: 2 }, capua: { owner: 'roma', b: {}, barrio: 1 } }, esteAno: { v: 1, actual: { v: 1, anio: -269, c: {} }, anterior: libro } };
+  const f = CAM.foto(s, null);
+  assert.strictEqual(f.renta, R * 3 + 50 - R * 2 - 10); assert.strictEqual(f.ciudades, 2);
+  const h = CAM.evaluar(f).caminos[1].hitos[0];
+  assert.strictEqual(h.meta, R * 2); assert.strictEqual(h.ok, f.renta >= R * 2);
+  assert.strictEqual(CAM.foto({ cities: {} }, null).renta, 0);
+  assert.strictEqual(CAM.evaluar(Object.assign({}, f, { renta: R * 2 - 1 })).caminos[1].hitos[0].ok, false);
+});
+t('ciudad: casas en barrios de nivel 4, con fraccion y minimo', () => {
+  const C = CAM.CIFRAS.ciudad, h = (o) => CAM.evaluar(buena(Object.assign({ barrios: { cubiertos: 5, total: 5 } }, o))).caminos[3].hitos[1];
+  assert.strictEqual(h({ casasUrbe: C.casasPorCiudad, casasTotal: C.casasPorCiudad }).ok, true);
+  assert.strictEqual(h({ casasUrbe: C.casasPorCiudad - 1, casasTotal: C.casasPorCiudad - 1 }).ok, false);
+  assert.strictEqual(h({ casasUrbe: C.casasPorCiudad, casasTotal: Math.ceil(C.casasPorCiudad / C.fraccionUrbe) + 5 }).ok, false);   // muchas casas, pero pocas en nivel 4
+  const f = CAM.foto({ cities: { roma: { owner: 'roma', b: {}, barrio: 4, pop: 2400 } }, res: {}, alm: {} }, null);
+  assert.strictEqual(f.casasTotal, 120); assert.strictEqual(f.casasUrbe, 120);
+});
+t('foto: planesBien lee el contador acumulado bienTotal si existe', () => {
+  assert.strictEqual(CAM.foto({ cities: {}, planSenado: { bienTotal: 5, historial: [{ juicio: 'bien' }] } }, null).planesBien, 5);
+  assert.strictEqual(CAM.foto({ cities: {}, planSenado: { historial: [{ juicio: 'bien' }, { juicio: 'mal' }] } }, null).planesBien, 1);
+  const f = CAM.foto({ cities: { roma: { owner: 'roma', pop: 2400, barrio: 4 }, capua: { owner: 'roma', pop: 1000, barrio: 2 } }, res: {}, alm: {} }, null);
+  assert.strictEqual(f.casasTotal, 170); assert.strictEqual(f.casasUrbe, 120);
+  assert.strictEqual(CAM.evaluar(Object.assign({}, f, { casasUrbe: CAM.CIFRAS.ciudad.casasPorCiudad * 2 - 1, casasTotal: 170, ciudades: 2 })).caminos[3].hitos[1].ok, false);
+});
 console.log('caminos: ' + n + ' pruebas OK');
 
 // Revisor CE10: barrioInfo que lanza, bando sin humor, rutas sin doble cuenta, deuda

@@ -129,7 +129,10 @@
         "test/fu3c-falange.test.mjs",
         "test/fu3-falange.test.mjs",
         "test/fu3b-falange.test.mjs",
-        "test/fu4-rivales.test.mjs"
+        "test/fu4-rivales.test.mjs",
+        "test/tropas.test.mjs",
+        "test/tropas-sim.test.mjs",
+        "test/tropas-precios.test.mjs"
       ],
       "taller": [],
       "juez": {
