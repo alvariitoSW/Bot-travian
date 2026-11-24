@@ -412,6 +412,14 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
       <p class="grande">{{MOVIL_CAB}}</p>
       <p><b>Llegará a tu móvil en la próxima subida</b> <span class="nota">({{N_LLEGA}})</span></p>
       <ul class="mllega">{{MOVIL_LLEGA}}</ul>
+      <!-- CM6 (24/11, pedido del usuario: «Habría que poner algún botón o algo para actualizarlo desde el propio artifact»):
+           el botón llama al vigía con la orden «sube» (VIGIA.md §6). Pide confirmación aquí mismo: subir a main publica el juego. -->
+      <button class="boton lleno grande" data-subir-abrir>Subir lo terminado a mi móvil</button>
+      <div class="cambio" id="subir-ok" hidden>
+        <p>El vigía pasará los jueces completos (alrededor de una hora) y, si salen bien, lo subirá a tu juego. Si algo falla, no sube nada y te lo dice.</p>
+        <div class="fila"><button class="boton lleno" data-subir>Sí, súbelo</button><button class="boton fino" data-subir-no>Ahora no</button></div>
+      </div>
+      <p class="nota" data-subir-estado></p>
     </section>
     <section aria-label="Qué significa cada color">
       <ul class="leyenda">
@@ -691,6 +699,24 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
         : 'No se pudo llamar al vigía' + (err && err.message ? ' (' + err.message + ').' : '.') + chat);
     });
   }
+  /* CM6: subir a main desde el cuadro: la misma llamada al vigía, con la orden «sube» en el texto */
+  function estadoSubir(t) { todos('[data-subir-estado]').forEach(function (e) { e.textContent = t; }); }
+  document.addEventListener('click', function (ev) {
+    if (ev.target.closest('[data-subir-abrir]')) { $('subir-ok').hidden = false; return; }
+    if (ev.target.closest('[data-subir-no]')) { $('subir-ok').hidden = true; return; }
+    var b = ev.target.closest('[data-subir]'); if (!b) return;
+    if (!mcp || !VIGIA) { estadoSubir('Desde aquí no se puede llamar al vigía. Escribe «sube» en el chat de Claude.'); return; }
+    b.disabled = true; estadoSubir('Llamando al vigía para subir…');
+    var orden = 'SUBE (orden del usuario con el botón «Subir lo terminado a mi móvil» del cuadro, ' + new Date().toISOString() + '). Haz la subida a main de gobierno/VIGIA.md §6 con todo lo terminado de la rama de trabajo: jueces completos APTO antes, novedades y caché como manda §6; si algo falla, no subas y apúntalo en estado/vigia. Al acabar, publica el cuadro.';
+    mcp.callTool('Claude Code Remote', 'fire_trigger', { trigger_id: VIGIA, text: orden }).then(function () {
+      $('subir-ok').hidden = true;
+      estadoSubir('Pedido. El vigía pasa los jueces (alrededor de una hora) y sube si salen bien. Cuando llegue, esta pestaña dirá que tu móvil tiene la versión nueva.');
+      if (db) db.collection('pedidos').doc('orden-subir').set({ tipo: 'orden', ref: 'subir', titulo: 'Subir a main', texto: 'Botón «Subir lo terminado a mi móvil»', estado: 'pendiente', creado: new Date().toISOString() }).catch(function () {});
+    }, function (err) {
+      b.disabled = false;
+      estadoSubir('No se pudo llamar al vigía' + (err && err.message ? ' (' + err.message + ')' : '') + '. Escribe «sube» en el chat de Claude.');
+    });
+  });
   function pintarVigia(v) {
     if (!v) return;
     var bs = todos('[data-llamar]'), ll = new Date(v.llamado || v.empezado || 0).getTime(), fin = new Date(v.terminado || 0).getTime() || 0;

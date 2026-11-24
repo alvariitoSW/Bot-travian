@@ -90,6 +90,7 @@ bitácora y `lista.json`, commit y push a la rama de trabajo; **sin PR; `main` n
   tu cuenta salvo una última prórroga cerrada y corta, apuntada en la bitácora).
 
 ## 6. Subir a `main` (solo con el «sube» explícito del usuario)
+El botón «Subir lo terminado a mi móvil» del cuadro (pestaña Móvil, CM6, 24/11) cuenta como ese «sube»: llega como texto de la llamada al vigía y como pedido `orden-subir`.
 El usuario juega en `main`; **solo se actualiza cuando él lo dice**. Método (como `4089d81`, `2c44a35`, `68527fb`): se crea un commit de
 unión con dos padres (el `main` actual y la punta de la rama) cuyo árbol es **idéntico al de la rama**:
 ```

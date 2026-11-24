@@ -73,6 +73,7 @@ Es una **sesión fija**, «AQVILA · vigía del cuadro (sesión fija 2)» (cread
 | `seguir` | Abrir la siguiente tarea aprobada de cada carril libre (reglas de «Abrir sesiones»). |
 | `pausar:<ID>` / `reanudar:<ID>` | Poner o quitar `(en pausa desde <fecha>)` al principio de esa tarea en el tablero. |
 | `capturas` | Abrir una sesión Sonnet que pase los jueces completos, mire las capturas y publique el cuadro. |
+| `subir` | Botón «Subir lo terminado a mi móvil» (pestaña Móvil, CM6). Llega también como texto del `fire_trigger` al vigía. Es el «sube» explícito del usuario: subida a `main` de `VIGIA.md` §6, con jueces completos APTO antes; si fallan, no se sube y se apunta en `estado/vigia`. |
 | `informe` | Informe «¿a dónde vamos?» (skill `bitacora`) en `gobierno/estudios/`, añadido a `informes` de `cuadro.json`. |
 
 ## Antes de archivar una sesión (regla del 17/11)
