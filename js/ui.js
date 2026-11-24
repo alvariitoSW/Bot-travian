@@ -9,11 +9,12 @@ import { loadGroundTextures } from './gfx/ground.js';
 import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez.js';
 import * as Ciudad from './ciudad.js';
 import * as NEC from './necesidades.js';   // CDe1: necesidades de la ciudad (las usa game.js)
+import * as AGRO from './agricultura.js';   // CDe3: campos por suelo (los usa game.js)
 import { crearMenu } from './ciudad-menu.js';   // CD1b: botón «Construir» y su menú por familias
 import { descargar, copiar, hacerPostal, guardarCopia, cargarCopia, contemplar } from './gfx/movil.js';   // CN18
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
-G.usarCiudad(Ciudad); if (G.usarNecesidades) G.usarNecesidades(NEC);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
+G.usarCiudad(Ciudad); if (G.usarNecesidades) G.usarNecesidades(NEC); if (G.usarAgricultura) G.usarAgricultura(AGRO);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
 const UI = { codice: null, modo: 'gobierno', tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
 const ROMA = D.FACTIONS.roma.col;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -332,7 +333,7 @@ function buildTop() { $('tira-b').dataset.act = 'tira'; }
 function tiraPinta(s, p, pr, aviso) {
   const h = TIRA.map(r => {
     const v = valorTira(s, r); if (v === null) return '';
-    const esRes = D.RES.indexOf(r) >= 0, cap = esRes ? G.capDe(r) : 0, pierde = !!(esRes && pr && pr[r] && pr[r].perdera >= 1 && aviso), lleno = !!(esRes && s.alm && s.alm[r] >= cap - 1);
+    const esRes = D.RES.indexOf(r) >= 0, cap = esRes ? G.capDe(r) : 0, pierde = !!(esRes && pr && pr[r] && pr[r].perdera >= 1 && aviso), lleno = !!(esRes && cap > 0 && s.alm && s.alm[r] >= cap - 1);
     return '<span class="tr' + (pierde ? ' pierde' : lleno ? ' full' : '') + '" title="' + esc(RES_NOM[r] || (D.ESPECIAL && D.ESPECIAL[r] && D.ESPECIAL[r].n) || r) + ': ' + fmt(v) + (pierde ? ' · se perderán ' + pr[r].perdera : lleno ? ' (almacén lleno)' : '') + '">' + iconoTira(r) + '<b>' + fmtK(v) + '</b></span>';
   }).join('');
   setTxt('tira-r', h);
@@ -352,7 +353,8 @@ function tpanelHtml() {
     '<div class="tp-sec">TUS CIUDADES</div><div class="tp-ciu">' + cityMenuHtml() + '</div>' +
     '<div class="tp-pie"><button type="button" data-act="hoja" data-v="ciudad">Ficha de ' + esc(D.CITIES[cityOk()].n) + '</button><button type="button" data-act="cuentas">Cuentas</button><button type="button" class="tp-menu" data-act="menumodo">Menú</button></div>';
 }
-function tpanelPinta(forzar) { const e = $('tpanel'); if (!e || e.hidden || !S() || G.fundando()) return; const h = tpanelHtml(); if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
+function tpanelPinta(forzar) { const e = $('tpanel'); if (!e || e.hidden || !S()) return; const h = G.fundando() ? '<div class="tp-pie"><button type="button" class="tp-menu" data-act="menumodo">Menú</button></div>' : tpanelHtml();   // antes de fundar: solo «Menú»
+  if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
 function tpanelCierra() { const e = $('tpanel'); if (e && !e.hidden) { e.hidden = true; $('tira-b').setAttribute('aria-expanded', 'false'); } }
 const turnosTxt = n => 'en ' + n + (n === 1 ? ' turno' : ' turnos');
 /* CN22B: informe de estación compacto. Tarjeta baja (#inf, ≤ ⅓ de pantalla, no bloquea la ciudad); «Ver más» despliega el detalle completo. */
