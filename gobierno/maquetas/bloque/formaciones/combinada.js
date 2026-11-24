@@ -13,28 +13,36 @@ import { montaTiradores, DETRAS } from '../../../../js/tiro.js';   /* ES3b: tus 
 import { crearVista } from '../tiradores.js';   /* ES3b: cómo se ven y se tocan */
 
 export const HOMBRES_FALANGE = 128;
+/* ES4: ?escenario=asculo&bando=pirro|roma. pirro: tu falange y dos manípulos itálicos contra la legión (tres manípulos y vélites rivales).
+   roma: tres manípulos (el motor da el Testudo) y vélites tuyos contra la falange de Pirro y honderos rivales. Sin escenario, los galos de siempre */
+export function escenarioAsculo(q) { const e = q.get('escenario') === 'asculo', b = q.get('bando') === 'roma' ? 'roma' : q.get('bando') === 'pirro' ? 'pirro' : null; return e && b ? { bando: b, objetivo: b === 'pirro' ? 'Ásculo, 279 a.C. · Rompe la línea romana' : 'Ásculo, 279 a.C. · Aguanta y rompe la falange' } : null; }
 export function crear() {
+  const ASC = escenarioAsculo(new URLSearchParams(location.search)), ROMA = !!(ASC && ASC.bando === 'roma');
   let ctx = null, M = null, tira = null, vista = null, aros = [], tAro = 0;
   const camaras = { v: { d: 110, alto: 88, ad: 30, fov: 56 }, h: { d: 52, alto: 34, ad: 22, fov: 44 } };
   function monta(c) {
     ctx = c; const { THREE } = c;
     if (tira) tira.quita(); if (vista) vista.quita(); vista = null;
     M = crearMando(c.C, { MO: c.BL, avisa: t => { try { c.hud && c.hud.grito(t); } catch (e) { /* sin aviso */ } } });
+    if (ROMA) ['Manípulo I|Man. I', 'Manípulo II|Man. II', 'Manípulo III|Man. III'].forEach((n, i) => { const q = M.cuerpos[i]; q.tipo = 'manipulo'; [q.nombre, q.corto] = n.split('|'); });
     /* el aro dorado: un anillo plano por cuerpo (el mismo dibujo, 1 llamada cada uno; «Todos» enseña los tres) */
     if (!aros.length) {
       const geo = new THREE.RingGeometry(0.93, 1, 48), mat = new THREE.MeshBasicMaterial({ color: 0xe9c063, transparent: true, opacity: 0.9, depthTest: false, depthWrite: false, side: THREE.DoubleSide, fog: false });
       for (let i = 0; i < 3; i++) { const m = new THREE.Mesh(geo, mat); m.rotation.x = -Math.PI / 2; m.renderOrder = 18; m.frustumCulled = false; m.visible = false; c.escena.add(m); aros.push(m); }
     }
     /* ES3b: los tiradores (?tiradores=honderos|arqueros|velites) entran como quinta ficha, antes de armar la tira */
-    const tp = new URLSearchParams(location.search).get('tiradores'), X = montaTiradores(c.C, M, { tipo: tp, semilla: c.semilla, alSalva: s => vista && vista.salva(s), avisa: t => vista && vista.aviso(t) });
+    const tp = new URLSearchParams(location.search).get('tiradores') || (ROMA ? 'velites' : null), X = montaTiradores(c.C, M, { tipo: tp, semilla: c.semilla, alSalva: s => vista && vista.salva(s), avisa: t => vista && vista.aviso(t) });
+    if (ASC) { const R = montaTiradores(c.C, M, { rival: true, tipo: ROMA ? 'honderos' : 'velites', semilla: (c.semilla || 7) + 11, alSalva: s => vista && vista.salva(s) }); window.__bloque && (window.__bloque.tiradoresRival = R); }   /* ES4: los del rival, con su juicio */
     tira = crearTira({ mando: M, hud: c.hud, $: c.$, dedos: c.dedos });
     if (X) { vista = crearVista({ ctx: c, M, X }); window.__bloque && (window.__bloque.tiradores = X, window.__bloque.proyecta = c.proyecta); }
-    c.texto && c.texto('Rompe su centro con la falange y los dos manípulos');
+    c.texto && c.texto(ASC ? ASC.objetivo : 'Rompe su centro con la falange y los dos manípulos');
     window.__bloque && (window.__bloque.mando = M);
   }
   return {
-    id: 'combinada', ordenes: ['avanzar', 'alto', 'cargar', 'retirada'], hud: { retirada: false }, objetivo: 'Rompe su centro con la falange y los dos manípulos', escenario: null, muroDelante: false, camaras,
-    opcCombate: BL => ({ bloque: BL.crearBloque({ id: 'yo', bando: 'yo', tipo: 'falange', x: 0, z: 0, rumbo: 0 }), fuerzas: { tuyo: HOMBRES_FALANGE }, apoyo: { x: 0, z: DETRAS, hombres: 40 } }),
+    id: 'combinada', ordenes: ['avanzar', 'alto', 'cargar', 'retirada'], hud: { retirada: false }, objetivo: ASC ? ASC.objetivo : 'Rompe su centro con la falange y los dos manípulos', escenario: null, muroDelante: false, camaras,
+    opcCombate: BL => ASC ? (ROMA ? { fuerzas: { tuyo: 120, alas: [0, 0], reserva: 0, tiradores: 40 }, rival: 'falange', tiroRival: true, apoyo: { x: 0, z: DETRAS, hombres: 40 } }
+      : { bloque: BL.crearBloque({ id: 'yo', bando: 'yo', tipo: 'falange', x: 0, z: 0, rumbo: 0 }), fuerzas: { tuyo: HOMBRES_FALANGE, reserva: 0, tiradores: 40 }, rival: 'romanos', tiroRival: true, apoyo: { x: 0, z: DETRAS, hombres: 40 } })
+      : ({ bloque: BL.crearBloque({ id: 'yo', bando: 'yo', tipo: 'falange', x: 0, z: 0, rumbo: 0 }), fuerzas: { tuyo: HOMBRES_FALANGE }, apoyo: { x: 0, z: DETRAS, hombres: 40 } }),
     util: () => (M ? M.util() : null),
     mods: () => null,
     guardia: guardiaDeSerie,

@@ -20,7 +20,7 @@ try {
     await p.goto(`http://localhost:${PUERTO}/gobierno/maquetas/bloque/index.html?formacion=combinada&nivel=normal&semilla=3`);
     await p.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 150000 });
     await p.waitForTimeout(8000);
-    vale('hay tira con 4 fichas', await p.locator('#tira .ficha').count() === 4);
+    vale('hay tira con 5 fichas (con los tiradores)', await p.locator('#tira .ficha').count() === 5);
     await p.locator('#tira .ficha[data-id="man1"]').click(); await p.waitForTimeout(1500);
     vale('Man. I elegido', await p.evaluate(() => window.__bloque.mando.elegido) === 'man1');
     vale('botones de manípulo', (await p.locator('.orden b').allTextContents()).join() === 'Testudo,Cargar,Relevo,Alto');

@@ -7,7 +7,7 @@
 const CSS = `
 #tira{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);bottom:calc(var(--abajoH,150px) + 6px);display:flex;gap:5px;pointer-events:none}
 .ficha{pointer-events:auto;flex:1 1 0;min-width:0;height:52px;padding:5px 4px 5px;border-radius:10px;background:var(--vidrio);border:2px solid var(--fil);display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;text-align:center;overflow:clip;box-shadow:0 3px 8px rgba(0,0,0,.4)}
-.ficha b{font:700 12.5px/1.1 system-ui,sans-serif;white-space:nowrap;overflow:clip;text-overflow:ellipsis;color:var(--marmol)}
+.ficha b{font:700 12.5px/1.1 system-ui,sans-serif;white-space:nowrap;overflow:clip;color:var(--marmol);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;flex:1}.ficha b svg{width:24px;height:24px;flex:none}.ficha b em{font-style:normal;font-size:10px;line-height:1;margin-top:-1px}
 .ficha small{font-size:10.5px;color:#cfc6b0;line-height:1}
 .ficha i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:clip}
 .ficha i s{display:block;height:100%;width:100%;background:var(--verde);text-decoration:none;transition:width .3s}
@@ -32,11 +32,23 @@ export function crearTira({ mando: M, hud, $, dedos }) {
   const fichas = new Map();
   const ids = () => ['todos', ...M.cuerpos.map(c => c.id)];
   const nombreDe = id => id === 'todos' ? 'Todos' : M.cuerpos.find(c => c.id === id).corto;
+  /* figuras por arma (SVG en línea, del color del texto): Todos = tres estandartes; falange = sarisa; manípulo = scutum y gladius; honda, arco, jabalina */
+  const SV = d => '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+  const ICONOS = {
+    todos: SV('<path d="M5 21V4M12 21V3M19 21V4"/><path d="M5 4h4v5H5zM12 3h4v5h-4zM19 4h-4v5h4z" fill="currentColor" fill-opacity=".45"/>'),
+    falange: SV('<path d="M3 21 20 4"/><path d="M20 4l-4.5 1 3.5 3.5z" fill="currentColor"/><path d="M6 21 22 6" opacity=".55"/>'),
+    manipulo: SV('<rect x="4" y="3" width="11" height="18" rx="2" fill="currentColor" fill-opacity=".3"/><path d="M9.5 6v12M6 12h7"/><path d="M20 9v8M18.2 17h3.6M20 9l-1-2 2 0z"/>'),
+    honderos: SV('<path d="M5 17c0-5 4-9 9-9"/><path d="M14 8c3 0 5 2 5 5s-3 4-4 2"/><circle cx="18.5" cy="6" r="2" fill="currentColor"/><path d="M5 17l-2 3M5 17l3 2"/>'),
+    arqueros: SV('<path d="M7 3c8 4 8 14 0 18"/><path d="M7 3v18"/><path d="M7 12h14M18 9l3 3-3 3"/>'),
+    velites: SV('<path d="M4 20 19 5"/><path d="M19 5l-5 .5 4.5 4.5z" fill="currentColor"/><path d="M6 14l4 4"/>')
+  };
+  const iconoDe = id => { if (id === 'todos') return ICONOS.todos; const c = M.cuerpos.find(q => q.id === id), k = c.corto || ''; return /^Hond/.test(k) ? ICONOS.honderos : /^Arq/.test(k) ? ICONOS.arqueros : /^V[ée]l/.test(k) ? ICONOS.velites : (ICONOS[c.tipo] || ICONOS.manipulo); };
+  const numeroDe = id => { const c = id === 'todos' ? null : M.cuerpos.find(q => q.id === id), m = c && c.tipo === 'manipulo' && /\b(I{1,3})$/.exec(c.corto || ''); return m ? m[1] : ''; };
   function haz() {
     cont.textContent = ''; fichas.clear();
     for (const id of ids()) {
-      const el = document.createElement('button'); el.className = 'ficha'; el.dataset.id = id; el.setAttribute('aria-label', 'Elegir: ' + nombreDe(id));
-      el.innerHTML = `<b>${nombreDe(id)}</b><i><s></s></i><small></small>`; cont.appendChild(el);
+      const el = document.createElement('button'); el.className = 'ficha'; el.dataset.id = id; el.setAttribute('aria-label', 'Elegir: ' + (id === 'todos' ? 'Todos' : M.cuerpos.find(q => q.id === id).nombre)); el.title = el.getAttribute('aria-label').slice(8);
+      el.innerHTML = `<b>${iconoDe(id)}${numeroDe(id) ? '<em>' + numeroDe(id) + '</em>' : ''}</b><i><s></s></i><small></small>`; cont.appendChild(el);
       el.addEventListener('pointerdown', e => e.stopPropagation()); el.addEventListener('click', e => { e.stopPropagation(); M.elige(id); });
       fichas.set(id, { el, s: el.querySelector('s'), t: el.querySelector('small'), w: -1, n: -1, clase: '' });
     }

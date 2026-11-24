@@ -38,7 +38,7 @@ import { crear as formacionTestudo } from './formaciones/testudo.js';
 import { crearOficial, GOLPE } from './oficial.js';   /* FU2: tú en la fila: el duelo del oficial (solo reglas) */
 import { crearDueloHud, crearFalangitaHud } from './duelo-hud.js';
 import { crearFalangita } from './falangita.js';   /* FU3b: el gesto de la falange (bajar sarisas, cerrar el hueco) */
-import { crear as formacionCombinada } from './formaciones/combinada.js';   /* ES2: falange + dos manípulos con mando de varios cuerpos */
+import { crear as formacionCombinada, escenarioAsculo } from './formaciones/combinada.js';   /* ES2: falange + dos manípulos con mando de varios cuerpos */
 import { crear as formacionFalange } from './formaciones/falange.js';   /* FU3: la falange del motor (sus reglas, con el control del bloque) */
 import { acercaRival, resultadoLP7 as resultadoLP7F } from '../falange/acciones.js';
 
@@ -51,6 +51,21 @@ if (TESTUDO) document.title = 'AQVILA · Testudo a pie';
 if (FALANGE) {   /* tus falangitas de FA2 (azules, su oficial con penacho) contra los hastati de siempre (rojos) */
   document.title = 'AQVILA · Falange a pie'; const pal = gama('#3a64a8', PUEBLOS.falangita);
   ponBandos({ modelo: 'falangita', oficial: 'oficial-falange', paleta: pal, palOficial: Object.assign({}, pal, { escudos: PUEBLOS.falangita.escudos }) }, { modelo: 'hastatus' });
+}
+/* ES4: ?formacion=combinada&escenario=asculo&bando=pirro|roma. Sin bando, la pantalla de entrada (dos botones que recargan con &bando=) */
+const ASC = escenarioAsculo(Q), ASC_ENTRADA = COMBINADA && Q.get('escenario') === 'asculo' && !ASC;
+if (ASC) {   /* el bando azul (la falange de Pirro) lleva falangitas con sarisas; el otro, hastati rojos */
+  const pal = gama('#3a64a8', PUEBLOS.falangita), az = { modelo: 'falangita', oficial: 'oficial-falange', paleta: pal, palOficial: Object.assign({}, pal, { escudos: PUEBLOS.falangita.escudos }) };
+  document.title = 'AQVILA · Ásculo, 279 a.C.'; ASC.bando === 'pirro' ? ponBandos(az, { modelo: 'hastatus' }) : ponBandos(null, { modelo: 'falangita', paleta: pal });
+}
+if (ASC_ENTRADA) {
+  const d = document.createElement('div'); d.id = 'entrada-asculo'; d.style.cssText = 'position:fixed;inset:0;z-index:99;background:#14100c;color:#f1e6c8;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:16px;font:16px/1.35 Georgia,serif;overflow:auto';
+  const b = (id, tit, txt) => '<button data-b="' + id + '" style="min-height:96px;border:2px solid #e9c063;background:#2a2018;color:#f1e6c8;border-radius:10px;padding:10px 14px;text-align:left;font:inherit"><b style="font-size:22px;display:block">' + tit + '</b><span style="font-size:14px">' + txt + '</span></button>';
+  d.innerHTML = '<h1 style="margin:0;font-size:24px;text-align:center">Ásculo, 279 a.C.</h1>' +
+    b('pirro', 'Ser Pirro', 'Intercaló manípulos itálicos entre los bloques de su falange (Polibio 18.28). Rompe la línea romana.') +
+    b('roma', 'Ser Roma', 'Los vélites abrían la batalla y se retiraban entre los manípulos (Polibio 6.21 y 15.9). Aguanta y rompe la falange.');
+  document.body.appendChild(d);
+  d.querySelectorAll('button').forEach(x => x.addEventListener('click', () => { const u = new URL(location.href); u.searchParams.set('bando', x.dataset.b); location.href = u.toString(); }));
 }
 /* CB3: ?lucha=reglas vuelve a las bajas por reglas de bloque; por defecto deciden el motor de lucha (js/combate.js) */
 const LUCHA = Q.get('lucha') === 'reglas' ? 'reglas' : 'motor'; let LU = null, acumL = 0;
@@ -497,6 +512,7 @@ async function arranca() {
   const cargados = {}; for (const k of nombres) { const [b, n] = k.split(':'); pide.push(cargarSoldado(n, paleta(n, b)).then(s => { cargados[k] = s; })); }
   const [cs] = await Promise.all([crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color }).catch(e => { console.warn('Sin campo', e); return null; }), ...pide]);
   campo = cs;
+  if (ASC) for (const k of ASC.bando === 'pirro' ? ['r:falangita', 'r:oficial-falange'] : ['g:falangita']) if (cargados[k]) for (const nv of cargados[k].niveles) if (nv && nv.mat) azulea(nv.mat);
   if (FALANGE) for (const k of ['r:falangita', 'r:oficial-falange']) if (cargados[k]) for (const nv of cargados[k].niveles) if (nv && nv.mat) azulea(nv.mat);   /* FU3b */
   for (const b of ['r', 'g']) {
     for (const n of modelos(b)) { const s = cargados[b + ':' + n]; if (s) T[b][n] = NIV.map((nv, k) => { const t = tropa(s.niveles[nv], TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Falta soldado', n); }

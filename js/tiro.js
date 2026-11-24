@@ -14,11 +14,11 @@
    Munición: vélites 7 (Livio 26.4, histórico, a cotejar); honderos 20 y arqueros 24: licencia de juego. Cadencias y daños: licencia.
    Honderos baleares (Diodoro 5.18) y arqueros cretenses de Pirro (Plutarco, Pirro 15.1): histórico. */
 export const TIRADORES = {
-  honderos: { nombre: 'Honderos', hombres: 40, proyectil: 'piedra',   alcance: 60, maximo: 75,  municion: 20, cadencia: 6, modos: ['directo', 'parabola'], cerca: 0,
+  honderos: { nombre: 'Honderos', corto: 'Hond.', hombres: 40, proyectil: 'piedra',   alcance: 60, maximo: 75,  municion: 20, cadencia: 6, modos: ['directo', 'parabola'], cerca: 0,
               dano: 1.3, bueno: { ligera: 1.4, arqueros: 1.4, honderos: 1.4, caballeria: 1.2 }, flojo: { falange: 0.8, manipulo: 0.8 }, vel: 3.8 },
-  arqueros: { nombre: 'Arqueros', hombres: 40, proyectil: 'flecha',   alcance: 80, maximo: 100, municion: 24, cadencia: 5, modos: ['parabola', 'directo'], cerca: 30,
+  arqueros: { nombre: 'Arqueros', corto: 'Arq.', hombres: 40, proyectil: 'flecha',   alcance: 80, maximo: 100, municion: 24, cadencia: 5, modos: ['parabola', 'directo'], cerca: 30,
               dano: 1.0, bueno: { ligera: 1.5, velites: 1.5, arqueros: 1.4, honderos: 1.4 }, flojo: { manipulo: 0.6, falange: 0.8 }, vel: 3.6 },
-  velites:  { nombre: 'Vélites',  hombres: 40, proyectil: 'jabalina', alcance: 25, maximo: 25,  municion: 7,  cadencia: 6, modos: ['directo'], cerca: 0,
+  velites:  { nombre: 'Vélites', corto: 'Vél.', hombres: 40, proyectil: 'jabalina', alcance: 25, maximo: 25,  municion: 7,  cadencia: 6, modos: ['directo'], cerca: 0,
               dano: 1.2, bueno: { manipulo: 1.2, falange: 1.2, ligera: 1.3, arqueros: 1.3 }, flojo: {}, vel: 4.2 },
 };
 /* velocidad de lanzamiento (m/s), de PROYECTIL en js/fisica-batalla.js: se copia para no cargarlo (pruebas lo comprueban) */
@@ -198,16 +198,17 @@ export function pasoTiro(T, dt, mundo) {
 export const DETRAS = 20;   /* m: a qué distancia detrás de la línea se ponen (licencia de juego) */
 const TIPO_MUNDO = { falange: 'falange', manipulo: 'manipulo', galos: 'ligera', nobles: 'ligera', tiradores: 'velites' };
 export function montaTiradores(C, M, op = {}) {
-  const S = C.S, b = S.apoyo; if (!b) return null;
+  const S = C.S, RIV = !!op.rival, b = RIV ? S.ene.tiradores : S.apoyo; if (!b || b.estado === 'fuera') return null;   /* ES4: op.rival = los tiradores del rival (vélites o honderos), con su propio juicio */
+  const TID = RIV ? 'rival-tiradores' : 'tiradores', YO = RIV ? 1 : 0, MIO = RIV ? 'g' : 'r';
   const tipo = op.tipo && TIRADORES[op.tipo] ? op.tipo : 'honderos', Cf = TIRADORES[tipo];
   const f0 = F_(b.ang), cx = b.x - f0.x * b.fondo / 2, cz = b.z - f0.z * b.fondo / 2;
-  const T = crearTiradores({ tipo, id: 'tiradores', bando: 0, x: cx, z: cz, ang: b.ang, semilla: op.semilla ?? 7, hombres: b.U.enPie });
+  const T = crearTiradores({ tipo, id: TID, bando: YO, x: cx, z: cz, ang: b.ang, semilla: op.semilla ?? 7, hombres: b.U.enPie });
   const X = { T, b, tipo, pend: [], salvas: [], total: { tiros: 0, muertos: 0, propias: 0 } };
-  const idDe = bl => bl === b ? 'tiradores' : 'b' + bl.id, porId = id => S.bloques.find(bl => idDe(bl) === id) || null;
+  const idDe = bl => bl === b ? TID : 'b' + bl.id, porId = id => S.bloques.find(bl => idDe(bl) === id) || null;
   const cuerpoDe = bl => {
     const f = F_(bl.ang), n = bl.U.enPie;
-    return { id: idDe(bl), bando: bl.bando === 'r' ? 0 : 1, x: bl.x - f.x * bl.fondo / 2, z: bl.z - f.z * bl.fondo / 2, ang: bl.ang, ancho: bl.ancho, fondo: bl.fondo,
-      tipo: bl === S.tuyo ? 'falange' : (TIPO_MUNDO[bl.tipo] || 'manipulo'), hombres: n, trabado: (bl.contactos || []).map(c => idDe(c.b)),
+    return { id: idDe(bl), bando: bl.bando === MIO ? YO : 1 - YO, x: bl.x - f.x * bl.fondo / 2, z: bl.z - f.z * bl.fondo / 2, ang: bl.ang, ancho: bl.ancho, fondo: bl.fondo,
+      tipo: bl === S.tuyo ? ((S.B && S.B.tipo) || 'falange') : (TIPO_MUNDO[bl.tipo] || 'manipulo'), hombres: n, trabado: (bl.contactos || []).map(c => idDe(c.b)),
       testudo: bl.orden === 'testudo', carga: (bl.orden === 'cargar' || bl.cargaAl) && (bl.v || 0) > 1.5 && bl.estado !== 'huye' };
   };
   X.mundo = () => ({ cuerpos: S.bloques.filter(bl => bl.estado !== 'fuera' && bl !== b && bl.U.enPie > 0).map(cuerpoDe) });
@@ -227,10 +228,10 @@ export function montaTiradores(C, M, op = {}) {
     if (!vivo() || S.ganador) return null;
     const m = X.mundo(), yo = { x: T.x, z: T.z };
     if (T.municion <= 0) return 'retirarse';
-    if (m.cuerpos.some(c => c.bando === 1 && c.carga && Math.hypot(c.x - T.x, c.z - T.z) < 28)) return 'retirarse';
+    if (m.cuerpos.some(c => c.bando === 1 - YO && c.carga && Math.hypot(c.x - T.x, c.z - T.z) < 28)) return 'retirarse';
     const bl = X.blancoBloque(), c = bl && m.cuerpos.find(q => q.id === idDe(bl));
-    if (c && T.orden === 'tirar' && c.trabado.some(id => m.cuerpos.some(q => q.id === id && q.bando === 0))) return 'tirar';   /* «Alto el fuego» */
-    if (c && eligeModo(tipo, yo, c, m.cuerpos.filter(q => q.bando === 0)) === 'sinTiro') return 'hostigar';
+    if (c && T.orden === 'tirar' && c.trabado.some(id => m.cuerpos.some(q => q.id === id && q.bando === YO))) return 'tirar';   /* «Alto el fuego» */
+    if (c && eligeModo(tipo, yo, c, m.cuerpos.filter(q => q.bando === YO)) === 'sinTiro') return 'hostigar';
     return null;
   };
   X.alFrente = (a, p, o = {}) => {
@@ -243,8 +244,10 @@ export function montaTiradores(C, M, op = {}) {
     return true;
   };
   const vuelo = (d, s) => { const v = V_TIRO[s.proyectil]; return s.angulo != null ? d / Math.max(2, v * Math.cos(s.angulo)) : d / v; };
+  let tIA = 0;
   X.paso = dt => {
     if (S.ganador) return;
+    if (RIV && !T.roto && (tIA -= dt) <= 0) { tIA = 1; if (T.orden !== 'retirarse') { const u = X.util(); if (u) X.orden(u); else if (T.orden === 'alto' || T.orden === 'tirar') X.orden('hostigar'); } }   /* ES4: el rival hostiga y se retira cuando le cargan */
     T.hombres = b.U.enPie;
     if ((b.U.roto || b.estado === 'huye') && !T.roto) { T.roto = true; T.orden = 'huir'; X.avisos.push(AVISOS.rotos); }
     /* la marcha a su sitio (frente dibujado): solo si no hace otra cosa */
@@ -274,6 +277,7 @@ export function montaTiradores(C, M, op = {}) {
   X.avisos = [];
   /* el mando llama a X.paso tras cada paso del combate */
   const paso0 = M.paso; M.paso = dt => { const r = paso0(dt); if (r) X.paso(dt); return r; };
-  M.anade({ id: 'tiradores', nombre: Cf.nombre, corto: Cf.nombre, ordenes: ['tirar', 'hostigar', 'retirarse', 'alto'], vida: X.vida, alOrden: X.orden, alFrente: X.alFrente, alUtil: X.util, b });
+  if (RIV) { T.orden = 'hostigar'; C.tiradoresRival = X; return X; }
+  M.anade({ id: 'tiradores', nombre: Cf.nombre, corto: Cf.corto || Cf.nombre, ordenes: ['tirar', 'hostigar', 'retirarse', 'alto'], vida: X.vida, alOrden: X.orden, alFrente: X.alFrente, alUtil: X.util, b });
   C.tiradores = X; return X;
 }
