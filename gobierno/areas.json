@@ -121,7 +121,8 @@
         "js/mando-varios.js",
         "js/tiro.js",
         "test/es2-mando.test.mjs",
-        "test/es3-tiro.test.mjs"
+        "test/es3-tiro.test.mjs",
+        "test/fu5-formaciones.test.mjs"
       ],
       "taller": [],
       "juez": {
