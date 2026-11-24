@@ -180,9 +180,9 @@
       return { r, tot };
     };
     const tipos = Object.keys(partes), inf = tipos.filter(t => !esCab(t) && !esTiro(t) && !esEle(t)), tiro = tipos.filter(esTiro), cab = tipos.filter(esCab), ele = tipos.filter(esEle);
-    const lista = ts => { const l = []; for (const t of ts) partes[t].forEach((n, k) => l.push([t, n, k])); return l; };
+    const lista = ts => { const l = []; for (const t of ts) (partes[t] || []).forEach((n, k) => l.push([t, n, k])); return l; };
     let primera;
-    if (lado === 0 && (partes.hastati || partes.principes || partes.triarii)) {
+    if ((partes.hastati || partes.principes || partes.triarii)) {
       const l1 = lista(['hastati'].concat(inf.filter(t => !['hastati', 'principes', 'triarii'].includes(t)))), l2 = lista(['principes'].filter(t => partes[t])), l3 = lista(['triarii'].filter(t => partes[t]));
       const hueco = 4;                               /* licencia: los huecos del tresbolillo se cierran; el relevo no los necesita aquí */
       primera = fila(l1.length ? l1 : l2, y0, hueco);
@@ -615,7 +615,10 @@
     if (!b) { u.tirando = -1; return; }
     if (u.tirando !== b.id) { u.tirando = b.id; ev(S, 'tiro', u, u.nom + ' lanzan sus ' + A.arma + ' sobre ' + b.nom, { con: b.id, arma: A.arma }); }
     u.mun -= dt;
-    const F = FORMAS[b.forma], n = u.n * A.tiro * dt * (0.85 + 0.3 * rnd(S)) * kTiro(u, b) * F.tiro;
+    const F = FORMAS[b.forma];
+    /* CG9: el daño del tirador cuenta (daño + perfora, contra el de los vélites, que son la referencia de las jabalinas) */
+    let kd = 1; const T = TR(); if (T) { const d = T.datos(u.tropa, u.pueblo, u.vet), r = T.datos('velites', u.pueblo, u.vet); if (d.tiro && r.tiro) kd = (d.tiro.dano + d.tiro.perfora) / (r.tiro.dano + r.tiro.perfora); }
+    const n = u.n * A.tiro * kd * dt * (0.85 + 0.3 * rnd(S)) * kTiro(u, b) * F.tiro;
     b.fuego = S.t; quitar(S, b, n / (TR() ? 1 : (VIDA[b.tropa] || 1)), 0.3);
     b.moral -= morMul(b) * (n / b.n0 * 1.5 + (F.tiro >= 1 ? SUSTO : 0) * dt);
   }
@@ -669,6 +672,7 @@
   function comprobarFin(S) {
     const p = [0, 1].map(l => inicial(S, l) ? enPie(S, l) / inicial(S, l) : 0);
     if (p[0] <= 0 && p[1] <= 0) return fin(S, p[0] >= p[1] ? 'victoria' : 'derrota', 'Los dos ejércitos se deshacen');
+    if (p[0] < 0.3 && p[1] < 0.3) return fin(S, p[0] >= p[1] ? 'victoria' : 'derrota', 'Los dos ejércitos se deshacen');   /* CG9: sin ventaja para el lado 0 */
     if (p[1] < 0.3) return fin(S, 'victoria', 'El ejército enemigo se deshace y huye.');
     if (p[0] < 0.3) return fin(S, 'derrota', 'Tu ejército se deshace y huye.');
     if (S.t >= S.limite) fin(S, p[0] > p[1] ? 'victoria' : 'derrota', 'Cae la tarde y los ejércitos se separan');

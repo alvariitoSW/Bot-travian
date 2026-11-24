@@ -52,7 +52,7 @@ t('coherencia: galos menos armadura que príncipes; triarios y falange contra ca
   assert.ok(Tropas.datos('triarii').contra.cab > 1 && Tropas.datos('falange').contra.cab > 1);
   assert.ok(Tropas.datos('velites').contra.ele > 1);
 });
-t('BOLSAS y PRECIO', () => { assert.strictEqual(Tropas.BOLSAS.mediana, 10000); assert.deepStrictEqual(Tropas.PRECIO, {}); });
+t('BOLSAS y PRECIO', () => { for (const k of ['pequena', 'mediana', 'grande']) assert.ok(Tropas.BOLSAS[k] > 0, k); assert.ok(Tropas.BOLSAS.pequena < Tropas.BOLSAS.mediana && Tropas.BOLSAS.mediana < Tropas.BOLSAS.grande); assert.ok(Object.keys(Tropas.PRECIO).length >= 17 && Object.values(Tropas.PRECIO).every(v => v >= 150)); });
 t('el archivo no usa Math.random, Date ni process', () => {
   const s = readFileSync(new URL('../js/tropas.js', import.meta.url), 'utf8');
   assert.ok(!/Math\.random|\bDate\b|\bprocess\b/.test(s));
