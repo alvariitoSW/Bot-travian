@@ -920,7 +920,7 @@
     if (!isFinite(x) || !isFinite(z)) return { ok: false, motivo: 'Sitio no válido' };
     if (G.huecosLibres(c) === 0) return { ok: false, motivo: sinHueco(c) };
     const b = CI.EDIF[pz].bid; if (b && G.obraDe(c, b)) return { ok: false, motivo: 'Ya se está mejorando' };
-    if (b && libs()) { const m = MIN.topeForo(c, b, (c.b[b] || 0) + 1); if (m) return { ok: false, motivo: m }; }   // CDe1-A: tope del Foro en todas las vías
+    if (b && !G.CAMPOS.includes(b) && libs()) { const m = MIN.topeForo(c, b, (c.b[b] || 0) + 1); if (m) return { ok: false, motivo: m }; }   // CDe1: tope del Foro en todas las vías, salvo los campos (una partida nueva ya los trae por encima del Foro)
     if (b && (D.BUILD[b].sea && !D.CITIES[cid].sea)) return { ok: false, motivo: 'Aquí no hay mar' };
     if (b && G.faltaInv(b)) return { ok: false, motivo: G.faltaInv(b) };
     if (b && G.faltaEspecial('edificio', b, c.b[b] || 0)) return { ok: false, motivo: 'Falta un bien especial' };
@@ -938,7 +938,7 @@
     if (c.obras.some(q => q.eid === idPieza) || (CI.EDIF[e.tipo].bid && G.obraDe(c, CI.EDIF[e.tipo].bid))) return { ok: false, motivo: 'Ya se está mejorando' };
     if (e.obra || e.ruina) return { ok: false, motivo: 'Ahora no se puede mejorar' };
     const b = CI.EDIF[e.tipo].bid; if (b && G.faltaInv(b)) return { ok: false, motivo: G.faltaInv(b) }; if (b && G.faltaEspecial('edificio', b, c.b[b] || 0)) return { ok: false, motivo: 'Falta un bien especial' };
-    if (b && libs()) { const m = MIN.topeForo(c, b, (c.b[b] || 0) + 1); if (m) return { ok: false, motivo: m }; }   // CDe1-A: tope del Foro en todas las vías
+    if (b && !G.CAMPOS.includes(b) && libs()) { const m = MIN.topeForo(c, b, (c.b[b] || 0) + 1); if (m) return { ok: false, motivo: m }; }   // CDe1: tope del Foro en todas las vías, salvo los campos (una partida nueva ya los trae por encima del Foro)
     if (b === 'mina' && !G.vetaHierro(cid)) return { ok: false, motivo: G.minaMotivo(cid) };   // CE2: sin veta, el motivo
     const nq = empezar(c, especMejora(c, e)); if (!nq) return { ok: false, motivo: 'Faltan recursos' };
     return { ok: true, obra: nq };
@@ -3072,7 +3072,7 @@
     const x = calcBarrio(c, m, i), mem = Object.assign(NEC.memoriaNueva(), necDe(c).mem[i] || {});
     return { cob: x.cob, animo: x.an, mem, nivel: NEC.nivelBarrio(x.cob) };
   };
-  G.enRevuelta = c => !!(c && c.nec && Array.isArray(c.nec.mem) && c.nec.mem.some(m => m && m.revuelta));
+  G.enRevuelta = c => !!(D.NEC_CASTIGOS && c && c.nec && Array.isArray(c.nec.mem) && c.nec.mem.some(m => m && m.revuelta));
   const FRASE_NEC = { hambre: 'pasa hambre', fiebres: 'sufre fiebres', se_van: 'se vacía', pierde_votos: 'pierde apoyos en el Senado', protesta: 'protesta en la calle', paran_obras: 'frena las obras' };
   function necesidadesEstacion(s, mes) {
     if (!NEC || !CI || mes % D.TURNO_MESES !== 0) return;
@@ -3084,7 +3084,8 @@
         const r = NEC.estacion(mem[i], x.cob, x.an), share = x.cs.length / m.casas.length, nb = (b && b.nombre) || ('barrio ' + (i + 1));
         mem[i] = r.mem;
         for (const su of r.sucesos) {
-          if (su.tipo === 'revuelta') G.log('✊ ' + nom + ', ' + nb + ': revuelta de la plebe. No paga impuestos hasta que la calmes (tropas, grano o juegos).', 'bad');
+          if (su.tipo === 'revuelta') G.log(D.NEC_CASTIGOS ? '✊ ' + nom + ', ' + nb + ': revuelta de la plebe. No paga impuestos hasta que la calmes (tropas, grano o juegos).' : '✊ ' + nom + ', ' + nb + ': la plebe amenaza con sublevarse. Le faltan servicios.', 'bad');
+          else if (su.tipo === 'consecuencia' && !D.NEC_CASTIGOS) { if (dichos++ < 2) G.log('🏘️ ' + nom + ', ' + nb + ': ' + (FRASE_NEC[su.efecto] || su.efecto) + '.', 'bad', true); }   // CDe1: solo aviso hasta CD5b (D.NEC_CASTIGOS)
           else if (su.tipo === 'consecuencia') {
             const ef = su.efecto, perdida = Math.ceil((c.pop || 0) * 0.015 * share), baja = ef === 'hambre' || ef === 'fiebres' || ef === 'se_van';
             if (baja) c.pop = Math.max(G.MIN_POP, (c.pop || 0) - perdida);

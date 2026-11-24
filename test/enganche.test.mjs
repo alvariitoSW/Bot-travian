@@ -53,8 +53,9 @@ ok(G.planPuedeVotar() === null || typeof G.planPuedeVotar() === 'string', 'planP
   const nb = G.necBarrio('roma', 0); ok(nb && nb.cob && typeof nb.animo === 'number' && nb.mem && nb.nivel && nb.nivel.nombre, 'G.necBarrio da {cob, animo, mem, nivel}');
   ok(!Object.keys(c.nec).includes('alc') && !JSON.stringify(c.nec).includes('porCasa'), 'c.nec.alc no se guarda');
   ok(G.calmarRevuelta('roma', 0, 'tropas').ok === false, 'calmar sin revuelta se niega');
-  c.nec.mem[0] = { desc: 0, mal: {}, revuelta: true }; ok(G.enRevuelta(c), 'barrio en revuelta');
-  const sin = G.prod().det.impuestos; c.nec.mem[0].revuelta = false; ok(G.prod().det.impuestos > sin, 'un barrio en revuelta no paga impuestos');
+  ok(!(c.nec.mem[0] = { desc: 0, mal: {}, revuelta: true }, G.enRevuelta(c)), 'sin castigos (D.NEC_CASTIGOS) la revuelta no corta impuestos');   // CDe1
+  D.NEC_CASTIGOS = true; ok(G.enRevuelta(c), 'barrio en revuelta');
+  const sin = G.prod().det.impuestos; c.nec.mem[0].revuelta = false; ok(G.prod().det.impuestos > sin, 'un barrio en revuelta no paga impuestos'); D.NEC_CASTIGOS = false;
   c.nec.mem[0] = { desc: 0, mal: {}, revuelta: true }; c.units.hastati = (c.units.hastati || 0) + 200;
   const r = G.calmarRevuelta('roma', 0, 'tropas'); ok(r.ok && !c.nec.mem[0].revuelta, 'las tropas calman la revuelta'); }
 // una estación entera con la ciudad nueva sin servicios: no revienta y deja memoria por barrio

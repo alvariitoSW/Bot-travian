@@ -72,6 +72,9 @@
     templo: { n: 'Templo', fam: 'politica', i: '🔥', solar: 1, cost: { materiales: 210, denarios: 80 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
   };
   /* CD1b: familias del menú «Construir» (CD0 §2). Licencia de juego: es una agrupación para el jugador. */
+  /* CDe1: las necesidades de barrio (js/necesidades.js) se calculan y avisan en el diario; sus castigos (gente que se va, votos, revuelta sin impuestos)
+     se encienden cuando la pantalla del barrio (CD5b) deje ver qué falta y remediarlo (CDe2). Licencia de juego. */
+  D.NEC_CASTIGOS = false;
   D.FAMILIAS = [['principales', 'Principales'], ['infra', 'Infraestructura'], ['politica', 'Política y culto'], ['militar', 'Militar'], ['produccion', 'Producción'], ['viviendas', 'Viviendas'], ['puerto', 'Puerto']];
   D.FAMILIA_PIEZA = { fuente: 'infra', granero: 'principales', taller: 'produccion', salinas: 'produccion', zanja: 'infra', dique: 'infra', compitum: 'viviendas' };   // piezas de ciudad.js sin edificio de D.BUILD
   /* CDe1-C: las diez obras que eran «Pronto» ya se construyen: viven en EDIF de ciudad.js y su familia está en D.FAMILIA_PIEZA.
