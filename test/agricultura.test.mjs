@@ -115,7 +115,7 @@ ok(A.encargosAgricultura({ parcelas: [], libres: [], almacen: { grano: 1000 }, b
 
 // 13. migrar
 const s1 = A.migrar({ oro: 5, bienes: { roma: { grano: 3 } } });
-ok(s1.oro === 5 && s1.bienes.roma.grano === 3 && s1.agro.v === 1 && s1.agro.parcelas.length === 0 && !('almacen' in s1.agro), 'migrar: crea agro {v, parcelas} sin tocar el resto ni bienes');
+ok(s1.oro === 5 && s1.bienes.roma.grano === 3 && s1.agro.v === 1 && s1.agro.parcelas.length === 0 && !('almacen' in s1.agro) && JSON.stringify(s1.agro.villas) === '{}', 'migrar: crea agro {v, parcelas, villas} sin tocar el resto ni bienes');
 const s2 = A.migrar({ agro: { v: 1, parcelas: [{ id: 'x', ciudad: 'roma' }] } });
 ok(s2.agro.parcelas[0].id === 'x' && s2.agro.parcelas.length === 1, 'migrar: no pisa datos existentes');
 
@@ -126,6 +126,19 @@ A.produccionAnual(ent.parcela, ent.vec); A.produccionMes(ent.parcela, 5, ent.vec
 A.dieta(ent.prod, 10); A.valor(ent.prod, pr); A.encaje('huerto', 'llano', ent.mj); A.consejo('llano', ent.mj); A.puedeMejorar(ent.parcela, 'era');
 ok(JSON.stringify(ent) === antes, 'ninguna función cambia lo que recibe');
 ok(Object.values(A.CAMPOS).every(c => c.d && c.fuente && c.nombre) && Object.values(A.SUELOS).every(s => s.d && s.nombre) && Object.values(A.MEJORAS).every(m => m.fuente && m.nombre), 'tablas con nombre, frase y fuente');
+
+// 14. ciencia (usuario, 24/11)
+ok(A.consejo('ladera_sol', [], []).every(x => x.campo !== 'vina' && x.campo !== 'olivar'), 'ciencia: sin «Viña y olivar» no se aconseja viña ni olivar');
+ok(A.consejo('ladera_sol', [], ['vina'])[0].campo === 'vina' && A.consejo('ladera_sol')[0].campo === 'vina', 'ciencia: con el saber, o sin filtro, la viña vuelve');
+ok(A.consejo('ladera_seca', [], []).length > 0 && A.consejo('ladera_seca', [], []).every(x => x.campo === 'pasto'), 'ciencia: en ladera seca sin saber queda el pasto');
+ok(!A.puedeMejorar({ campo: 'huerto', suelo: 'ribera', mejoras: [] }, 'noria', { vina: true }).ok && /Magón/.test(A.puedeMejorar({ campo: 'huerto', suelo: 'ribera', mejoras: [] }, 'noria', []).motivo), 'ciencia: la noria pide el Tratado de Magón y lo dice');
+ok(A.puedeMejorar({ campo: 'huerto', suelo: 'ribera', mejoras: [] }, 'noria', ['magon']).ok && A.puedeMejorar({ campo: 'trigo', suelo: 'llano', mejoras: [] }, 'era', []).ok, 'ciencia: con Magón hay noria; la era está abierta desde el principio');
+ok(A.abierto('villa', []).falta === 'latif' && A.abierto('trigo', []).ok, 'ciencia: la villa pide «Villa esclavista»; el trigo, nada');
+const sv = { agro: { v: 1, parcelas: [{ id: 'a', ciudad: 'roma', campo: 'trigo', suelo: 'llano', nivel: 1, mejoras: [] }], villas: { roma: 1 } } };
+const sn = { agro: { v: 1, parcelas: sv.agro.parcelas, villas: {} } };
+ok(Math.abs(A.produccionCiudad(sv, 'roma', 3).grano - A.produccionCiudad(sn, 'roma', 3).grano * 1.1) < 1e-9, 'villa: los campos de la ciudad rinden ×1,1');
+const enc = A.encargosAgricultura({ parcelas: [], libres: [{ id: 'l1', suelo: 'ladera_sol' }], almacen: { grano: 999 }, bocas: 10, mes: 0, saberes: [] });
+ok(enc.length && enc[0].campo !== 'vina', 'ciencia: el ministro no propone viña sin el saber');
 
 console.log('\n' + bien + '/' + n);
 process.exit(bien === n ? 0 : 1);
