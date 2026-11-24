@@ -9,7 +9,7 @@ const t = (nombre, f) => { f(); n++; };
 const buena = (o) => Object.assign({ cartago: false, plazas: 0, denarios: 0, rutas: 0, acuerdos: 0, cargo: 'ninguno', favorSenado: 0, bandos: [], planesBien: 0, barrios: { cubiertos: 0, total: 5 }, nivelUrbe: 1 }, o || {});
 const armasOk = { cartago: true, plazas: 8 };
 const comercioOk = { denarios: CAM.CIFRAS.comercio.denarios, rutas: CAM.CIFRAS.comercio.rutas, acuerdos: CAM.CIFRAS.comercio.acuerdos };   // CE12: sigue a las cifras
-const politicaOk = { cargo: 'princeps', bandos: [{ id: 'a', humor: 70, escanos: 10 }], planesBien: 2 };
+const politicaOk = { cargo: 'princeps', bandos: [{ id: 'a', humor: 70, escanos: 10 }], planesBien: CAM.CIFRAS.politica.planesBien };   // CE12: sigue a las cifras
 const ciudadOk = { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4 };
 const junta = (...fs) => buena(Object.assign({}, ...fs));
 

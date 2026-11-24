@@ -73,5 +73,20 @@ Hecho en archivos propios:
 - **Cartago en la larga** (punto 2) → vigía de Batallas: ni el bot viejo de `test/sim.test.js` la toma (0/5, larga, con
   `--var viejo`). Plazas sí: hasta 8. Medir si la campaña agresiva de `sim.test.js` sigue ganando tras la batalla nueva.
 
+### Medida tras la fase 1b (N=5)
+Cifras finales de la fase 1: plazas 6 (3 en la corta), tesoro 3000, rutas 4, acuerdos 5, príncipe 80, planes bien 3,
+sostener comercio, política y ciudad 12 meses, Urbs 4.
+| Bot | Corta | Larga |
+|---|---|---|
+| Armas | **3/5** (Tarento, 242 a.C. de media) | 0/5 (Cartago en pie; plazas 6,8/6) |
+| Comercio | 0/5 (tesoro 1740/3000, rutas 3/4) | 0/5 (Roma cae 5/5 en 224–236 a.C.; rutas 4 máx, 2 al final) |
+| Política | 0/5 | 0/5 (planes bien 1/3; bando militar hostil) |
+| Ciudad | 0/5 (nivel 3/4: sin lujo) | 0/5 (nivel 3/4) |
+La política en la corta es todo o nada: con príncipe 75 o 78 la logran 5 de 5 en el 276 a.C., 34 años antes que las armas.
+Con 80, ninguna. El favor sube a la vez en todas las semillas, así que ninguna cifra la deja en 2–3 de 5. Se queda en 80
+para que no gane antes que las armas. Falta el contrato del bando militar.
+Comercio en la larga: Roma cae siempre. Ni con 300 hombres de guarnición se salva. El bot guarda el dinero y no aguanta
+las invasiones de 225 a.C. Falta mirarlo con una partida suelta.
+
 ## Fase 2
 Fusionar la rama tras CDe4, repetir `node test/equilibrio-caminos.mjs --n 10` y dejar aquí las cifras finales.

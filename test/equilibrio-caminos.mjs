@@ -111,7 +111,9 @@ function jugar(bot, modo) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (G.enRevuelta && G.enRevuelta(c) && (bot !== 'ciudad' || !usaGob)) c.nec.mem.forEach((m, i) => { if (m && m.revuelta) for (const r of ['grano', 'juegos', 'tropas']) if (G.calmarRevuelta(id, i, r).ok) break; });   // entre estaciones, como el bot viejo
-      if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
+      const guarn = bot === 'comercio' && id === G.capital() && G.men(c.units) < 300 && G.yearOf(s.t) <= 265;   // comercio: guarnición mínima de 300 hombres en la capital
+      const libreTropas = bot !== 'comercio' || guarn || G.disponible('denarios') > 1500 + 150;   // y no gasta en tropas por debajo de la reserva
+      if (libreTropas && c.train.length < 4 && (G.prod().grano > 8 || guarn)) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
       if (usaViejo) for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }   // el bucle de obras de sim.test.js
       G.levantarMuralla(id);
       if (!aggressive) continue;
