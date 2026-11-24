@@ -216,7 +216,13 @@
         "js/mercado.js",
         "test/mercado.test.mjs",
         "test/barrio-ui.test.mjs",
-        "js/mercado-ui.js"
+        "js/mercado-ui.js",
+        "js/gobernador.js",
+        "js/gobernador-ui.js",
+        "test/gobernador.test.mjs",
+        "gobierno/maquetas/gobernador/",
+        "js/clases-ui.js",
+        "gobierno/maquetas/clases/"
       ],
       "taller": [],
       "juez": {
@@ -265,7 +271,8 @@
         "gobierno/captura-cg2.mjs",
         "gobierno/maquetas/menus*/",
         "gobierno/maquetas/concurso*/",
-        "gobierno/maquetas/provincias/"
+        "gobierno/maquetas/provincias/",
+        "css/aspecto.css"
       ],
       "taller": [],
       "juez": {
@@ -297,7 +304,9 @@
         "assets/fuentes/",
         "tools/",
         "gobierno/kits/",
-        "gobierno/maquetas/piezas/"
+        "gobierno/maquetas/piezas/",
+        "assets/iconos/",
+        "assets/personajes/"
       ],
       "taller": [],
       "juez": {

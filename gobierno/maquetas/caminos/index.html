@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Tus caminos (maqueta)</title>
+<link rel="stylesheet" href="../../../css/style.css">
+<style>html,body{margin:0;min-height:100%;background:var(--papiro,#e8d4a2)}#app{padding:12px 16px 24px;max-width:390px;margin:0 auto;background:var(--papiro,#e8d4a2)}</style></head><body>
+<div id="app"></div>
+<script src="../../../js/data.js"></script>
+<script src="../../../js/caminos-ui.js"></script>
+<script src="../../../js/caminos.js"></script>
+<script>
+(function () {
+  var C = window.CAMINOS, UI = window.CAMINOS_UI;
+  /* Foto de cada mes (formato real). Se llama a CAMINOS.paso mes a mes con las reglas verdaderas. */
+  function F(o) { var f = { cartago: false, plazas: 0, denarios: 0, rutas: 0, acuerdos: 0, cargo: 'ninguno', favorSenado: 0, bandos: [{ id: 'ter', humor: 30, escanos: 5 }, { id: 'mer', humor: 30, escanos: 4 }, { id: 'pue', humor: 60, escanos: 3 }], planesBien: 0, barrios: { cubiertos: 0, total: 5 }, nivelUrbe: 1 }; for (var k in o) f[k] = o[k]; return f; }
+  var BUENO = {
+    armas: { cartago: true, plazas: 8 },
+    comercio: { denarios: 3200, rutas: 4, acuerdos: 3 },
+    politica: { cargo: 'princeps', favorSenado: 90, bandos: [{ id: 'ter', humor: 70, escanos: 5 }, { id: 'mer', humor: 70, escanos: 4 }, { id: 'pue', humor: 60, escanos: 3 }], planesBien: 2 },
+    ciudad: { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4 } };
+  function foto(buenos, extra) { var o = {}; (buenos || []).forEach(function (id) { for (var k in BUENO[id]) o[k] = BUENO[id][k]; }); for (var k in extra) o[k] = extra[k]; return F(o); }
+  function corre(meses) { var s = {}; C.migrar(s); var f = F({}); meses.forEach(function (m, i) { f = m; C.paso(s, f, i + 1); }); return { s: s, f: f }; }
+  function rep(n, f) { var a = []; for (var i = 0; i < n; i++) a.push(f); return a; }
+  var MEDIAS = { plazas: 4, cartago: false }, POL = { bandos: [{ id: 'ter', humor: 30, escanos: 5 }, { id: 'mer', humor: 60, escanos: 2 }, { id: 'pue', humor: 60, escanos: 2 }], planesBien: 1 };
+  var CASOS = {
+    inicio: function () { return corre([F({ plazas: 1, denarios: 300, rutas: 0, barrios: { cubiertos: 1, total: 5 }, favorSenado: 10 })]); },
+    medias: function () { return corre(rep(7, foto(['comercio', 'ciudad'], { plazas: 4, planesBien: 1, bandos: POL.bandos }))); },
+    peligro: function () {
+      var m = [], i;
+      for (i = 0; i < 3; i++) m.push(foto(['armas', 'politica'], {}));
+      for (i = 0; i < 3; i++) m.push(foto(['armas', 'politica', 'ciudad'], {}));
+      for (i = 0; i < 3; i++) m.push(foto(['armas', 'ciudad'], {}));
+      m.push(foto(['armas'], { comercio: 0 }));
+      return corre(m);
+    },
+    victoria: function () { return corre(rep(12, foto(['armas', 'comercio', 'ciudad'], POL))); }
+  };
+  var q = new URLSearchParams(location.search), caso = q.get('caso') || 'medias', r = (CASOS[caso] || CASOS.medias)(), v = C.vista(r.s, r.f);
+  var vista = q.get('vista') || (v.nuevaVictoria ? 'victoria' : 'hoja');
+  var img = { armas: '../ciudad-ministros/img/edif-cuartel.png', comercio: '../ciudad-ministros/img/edif-mercado.png', politica: '../ciudad-ministros/img/edif-foro.png', ciudad: '../ciudad-ministros/img/edif-fuente.png' };
+  var app = document.getElementById('app'), pasos = [];
+  window.ACCIONES = pasos; window.VISTA = v;
+  var html = vista === 'tira' ? UI.tira(v) : vista === 'victoria' ? UI.victoria(v, { img: img }) : UI.hoja(v, { img: img });
+  UI.montar(app, html, function (a) { pasos.push(a); });
+})();
+</script></body></html>

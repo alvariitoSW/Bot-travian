@@ -1,0 +1,7 @@
+Iconos de AQVILA (assets/iconos/*.svg)
+
+Arte propio del Proyecto AQVILA, dibujado desde cero por codigo (SVG a mano: tinta y color plano).
+No copia ni deriva de ningun icono de terceros ni de juegos comerciales.
+
+Licencia: Creative Commons Atribucion-CompartirIgual 3.0 (CC BY-SA 3.0), igual que el resto de assets.
+Credito: "Proyecto AQVILA".

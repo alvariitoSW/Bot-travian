@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Gobernador (maqueta)</title>
+<link rel="stylesheet" href="../../../css/style.css">
+<style>
+html,body{margin:0;min-height:100%;background:#1a130a url(../fondo-ciudad.jpg) center/cover no-repeat}
+.hoja{box-sizing:border-box;position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;padding:14px;color:#2b1c0a;font-family:Georgia,serif;
+background-color:var(--papiro,#e8d4a2);background-image:radial-gradient(ellipse at 20% 0%,rgba(255,246,214,.7),transparent 55%),radial-gradient(ellipse at 100% 100%,rgba(140,92,36,.38),transparent 60%);border-radius:4px 4px 0 0;box-shadow:0 -14px 40px #000c}
+.hoja h2{margin:0 0 10px;font:700 20px Georgia,serif;letter-spacing:.06em}
+</style></head><body>
+<div class="hoja"><h2>Roma</h2><div id="caja"></div></div>
+<script src="../../../js/data.js"></script>
+<script src="../../../js/gobernador.js" onerror="void 0"></script>
+<script src="../../../js/gobernador-ui.js"></script>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), est = q.get('estado') || 'apagado';
+  if (!window.GOBERNADOR) {
+    var INF = { mes: 3, lineas: [
+      { i: '🍞', texto: 'Calmó el barrio Subura con grano.', ok: true },
+      { i: '⛲', texto: 'Levantó una fuente: faltaba agua en 2 barrios.', ok: true },
+      { i: '🏛️', texto: 'Encargó al ministro de infraestructura subir el Templo.', ok: true }] };
+    window.GOBERNADOR = {
+      LICENCIA: 'Licencia de juego: los antiguos gobernadores no actuaban por estación.',
+      activo: function (s, c) { return !!(s.gob && s.gob[c]); }, migrar: null,
+      poner: function (s, c, si) { (s.gob = s.gob || {})[c] = !!si; },
+      informe: function (s, c) { return s.informe || null; } };
+  }
+  var s = { cities: { roma: { owner: 'roma' } } };
+  if (window.GOBERNADOR.migrar) window.GOBERNADOR.migrar(s);
+  if (est !== 'apagado') window.GOBERNADOR.poner(s, 'roma', true);
+  if (est === 'informe' || est === 'fallos') {
+    var inf = { mes: 3, lineas: [
+      { i: '🕊️', texto: 'Calmó el barrio Subura con grano.', ok: true },
+      { i: '⛲', texto: 'Levantó una fuente: faltaba agua en 2 barrios.', ok: true },
+      { i: '🏛️', texto: 'Encargó al ministro de infraestructura subir el Templo.', ok: true }] };
+    if (est === 'fallos') inf.lineas.push({ i: '⚠️', texto: 'No pudo levantar una cloaca: Faltan recursos.', ok: false });
+    if (s.gobernador) s.gobernador.informes.roma = inf; else s.informe = inf;
+  }
+  window.S = s;
+  var ESTA = ['Primavera', 'Verano', 'Otoño', 'Invierno'];
+  window.GobernadorUI.montar(document.getElementById('caja'), s, 'roma', { nombreCiudad: function () { return 'Roma'; },
+    mesTexto: function (m) { return ESTA[m % 4] + ' del 279 a.C.'; } });
+})();
+</script></body></html>

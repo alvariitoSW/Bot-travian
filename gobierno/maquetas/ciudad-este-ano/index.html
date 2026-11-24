@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Este año (maqueta)</title>
+<link rel="stylesheet" href="../../../css/style.css">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1a130a url(../fondo-ciudad.jpg) center/cover no-repeat}
+#barra{position:fixed;left:0;right:0;bottom:0;height:76px;box-sizing:border-box;display:flex;gap:8px;padding:10px 12px;background:linear-gradient(#2a1e10,#150e06);border-top:2px solid #7a5a1f;z-index:70}
+#barra button{flex:1;min-width:0;border-radius:10px;border:1px solid #7a5a1f;color:#ecd9a8;font:700 16px Georgia,serif;background:linear-gradient(#3e2e16,#1f160a)}
+#barra button.on{color:#2b1c0a;background:linear-gradient(#f3e2b4,#d8bb80)}
+</style></head><body>
+<div id="barra"><button>Construir</button><button class="on">Este año</button><button>Senado</button></div>
+<div id="raiz"></div>
+<script src="../../../js/data.js"></script>
+<script src="../../../js/este-ano.js"></script>
+<script src="../../../js/este-ano-ui.js"></script>
+<script>
+(function () {
+  /* Datos de ejemplo pasados por las reglas de verdad (js/este-ano.js): dos años de Roma y Capua */
+  var E = window.ESTEANO, q = new URLSearchParams(location.search);
+  function anio(n, k) {   // k escala el año: el anterior es algo distinto para que salgan flechas
+    var l = E.nuevoLibro(n);
+    E.apuntaMes(l, 'roma', { denarios: { impuestos: 2400 * k, comercio: 300, botin: 900 * k, edificios: -1000, senado: -500 }, grano: { cosecha: 4800 * k, comida: -5200 },
+      materiales: { cosecha: 1200, obras: -900 * k }, hierro: { cosecha: 200, legiones: -300 * k }, aceite: { cosecha: 300 * k, comida: -260 }, lana: { cosecha: 260, compras: -300 * k } });
+    E.apuntaMes(l, 'capua', { denarios: { impuestos: 700 * k, comercio: 900, edificios: -300, senado: -200, compras: -140 }, grano: { cosecha: 3600, comida: -3000, perdido: -700 * k },
+      aceite: { cosecha: 300, comida: -160 * k }, vino: { cosecha: 350 * k, senado: -350 }, verdura: { cosecha: 900, comida: -700 * k } });
+    E.apuntaMes(l, '_imperio', { denarios: { legiones: -2100 * k, tributoGuerra: -550, sabios: -90 }, hierro: { legiones: -180 } });
+    return l;
+  }
+  var cu = E.cuentas(anio(241, 1), anio(242, 0.9));
+  var tr = q.get('tributo') === 'suspendido' ? E.tributoPrimavera({ hombresEnArmas: 3000, ciudadanos: 9000, botinAnio: 2600, indemnizacionAnio: 1200, caja: 900 })
+    : E.tributoPrimavera({ hombresEnArmas: 3000, ciudadanos: 9000, botinAnio: 900, indemnizacionAnio: 400, caja: 3000 });
+  var op = { ambito: q.get('ambito') || 'imperio', nombres: { roma: 'Roma', capua: 'Capua' }, tributo: tr, anioTexto: '241 a.C.', abierta: q.get('abierta') || null };
+  var raiz = document.getElementById('raiz');
+  function pinta() { window.ESTEANO_UI.montar(raiz, cu, op); }
+  raiz.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+    var a = b.dataset.act, v = b.dataset.v;
+    if (a === 'eaambito') { op.ambito = v; op.abierta = null; }
+    else if (a === 'eafila') op.abierta = op.abierta === v ? null : v;
+    else if (a === 'eacerrar') { raiz.innerHTML = ''; return; }
+    else { window.ULTIMA = a; }
+    pinta();
+  });
+  pinta();
+})();
+</script></body></html>

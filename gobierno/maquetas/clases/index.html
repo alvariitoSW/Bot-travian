@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Clases sociales (maqueta)</title>
+<link rel="stylesheet" href="../../../css/style.css">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1a130a url(../fondo-ciudad.jpg) center/cover no-repeat}
+#barra{position:fixed;left:0;right:0;bottom:0;height:76px;box-sizing:border-box;display:flex;gap:8px;padding:10px 12px;background:linear-gradient(#2a1e10,#150e06);border-top:2px solid #7a5a1f;z-index:70}
+#barra button{flex:1;min-width:0;border-radius:10px;border:1px solid #7a5a1f;color:#ecd9a8;font:700 16px Georgia,serif;background:linear-gradient(#3e2e16,#1f160a)}
+</style></head><body>
+<div id="barra"><button>Construir</button><button>Clases</button><button>Senado</button></div>
+<script src="../../../js/data.js"></script>
+<script src="../../../js/ministros.js"></script>
+<script src="../../../js/plan-senado.js"></script>
+<script src="../../../js/asesor.js"></script>
+<script src="../../../js/diplomacia.js"></script>
+<script src="../../../js/codice.js"></script>
+<script src="../../../js/registro.js"></script>
+<script src="../../../js/carga.js"></script>
+<script src="../../../js/battle.js"></script>
+<script src="../../../js/game.js"></script>
+<script type="module">
+/* Banco de pruebas de CS3. Partida de prueba: una ciudad con tres barrios, uno sin servicios (Subura), otro bien servido (Foro) y otro a medias (Aventino).
+   Las cifras de población y el ánimo salen del juego de verdad (Game.clases / Game.animoClases); los barrios, de datosCiudad. */
+import { datosCiudad } from '../../../js/barrio-ui.js';
+import * as NEC from '../../../js/necesidades.js';
+import '../../../js/clases-ui.js';
+const q = new URLSearchParams(location.search);
+const N = 64, ocup = new Uint8Array(N * N), fila = 20;
+const calle = (a, b) => { for (let i = a; i <= b; i++) ocup[fila * N + i] = 1; };
+calle(2, 14); calle(22, 62);
+let idc = 0; const casas = [];
+const casa = (x, b) => casas.push({ id: ++idc, x: x + 0.5, z: fila + 2.5, barrio: b, fuera: false, casa: { nivel: 2 } });
+for (let x = 3; x <= 13; x += 2) casa(x, 0);
+for (let x = 24; x <= 40; x += 2) casa(x, 1);
+for (let x = 46; x <= 60; x += 2) casa(x, 2);
+const ed = (tipo, x) => ({ id: ++idc, tipo, x, z: fila - 2.5, w: 2, d: 2, obra: 0, ruina: 0 });
+const E = { geo: { X0: 0, Z0: 0, C: 1 }, ocup, fundada: true, parcelas: casas,
+  edificios: [ed('fuente', 28.5), ed('templo', 32.5), ed('mercado', 36.5), ed('escuela', 30.5), ed('medico', 38.5), ed('fuente', 50.5)],
+  barrios: [{ nombre: 'Subura', corto: 'Subura', x: 8, z: 22 }, { nombre: 'Foro', corto: 'Foro', x: 32, z: 22 }, { nombre: 'Aventino', corto: 'Aventino', x: 53, z: 22 }] };
+let estadoReal = null, G = window.Game;
+try { G.newGame('Prueba', 'mediterraneo'); const id = G.myCities()[0]; const c = G.state.cities[id]; c.pop = 2400; c.ciu = 520; c.esc = 380; estadoReal = { id, c }; } catch (e) { console.warn('Sin Game real, cifras de mentira', e); }
+const gente0 = () => estadoReal ? G.clases(estadoReal.c) : { ple: 1500, ciu: 520, esc: 380, pop: 2400 };
+const animo0 = () => { try { return estadoReal ? G.animoClases(estadoReal.c) : { ple: 52, ciu: 61, esc: 28 }; } catch (e) { return { ple: 52, ciu: 61, esc: 28 }; } };
+window.ENCARGOS = [];
+const op = { estado: () => { const g = gente0(), D = datosCiudad(E, g, null); return { gente: g, animo: animo0(), D }; },
+  encargar: (cid, det) => { window.ENCARGOS.push(det); return { ok: true }; } };
+op.base = '../../../assets/personajes/'; window.OP = op;
+const cl = ['plebe', 'ciudadanos', 'patricios', 'esclavos'];
+window.CLASES_UI.abrir('roma', op);
+if (q.get('ficha')) { document.querySelector('[data-cl=' + q.get('ficha') + ']').click(); }
+</script></body></html>
