@@ -67,8 +67,8 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
   const SOL = new THREE.Vector3(...SOL_DIR).normalize();
   /* luz: la de la maqueta, a la escala del campo. Bruma cálida y exponencial (se ven las lomas, se pierden los montes) */
   escena.background = new THREE.Color(HORIZ);
-  escena.fog = new THREE.FogExp2('#cdb08a', 0.00062);
-  pon(new THREE.HemisphereLight(0xb4c4dc, 0x6a5434, 1.35));
+  escena.fog = new THREE.FogExp2('#c3c0a4', 0.00052);   /* CG8a: bruma menos parda (antes #cdb08a, 0.00062) */
+  pon(new THREE.HemisphereLight(0xb4c4dc, 0x5c5e34, 1.35));
   const sol = pon(new THREE.DirectionalLight(0xffdcb0, 3.5)); sol.position.copy(SOL).multiplyScalar(200);
   /* relleno desde detrás de la cámara (el cielo que rebota): sin él las espaldas, lejos del sol, quedarían negras */
   pon(new THREE.DirectionalLight(0xc0cce0, 1.7)).position.set(-0.15, 0.75, 1);
@@ -151,7 +151,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
       vec3 seca = mix(texture2D(uSeca, p * 0.09).rgb, texture2D(uSeca, GIRO * p * 0.053 + 0.37).rgb, 0.5) * vec3(0.98, 1.06, 0.86);
       vec3 verde = mix(texture2D(uVerde, GIRO * p * 0.05).rgb, texture2D(uVerde, p * 0.029 + 0.6).rgb, 0.4) * vec3(1.12, 1.18, 0.92);
       vec3 tierra = mix(texture2D(uTierra, p * 0.11).rgb, texture2D(uTierra, GIRO * p * 0.037).rgb, 0.4);
-      vec3 c = mix(seca, verde, smoothstep(0.2, 0.5, n1 + (n2 - 0.5) * 0.5) * 0.85);
+      vec3 c = mix(seca * vec3(0.9, 1.0, 0.78), verde, 0.45 + 0.5 * smoothstep(0.12, 0.5, n1 + (n2 - 0.5) * 0.5)) * vec3(0.9, 1.04, 0.84);   /* CG8a: más verde (el usuario: campo menos pardo) */
       /* flores silvestres en corros: manzanilla y crisantemo (amarillo y blanco; el rojo de las amapolas se confundiría con Roma) */
       float fl = smoothstep(0.74, 0.86, texture2D(uRuido, p * 0.021 + 0.17).b) * smoothstep(0.35, 0.55, n1);
       c = mix(c, mix(vec3(0.8, 0.7, 0.28), vec3(0.62, 0.66, 0.3), n3), fl * 0.1);
@@ -159,7 +159,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
       /* tierra pisada donde se lucha, con manchas; y la senda */
       float pis = exp(-(p.y * p.y) / 14000.0) * exp(-(p.x * p.x) / 90000.0) * smoothstep(0.25, 0.65, n2 + 0.25);
       float ds = abs(p.y - sendaZ(p.x)) + (n3 - 0.5) * 6.0, senda = 1.0 - smoothstep(2.6, 4.6, ds), orilla = 1.0 - smoothstep(4.0, 10.0, ds);
-      c = mix(c, tierra, max(max(senda * 0.9, calva * 0.25), max(pis * 0.45, orilla * 0.3)));
+      c = mix(c, tierra, max(max(senda * 0.9, calva * 0.2), max(pis * 0.3, orilla * 0.3)));
       c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.5);   /* laderas, más secas */
       { float mq = texture2D(uRuido, p * 0.0047 + 0.71).g, lj = smoothstep(700.0, 950.0, max(abs(p.x), abs(p.y) * 1.6));
         c = mix(c, vec3(0.2, 0.25, 0.12), smoothstep(0.52, 0.68, mq) * 0.65 * lj); }   /* lejos, matorral mediterráneo por las lomas */
@@ -217,8 +217,8 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
     som.count = FIJAS.length; som.frustumCulled = false; som.renderOrder = 1; pon(som);
   }
 
-  /* ---------- polvo que levantan los pies: nubecillas donde se marcha o se lucha; a contraluz se doran (una llamada, 260 puntos) ---------- */
-  const NP = 260, pPos = new Float32Array(NP * 3), pVida = new Float32Array(NP).fill(1), pTam = new Float32Array(NP), pVel = new Float32Array(NP * 2);
+  /* ---------- polvo que levantan los pies: nubecillas donde se marcha o se lucha; a contraluz se doran (una llamada, 420 puntos). CG8a: y una nube grande donde chocan (golpe) ---------- */
+  const NP = 420, pPos = new Float32Array(NP * 3), pVida = new Float32Array(NP).fill(1), pTam = new Float32Array(NP), pVel = new Float32Array(NP * 2);
   const gPol = new THREE.BufferGeometry(); gPol.setAttribute('position', new THREE.BufferAttribute(pPos, 3)); gPol.setAttribute('aVida', new THREE.BufferAttribute(pVida, 1)); gPol.setAttribute('aTam', new THREE.BufferAttribute(pTam, 1));
   const POL_U = { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), uSol: { value: SOL }, uEsc: { value: 400 } };
   const polvo = new THREE.Points(gPol, new THREE.ShaderMaterial({ uniforms: POL_U, transparent: true, depthWrite: false, fog: true,
@@ -242,6 +242,11 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
   polvo.frustumCulled = false; polvo.renderOrder = 4; pon(polvo);
   let sigP = 0; const antes = new Map();
   function soltarPolvo(x, z, tam) { const i = sigP; sigP = (sigP + 1) % NP; pPos[i * 3] = x; pPos[i * 3 + 1] = 0.6 + rnd() * 0.8; pPos[i * 3 + 2] = z; pVida[i] = 0; pTam[i] = tam; pVel[i * 2] = (rnd() - 0.5) * 1.2; pVel[i * 2 + 1] = (rnd() - 0.5) * 1.2; }
+  /* CG8a: el golpe de un choque o una carga: una cortina de polvo a lo largo del frente (x, z del centro, ancho en m, a = dirección del frente) */
+  function golpe(x, z, ancho, a, fuerza) {
+    const n = Math.round(14 + 10 * fuerza), ca = Math.cos(a), sa = Math.sin(a);
+    for (let k = 0; k < n; k++) { const l = (rnd() - 0.5) * ancho; soltarPolvo(x + ca * l + (rnd() - 0.5) * 4, z - sa * l + (rnd() - 0.5) * 4, (10 + rnd() * 9) * fuerza); const i = (sigP + NP - 1) % NP; pVel[i * 2] *= 3; pVel[i * 2 + 1] *= 3; pPos[i * 3 + 1] = 0.5 + rnd() * 2.5; }
+  }
   function tick(dt, S, Sim, camara, altoPx) {
     if (camara && altoPx) POL_U.uEsc.value = altoPx / (2 * Math.tan(camara.fov * Math.PI / 360));
     if (!(dt > 0) || !S) return;
@@ -249,7 +254,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
     for (const u of S.man) {
       if (u.estado !== 'firme' && u.estado !== 'duda' && u.estado !== 'huye') { antes.delete(u.id); continue; }
       const a = antes.get(u.id), v = a ? Math.hypot(u.x - a.x, u.y - a.y) / dt : 0; antes.set(u.id, { x: u.x, y: u.y });
-      const lucha = S.cont && S.cont[u.id] && S.cont[u.id].length > 0, ritmo = (lucha ? 1.6 : 0) + (v > 0.6 ? Math.min(2, v * 0.4) : 0);
+      const lucha = S.cont && S.cont[u.id] && S.cont[u.id].length > 0, ritmo = (lucha ? 2.2 : 0) + (v > 0.6 ? Math.min(2.6, v * 0.55) : 0);
       if (ritmo <= 0 || rnd() > ritmo * dt * 3) continue;
       const fr = Sim && Sim.frente ? Sim.frente(u) : 30, l = (rnd() - 0.5) * fr, lx = -Math.sin(u.a), ly = Math.cos(u.a), atras = lucha ? 0 : -6 * rnd();
       soltarPolvo(u.x + lx * l + Math.cos(u.a) * atras, -(u.y + ly * l + Math.sin(u.a) * atras), lucha ? 7 + rnd() * 6 : 5 + rnd() * 4);
@@ -257,7 +262,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
     gPol.attributes.position.needsUpdate = true; gPol.attributes.aVida.needsUpdate = true; gPol.attributes.aTam.needsUpdate = true;
   }
 
-  return { alt, sol, SOL, HORIZ, sombra: { dx: DX, dz: DZ, largo: largoSol }, tick,
+  return { alt, sol, SOL, HORIZ, sombra: { dx: DX, dz: DZ, largo: largoSol }, tick, golpe,
     soltar() {
       for (const o of puestos) { escena.remove(o); if (o.geometry) o.geometry.dispose(); }   /* los árboles (grupos) comparten geometría con el resto del juego: no se sueltan */
       for (const t of texs) t.dispose(); puestos.length = 0; texs.length = 0; escena.fog = null; escena.environment = null;

@@ -125,11 +125,19 @@ export function accion(v) {
       g.unshift({ n, pueblo: S.pueblo[0], m: Object.assign({}, S.ej[0]) }); guarda(g); S.aviso = 'Guardado: «' + n + '». Lo tienes en el paso 1.'; break;
     }
     case 'carga': { const g = guardados()[+x]; if (g && PUEBLOS.includes(g.pueblo)) { if (g.pueblo === S.pueblo[1]) { S.pueblo[1] = S.pueblo[0]; S.rivMano = false; } S.pueblo[0] = g.pueblo; S.ej[0] = {}; let n = 0; for (const t in (g.m || {})) { const q = Math.min(TOPE - n, g.m[t] | 0); if (q > 0 && tropas(g.pueblo)[t]) { S.ej[0][t] = q; n += q; } } recorta(0); rehazRival(); S.aviso = 'Cargado. Míralo en «Tu ejército».'; } break; }
+    case 'avisa': S.aviso = x; break;   /* CG7: el aviso al volver de la batalla rápida */
+    case 'rapida': case 'resolver':   /* CG7: batalla rápida y resolver sin mirar */
+      if (!listo()) { S.aviso = 'Los dos ejércitos necesitan tropas.'; break; }
+      { const b = batalla(), c = (Dt().FACTIONS[b.fac] || {}).col; import('./ui-batalla-rapida.js').then(() => window.UIBatallaRapida[k === 'rapida' ? 'abrir' : 'resolver'](Object.assign(b, { col: c }), r => avisa((r.victoria ? 'Victoria' : 'Derrota') + ' en la batalla rápida: ' + r.bajasTotal[0] + ' bajas tuyas, ' + r.bajasTotal[1] + ' del rival.'))); }
+      break;
     case 'borra': { const g = guardados(); g.splice(+x, 1); guarda(g); break; }
   }
 }
 /* tras repintar la hoja: la lista vuelve a donde estaba (si no se cambió de paso) */
 export function restaura() { const c = document.querySelector('#hoja .cg2-cuerpo'); if (c && S.scroll) c.scrollTop = S.scroll; }
+
+/* CG7: al volver de la batalla rápida, repinta la hoja con el aviso (usa el mismo camino que cualquier botón) */
+function avisa(t) { S.aviso = t; const h = document.getElementById('hoja'); if (!h || h.hidden) return; const b = document.createElement('button'); b.hidden = true; b.dataset.act = 'escel'; b.dataset.v = 'avisa:' + t; h.appendChild(b); b.click(); b.remove(); }
 
 /* ---------- lo que necesita la batalla ---------- */
 export function listo() { asegura(); return cuenta(0) > 0 && cuenta(1) > 0; }
@@ -202,7 +210,9 @@ function paso3() {
 function paso4() {
   return '<p class="ro-rubrica cg2-r">Campo</p><div class="esc-campos cg2-campos">' + Object.keys(CAMPOS).map(k => '<button class="esc-campo' + (S.campo === k ? ' on' : '') + '" data-act="escel" data-v="campo:' + k + '">' + dep.campoPrev(k, col(S.pueblo[1])) + '<span>' + CAMPOS[k] + '</span></button>').join('') + '</div>' +
     '<p class="cg2-nota">El campo cambia el paisaje; la pelea aún no depende de él. Pronto podrás colocar tus tropas antes de empezar.</p>' +
-    '<p class="cg2-nota">' + den(hombres(0)) + ' hombres tuyos contra ' + den(hombres(1)) + ' de ' + NOMBRE[S.pueblo[1]] + '.</p>';
+    '<p class="cg2-nota">' + den(hombres(0)) + ' hombres tuyos contra ' + den(hombres(1)) + ' de ' + NOMBRE[S.pueblo[1]] + '.</p>' +
+    '<div class="cg2-herr"><button class="chip" data-act="escel" data-v="rapida:">Batalla rápida</button><button class="chip" data-act="escel" data-v="resolver:">Resolver sin mirar</button></div>' +
+    '<p class="cg2-nota">Batalla rápida: tres rondas de planear y mirar. Resolver: los tribunos la deciden sin que la veas.</p>';
 }
 function ficha() {
   const { t, lado } = S.ficha, u = Dt().UNITS[t], R = window.REGISTRO || {}, n = S.ej[lado][t] || 0;
