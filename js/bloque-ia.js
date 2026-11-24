@@ -111,7 +111,7 @@ export const K_GOLPE = 0.85;                                          /* hombres
 export const ZONA = { frente: 1, flanco: 2.1, espalda: 2.8 };         /* cuánto pesa el golpe según por dónde entra */
 export const ANG_FRENTE = 60 * GRADO, ANG_ESPALDA = 120 * GRADO;   /* para el nombre de la zona (avisos); el golpe va por pesoDe */
 export const AGOTADA = 0.7;
-export const D_BOT = 32, OFF_BOT = 20;                               /* el bot bueno gira hacia la reserva cuando está a 32 m y a más de 20° */
+export const D_BOT = 32, OFF_BOT = 20, D_BOT_VUELTA = 50;                               /* el bot bueno gira hacia la reserva cuando está a 32 m y a más de 20° */
 export const VAR = 0.08;                                             /* suerte de cada banda galo: ±8 % de fuerza */
 export const T_PERSIGUE = 15;                                       /* segundos de persecución si tu manípulo rompe */
 /* LP4b · trabados y retirada ordenada (licencia de juego: todas las cifras) */
@@ -311,6 +311,7 @@ export function crearCombate(m = {}) {
     if (b.estado === 'reforma') {
       if (b.tReforma > 0 && S.T >= b.tReforma) {
         b.estado = 'forma'; b.U.anima(REFORMA_ANIMO); b.coh = Math.max(b.coh, 75); b.fila = Math.min(b.fila, 0.15); b.tReforma = -1; b.agotada = false; b.cedido = false;
+        if (b === tuyo) tuyo.vueltas = (tuyo.vueltas || 0) + 1;
         avisa('vuelve', { de: b });
       }
     }
@@ -327,6 +328,7 @@ export function crearCombate(m = {}) {
     /* trabado y perdiendo, sin relevo que lo arregle: retirarse a tiempo, mientras la cohesión aguanta */
     if (ch && !sinRetirada && conviene()) return 'retirada';
     if (tuyo.estado === 'reforma') return null;
+    if (!ch && tuyo.vueltas && giroUtil()) return null;   /* rehecho y con su jefe a un lado: primero girar hacia él (la raya dorada), no cargar */
     if (tuyo.orden === 'cargar' && !ch) { const v = delanteDe(tuyo, 60); if (!v || v.o.estado === 'huye' || retirando(v.o)) return 'alto'; }
     if (tuyo.orden === 'testudo' && !S.salva) return ch ? 'testudo' : (delanteDe(tuyo, D_CARGA) ? 'cargar' : 'alto');   /* trabado: tocar Testudo otra vez lo quita */
     if (tuyo.orden !== 'cargar' && !ch) { const v = delanteDe(tuyo, D_CARGA); if (v && v.o.estado !== 'huye' && !retirando(v.o)) return 'cargar'; }
@@ -685,30 +687,41 @@ export function crearCombate(m = {}) {
     if (u && no.includes(u)) u = null;
     if (u) orden(u);
     else if (no.includes('testudo') && tuyo.orden === 'testudo') orden('alto');
-    /* el flanco: cuando la reserva ya se compromete (a menos de 22 m), redibuja el frente 50° hacia ella */
-    const F = S.flanco;
-    if (F && vivo(F.de) && S.T - tGiro > 3 && !retirando(tuyo)) {
-      /* el flanco: cuando la reserva ya está cerca y se te va a más de 40° del frente, redibuja el frente hacia ella,
-         sin dar la espalda al centro galo (que los dos queden dentro del frente) */
-      const c = centro(tuyo), r = centro(F.de), dC = dist(r, c), aR = angHacia(r.x - c.x, r.z - c.z), off = angDif(aR, tuyo.ang);
-      if (dC < D_BOT && Math.abs(off) > OFF_BOT * GRADO) {
-        tGiro = S.T; const C0 = vivo(ene.centro) && enChoque(tuyo) ? centro(ene.centro) : null, l = Math.sign(off);
-        let a = aR - l * 30 * GRADO;
-        if (C0) {   /* con el centro galo encima: si caben los dos en el frente, mira entre ambos; si no, deja el centro a 50° */
-          const aC = angHacia(C0.x - c.x, C0.z - c.z), dd = angDif(aC, a), abre = angDif(aR, aC);
-          if (Math.abs(dd) > 50 * GRADO) a = Math.abs(abre) < 2 * ANG_FRENTE - 6 * GRADO ? aC + abre / 2 : aC - Math.sign(dd) * 50 * GRADO;
-        }
-        a = tuyo.ang + lim(angDif(a, tuyo.ang), -50 * GRADO, 50 * GRADO);   /* nunca más de 50° de una vez */
-        const prev = tuyo.orden; frente({ x: tuyo.x, z: tuyo.z, ang: angDif(a, 0) }); if (prev === 'testudo') tuyo.orden = 'testudo';
-      }
+    /* el flanco: cuando su jefe se acerca por un lado, redibuja el frente hacia él (giroUtil) */
+    if (S.T - tGiro > 3) { const g = giroUtil(); if (g) { tGiro = S.T; const prev = tuyo.orden; frente(g); if (prev === 'testudo') tuyo.orden = 'testudo'; } }
+  }
+  /* ---------- girar hacia su jefe (LP4b, pedido del usuario 24/11: «4B») ----------
+     El jefe que viene: el del aviso de flanco; y, si ya te retiraste y te rehiciste, su reserva aunque ya no haya aviso
+     (al soltarte te deja ir y luego vuelve a por ti en línea recta, casi siempre por un lado). */
+  function jefeQueViene() {
+    if (S.flanco && vivo(S.flanco.de)) return S.flanco.de;
+    const R = ene.reserva;
+    if (tuyo.vueltas > 0 && vivo(R) && !retirando(R) && R.estado !== 'huye') return R;
+    return null;
+  }
+  /* el frente que conviene dibujar ahora: cuando su jefe está cerca (D_BOT) y se te va a más de OFF_BOT del frente, girar hacia
+     él sin dar la espalda al centro galo (que los dos queden dentro del frente), nunca más de 50° de una vez. Si no, null */
+  function giroUtil() {
+    if (S.ganador || tuyo.U.roto || tuyo.estado === 'retira') return null;   /* rehaciéndose sí se puede ir girando */
+    const J = jefeQueViene(); if (!J) return null;
+    const c = centro(tuyo), r = centro(J), dC = dist(r, c), aR = angHacia(r.x - c.x, r.z - c.z), off = angDif(aR, tuyo.ang);
+    const lejos = tuyo.vueltas && J === ene.reserva && !S.flanco ? D_BOT_VUELTA : D_BOT;   /* tras rehacerte, con tiempo: girar pesa */
+    if (!(dC < lejos && Math.abs(off) > OFF_BOT * GRADO)) return null;
+    const C0 = vivo(ene.centro) && enChoque(tuyo) ? centro(ene.centro) : null, l = Math.sign(off);
+    let a = aR - l * 30 * GRADO;
+    if (C0) {   /* con el centro galo encima: si caben los dos en el frente, mira entre ambos; si no, deja el centro a 50° */
+      const aC = angHacia(C0.x - c.x, C0.z - c.z), dd = angDif(aC, a), abre = angDif(aR, aC);
+      if (Math.abs(dd) > 50 * GRADO) a = Math.abs(abre) < 2 * ANG_FRENTE - 6 * GRADO ? aC + abre / 2 : aC - Math.sign(dd) * 50 * GRADO;
     }
+    a = tuyo.ang + lim(angDif(a, tuyo.ang), -50 * GRADO, 50 * GRADO);
+    return { x: tuyo.x, z: tuyo.z, ang: angDif(a, 0), de: J };
   }
   function resumen() {
     const muertosG = S.bloques.filter(b => b.bando === 'g').reduce((s, b) => s + b.U.hombres - b.U.enPie, 0);
     return { ganador: S.ganador, causa: S.causa, T: +S.T.toFixed(1), nivel, perdidos: tuyo.U.hombres - tuyo.U.enPie, enPie: tuyo.U.enPie,
       matados: muertosG, flanqueado: S.cuenta.flanqueado > 0, ...S.cuenta, reservaFase: S.ia.fase, ladoReserva: S.ia.lado };
   }
-  return { S, paso, orden, frente, dibujaFrente, ordenUtil: () => ordenUtil(), bot, resumen, trabado: () => trabado(tuyo) };
+  return { S, paso, orden, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
 }
 
 /* una partida entera con un bot (para las pruebas y el juez) */
