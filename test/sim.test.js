@@ -293,7 +293,7 @@ function campaign1(aggressive, region, opciones) {
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0, ultGob = -1; const GOBM = require('../js/gobernador.js');
   // CDe4 (CE10): la campaña larga ya no acaba al tomar Cartago ni por años: el bot para al lograr los caminos (s.caminos.victoria) o al llegar al año límite
-  while (!G.finDePrueba() && guard++ < 200000) {
+  while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {   // CDe4 (plan A del vigía): la campaña larga para en el 150 a.C., donde se mide el criterio «aguanta»; sin fin por Cartago, jugar hasta el 145 pasaba de la hora
     G.tick(0.25);
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
     { const mesB = Math.floor(s.t + 1e-9); if (mesB % D.TURNO_MESES === 0 && mesB !== ultGob) { ultGob = mesB;   // CDe4 (MN3): una vez por estación y ciudad, el gobernador calma revueltas y levanta lo que falta (ya no lo hace el bot a mano)
