@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Hoja de estilos</title>
+<style>
+body{margin:0;background:#1b1712;color:#f1ead9;font:15px system-ui,sans-serif;padding:14px}
+h2{margin:0 0 8px;font-size:18px;color:#e6b94f}
+.fila{display:flex;gap:12px;margin-bottom:18px;align-items:flex-start}
+.fila>div{flex:1;min-width:0}.fila small{display:block;margin:0 0 4px;color:#b9ae96;text-transform:uppercase;letter-spacing:.06em;font-size:12px}
+img{display:block;width:100%;border-radius:8px;border:1px solid #fff2}
+.ciudad .fila{flex-direction:row}
+</style></head><body>
+<script src="datos.js"></script>
+<script>
+const modos=['ciudad','construir','necesidades'],v=new URLSearchParams(location.search).get('v'),B='../../../capturas-tarea/CD0b-';
+const ES=window.ESTILOS||[];const NOM={pintado:"A · Plano pintado",maqueta:"B · 3D real desde arriba",lamina:"C · Mapa antiguo ilustrado","plano-claro":"Punto de partida"};
+if(v==='ciudad'){document.body.style.width='1600px';document.body.innerHTML+=`<div class="fila">${ES.map(e=>`<div><h2>${NOM[e]||e}</h2><img src="${B}${e}-ciudad.jpg"></div>`).join('')}</div>`}
+else{document.body.style.width='1572px';document.body.innerHTML+=ES.map(e=>`<h2>${NOM[e]||e}</h2><div class="fila">${modos.map(m=>`<div><small>${m}</small><img src="${B}${e}-${m}.jpg"></div>`).join('')}</div>`).join('')}
+</script></body></html>

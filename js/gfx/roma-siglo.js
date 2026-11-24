@@ -276,19 +276,29 @@ function rellenoUrbe(E, K, out, h) {
   const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), usada = new Uint8Array(N * N);
   const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; };
   for (const k of out.celdas) usada[k] = 1;
-  /* las calles de adorno se marcan antes: ninguna casa las pisa */
-  for (const c of E.urbe.calles) for (let q = 1; q < c.p.length; q++) { const a = c.p[q - 1], b = c.p[q], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 0; s <= L; s += 1.5) for (const o of [-1.2, 0, 1.2]) { const u = (b[1] - a[1]) / L, v = -(b[0] - a[0]) / L, k = cel(a[0] + (b[0] - a[0]) * s / L + u * o, a[1] + (b[1] - a[1]) * s / L + v * o); if (k >= 0) usada[k] = 2; } }
+  /* CV4a: calles y casas de relleno se apuntan en una rejilla fina de 1 m (la de 4 m del juego dejaba media calle sin casas: la esquina de la casa caía
+     en la misma celda que la calle). 2 = calle, 1 = casa. Solo vista: no toca E.ocup.
+     Se apunta algo menos que el tamaño real (una celda de 1 m ya añade su ancho) y se prueba la huella entera de la casa nueva */
+  const NF = N * C, fina = new Uint8Array(NF * NF), cf = (x, z) => { const i = Math.floor(x - X0), j = Math.floor(z - Z0); return i < 0 || j < 0 || i >= NF || j >= NF ? -1 : j * NF + i; };
+  for (const c of E.urbe.calles) { const m = c.w / 2; for (let q = 1; q < c.p.length; q++) { const a = c.p[q - 1], b = c.p[q], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (!L) continue; const u = (b[1] - a[1]) / L, v = -(b[0] - a[0]) / L;
+    for (let s = 0; s <= L; s += 0.7) for (let o = -m; o <= m + 0.01; o += 0.7) { const k = cf(a[0] + (b[0] - a[0]) * s / L + u * o, a[1] + (b[1] - a[1]) * s / L + v * o); if (k >= 0) fina[k] = 2; } } }
+  const MUE = [-3.5, -1.75, 0, 1.75, 3.5];
   let n = 0;
   for (const c of E.urbe.calles) { const P = c.p; let paso = 4;
     for (let q = 1; q < P.length; q++) { const a = P[q - 1], b = P[q], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz); if (!L) continue; const ux = dx / L, uz = dz / L, ang = Math.atan2(dz, dx);
-      let s = paso; for (; s < L; s += 8.6) { n++;
-        for (const lado of [1, -1]) { const r = h(n, lado + 5), t = h(lado + 9, n); if (r > 0.93) continue;            // algún solar vacío suelto
-          const o = 7.4 + (r * 13 % 1) * 0.8, x = a[0] + ux * s - uz * o * lado, z = a[1] + uz * s + ux * o * lado; let ok = true; const ks = [];
-          for (const [p1, p2] of [[0, 0], [-2.4, -2.4], [2.4, -2.4], [-2.4, 2.4], [2.4, 2.4]]) { const k = cel(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k < 0 || O[k] || usada[k] || E.dVia[k] < 6) { ok = false; break; } ks.push(k); }
-          if (!ok || K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 1.5) continue;
-          const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 2.8) continue;
-          for (const k of ks) { usada[k] = 1; out.celdas.add(k); }
-          const d = Math.hypot(x - f.x, z - f.z) / rmax, giro = -ang + (lado > 0 ? 0 : Math.PI), q0 = { x, z, giro, sx: 0.92 + 0.16 * t, sy: 0.8 + 0.45 * t, tono: t, k: ks[0] };
-          if (r < 0.3 - 0.26 * d) out.fondo3.push(Object.assign(q0, { sy: 0.85 + 0.3 * t })); else if (d > 0.82 && r < 0.75) out.huerto.push(Object.assign(q0, { sy: 1, sx: 0.85 })); else if (r < 0.84) out.fondo.push(q0); else out.patio.push(Object.assign(q0, { sy: 1 })); } }
+      let s = paso; for (; s < L; s += 8.4) { n++;
+        for (const lado of [1, -1]) for (let fila = 0; fila < 3; fila++) { const r = h(n + fila * 7919, lado + 5), t = h(lado + 9, n + fila * 104729); if (r > (fila ? 0.9 : 0.95)) break;            // algún solar vacío suelto
+          /* CV4a: con calles torcidas las manzanas son hondas; detrás de la casa que da a la calle van hasta dos filas más, espalda con espalda, y la manzana se llena.
+             La primera fila va pegada a la calle (a un paso del borde), como en un casco viejo */
+          const o = c.w / 2 + 5.1 + (r * 13 % 1) * 0.6 + fila * 8.3, x = a[0] + ux * s - uz * o * lado, z = a[1] + uz * s + ux * o * lado; let ok = true; const ks = [];
+          for (const [p1, p2] of [[0, 0], [-3, -3], [3, -3], [-3, 3], [3, 3]]) { const k = cel(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k < 0 || O[k] || usada[k] || E.dVia[k] < 6) { ok = false; break; } ks.push(k); }
+          if (ok) for (const p1 of MUE) { for (const p2 of MUE) { const k = cf(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k < 0 || fina[k]) { ok = false; break; } } if (!ok) break; }
+          if (!ok) { if (fila) break; continue; }                                    /* en primera fila un hueco (otra calle, otra casa) no corta el lado: se prueba el otro */
+          if (K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 0.9) break;      /* CV4a: 0,9 (antes 1,5): la vega baja del noreste tenía calles y ninguna casa */
+          const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 4.4) break;      /* CV4a: 4,4 (antes 2,8): las laderas también se edifican; el zócalo de la casa tapa el desnivel */
+          for (const k of ks) out.celdas.add(k);
+          for (let p1 = -3.3; p1 <= 3.31; p1 += 0.825) for (let p2 = -3.3; p2 <= 3.31; p2 += 0.825) { const k = cf(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k >= 0 && !fina[k]) fina[k] = 1; }
+          const d = Math.hypot(x - f.x, z - f.z) / rmax, giro = -ang + (lado > 0 ? 0 : Math.PI), q0 = { x, z, giro, sx: 0.92 + 0.12 * t, sy: 0.8 + 0.45 * t, tono: t, k: ks[0] };
+          if (r < 0.3 - 0.26 * d) out.fondo3.push(Object.assign(q0, { sy: 0.85 + 0.3 * t })); else if (d > 0.86 && r < 0.6) out.huerto.push(Object.assign(q0, { sy: 1, sx: 0.85 })); else if (r < 0.86) out.fondo.push(q0); else out.patio.push(Object.assign(q0, { sy: 1 })); } }
       paso = s - L; } }
 }

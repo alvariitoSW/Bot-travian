@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plano pintado</title>
+<link rel="stylesheet" href="../comun/ui.css">
+<style>
+/* Tinte del estilo «pintado»: madera oscura y pergamino, letra serif */
+:root{--ui-fondo:rgba(46,28,14,.93);--ui-fondo2:rgba(78,48,24,.95);--ui-texto:#f5e6bd;--ui-acento:#e8b85a;--ui-acento2:#a8702a;--ui-borde:rgba(232,184,90,.6);--ui-linea:rgba(255,225,160,.2);
+--ui-papel:#f0dfb0;--ui-papel2:#dcc58a;--ui-tinta:#3a2410;--ui-rojo:#a8402a;--ui-rojo2:#6e2316;
+--ui-fuente:Georgia,'Palatino Linotype','Times New Roman',serif;--ui-titulo:Georgia,'Palatino Linotype',serif}
+.barra,.tira,.ficha{box-shadow:inset 0 0 0 1px rgba(255,220,150,.12),0 3px 10px #0007;background-image:repeating-linear-gradient(92deg,rgba(0,0,0,.07) 0 2px,transparent 2px 7px)}
+.ficha{background-image:none}
+</style></head>
+<body><div id="app"><div id="lienzo"></div><div id="ui"></div></div>
+<script src="../comun/escena.js"></script>
+<script src="../comun/ui.js"></script>
+<script src="render.js"></script>
+<script>window.msPintado=dibujarCiudad(window.ESCENA,document.getElementById('lienzo'));montarUI();window.listo=true;</script>
+</body></html>

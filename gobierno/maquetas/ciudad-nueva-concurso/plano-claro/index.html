@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plano claro</title>
+<link rel="stylesheet" href="../comun/ui.css">
+<style>
+/* Tinte del estilo 1: pergamino oscuro cálido */
+:root{--ui-fondo:rgba(52,38,24,.9);--ui-fondo2:rgba(78,58,36,.92);--ui-texto:#f6ecd2;--ui-acento:#e6b94f;--ui-acento2:#b3822a;--ui-borde:rgba(230,185,79,.55);--ui-linea:rgba(255,240,200,.16);
+--ui-papel:#f0e4c0;--ui-papel2:#dfcd98;--ui-fuente:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+</style></head>
+<body><div id="app"><div id="lienzo"></div><div id="ui"></div></div>
+<script src="../comun/escena.js"></script>
+<script src="../comun/ui.js"></script>
+<script src="render.js"></script>
+<script>dibujarCiudad(window.ESCENA,document.getElementById('lienzo'));montarUI();window.listo=true;</script>
+</body></html>
