@@ -4,6 +4,11 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 166, fecha: '24/11/2026', cosas: [
+      'Caminos de victoria afinados: el del comercio se gana con la renta del año, que crece con tus ciudades.',
+      'La ciudad pide casas en barrios ricos según cuántas ciudades tengas; la política, planes del Senado bien hechos.',
+      'Las rutas no se cierran en una guerra: quedan paradas y vuelven con la paz.',
+      'El vino que compras da lujo a tus barrios. En la partida corta, las armas piden tomar Tarento.'] },
     { v: 165, fecha: '24/11/2026', cosas: [
       'Se gana con tres de cuatro caminos: armas, comercio, política y ciudad. Míralos en Imperio, «Tus caminos».',
       'Tomar Cartago ya no acaba la partida y no hay límite de años.',
