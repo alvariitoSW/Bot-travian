@@ -201,7 +201,8 @@
         "AL1",
         "AL11",
         "PIL3",
-        "FI4"
+        "FI4",
+        "GM22"
       ]
     },
     {
@@ -239,7 +240,8 @@
         "FE1",
         "FE2",
         "FI3",
-        "FI5"
+        "FI5",
+        "TH1"
       ]
     },
     {
@@ -329,7 +331,9 @@
         "FE2",
         "LP5a",
         "LP4b",
-        "LP7b"
+        "LP7b",
+        "TH1",
+        "FA0"
       ],
       "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha. Falange nueva (FA1 a FA7): falangita y oficial macedonios, cuatro rivales (caballería, elefantes, falange, hoplitas), picas que se rompen y espada (FE2), elefantes que se ensartan (FE1)."
     },
@@ -432,13 +436,20 @@
           "GM-K6d"
         ],
         "nota": "Sellos y franja de mando de la batalla."
+      },
+      {
+        "tareas": [
+          "GM-K6e"
+        ],
+        "nota": "Fichas del despliegue: van con GM-K6a a d, después de la 1.0 (CM2, 18/11)."
       }
     ],
     "sobra": [],
     "esperan": "L4 y L7 esperan el estudio PO1 (política). K7e, de L5, también: toca el Senado. Los restos de los concursos (K10, K1, K5, K8, EV4a, EV7, EV8, P166, P176) se resuelven dentro de L4 y L10, no como tareas sueltas.",
     "gobierno": [
       "CM1",
-      "CM2"
+      "CM2",
+      "MIN2"
     ]
   }
 }
