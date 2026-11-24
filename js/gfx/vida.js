@@ -20,7 +20,7 @@ const matriz = (x, y, z, giro, k) => _m.compose(_p.set(x, y, z), _q.setFromEuler
 
 export function iniciar(ctx) { C = ctx; }
 /* al cambiar de ciudad */
-export function reiniciar() { quitaHumo(); guQuita(); extras = []; if (gente) gente.l = []; carros = []; rev = -1; estado = null; sucio = true; }
+export function reiniciar() { quitaHumo(); guQuita(); quitaViva(); gentioL = []; fijos = []; extras = []; if (gente) gente.l = []; carros = []; rev = -1; estado = null; sucio = true; }
 function quitaHumo() { if (humoM) { C.scene.remove(humoM); humoM.geometry.dispose(); humoM = null; } }
 
 /* ---------- peticiones de humo y fuego ---------- */
@@ -50,6 +50,7 @@ function humo(E) {
     if (c.arde && c.ruina) { cols.push({ x: l.x, z: l.z, y: 2, f: 1.1, col: [0.12, 0.11, 0.1], op: 1.25 }, { x: l.x - 3, z: l.z, y: 0.5, f: 0.3, col: [1.5, 0.42, 0.06], op: 1.3, fuego: 1 }, { x: l.x + 2, z: l.z + 2, y: 0.5, f: 0.24, col: [1.7, 0.7, 0.1], op: 1.3, fuego: 1 }); }
     else if (!c.ruina && l.id % (c.nivel === 1 ? 6 : 4) === 0) cols.push({ x: l.x, z: l.z, y: c.nivel === 1 ? 5 : 8, f: c.nivel === 1 ? 0.5 : 0.75, col: [0.9, 0.86, 0.8], op: 0.8 }); }
   for (const e of E.edificios) if (e.tipo === 'taller' && !e.obra && !e.ruina) cols.push({ x: e.x, z: e.z, y: 11, f: 1.7, col: [0.36, 0.33, 0.31], op: 1 });
+  for (const q of fijos) cols.push({ x: q.x, z: q.z, y: q.y || 7, f: 0.33, col: [0.86, 0.83, 0.78], op: 0.55 });      // CD5b: humo de hornos
   for (const h of extras) cols.push(h);
   quitaHumo(); if (!cols.length) return;
   const n = cols.length * NP, geo = new THREE.InstancedBufferGeometry(), pl = new THREE.PlaneGeometry(1, 1); geo.index = pl.index; geo.setAttribute('position', pl.attributes.position); geo.setAttribute('uv', pl.attributes.uv);
@@ -101,7 +102,8 @@ export function actualizar(E, camD, t, dt, listo) {
     if (VIDA_HUMO) humo(E); else quitaHumo();
     if (VIDA_GENTE) repartoGente(E); if (VIDA_CARROS) repartoCarros(E); }
   if (humoM) humoM.visible = camD < 900;
-  moverGente(t, dt, VIDA_GENTE && cerca); moverCarros(dt, VIDA_CARROS && camD < 700 && listo);
+  const plano = C.U && C.U.uPlano && C.U.uPlano.value > 0.5;      // CD5b: desde arriba la gente es la de calleViva
+  moverGente(t, dt, VIDA_GENTE && cerca && !plano); moverCarros(dt, VIDA_CARROS && camD < 700 && listo); calleViva(E, camD, t, dt, listo);
 }
 
 /* ---------- guarnición ligera (CN11-B) ----------
@@ -163,4 +165,59 @@ export function guarnicion(E, units, camPos, t, o) {
     else if (m.lig) { ponM(m.L, m.il * 16, s.x, s.y, s.z, s.yaw, s.torre ? PK * 1.6 : PK); m.il++; } }
   for (const m of gu.mallas.values()) { m.real.count = m.ir; m.real.instanceMatrix.needsUpdate = true; m.A.needsUpdate = true; if (m.lig) { m.lig.count = m.il; m.lig.instanceMatrix.needsUpdate = true; } }
   return { men, x: gu.ax, z: gu.az, hay: true, reales: [...gu.mallas.values()].reduce((a, m) => a + m.ir, 0), ligeras: [...gu.mallas.values()].reduce((a, m) => a + m.il, 0) };
+}
+
+/* ---------- CD5b: calles vivas vistas desde arriba ----------
+   Gente (un cuerpo y una cabeza con su sombra) y carros de buey (caja con dos ruedas y yunta) en instancias, de pocos triángulos.
+   Siguen E.vias y las calles de la urbe: cada uno elige un destino (el foro, una puerta o el mercado), va por la calle hacia el extremo más cercano
+   y, al llegar, vuelve a salir por otra calle. Gentío de revuelta: gentio(lista). Humo de hornos fijos: humosFijos(lista). */
+const VIVA_CAM = 1100, VIVA_MAX = 150, VIVA_EXTRA = 70, VIVA_CARROS_MAX = 9;
+const TUNICAS = ['#e8dcc0', '#c9a05a', '#a8553f', '#5f7482', '#7f8f5c', '#b04a3a', '#d8d0b0', '#8a6b45', '#cfc4a8'];
+let viva = null, gentioL = [], fijos = [];
+export function gentio(lista) { gentioL = lista || []; }
+export function humosFijos(lista) { const f = (lista || []).map(q => `${Math.round(q.x)},${Math.round(q.z)}`).join('|'); if (f === fijos.f) return; fijos = (lista || []).slice(); fijos.f = f; sucio = true; }
+function mezcla(partes) {
+  const P = [], N = [], Cc = [];
+  for (const [g0, col, x, y, z] of partes) { const g = g0.index ? g0.toNonIndexed() : g0; g.translate(x, y, z); const p = g.attributes.position, n = g.attributes.normal, c = new THREE.Color(col);
+    for (let i = 0; i < p.count; i++) { P.push(p.getX(i), p.getY(i), p.getZ(i)); N.push(n.getX(i), n.getY(i), n.getZ(i)); Cc.push(c.r, c.g, c.b); } }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(Cc, 3)); return g;
+}
+const caja3 = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+function geoPersona() { return mezcla([[caja3(1.0, 1.5, 0.75), '#ffffff', 0, 0.75, 0], [caja3(0.55, 0.5, 0.55), '#b08a64', 0, 1.78, 0], [new THREE.CircleGeometry(0.62, 8).rotateX(-Math.PI / 2), '#6a5a44', 0, 0.05, 0]]); }
+function geoCarro() { const rueda = new THREE.CylinderGeometry(0.75, 0.75, 0.22, 8).rotateX(Math.PI / 2);
+  return mezcla([[caja3(3.4, 0.5, 1.9), '#c49560', 0, 1.0, 0], [caja3(2.0, 0.85, 1.3), '#f2e0b4', -0.3, 1.65, 0], [rueda, '#6a5238', 0, 0.75, 1.05], [rueda.clone(), '#6a5238', 0, 0.75, -1.05], [caja3(0.14, 0.14, 2.4), '#6a5238', 0, 0.75, 0],
+    [caja3(2.0, 1.1, 0.85), '#b8a080', 3.6, 1.15, 0], [caja3(0.75, 0.65, 0.65), '#9a8468', 4.85, 1.3, 0], [caja3(0.2, 0.2, 1.5), '#5a4028', 4.3, 1.9, 0], [caja3(2.1, 0.12, 0.12), '#5a4028', 2.2, 1.0, 0],
+    [new THREE.CircleGeometry(2.6, 8).rotateX(-Math.PI / 2), '#2a2218', 2.0, 0.05, 0]]); }
+function creaViva() {
+  const mat = new THREE.MeshLambertMaterial({ vertexColors: true }), mk = (geo, n) => { const m = new THREE.InstancedMesh(geo, mat, n); m.count = 0; m.frustumCulled = false; m.castShadow = false; m.receiveShadow = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.setColorAt(0, new THREE.Color()); C.scene.add(m); return m; };
+  viva = { gM: mk(geoPersona(), VIVA_MAX + VIVA_EXTRA), cM: mk(geoCarro(), VIVA_CARROS_MAX), rutas: [], g: [], c: [], fE: null, rev: -1 };
+  const rnd = C.azar(77); viva.gM.userData.col = Array.from({ length: VIVA_MAX + VIVA_EXTRA }, () => new THREE.Color(TUNICAS[Math.floor(rnd() * TUNICAS.length)]).multiplyScalar(0.92 + 0.16 * rnd()));
+  viva.gM.userData.col.forEach((c, i) => viva.gM.setColorAt(i, c)); for (let i = 0; i < VIVA_CARROS_MAX; i++) viva.cM.setColorAt(i, new THREE.Color().setScalar(0.9 + 0.12 * ((i * 37) % 10) / 10));
+}
+function quitaViva() { if (!viva) return; for (const m of [viva.gM, viva.cM]) { C.scene.remove(m); m.geometry.dispose(); m.material.dispose(); m.dispose(); } viva = null; }
+function rutasDe(E) {
+  const r = []; for (const v of [...E.vias.filter(v => v.p && v.p.length > 1), ...(E.urbe && E.urbe.calles || [])]) { const p = v.p.map(q => Array.isArray(q) ? q : [q.x, q.z]), cum = [0]; for (let i = 1; i < p.length; i++) cum.push(cum[i - 1] + Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]));
+    const L = cum[cum.length - 1]; if (L >= 14 && L <= 600) r.push({ p, cum, L, w: v.w || 2 }); }
+  return r;
+}
+function destinos(E) { const d = []; if (E.foro) { d.push({ x: E.foro.x, z: E.foro.z }, { x: E.foro.x, z: E.foro.z }); } for (const q of E.puertas || []) d.push({ x: q.x, z: q.z }); for (const e of E.edificios || []) if (e.tipo === 'mercado' && !e.obra && !e.ruina) d.push({ x: e.x, z: e.z }); return d; }
+function enRuta(r, s) { const c = r.cum; let a = 0, b = c.length - 1; while (b - a > 1) { const m = (a + b) >> 1; if (c[m] <= s) a = m; else b = m; } const u = (s - c[a]) / ((c[b] - c[a]) || 1), p0 = r.p[a], p1 = r.p[b]; return { x: p0[0] + (p1[0] - p0[0]) * u, z: p0[1] + (p1[1] - p0[1]) * u, ang: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }; }
+function nuevoViaje(w, rutas, dest, rnd, larga) {
+  for (let k = 0; k < 20; k++) { const r = rutas[Math.floor(rnd() * rutas.length)]; if (larga && r.L < 40) continue; const T = dest[Math.floor(rnd() * dest.length)] || { x: r.p[0][0], z: r.p[0][1] }, a = r.p[0], b = r.p[r.p.length - 1], haciaB = Math.hypot(b[0] - T.x, b[1] - T.z) < Math.hypot(a[0] - T.x, a[1] - T.z);
+    w.r = r; w.dir = haciaB ? 1 : -1; w.s = rnd() < 0.5 ? (haciaB ? 0 : r.L) : rnd() * r.L; w.lat = (rnd() - 0.5) * Math.min(r.w, 3) * 0.7; return true; }
+  return false;
+}
+export function calleViva(E, camD, t, dt, listo) {
+  const ver = VIDA_GENTE && E && E.vias && camD < VIVA_CAM && listo; if (!ver) { if (viva) { viva.gM.count = 0; viva.cM.count = 0; } return; }
+  if (!viva) creaViva();
+  if (viva.fE !== E || viva.rev !== E.rev) { viva.fE = E; viva.rev = E.rev; viva.rutas = rutasDe(E); viva.dest = destinos(E); const rnd = C.azar(E.vias.length * 5 + 3); viva.rnd = rnd; viva.g = []; viva.c = [];
+    if (viva.rutas.length) { const n = E.urbe ? VIVA_MAX : Math.min(60, 10 + E.parcelas.length * 2), nc = Math.min(VIVA_CARROS_MAX, E.urbe ? 8 : 2);
+      for (let i = 0; i < n; i++) { const w = { vel: 3 + rnd() * 1.8, e: 1.9 + rnd() * 0.3, fase: rnd() * 6 }; if (nuevoViaje(w, viva.rutas, viva.dest, rnd, false)) viva.g.push(w); }
+      for (let i = 0; i < nc; i++) { const w = { vel: 2.4 + rnd() * 0.8, e: 1.35 }; if (nuevoViaje(w, viva.rutas, viva.dest, rnd, true)) viva.c.push(w); } } }
+  const A = viva.gM.instanceMatrix.array, B = viva.cM.instanceMatrix.array, mv = (w, i, M, esCarro) => { w.s += w.dir * w.vel * dt; if (w.s < 0 || w.s > w.r.L) { nuevoViaje(w, viva.rutas, viva.dest, viva.rnd, esCarro); w.s = w.dir > 0 ? 0 : w.r.L; }
+    const p = enRuta(w.r, Math.max(0, Math.min(w.r.L, w.s))), a = w.dir > 0 ? p.ang : p.ang + Math.PI, x = p.x - Math.sin(p.ang) * w.lat, z = p.z + Math.cos(p.ang) * w.lat; matriz(x, C.altura(x, z) + 0.05, z, esCarro ? -a : 0, w.e).toArray(M, i * 16); };
+  viva.g.forEach((w, i) => mv(w, i, A, false)); viva.c.forEach((w, i) => mv(w, i, B, true));
+  let n = viva.g.length; for (let k = 0; k < gentioL.length && n < VIVA_MAX + VIVA_EXTRA; k++, n++) { const q = gentioL[k], j = Math.sin(t * 6 + k * 1.7) * 0.5; matriz(q.x + j, C.altura(q.x, q.z) + 0.05 + Math.abs(Math.sin(t * 5 + k)) * 0.5, q.z - j, k, 2.0).toArray(A, n * 16); }
+  viva.gM.count = n; viva.cM.count = viva.c.length; viva.gM.instanceMatrix.needsUpdate = true; viva.cM.instanceMatrix.needsUpdate = true;
+  if (viva.gM.instanceColor) viva.gM.instanceColor.needsUpdate = true;
 }
