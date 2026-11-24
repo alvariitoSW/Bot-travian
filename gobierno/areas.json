@@ -222,7 +222,13 @@
         "test/gobernador.test.mjs",
         "gobierno/maquetas/gobernador/",
         "js/clases-ui.js",
-        "gobierno/maquetas/clases/"
+        "gobierno/maquetas/clases/",
+        "js/caminos.js",
+        "js/caminos-ui.js",
+        "js/este-ano.js",
+        "js/este-ano-ui.js",
+        "test/caminos.test.mjs",
+        "test/este-ano.test.mjs"
       ],
       "taller": [],
       "juez": {
@@ -231,7 +237,10 @@
           "test/senado.test.js",
           "test/saber.test.mjs",
           "test/diplomacia.test.mjs",
-          "test/encargos.test.mjs"
+          "test/encargos.test.mjs",
+          "test/caminos.test.mjs",
+          "test/este-ano.test.mjs",
+          "test/gobernador.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area cerebro"
@@ -334,7 +343,10 @@
         "js/gfx/musica.js",
         "js/voces.js",
         "test/musica.test.mjs",
-        "test/voces.test.mjs", "test/fragor.test.mjs", "js/gfx/fragor.js", "tools/sonido-fragor.py",
+        "test/voces.test.mjs",
+        "test/fragor.test.mjs",
+        "js/gfx/fragor.js",
+        "tools/sonido-fragor.py",
         "gobierno/historia/SON*",
         "gobierno/juez-sonido.mjs",
         "gobierno/maquetas/sonido*/"
