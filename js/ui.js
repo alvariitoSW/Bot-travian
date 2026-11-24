@@ -207,7 +207,7 @@ function escEmpieza() {
   };
   /* CG4: las escaramuzas van con el simulador de manípulos (js/simulador.js) y la pantalla de mando (js/ui-mando.js); su resumen trae
      estado.resultado = {como, motivo, t, bajas, inicial}, lo mismo que espera escFinHtml. Si no cargan, la batalla vieja. */
-  if (window.UIMando && window.Simulador) { hojaCierra(true); UI.escRes = null; window.UIMando.abrir({ semilla: e.semilla, ejercitos: e.ejercitos, campo: e.campo }, alFin); return; }
+  if (window.UIMando && window.Simulador) { hojaCierra(true); UI.escRes = null; const cfg = { semilla: e.semilla, ejercitos: e.ejercitos, campo: e.campo, col: (D.FACTIONS[e.fac] || {}).col }; import('./ui-batalla-rapida.js').then(() => window.UIBatallaRapida.elegir(cfg, alFin, { volver: () => hojaAbre('escaramuza') })).catch(() => window.UIMando.abrir(cfg, alFin)); return; }   // CG7 (CDe4)
   if (!window.UIGuerra || !window.Guerra) { toast('No se ha podido cargar la batalla.', 'bad'); return; }
   hojaCierra(true); UI.escRes = null;
   window.UIGuerra.abrir({ estado: window.Guerra.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), campo: e.campo }, alFin);
