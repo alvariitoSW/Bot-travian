@@ -32,6 +32,7 @@ body.aspecto #res .r.full b { color: var(--as-minio); }
 body.aspecto #res .r.w-only, body.aspecto #res .r.g-only { }
 body.aspecto #bar2 #citybtn, body.aspecto #bar2 #datebox { background: var(--as-hoja); border: 0; color: var(--as-tinta); font-family: var(--as-cinzel);
   box-shadow: inset 0 0 0 2px var(--as-bronce), inset 0 0 0 3px var(--as-bronce3), 0 3px 6px rgba(0, 0, 0, .45); }
+body.aspecto #bar2 #citybtn b, body.aspecto #bar2 #citybtn, body.aspecto #bar2 #date, body.aspecto #bar2 #speed { color: var(--as-tinta); text-shadow: none; opacity: 1; }   /* CDe4: se leía oro claro sobre papiro */
 
 /* ---------- (b) piezas comunes .as-* ---------- */
 /* miniatura de edificio en marco de bronce, con placa de nivel */
