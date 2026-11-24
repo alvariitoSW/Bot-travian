@@ -34,7 +34,11 @@ export const V_DIBUJO = 6.5;    /* m/s: lo más deprisa que se mueve un hombre d
 export const V_SALTA = 1.6;     /* m/s: el que anda más deprisa que esto pasa por encima de los caídos (el que está quieto, nunca encima) */
 export const FRENA = 0.88;       /* el que va contra alguien (k = 1) afloja su paso hasta 1 − FRENA: no se mete empujando */
 
-export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla = 1 }) {
+/* FU1: la guardia de cada hombre tuyo según la orden: en testudo, la 1.ª fila en muro y las demás con el escudo arriba.
+   Una formación (bloque/formaciones/) puede dar la suya con crearFisicaBloque({ guardia: (h, S) => ... }); null = escudo de siempre */
+export const guardiaDeSerie = (h, S) => S.tuyo.orden === 'testudo' ? (h.fila === 0 ? 'muro' : 'alto') : null;
+
+export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla = 1, guardia = guardiaDeSerie }) {
   const Fi = crearFisica({ H, caidoFijo: true, parMax: D_RIVAL, semilla, parMin: (a, b) => a.bando !== b.bando ? D_RIVAL : undefined });
   const SF = { fal: [], ene: [], giro: 0 };
   const ahora = () => (typeof performance !== 'undefined' ? performance : Date).now();
@@ -67,11 +71,11 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
   }
   function lee(dt) {
     SF.fal.length = 0; SF.ene.length = 0; SF.giro = S.B ? S.B.rumbo : S.tuyo.ang;
-    const testudo = S.tuyo.orden === 'testudo'; despierta();
+    despierta();
     for (const f of TR.figs) {
       if (!despiertos.has(f.b)) continue;
       const c = cuerpo(f); c.x = f.x; c.z = f.z; c.yaw = f.yaw; c.vivo = true; c.salta = f.v > V_SALTA;
-      if (f.h) { c.f = f.h.col; c.r = f.h.fila; c.guardia = testudo ? (f.h.fila === 0 ? 'muro' : 'alto') : null; SF.fal.push(c); }
+      if (f.h) { c.f = f.h.col; c.r = f.h.fila; c.guardia = guardia(f.h, S); SF.fal.push(c); }
       else { c.guardia = null; SF.ene.push(c); }
     }
     for (const f of TR.caidos) { if (!despiertos.has(f.b)) continue; const c = cuerpo(f); if (c.vivo) { c.vivo = false; c.x = f.x; c.z = f.z; c.yaw = f.yaw; } tiende(c, f); alarga(c, dt); (f.h ? SF.fal : SF.ene).push(c); }
@@ -181,7 +185,7 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
      El dueño de un escudo o de un cuerpo es el cuerpo del hombre (cuerpo(f)); su marco sale de su figura (f.x, f.z, f.yaw) */
   const Pr = crearProyectiles({ H, semilla }), proyectiles = [];
   const mueveEl = p => !p.fi || p.fi.modo === 'vuela' || p.fi.modo === 'rebota' || p.fi.modo === 'cae' || p.fi.modo === 'resbala';
-  const guardiaDe = f => S.tuyo.orden === 'testudo' && f.h ? (f.h.fila === 0 ? 'muro' : 'alto') : null;
+  const guardiaDe = f => f.h ? guardia(f.h, S) : null;
   /* marco del hombre: columnas izquierda, arriba, frente (frente = (sen yaw, 0, cos yaw)) y su sitio en el suelo */
   function marcoDe(f) { const y = f.yaw || 0, s = Math.sin(y), c = Math.cos(y); return { fx: s, fz: c, lx: c, lz: -s, x: f.x, z: f.z, g: H(f.x, f.z) }; }
   const matriz = (u, v, n, o) => [u[0], u[1], u[2], 0, v[0], v[1], v[2], 0, n[0], n[1], n[2], 0, o[0], o[1], o[2], 1];

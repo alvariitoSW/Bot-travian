@@ -14,7 +14,12 @@
            fuerzas   { tuyo, centro, amigas: [i, d], alas: [i, d], reserva, tiradores }: hombres de cada bloque. 0 = no está
                      (se queda en S.amigas / S.ene con estado 'fuera', fuera de S.bloques). Lo que falte, el de serie
            lejos     metros entre tu primera fila y la suya al empezar (por defecto 70; los demás bloques, igual de corridos)
-           fin       FIN_LUCHA de js/falange.js (0,15): todos luchan hasta que les queda ese tanto por uno, sin miedo por bajas }
+           fin       FIN_LUCHA de js/falange.js (0,15): todos luchan hasta que les queda ese tanto por uno, sin miedo por bajas
+           FU1 escenario 'testudo' («cruzar bajo las salvas»; sin él, todo como siempre): tu manípulo cruza el campo hacia una colina
+                     (S.escenario.meta { x, z, r }); los tiradores galos están ya en el campo y lanzan exactamente DOS salvas mientras
+                     cruzas (se quedan quietos); el resto de los galos espera. Cuando la segunda ha caído, el centro galo CARGA (aviso
+                     'escenario' { fase: 'carga' }) y se lucha como siempre (pasa fin: FIN_LUCHA para luchar hasta el 15 %).
+                     S.escenario = { meta, fase 'cruza'|'carga', tCarga } }
    C = { S, paso(dt), orden(n), frente({ x, z, ang }), dibujaFrente(a, b), ordenUtil(), bot(modo), resumen(), trabado() }
 
    EJES (los de js/falange.js): metros; ang = 0 mira a −z; frente = (sen ang, −cos ang); derecha = (cos ang, sen ang);
@@ -200,6 +205,7 @@ export function crearCombate(m = {}) {
   const S = { T: 0, nivel, ganador: null, causa: null, bloques: [], salva: null, flanco: null, cuenta: { flanqueado: 0, salvas: 0, salvasTestudo: 0, pilum: 0, relevos: 0, cargas: 0, fintas: 0, retiradas: 0, muertosSuelta: 0, rotaRetira: 0, retiradasGalas: 0 } };
   let id = 0, kIlumina = null, tBot = -9, tGiro = -9;
   /* LP7: fuerzas reales, distancia y final al 15 % (ver el contrato). F(k, i) = hombres pedidos o null (el de serie) */
+  const ESC = m.escenario === 'testudo';   /* FU1: cruzar bajo las salvas */
   const FU = m.fuerzas || {}, FIN = m.fin == null ? null : m.fin, DZ = 70 - (m.lejos == null ? 70 : Math.max(12, m.lejos));
   const F = (k, i) => { const v = i == null ? FU[k] : (FU[k] || [])[i]; return v == null ? null : Math.max(0, Math.round(v)); };
   const n0 = v => v == null ? undefined : v;
@@ -224,10 +230,16 @@ export function crearCombate(m = {}) {
   /* LP7: el que no está (0 hombres pedidos) sale de S.bloques y queda 'fuera' (vivo() lo da por perdido) */
   for (const [b, v] of [[amigas[0], F('amigas', 0)], [amigas[1], F('amigas', 1)], [ene.alas[0], F('alas', 0)], [ene.alas[1], F('alas', 1)], [ene.reserva, F('reserva')], [ene.tiradores, F('tiradores')]])
     if (v === 0) { b.estado = 'fuera'; b.x += 2000; S.bloques.splice(S.bloques.indexOf(b), 1); }
+  /* FU1: el escenario «cruzar bajo las salvas»: los galos más lejos (al pie de la loma), los tiradores en medio del campo y solo dos salvas.
+     La colina es el punto al que cruzas (el suelo sube detrás de los galos, escena.js). Licencia de juego: todas las cifras */
+  if (ESC) {
+    ene.centro.z = -78; for (const a of ene.alas) a.z = -78; ene.reserva.z = -100; ene.tiradores.z = -50;
+    S.escenario = { meta: { x: 0, z: -62, r: 9 }, fase: 'cruza', tCarga: -1 };
+  }
   /* cada partida, su suerte: la fuerza de cada banda galo varía ±VAR con la semilla */
   for (const b of S.bloques) b.atkNivel = b.bando === 'g' ? P.fuerza * (b.papel === 'ala' ? P.alas : 1) * (1 - VAR + azar() * 2 * VAR) : 1;
   S.tuyo = tuyo; S.amigas = amigas; S.ene = ene;
-  S.ia = { fase: 'avanza', lado: 0, finta: azar() < P.finta, fintaHecha: false, tPlan: -9, tChoque: -1, salvas: SALVAS, tSalva: 0, tEspera: 0 };
+  S.ia = { fase: 'avanza', lado: 0, finta: azar() < P.finta, fintaHecha: false, tPlan: -9, tChoque: -1, salvas: ESC ? 2 : SALVAS, tSalva: 0, tEspera: 0 };
   const MO = m.motor || null, B = MO ? (m.bloque || creaB(MO, tuyo)) : null;
   if (B) { const p = poseDe(B); tuyo.x = p.x; tuyo.z = p.z; tuyo.ang = p.ang; medidasDe(B, tuyo); }
   S.B = B;
@@ -532,8 +544,8 @@ export function crearCombate(m = {}) {
     const blanco = nivel === 'facil' ? cercano(t, 'r') : vivo(tuyo) ? tuyo : cercano(t, 'r'); if (!blanco) return;
     const d = dist(centro(t), centro(blanco)); if (d > D_SALVA) return;
     let lanza = true;
-    if (P.salva === 'abierto') lanza = blanco.orden !== 'testudo' || S.T - I.tListo > 7;
-    if (P.salva === 'acecha') lanza = abierto(blanco) || S.T - I.tListo > 9;
+    if (P.salva === 'abierto' && !ESC) lanza = blanco.orden !== 'testudo' || S.T - I.tListo > 7;   /* FU1: en el escenario lanzan siempre (dos salvas, sin esperar) */
+    if (P.salva === 'acecha' && !ESC) lanza = abierto(blanco) || S.T - I.tListo > 9;
     if (I.tListo == null || I.tListo < I.tSalva) I.tListo = S.T;
     if (!lanza) return;
     I.salvas--; I.tSalva = S.T + SALVA_RECARGA; S.salva = { t: S.T + SALVA_VUELO, blanco }; avisa('salva', { t: S.salva.t, blanco });
@@ -575,6 +587,11 @@ export function crearCombate(m = {}) {
     }
     const blanco = vivo(tuyo) ? tuyo : cercano(C, 'r');
     if (!blanco) return;
+    /* FU1: mientras cruzas, el campo espera quieto; solo los tiradores lanzan (dos salvas). Con la segunda caída (o tras 120 s), carga el centro */
+    if (ESC && S.escenario.fase === 'cruza') {
+      if ((I.salvas <= 0 && !S.salva) || S.T > 120) { S.escenario.fase = 'carga'; S.escenario.tCarga = S.T; avisa('escenario', { fase: 'carga' }); }
+      else { for (const b of [C, ...alas, R, Ti]) if (vivo(b)) { b.obj = null; b.orden = null; } return; }
+    }
     /* una retirada en orden no se persigue (se deja ir y se toma aliento); una desordenada, sí, a la carga */
     const seVa = retirando(blanco), enOrden = seVa && blanco.coh >= COH_ORDEN;
     /* centro: va a por ti. En Difícil espera fuera del pilum mientras quedan jabalinas, y contracarga si cargas */
@@ -586,6 +603,7 @@ export function crearCombate(m = {}) {
       C.orden = (d < 22 && nivel !== 'facil') || (P.contracarga && blanco.orden === 'cargar' && d < 32) ? 'cargar' : null;
       if (C.orden === 'cargar' && !C.cargaAl) C.cargaAl = true;
     } else if (vivo(C) && enChoque(C)) { C.orden = null; if (I.tChoque < 0) I.tChoque = S.T; }
+    if (ESC && vivo(C) && !retirando(C) && !enChoque(C) && !seVa) { C.orden = 'cargar'; if (!C.cargaAl) C.cargaAl = true; }   /* FU1: tras las salvas, los galos cargan */
     /* alas: contra tus compañeras; en Difícil, si la rompen, vienen a tu flanco */
     alas.forEach((A, i) => {
       if (!vivo(A) || retirando(A) || enChoque(A)) { if (vivo(A) && enChoque(A)) A.orden = null; return; }

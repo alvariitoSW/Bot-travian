@@ -94,6 +94,8 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     if (giro && tu.vueltas) return ['Toca la raya dorada: gira', 'mal'];
     if (S.flanco && S.flanco.de && S.flanco.de.estado !== 'fuera') { const l = ladoEnPantalla(S.flanco.de.x, S.flanco.de.z); return ['Su jefe viene por la ' + (l < 0 ? 'izquierda' : 'derecha'), 'mal']; }
     if (ce.U.roto) return R && R.estado !== 'fuera' && !R.U.roto ? ['Su centro huye · queda su jefe', 'bien'] : ['Su centro huye', 'bien'];
+    /* FU1: cruzando hacia la colina (escenario del testudo) */
+    if (S.escenario && S.escenario.fase === 'cruza') { const c0 = centro(tu), m = S.escenario.meta, d0 = Math.round(Math.hypot(c0.x - m.x, c0.z - m.z) - m.r); return [d0 <= 0 ? 'En la colina: aguanta' : 'Colina a ' + d0 + ' m', '']; }
     if (!tocado) {
       const c1 = centro(tu), c2 = centro(ce), d = Math.round(Math.hypot(c1.x - c2.x, c1.z - c2.z) - (tu.fondo + ce.fondo) / 2);
       if (!(tu.contactos && tu.contactos.length)) return [rival(S).Los + ' a ' + Math.max(0, d) + ' m', ''];
@@ -181,6 +183,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
       case 'suelta': if (d.de === S.tuyo) suelta = d.muertos; break;
       case 'retira': if (d.de === S.ene.centro) grito('¡Su centro se retira a formar!'); else if (d.de === S.ene.reserva) grito('¡Su jefe se retira a formar!'); break;
       case 'vuelve': if (d.de === S.tuyo) grito('¡Formados! Fila fresca'); break;
+      case 'escenario': if (d.fase === 'carga') grito('¡Los galos cargan!'); break;   /* FU1 */
       case 'fin': tFin = 2.5; break;
     }
   }
