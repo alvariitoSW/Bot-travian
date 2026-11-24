@@ -160,7 +160,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ⬜ CDe1 **Enganche de la ola 1** (de paso; ≈0,6 M): conecta ministros y necesidades al juego, tope del Foro en todas las vías, tropas con hierro y paga, migración, jueces, subida a `main`.
   - ⬜ CDe2 **Enganche de la ola 2** (de paso; ≈0,6 M).
   - ⬜ CDe3 **Enganche de la ola 3** (de paso; ≈0,6 M).
-  - ⬜ CD1 (ola 1) **Vista desde arriba y «Construir» por familias** (estilo de `estudios/CD0b-concurso-arte.md`; templo y curia de 0 A.D., luego Meshy; ≈1,0 M; de paso; tras el ganador de CD0b y la subida del «Plano» de CV4a).
+  - ✅ CD1 (24/11; parte `partes/2026-11-23-CD1.md`; ≈1,9 M; «De cerca» se queda) (ola 1) **Vista desde arriba y «Construir» por familias** (estilo de `estudios/CD0b-concurso-arte.md`; templo y curia de 0 A.D., luego Meshy; ≈1,0 M; de paso; tras el ganador de CD0b y la subida del «Plano» de CV4a).
   - ⬜ CD2a (ola 2) **Calles con el dedo y el arquitecto** (≈0,9 M).
   - ⬜ CD2b (ola 3) **Las casas de la urbe grande cuentan** (≈0,6 M; de paso; migrar en `G.load`; bot de campaña).
   - ✅ CD3a (23/11; parte `partes/2026-11-23-CD3a.md`; minería a Provinciales y ciencia sin bando; «baños» en vez de termas; 1,61 M) (ola 1) **Ministros y encargos (reglas)** en archivo propio `js/ministros.js` + `test/ministros.test.mjs`, sin tocar los comunes (funciones puras: reciben el estado y devuelven órdenes y efectos); el tope del Foro y tropas con hierro y paga quedan para el enganche (≈1,0 M; de paso; bot de campaña).
