@@ -14,7 +14,7 @@ programador, juega en un móvil de 390 px y juzga por lo que ve: enséñale capt
   pendiente?}`), `estado/vigia` (`{trabajando, empezado, terminado, resumen}`). Escribe con `if_version`; los lotes (`batch`) son
   atómicos; `{"__delete__": true}` quita un campo.
 - El botón «Llamar al vigía ahora» del cuadro dispara (`fire_trigger`) la tarea programada cuyo id está en `gobierno/cuadro.json`,
-  clave `vigia` (hoy `trig_01W71MJ9W2Z2cBMbH8cD57fL`, sesión fija 4 `session_01QiKC39TGQxxbr2tqcszWcR`; las de las sesiones fijas 2 y 3 están desactivadas); esa tarea despierta **esta** sesión con el texto «Vuelta del vigía…». Si cambias de sesión fija: crea una tarea nueva
+  clave `vigia` (hoy `trig_01W71MJ9W2Z2cBMbH8cD57fL`, sesión fija 4 `session_01QiKC39TGQxxbr2tqcszWcR`; las viejas `trig_01YBdP6TKBoUKapWTkRgcABr` (sesión 3) y `trig_01NY6a1NUH95SsjX9sAsB5ZY` están desactivadas); esa tarea despierta **esta** sesión con el texto «Vuelta del vigía…». Si cambias de sesión fija: crea una tarea nueva
   (`create_trigger`, `persistent_session_id` = la sesión nueva, sin cron), pon su id en `cuadro.json` → `vigia`, regenera y publica el
   cuadro, y desactiva la vieja (`update_trigger enabled=false`).
 - Skill `cuadro-de-mando` (`.claude/skills/cuadro-de-mando/SKILL.md`): tabla de tipos de pedido, «Abrir sesiones» y «Órdenes de un
