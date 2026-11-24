@@ -104,3 +104,21 @@ y 24 meses. **Queda pronto**: hace falta una meta que crezca con la partida. Pro
 contar la renta del año (`ESTEANO`) en vez de la caja.
 Ciudad: el vino comprado se estropea cada mes (`caduca`) y el nivel 4 no llega; el bot no tiene el saber «Viña y olivar».
 Política: los mercaderes piden «denarios» y quedan hostiles; planes bien 2 de 3.
+
+## Fase 2b (decisiones de la coordinación, 24/11)
+- **Comercio**: el hito «tesoro» pasa a **Renta del año** (entradas menos salidas del año anterior, de «Este año»), con meta de
+  `rentaPorCiudad` × ciudades propias. Cifra: **800**. Con 750 lo logran 10/10 (250 a.C.), con 800 5/10 (225 a.C.), con 850 2/10.
+- **Lujo**: lo bebían los ricos cada mes (`cierreBienes`), no se estropeaba. `game.js`: `s.lujoServido` y `G.servicios` da lujo
+  si los ricos lo tuvieron ese mes. El bot compra el vino que beben.
+- **Mercaderes**: `game.js` (`rutasVivas`): «rutaMercado» se cumple con 1 ruta viva y «denarios» con 2.
+- Planes bien: meta 2.
+
+### Medida N=10 (larga salvo que se diga)
+| Bot | Corta | Larga |
+|---|---|---|
+| Armas | 0/10 (Tarento 3/10) | 1/10 (233 a.C.). Depende de CG10 (Batallas) |
+| Comercio | 0/10 (renta 1415 de 1600) | **5/10, 225 a.C.** Después lo pierden, y Roma cae 10/10 en 216–224 a.C. |
+| Política | 0/10 | 0/10 (el bando militar en humor 0; planes bien 1) |
+| Ciudad | 0/10 | 10/10 en el 278 a.C. con el vino (N=10, solo ese bot); 9 de 10 lo pierden después |
+Ciudad: con 36 o 60 meses seguidos sigue 10/10, en el 276 y el 274 a.C. Es la Roma del principio, con un solo barrio, la que
+llega pronto al nivel 4 y luego decae. Hace falta una meta que crezca (barrios o casas). Se deja en 12 meses. Pendiente.
