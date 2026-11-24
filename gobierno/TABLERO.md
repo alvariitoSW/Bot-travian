@@ -167,7 +167,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ✅ CD3b (23/11; parte `partes/2026-11-23-CD3b.md`; segunda vuelta con imágenes «antes → después»; 1,21 M) (ola 2) **Pantalla «Tus ministros»** (≈0,7 M). Después va MN3 (gobernador).
   - ✅ CD4 (23/11; parte `partes/2026-11-23-CD4.md`; 1,60 M; el Senado exige repartir obras entre bandos) (ola 2) **Plan del Senado a 4–8 estaciones** en archivo propio `js/plan-senado.js` + `test/plan-senado.test.mjs` (≈1,0 M; bot de campaña en el enganche).
   - ✅ CD5a (23/11; parte `partes/2026-11-23-CD5a.md`; pesos por clase «Cada clase pide lo suyo») (ola 1) **Necesidades por barrio y clase (reglas)** en archivo propio `js/necesidades.js` + `test/necesidades.test.mjs`, sin tocar los comunes: 8 necesidades (alimentación, agua, limpieza, salud, trabajo, cultura, culto y ocio, orden); el barrio sube de nivel al cubrirlas; cubierta = 80 % de sus casas (usuario, 23/11); servicios que alcanzan por la calle, reglas en `estudios/CD0b-concurso-arte.md` «Ampliación» (≈0,7 M; de paso; bot de campaña).
-  - ⬜ CD5b (ola 3) **Capa «Necesidades» y consecuencias a la vista** (≈0,7 M).
+  - 🔶 CD5b (adelantada el 24/11 por el usuario, con lo urgente de CD6; ficha «cuadro de mando del barrio») (ola 3) **Capa «Necesidades» y consecuencias a la vista** (≈0,7 M).
   - ⬜ CD6 (ola 3) **Embellecer** (≈1,0 M; pase a Arte: cuartel y grúa).
   - ✅ L4 y L7 ya no esperan PO1: su plan es CE6 a CE10 (CE1, 18/11). Maquetas EV8, EV7 y EV4a archivadas sin borrar; P166 y P176 cerradas; el plan del año, detrás de la 1.0.
   - Lo que ya servía a una línea sigue igual: L10 (GM44, GM43g, GC10), L11 (TP1; después GM43l, GM43i y GM43j), L15 (V10b), L5 (K7b; K7e espera PO1).
