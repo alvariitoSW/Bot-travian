@@ -11,15 +11,15 @@
 //
 // Qué hace por personaje: una sola malla y un solo material; solo textura de color (512×512 JPEG, calidad 80);
 // malla simplificada con meshoptimizer (conserva costuras de UV y normales) hasta ≈250 KB (tope duro 300 KB);
-// posiciones, normales y UV cuantizadas (KHR_mesh_quantization, lo lee el GLTFLoader de three.js sin decodificador).
+// posiciones, normales y UV cuantizadas (KHR_mesh_quantization; el juego las lee con el lector propio de js/clases-ui.js).
 // Sin compresión meshopt ni Draco, sin esqueleto ni animación. Pies en y=0, centrado en x/z, 1,8 de alto, mirando a +Z.
 // Pontífice y tribuno (vista previa de Meshy, sin textura): material color yeso #d9d2c2, sin imagen.
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 const req = createRequire((process.env.CS3_TOOLS || '/tmp/claude-0/cs3-tools') + '/');
 const { Document, NodeIO } = req('@gltf-transform/core');
-const { KHRMeshQuantization } = req('@gltf-transform/extensions');
 const { ALL_EXTENSIONS } = req('@gltf-transform/extensions');
 const { quantize } = req('@gltf-transform/functions');
 const { MeshoptSimplifier } = req('meshoptimizer');
@@ -53,7 +53,7 @@ export const TAREAS = [
 // giros por personaje (fruto de mirar la hoja de contacto)
 const GIROS = JSON.parse(process.env.CS3_GIROS || '{}');
 
-const [, , DIR_IN, DIR_OUT = new URL('../assets/personajes/', import.meta.url).pathname] = process.argv;
+const [, , DIR_IN, DIR_OUT = fileURLToPath(new URL('../assets/personajes/', import.meta.url))] = process.argv;
 if (!DIR_IN) { console.error('Uso: node tools/aligerar_personajes.mjs <carpeta GLB originales> [<salida>]'); process.exit(1); }
 await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
@@ -127,7 +127,8 @@ async function construir(t, g) {
 }
 
 fs.mkdirSync(DIR_OUT, { recursive: true });
-const ficha = {}; let total = 0;
+let ficha = {}; let total = 0;
+if (process.env.CS3_SOLO) { try { ficha = JSON.parse(fs.readFileSync(path.join(DIR_OUT, 'personajes.json'), 'utf8')); } catch (e) { ficha = {}; } }   // con CS3_SOLO se fusiona con el índice que ya hay
 for (const t of TAREAS.filter(t => !process.env.CS3_SOLO || process.env.CS3_SOLO.split(",").includes(t.id))) {
   t.giro = GIROS[t.id] ?? t.giro;
   const src = await leer(t);
@@ -136,7 +137,7 @@ for (const t of TAREAS.filter(t => !process.env.CS3_SOLO || process.env.CS3_SOLO
     const g = simplificar(src, tris); colocar(g, t.giro);
     const glb = await construir(t, g); const kb = glb.length / 1024;
     const real = g.idx.length / 3; if (process.env.CS3_DEBUG) console.log("  ", t.id, it, tris, real, kb.toFixed(0), g.jpg ? (g.jpg.length/1024).toFixed(0) : "-");
-    if (!mejor || (kb <= TOPE_KB && Math.abs(kb - OBJETIVO_KB) < Math.abs(mejor.kb - OBJETIVO_KB)) || mejor.kb > TOPE_KB) mejor = { glb, kb, tris: real };
+    if (!mejor || kb < mejor.kb) mejor = { glb, kb, tris: real };
     if (kb > OBJETIVO_KB + 8 || kb < OBJETIVO_KB - 25) {
       const fijo = g.jpg ? g.jpg.length / 1024 + 4 : 4;
       tris = Math.round(Math.max(1500, Math.min(14000, real * (OBJETIVO_KB - 5 - fijo) / (kb - fijo))));

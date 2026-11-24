@@ -215,25 +215,26 @@ const U = { el: null, cid: null, op: null, vista: 'menu', clase: null, datos: nu
 const RET = {};          // retratos ya hechos (id -> dataURL): se guardan en memoria
 const MODELOS = new Map();   // id -> Promise<Group|null>
 let INDICE = null;
-const R = { ren: null, scene: null, cam: null, listo: null, raf: 0, t: 0, piv: [], malo: false, haciendo: false };
+const R = { ren: null, scene: null, cam: null, listo: null, raf: 0, t: 0, piv: [], malo: false, haciendo: false, gen: 0 };
 
 const idDe = (c, sexo) => {
   const nom = sexo === 'm' ? c.m : c.h;
   if (INDICE && !INDICE[nom]) {
-    const k = Object.keys(INDICE).find(i => INDICE[i] && INDICE[i].clase === c.id && (sexo === 'm' ? /^(m|f)/i : /^h|^v|^var/i).test(String(INDICE[i].sexo || '')));
+    const k = Object.keys(INDICE).find(i => INDICE[i] && INDICE[i].clase === c.id && (sexo === 'm' ? /^f/i : /^m/i).test(String(INDICE[i].sexo || '')));
     if (k) return k;
   }
   return nom;
 };
 async function cargarIndice() {
   if (INDICE) return INDICE;
-  try { const r = await fetch(BASE + 'personajes.json'); INDICE = r.ok ? await r.json() : {}; } catch (e) { INDICE = {}; }
-  return INDICE;
+  let ind = null; try { const r = await fetch(BASE + 'personajes.json'); if (r.ok) ind = await r.json(); } catch (e) { ind = null; }
+  if (ind) INDICE = ind;   // si falla no se guarda: se reintenta
+  return ind || {};
 }
 function modelo(id) {
   if (!MODELOS.has(id)) MODELOS.set(id, (async () => {
-    await cargarIndice(); const f = INDICE[id] || {};   // sin índice, se prueba id.glb
-    try { return await leerGLB(BASE + (f.archivo || id + '.glb')); } catch (e) { console.warn('Personaje ' + id + ': no se pudo leer', e); return null; }
+    await cargarIndice(); const f = (INDICE || {})[id] || {};   // sin índice, se prueba id.glb
+    try { return await leerGLB(BASE + (f.archivo || id + '.glb')); } catch (e) { console.warn('Personaje ' + id + ': no se pudo leer', e); MODELOS.delete(id); return null; }
   })());
   return MODELOS.get(id);
 }
@@ -261,18 +262,20 @@ async function hacerRetratos() {
   try { await retratos(); } finally { R.haciendo = false; }
 }
 async function retratos() {
-  await cargarIndice();
+  const gen = R.gen;   // si cambia (abrir, cerrar, entrar en la ficha), este trabajo ya no vale y sale sin tocar nada
+  await cargarIndice(); if (gen !== R.gen || !U.el) return;
   const ren = renderer(); if (!ren) return;
   for (const c of CLASES) for (const sx of ['h', 'm']) {
-    if (U.vista === 'ficha' || !U.el) return;   // la ficha usa el mismo renderer: los retratos que falten se hacen al volver
+    if (gen !== R.gen || U.vista === 'ficha' || !U.el || R.ren !== ren) return;   // la ficha usa el mismo renderer: los retratos que falten se hacen al volver
     const id = idDe(c, sx); if (RET[id]) continue;
-    const m = await modelo(id); if (!m || !R.ren) continue;
+    const m = await modelo(id); if (gen !== R.gen || R.ren !== ren || !U.el) return; if (!m) continue;
     try {
       ren.setSize(176, 232, false); R.cam.aspect = 176 / 232; R.cam.updateProjectionMatrix(); R.cam.position.set(0, 1.35, 2.5); R.cam.lookAt(0, 1.22, 0);
-      m.position.set(0, 0, 0); m.rotation.y = sx === 'm' ? -0.3 : 0.3; R.scene.add(m); ren.render(R.scene, R.cam); RET[id] = ren.domElement.toDataURL('image/png'); R.scene.remove(m);
+      m.position.set(0, 0, 0); m.rotation.y = sx === 'm' ? -0.3 : 0.3; R.scene.add(m); ren.render(R.scene, R.cam);
+      if (!ren.getContext().isContextLost()) RET[id] = ren.domElement.toDataURL('image/png');
+      R.scene.remove(m);
     } catch (e) { console.warn('Retrato ' + id, e); }
-    if (U.el) U.el.querySelectorAll('img[data-ret="' + id + '"]').forEach(im => { if (RET[id]) im.src = RET[id]; });
-    if (!U.el) return;
+    if (RET[id]) U.el.querySelectorAll('img[data-ret="' + id + '"]').forEach(im => { im.src = RET[id]; });
   }
 }
 
@@ -360,7 +363,7 @@ function clic(e) {
   const t = e.target.closest('[data-acc],[data-cl],[data-enc]'); if (!t || !U.el) return;
   if (t.dataset.acc === 'cerrar') return cerrar();
   if (t.dataset.acc === 'atras') { U.vista = 'menu'; pinta(); hacerRetratos().catch(() => {}); return; }
-  if (t.dataset.cl) { U.vista = 'ficha'; U.clase = t.dataset.cl; U.msg = {}; pinta(); const cu = U.el.querySelector('.cl-cuerpo'); if (cu) cu.scrollTop = 0; return; }
+  if (t.dataset.cl) { R.gen++; R.haciendo = false; U.vista = 'ficha'; U.clase = t.dataset.cl; U.msg = {}; pinta(); const cu = U.el.querySelector('.cl-cuerpo'); if (cu) cu.scrollTop = 0; return; }
   if (t.dataset.enc !== undefined) {
     const c = CLASES.find(k => k.id === U.clase), x = U.datos && U.datos.porBarrio.find(q => String(q.b.i) === t.dataset.enc), rem = x && x._rem, op = U.op || {}, G = op.juego || root.Game;
     if (!rem) { U.msg[t.dataset.enc] = { ok: false, t: 'Este barrio no tiene remedio claro todavía.' }; return pinta(); }
@@ -374,13 +377,13 @@ function clic(e) {
 export function abrir(cid, op) {
   if (typeof document === 'undefined') return;
   meter(); cerrar();
-  if (op && op.base) BASE = op.base; U.cid = cid || (root.UI && root.UI.city) || null; U.op = op || null; U.vista = 'menu'; U.clase = null; U.msg = {};
+  R.gen++; if (op && op.base) BASE = op.base; U.cid = cid || (root.UI && root.UI.city) || null; U.op = op || null; U.vista = 'menu'; U.clase = null; U.msg = {};
   U.el = document.createElement('div'); U.el.className = 'cl-fondo'; U.el.id = 'cl-fondo'; U.el.addEventListener('click', clic); document.body.appendChild(U.el);
   pinta();
   hacerRetratos().then(() => { if (U.el && U.vista === 'ficha') { const c = CLASES.find(k => k.id === U.clase); if (c && !R.piv.length) montar3D(c); } }).catch(e => console.warn('Retratos', e));
 }
 export function cerrar() {
-  paraBucle(); if (U.el) { U.el.remove(); U.el = null; }
+  R.gen++; R.haciendo = false; paraBucle(); if (U.el) { U.el.remove(); U.el = null; }
   liberar();   // un solo renderer: se libera al cerrar (los retratos y los modelos quedan en memoria)
 }
 export const CLASES_UI = { abrir, cerrar, calcularClases, PATRICIOS_DE_CIU, PESOS_PAT };
