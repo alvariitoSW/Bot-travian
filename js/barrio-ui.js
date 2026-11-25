@@ -135,6 +135,7 @@ const pct = f => Math.round(f * 100);
 const CSS = `
 .bui-etq { position: absolute; inset: 0; overflow: clip; pointer-events: none; z-index: 3; }
 .bui-etq button { text-transform: none; letter-spacing: 0; position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 5px; max-width: 150px; min-height: 30px; padding: 3px 10px 3px 4px; border-radius: 16px; background: rgba(246, 237, 216, .94); color: #4a2f12; border: 1.5px solid rgba(110, 76, 30, .55); font-family: inherit; font-weight: 650; font-size: 13px; line-height: 1; white-space: nowrap; pointer-events: auto; box-shadow: 0 2px 8px #0006; overflow: clip; will-change: transform; }
+.bui-etq.chica button { min-height: 24px; padding: 1px 8px 1px 3px; font-size: 11px; gap: 3px; } .bui-etq.chica button svg { width: 18px; height: 18px; }
 .bui-etq button span { overflow: clip; text-overflow: ellipsis; line-height: 1.3; padding-top: 2px; }
 .bui-etq button.mal { border-color: #b5281f; }
 .bui-gotas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
@@ -271,6 +272,7 @@ export function montarBarrioUI(vista, ctx) {
     const E = G && G.ciudadE && U ? G.ciudadE(ciudadId()) : null;
     if (!E || !E.fundada) { if (est.D) { est.D = null; est.clave = ''; limpiarTodo(); } return false; }
     const k = claveDe(E);
+    est.aldea = !!(E.sinUrbe && (E.mesN - (E.n0 || 0)) < 12); etq.classList.toggle('chica', est.aldea);
     if (k !== est.clave) { est.clave = k; est.D = calcular(E); pintarCapas(); if (est.barrio >= 0) pintaFicha(); }
     return true;
   }
@@ -306,7 +308,7 @@ export function montarBarrioUI(vista, ctx) {
     const verEtq = !!D && est.visible && !est.capa && est.barrio < 0;
     est.etqs.forEach((e, i) => {
       const b = D && D.barrios[i]; if (!b || !verEtq) { e.style.display = 'none'; return; }
-      const p = vista.aPantalla(b.x, b.z, 6), x = p.x - r.left, y = p.y - r.top, w = e.offsetWidth || 90;
+      const p = vista.aPantalla(b.x, b.z, est.aldea ? 30 : 6), x = p.x - r.left, y = p.y - r.top, w = e.offsetWidth || 90;
       if (!p.ok || y < 190 || y > H - 110) { e.style.display = 'none'; return; }
       e.style.display = ''; e.style.transform = 'translate(' + Math.round(Math.max(4, Math.min(W - w - 4, x - w / 2))) + 'px,' + Math.round(y - 15) + 'px)';
     });

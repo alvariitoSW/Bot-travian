@@ -42,16 +42,18 @@ const pieza = k => griegas.get(k) || (RS.esPieza(k) ? RS.pieza(k) : getStatic(k)
 
 /* CD7: templo y bouleuterion griegos hechos con Meshy (assets/edificios-griegos, tools/aligerar_edificios_griegos.mjs).
    Solo en ciudades de cultura 'grie'; si no cargan, quedan las piezas de 0 A.D. Lector de .glb mínimo: una malla en flotantes y su textura. */
-const GRIEGAS = { grie_templo_m: 'assets/edificios-griegos/templo.glb', grie_bouleuterion: 'assets/edificios-griegos/curia.glb' };
+const GRIEGAS = { grie_templo_m: 'assets/edificios-griegos/templo.glb', grie_bouleuterion: 'assets/edificios-griegos/curia.glb', ald_plebeyo: 'assets/personajes/plebeyo.glb', ald_plebeya: 'assets/personajes/plebeya.glb', ald_artesano: 'assets/personajes/artesano.glb', ald_artesana: 'assets/personajes/artesana.glb' };      // PN3b2: los cuatro últimos son los aldeanos (Meshy, assets/personajes)
 const griegas = new Map();
 async function piezaGLB(clave, url) {
   const buf = await (await fetch(url)).arrayBuffer(), dv = new DataView(buf); let off = 12, js = null, bin = 0;
   while (off + 8 <= buf.byteLength) { const n = dv.getUint32(off, true), t = dv.getUint32(off + 4, true); if (t === 0x4E4F534A) js = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, off + 8, n))); else if (t === 0x004E4942) bin = off + 8; off += 8 + n; }
-  const TIPO = { 5126: Float32Array, 5125: Uint32Array, 5123: Uint16Array }, NC = { SCALAR: 1, VEC2: 2, VEC3: 3 };
-  const acc = i => { const a = js.accessors[i], v = js.bufferViews[a.bufferView], T = TIPO[a.componentType], n = NC[a.type], o = bin + (v.byteOffset || 0) + (a.byteOffset || 0); if (!v.byteStride) return new T(buf, o, a.count * n); const r = new T(a.count * n); for (let k = 0; k < a.count; k++) r.set(new T(buf, o + k * v.byteStride, n), k * n); return r; };      // con o sin entrelazar
+  const TIPO = { 5126: Float32Array, 5125: Uint32Array, 5123: Uint16Array, 5122: Int16Array, 5120: Int8Array }, NC = { SCALAR: 1, VEC2: 2, VEC3: 3 }, MAXN = { 5122: 32767, 5120: 127, 5123: 65535 };
+  const acc = i => { const a = js.accessors[i], v = js.bufferViews[a.bufferView], T = TIPO[a.componentType], n = NC[a.type], o = bin + (v.byteOffset || 0) + (a.byteOffset || 0); let r; if (!v.byteStride) r = new T(buf.slice(o, o + a.count * n * T.BYTES_PER_ELEMENT)); else { r = new T(a.count * n); for (let k = 0; k < a.count; k++) r.set(new T(buf.slice(o + k * v.byteStride, o + k * v.byteStride + n * T.BYTES_PER_ELEMENT)), k * n); }
+    if (a.normalized && MAXN[a.componentType]) { const f = new Float32Array(r.length); for (let k = 0; k < r.length; k++) f[k] = Math.max(r[k] / MAXN[a.componentType], -1); return f; } return r; };      // PN3b2: lee también modelos cuantizados (KHR_mesh_quantization: los de assets/personajes)      // con o sin entrelazar
   const pr = js.meshes[0].primitives[0], geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(acc(pr.attributes.POSITION), 3)); geo.setAttribute('normal', new THREE.BufferAttribute(acc(pr.attributes.NORMAL), 3)); geo.setAttribute('uv', new THREE.BufferAttribute(acc(pr.attributes.TEXCOORD_0), 2));
-  geo.setIndex(new THREE.BufferAttribute(acc(pr.indices), 1)); geo.computeBoundingBox(); geo.computeBoundingSphere();
+  geo.setIndex(new THREE.BufferAttribute(acc(pr.indices), 1)); { const nd = js.nodes && js.nodes[0]; if (nd && (nd.translation || nd.scale)) { const M = new THREE.Matrix4().compose(new THREE.Vector3(...(nd.translation || [0, 0, 0])), new THREE.Quaternion(), new THREE.Vector3(...(nd.scale || [1, 1, 1]))); geo.applyMatrix4(M); } }      // la transformación del nodo (cuantizados)
+  geo.computeBoundingBox(); geo.computeBoundingSphere();
   const im = js.images[js.textures[js.materials[pr.material].pbrMetallicRoughness.baseColorTexture.index].source], v = js.bufferViews[im.bufferView];
   const tex = new THREE.Texture(await createImageBitmap(new Blob([new Uint8Array(buf, bin + (v.byteOffset || 0), v.byteLength)], { type: im.mimeType }))); tex.flipY = false; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.needsUpdate = true;
   const b = geo.boundingBox; griegas.set(clave, { key: clave, parts: [{ geo, tex, file: 'meshy_' + clave, mode: 0, maps: {} }], bb: [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z] });
@@ -316,7 +318,8 @@ export async function montar() {
     const t = new Bulto(); t.cono(5.2, 4.6, 4, 0, 2.3, 0, '#d8ccb0', 1, Math.PI / 4, 1.15, 0.8); t.caja(0.25, 5.6, 0.25, 0, 2.8, 0, '#5a4632'); t.caja(1.6, 0.7, 1.2, 4.6, 0.35, 1.5, '#8a6a48');
     tiendaM = new THREE.InstancedMesh(t.geo(), matBulto, 40); for (const m of [...chozaM, tiendaM]) { m.count = 0; m.castShadow = m.receiveShadow = true; m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); } }
   L.paja = lote('prop_paja', 90, { sinTeja: true }); L.carreta = lote('prop_carreta', 8, { sinTeja: true });
-  vida.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, carros: L.carreta, pedirReparto: () => { pedirReparto = true; } });
+  const aldeanos = ['ald_plebeyo', 'ald_plebeya', 'ald_artesano', 'ald_artesana'].map(k => griegas.get(k)).filter(Boolean).map(g => ({ geo: g.parts[0].geo, tex: g.parts[0].tex, alto: Math.max(0.01, g.bb[4] - g.bb[1]), y0: g.bb[1] }));
+  vida.iniciar({ aldeanos, scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, carros: L.carreta, pedirReparto: () => { pedirReparto = true; } });
   trajin.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
   Civicas.iniciar({ scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
   Fachadas.iniciar({ scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });

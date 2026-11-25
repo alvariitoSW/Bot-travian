@@ -310,34 +310,34 @@
   "fecha": "2026-11-25T12:41:46.178Z"
  },
  "area:test/ciudad.test.mjs": {
-  "huella": "4de6b7c086a131c9",
+  "huella": "57c2ded4c2c47a9d",
   "ok": true,
-  "fecha": "2026-11-25T17:02:10.599Z"
+  "fecha": "2026-11-25T17:27:36.379Z"
  },
  "area:test/senado.test.js": {
-  "huella": "eed64b11ad14fd9a",
+  "huella": "4b4c74ddd2e8a83b",
   "ok": true,
-  "fecha": "2026-11-25T17:02:22.814Z"
+  "fecha": "2026-11-25T17:27:47.599Z"
  },
  "area:test/saber.test.mjs": {
-  "huella": "a5cae13d2cf7abac",
+  "huella": "962579682b2743be",
   "ok": true,
-  "fecha": "2026-11-25T17:02:43.952Z"
+  "fecha": "2026-11-25T17:28:08.379Z"
  },
  "area:test/diplomacia.test.mjs": {
-  "huella": "e4b1f27d1f241f3f",
+  "huella": "d96cb53b729638e9",
   "ok": true,
-  "fecha": "2026-11-25T17:02:51.742Z"
+  "fecha": "2026-11-25T17:28:14.921Z"
  },
  "area:test/encargos.test.mjs": {
-  "huella": "b1e3627b9eb6fd93",
+  "huella": "02c69cb95df26e0d",
   "ok": true,
-  "fecha": "2026-11-25T17:02:56.942Z"
+  "fecha": "2026-11-25T17:28:19.263Z"
  },
  "area:test/caminos.test.mjs": {
-  "huella": "39f4ef3e0c436164",
+  "huella": "0d4ab8f9a1092e2d",
   "ok": true,
-  "fecha": "2026-11-25T17:02:57.056Z"
+  "fecha": "2026-11-25T17:28:19.335Z"
  },
  "area:test/este-ano.test.mjs": {
   "huella": "8f267b6b4571e2df",
@@ -345,9 +345,9 @@
   "fecha": "2026-11-25T16:27:30.683Z"
  },
  "area:test/gobernador.test.mjs": {
-  "huella": "b8128d5032dcc90e",
+  "huella": "9d4c999d261e8cca",
   "ok": true,
-  "fecha": "2026-11-25T17:02:57.149Z"
+  "fecha": "2026-11-25T17:28:19.401Z"
  },
  "area:test/calles.test.mjs": {
   "huella": "d1570d06f35571cb",
@@ -355,14 +355,14 @@
   "fecha": "2026-11-25T17:03:00.563Z"
  },
  "navegador-cerebro": {
-  "huella": "85ab5de4d9f28bc9",
+  "huella": "5e0b314d82e9a0f7",
   "ok": true,
-  "fecha": "2026-11-25T17:04:35.831Z"
+  "fecha": "2026-11-25T17:29:41.191Z"
  },
  "area:gobierno/jueces.mjs --area cerebro": {
-  "huella": "da68713f34a2d76e",
+  "huella": "42cad524080dfb53",
   "ok": true,
-  "fecha": "2026-11-25T17:04:35.846Z"
+  "fecha": "2026-11-25T17:29:41.201Z"
  },
  "sim-liga": {
   "huella": "abc9da41782883d4",
@@ -390,8 +390,8 @@
   "fecha": "2026-11-25T17:13:54.621Z"
  },
  "area:test/comarca.test.mjs": {
-  "huella": "19393654ed0dd39e",
+  "huella": "dfffabb79e4803cc",
   "ok": true,
-  "fecha": "2026-11-25T17:03:21.594Z"
+  "fecha": "2026-11-25T17:28:40.476Z"
  }
 }

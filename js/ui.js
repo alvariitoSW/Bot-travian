@@ -932,7 +932,7 @@ function camVictoria() {
   const mb = $('mbox'); CAMINOS_UI.montar(mb, mb.innerHTML, a => { if (a !== 'seguir' && a !== 'abrir') return; CAMINOS.marcarVista(S()); UI.camVic = false; G.save(); closeModal(); if (a === 'abrir') camAbrir(); });
 }
 const impCaminos = () => { const v = camVista(); return v ? CAMINOS_UI.tira(v).replace('data-cam="abrir"', 'data-cam="abrir" data-act="camabrir"') : impCaminosVacio(); };
-const impCaminosVacio = () => '<div class="imp-cam" role="group" aria-label="Tus caminos de victoria"><div class="imp-cam-t"><b>Tus caminos</b><span>Ganas con tres de cuatro</span></div><div class="imp-cam-g">' +
+const impCaminosVacio = () => G.polis() ? '<div class="imp-cam" role="group" aria-label="Dominio por las armas"><div class="imp-cam-t"><b>Dominio por las armas</b><span>Ganas al conquistar todas las ciudades o el 90 % del territorio</span></div></div>' : '<div class="imp-cam" role="group" aria-label="Tus caminos de victoria"><div class="imp-cam-t"><b>Tus caminos</b><span>Ganas con tres de cuatro</span></div><div class="imp-cam-g">' +
   IMP_CAMINOS.map(c => '<div class="imp-cam-c" data-c="' + c[0] + '">' + svgIco(c[2]) + '<span>' + c[1] + '</span><div class="sen-cinta"><i></i></div></div>').join('') + '</div></div>';
 function viewImperio() {
   const s = S(), filas = G.myCities().map(impFila), n = filas.length;
