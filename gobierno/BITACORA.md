@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~22:55 (vigía 4): «Si a lo recomendado»: v178 a main (`24609175`) y GP0 abierta ya (diseño de leyes, Asamblea y cargos de la partida griega).
 - 25/11 (chat de PN3e): «lo de las leyes habría que repensarlo en otra sesión para ajustar los parlamentos y los gobiernos en cada nueva partida, y reusar lo que hay pero mejorarlo, o crear un departamento específico para este juego que piense Opus y lo haga Haiku o Sonnet, y sea simple, barato, sencillo, rápido y divertido». Hoy, con polis, la Asamblea vota leyes romanas («Guerra a Tarento», «Vía Flaminia») y la pestaña Senado tiene Edil, Pretor y Cónsul. Pendiente de cuándo abrirlo.
 - 25/11 ~22:30 (vigía 4): Calcis con su mina de hierro (165–710 hombres a los 15 años): «A», se deja así; es su ventaja y su historia (la polis fácil para empezar).
 - 25/11 ~22:00 (vigía 4): «Si a lo recomendado»: (1) hierro en Grecia: veta de hierro en Calcis y la lección del arranque enseña a comprar hierro (PN3e); (2) la v177 no se sube sola: sube junto con el arreglo del hierro.
