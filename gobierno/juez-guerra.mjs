@@ -24,7 +24,11 @@ await new Promise(ok => srv.listen(0, '127.0.0.1', ok));
 const { chromium } = createRequire(import.meta.url)('playwright');
 const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 await mkdir(SALIDA, { recursive: true });
-const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), page = await ctx.newPage();
+const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true });
+/* J20a: fotogramas espaciados (gobierno/ritmo-pruebas.js; RITMO_MS=0 lo quita): la página responde al juez en milisegundos */
+const RITMO_MS = process.env.RITMO_MS === undefined ? 1000 : +process.env.RITMO_MS;
+if (RITMO_MS > 0) await ctx.addInitScript({ content: 'window.__ritmoMs=' + RITMO_MS + ';' + await readFile(join(RAIZ, 'gobierno', 'ritmo-pruebas.js'), 'utf8') });
+const page = await ctx.newPage();
 const fallos = [], esp = ms => page.waitForTimeout(ms);
 page.setDefaultTimeout(120000);   /* a ~1 fotograma/s y con la máquina cargada, 30 s no bastan */
 page.on('console', m => { if (m.type() === 'error' && !/GPU stall|GL Driver/.test(m.text())) { fallos.push('consola: ' + m.text().slice(0, 250)); console.log('  [error] ' + m.text().slice(0, 250)); } });

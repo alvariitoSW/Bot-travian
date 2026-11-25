@@ -31,6 +31,7 @@ const RAPIDO = process.argv.includes('--rapido');
 /* JZ1: --todo repite todo aunque nada haya cambiado (subida final de la 1.0); --seguido, una prueba detrás de otra, como antes */
 const TODO = process.argv.includes('--todo'), SEGUIDO = process.argv.includes('--seguido');
 const LIGA = process.argv.includes('--liga');   // J20a: solo la liga (ver arriba)
+const RITMO_MS = process.env.RITMO_MS === undefined ? 1000 : +process.env.RITMO_MS;   // J20a: ver gobierno/ritmo-pruebas.js
 const HILOS_LOGICA = 2;   // pruebas de Node a la vez (sim.test.js ya reparte sus campañas en todos los núcleos)
 const MEMORIA = leeMemoria(), NUEVA = {}; let saltadas = 0;
 /* MIN4: cada paso del navegador dice de qué área es (de) y a qué otras áreas prepara (para): con --area solo corren los suyos,
@@ -143,6 +144,8 @@ async function navegador() {
   const srv = await servidor(), url = 'http://127.0.0.1:' + srv.address().port + '/';
   const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true });
+  /* J20a: fotogramas espaciados (gobierno/ritmo-pruebas.js); RITMO_MS=0 lo quita */
+  if (RITMO_MS > 0) await ctx.addInitScript({ content: 'window.__ritmoMs=' + RITMO_MS + ';' + readFileSync(join(RAIZ, 'gobierno', 'ritmo-pruebas.js'), 'utf8') });
   const page = await ctx.newPage();
   let sinRed = false;
   page.on('console', m => { if (m.type() === 'error' && !(sinRed && /ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(m.text()))) errores.push(m.text().slice(0, 300)); });
@@ -681,8 +684,8 @@ async function conMemoria(id, nombre, extra, fn) {
 }
 const visual = async () => {
   /* J20a: el recorrido y la guerra jugada van a la vez, cada uno en su navegador (antes, uno detrás de otro: 19 + 26 min) */
-  const nav = () => conMemoria('navegador' + (AREA ? '-' + AREA : ''), 'Recorrido en navegador' + (AREA ? ' · área ' + AREA : ''), ['gobierno/jueces.mjs'], navegador);
-  const gue = () => conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
+  const nav = () => conMemoria('navegador' + (AREA ? '-' + AREA : ''), 'Recorrido en navegador' + (AREA ? ' · área ' + AREA : ''), ['gobierno/jueces.mjs', 'gobierno/ritmo-pruebas.js'], navegador);
+  const gue = () => conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs', 'gobierno/ritmo-pruebas.js'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
   if (AREA) await nav(); else if (SEGUIDO) { await nav(); await gue(); } else await Promise.all([nav(), gue()]);
 };
 /* la lógica (procesos aparte) y el navegador corren a la vez: el recorrido pasa mucho rato esperando a la página */
