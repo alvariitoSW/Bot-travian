@@ -140,20 +140,31 @@ export function kitGestos(t, carril = CARRIL_0) {
    (dentro de su propio ancho) con la punta hacia el rival, y el golpe es el tajo de la tabla (al frente). La mano izquierda, con el escudo, al
    pecho. Solo el dibujo: cuándo golpea lo deciden las reglas (el clip de tropas.js). */
 const CON_ESPADA = { guardia: 1, golpear: 1, encajar: 1 }, DUR_GOLPE = 1.55;
+/* BT1: cuánto tiene cada hombre al de su bando más cerca (f.apretado, m): lo marca la escena una vez por cuadro (marcaApretados) */
+export function marcaApretados(figs) {
+  const G = new Map(), k = (x, z) => Math.floor(x) + ',' + Math.floor(z);
+  for (const f of figs) { const q = k(f.x, f.z); (G.get(q) || G.set(q, []).get(q)).push(f); }
+  for (const f of figs) { let d = 9; const cx = Math.floor(f.x), cz = Math.floor(f.z);
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const g of G.get((cx + a) + ',' + (cz + b)) || []) if (g !== f && g.bando === f.bando) d = Math.min(d, Math.hypot(g.x - f.x, g.z - f.z));
+    f.apretado = d; }
+}
 /* BT1: en la lucha (su bloque trabado), el que espera quieto con la lanza la deja y está en guardia con la espada: la lanza del modelo va
    cruzada por delante del cuerpo, con el regatón a 1 m a su derecha, y entraba en el vecino y en los caídos del suelo. Licencia de juego */
 const trabado = f => !!(f.b && ((f.b.contactos && f.b.contactos.length) || f.b.estado === 'choque'));
 export function gestoEspada(f, t, i, prestadas = false) {   /* prestadas: el cuerpo de un soldado que toma las armas de otro (soldados.js ARMAS): se le mueve igual */
-  const pz = t.s.j.piezas; if (!prestadas && (!pz || !pz.espada_hoja)) return;
+  const pz = t.s.j.piezas || {}; if (!prestadas && !(pz.espada_hoja || pz.lanza_asta || pz.pilum_asta)) return;
   let clip = f.clip;
   if ((clip === 'quieto' || clip === 'andar') && trabado(f) && (prestadas || pz.lanza_asta || pz.pilum_asta)) {
     if (clip === 'quieto') clip = 'guardia';
     if (!prestadas) { const mu = t.malla.geometry.attributes.aMuestra; mu.setX(i, clip === 'guardia' ? 2 : 4); mu.needsUpdate = true; }   /* andando, la espada envainada y sin lanza */
   }
-  if (!CON_ESPADA[clip]) return;   /* en testudo, la 1.ª fila (el muro) va en guardia: también; los de debajo del techo, «cubrirse», no */
-  /* las filas de atrás (de la 3.ª en adelante) esperan con la espada envainada: a medio metro unos de otros, la hoja desnuda entraba en el vecino */
+  /* apretados (otro de su bando a menos de 0,85 m), nadie lleva la lanza ni el pilum en la mano: va cruzada por delante con el regatón a 1 m a su
+     derecha y entraba en el vecino; queda la espada envainada (el pilum se ve al lanzarlo) */
+  if (!prestadas && f.apretado < 0.85 && clip !== 'lanzar' && clip !== 'lanzar2' && (pz.lanza_asta || pz.pilum_asta)) { const mu = t.malla.geometry.attributes.aMuestra; const v = mu.getX(i); if (v % 2 === 1) { mu.setX(i, v - 1); mu.needsUpdate = true; } }
+  if (!CON_ESPADA[clip] || (!prestadas && !pz.espada_hoja)) return;   /* en testudo, la 1.ª fila (el muro) va en guardia: también; los de debajo del techo, «cubrirse», no */
+  /* las filas de atrás (de la 3.ª en adelante, y la 2.ª si está apretada a menos de 0,6 m) esperan con la espada envainada: la hoja desnuda entraba en el vecino */
   const fila = f.h ? (f.h.fila ?? f.h.r ?? 0) : f.b && f.b.vis && f.slot !== undefined ? Math.floor(f.slot / f.b.vis.cols) : 0;
-  if (clip === 'guardia' && fila >= 2) { if (!prestadas) { const mu = t.malla.geometry.attributes.aMuestra; mu.setX(i, 4); mu.needsUpdate = true; } return; }
+  if (clip === 'guardia' && (fila >= 2 || (fila >= 1 && f.apretado < 0.6) || f.apretado < 0.55)) {   /* y la 1.ª, si está pegada (< 0,55 m): espera el golpe con el escudo */ if (!prestadas) { const mu = t.malla.geometry.attributes.aMuestra; mu.setX(i, 4); mu.needsUpdate = true; } return; }
   const k = kitGestos(t); if (!k) return;
   const tb = k.tab, cu = t.malla.geometry.attributes.aCuadro, fps = (t.s.j.clips.quieto || {}).fps || 30;
   let a, b, x;

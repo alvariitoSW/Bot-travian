@@ -40,7 +40,10 @@ export function crearCamara({ camara, lienzo, H, estado, hud, inicial = 'arriba'
   const OJO = '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>';
   const SUBE = '<svg viewBox="0 0 24 24"><path d="M6 14l6-6 6 6"/><path d="M12 8v12"/><path d="M4 4h16"/></svg>';
   const rotula = () => { const ab = meta > 0.5; boton.innerHTML = ab ? SUBE + 'Arriba' : OJO + 'Oficial'; boton.classList.toggle('abajo', ab); boton.setAttribute('aria-label', ab ? 'Volver a la vista de arriba' : 'Bajar a la vista del oficial'); };
-  boton.addEventListener('click', () => pon(meta > 0.5 ? 'arriba' : 'oficial')); rotula();
+  /* BT1: el toque cuenta al bajar el dedo (en Ásculo el clic se perdía entre la tira y el dedo que dibuja); el clic que le sigue no repite */
+  let porDedo = false;   /* el clic que sigue a un dedo no repite (aunque llegue tarde, con la máquina lenta); el del teclado sí cuenta */
+  boton.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); porDedo = true; pon(meta > 0.5 ? 'arriba' : 'oficial'); });
+  boton.addEventListener('click', e => { e.stopPropagation(); if (porDedo) { porDedo = false; return; } pon(meta > 0.5 ? 'arriba' : 'oficial'); }); rotula();
   (hud || document.body).appendChild(boton);
 
   function pon(m, ya = false) { meta = m === 'oficial' ? 1 : 0; if (ya) t = meta; rotula(); }
@@ -73,8 +76,11 @@ export function crearCamara({ camara, lienzo, H, estado, hud, inicial = 'arriba'
     O.h = m; O.B = B; return m;
   }
 
+  let tReal = performance.now();
   function aplica0(dt) {
-    const v = meta > t ? 1 : -1; if (t !== meta) t = Math.min(1, Math.max(0, t + v * dt / DUR));
+    /* BT1: la bajada cuenta en tiempo real (con la máquina lenta el tiempo de juego casi no avanza y parecía que no bajaba); al congelar (dt grande), de golpe */
+    const ahora = performance.now(), dr = dt >= 1 ? dt : Math.min(0.5, (ahora - tReal) / 1000); tReal = ahora;
+    const v = meta > t ? 1 : -1; if (t !== meta) t = Math.min(1, Math.max(0, t + v * dr / DUR));
     const S = estado(), B = S && S.B; if (!B) return;
     const h = (yo && yo()) || centurion(B); if (!h) return;
     const M = modo ? modo() || {} : {}, va = (k, sí) => Math.min(1, Math.max(0, k + (sí ? 1 : -1) * dt / CAMBIO));

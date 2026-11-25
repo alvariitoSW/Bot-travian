@@ -69,7 +69,23 @@ const MIRA = () => {
   const sobre = (a, b) => a.b <= b.t + 1 && b.t - a.b <= 6 && a.l < b.r - 1 && a.r > b.l + 1;   /* a justo encima de b (a menos de 6 px; rotulos.js TORRE) */
   const altura = (b, n = 1) => { const a = et.find(x => x !== b && sobre(x, b)); return a && n < 9 ? altura(a, n + 1) : n; };
   for (const b of et) { const h = altura(b); if (h > 2) { choques.push('torre de ' + h + ' etiquetas sobre ' + b.n); break; } }
-  return { textos, medidas, choques, etiquetas: et.length };
+  /* textos cortados: un aviso o grito que no cabe en su caja */
+  for (const id of ['grito', 'aviso-b', 'borde-t', 'mn-aviso']) { const e = document.getElementById(id); if (ve(e) && getComputedStyle(e).overflowX !== 'visible' && (e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1)) choques.push(id + ' cortado: «' + e.textContent + '»'); }
+  /* etiquetas sin dueño: toda etiqueta dice de quién es (la tira de Ásculo pone el nombre con data-n) */
+  const SUELTA = /^(fresca|firme|cansada|agotada|cede|huye|se retira|se rehace|testudo|muro|abierto)$/;
+  document.querySelectorAll('#ests .est b').forEach(b => { if (!ve(b)) return; const t = (b.dataset.n ? b.dataset.n + ' · ' : '') + b.textContent.trim(); if (SUELTA.test(t)) choques.push('etiqueta sin dueño: «' + t + '»'); });
+  /* marcas del suelo (la raya dorada de girar) recortadas por encima de la zona de mando */
+  const giro = document.getElementById('giro'), ab = document.getElementById('abajo');
+  if (giro && ab && !giro.hasAttribute('hidden')) { const m = /inset\(0(?:px)? 0(?:px)? ([\d.]+)px/.exec(giro.style.clipPath || ''), corte = m ? +m[1] : 0; if (corte < innerHeight - ab.getBoundingClientRect().top) choques.push('la raya de girar se dibuja encima de la barra de órdenes'); }
+  /* batalla grande: un distintivo por unidad, sin montón (estandarte 3D con su barra; los rectángulos los da __mn.distintivos) */
+  let monton = 0;
+  if (grande && window.__mn && window.__mn.distintivos) {
+    const D = window.__mn.distintivos(), sup = (a, b) => { const ox = Math.min(a.r, b.r) - Math.max(a.l, b.l), oy = Math.min(a.b, b.b) - Math.max(a.t, b.t); return ox > 0 && oy > 0 && ox * oy > 0.12 * Math.min((a.r - a.l) * (a.b - a.t), (b.r - b.l) * (b.b - b.t)); };
+    for (let i = 0; i < D.length; i++) for (let j = i + 1; j < D.length; j++) if (sup(D[i], D[j])) monton++;
+    if (monton) choques.push(monton + ' pares de estandartes amontonados');
+    for (const d of D) for (const z of zonas) if (pisa(d, z, 0)) { choques.push('un estandarte tapa ' + z.n); break; }
+  }
+  return { textos, medidas, choques, etiquetas: et.length, monton };
 };
 /* una escena: mira la barra varias veces mientras se juega; propia = el texto que debe tener el primer hueco */
 async function examina(nombre, marco, propia, { muestras = 4, cada = 1500, accion = null, propiaLibre = false } = {}) {
@@ -90,6 +106,25 @@ async function examina(nombre, marco, propia, { muestras = 4, cada = 1500, accio
 }
 const listo = async () => { await page.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 180000 }); await esp(1500); };
 const salta = f => page.evaluate(f => window.__bloque.salta(f), f);
+/* un toque de dedo en el centro de un elemento (si Playwright no recibe el acuse, el toque va por el DOM como pointerdown) */
+const dedo = async sel => { const b = await page.locator(sel).boundingBox(); try { await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); } catch (e) { await page.evaluate(q => { const e = document.querySelector(q); e.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); }, sel); } };
+/* 3 · el oficial: el botón baja la cámara de verdad */
+async function oficial(nombre) {
+  await dedo('#vista'); const t0 = Date.now();
+  await page.waitForFunction(() => window.__bloque.vista.t() >= 0.9, null, { timeout: 30000 }).catch(() => {});   /* 1,4 s en el móvil; aquí el render va muy lento */
+  const t = await page.evaluate(() => window.__bloque.vista.t()); console.log('    (bajó en ' + ((Date.now() - t0) / 1000).toFixed(1) + ' s reales)');
+  bien(t >= 0.9, `${nombre}: «Oficial» baja la cámara (bajada ${Math.round(t * 100)} %)`);
+}
+/* 6 · la tarjeta del final sale siempre, en menos de 6 s */
+async function final(nombre, foto_) {
+  await salta('fin'); const t0 = Date.now();
+  const sale = await page.waitForFunction(() => !document.getElementById('fin').hidden, null, { timeout: 30000 }).then(() => true, () => false);
+  const s = (Date.now() - t0) / 1000, txt = await page.evaluate(() => document.getElementById('fin-t').textContent);
+  /* en el móvil sale a los 2,5 s; aquí cada fotograma tarda segundos: se dan 6 s más dos fotogramas de los de esta máquina */
+  const cuadro = await page.evaluate(() => new Promise(r => requestAnimationFrame(a => requestAnimationFrame(b => r((b - a) / 1000)))));
+  bien(sale && s <= 6 + 2 * cuadro, `${nombre}: al acabar sale la tarjeta del final («${txt}») en ${s.toFixed(1)} s (aquí un fotograma tarda ${cuadro.toFixed(1)} s)`);
+  if (foto_) await foto(page, foto_);
+}
 const ORIENT = [['v', 390, 844], ['h', 844, 390]];
 
 /* ---- 1 · Escaramuzas: una sola tarjeta para manípulo y testudo, que lleva a la partida unida ---- */
@@ -113,10 +148,23 @@ if (quiere('apie')) {
     bien(/Manípulo y Testudo a pie/.test(t.t) && /formacion=testudo/.test(t.url), `a-pie/ lleva a la partida unida (${o}: ${t.t})`);
     await examina('manípulo y testudo, cruzando (' + o + ')', page, 'Testudo', { muestras: 3, accion: async k => { if (k === 1) await salta('salva'); if (k === 2) await salta('testudo'); } });
     await foto(page, 'testudo-cruza-' + o);
-    await examina('manípulo y testudo, en la lucha con relevos (' + o + ')', page, 'Testudo', { muestras: 3, accion: async k => { if (k === 0) await salta('lucha'); if (k === 2) await salta('trabado'); } });
+    await examina('manípulo y testudo, en la lucha (' + o + ')', page, 'Testudo', { muestras: 3, accion: async k => { if (k === 0) await salta('lucha'); if (k === 2) await salta('trabado'); } });
     const trab = await page.evaluate(() => [...document.querySelectorAll('#ordenes .orden')].map(b => b.dataset.h + (b.classList.contains('apagada') ? '-' : '+')).join(' '));
     bien(/alto-/.test(trab) && /retirada\+/.test(trab), `trabados: «Alto» apagado en su sitio y «Retirada» vale (${trab})`);
     await foto(page, 'testudo-lucha-' + o);
+    /* 4 · el grito del relevo, entero (partida nueva: se mira justo tras tocar «Relevo») */
+    await page.goto(BASE + 'gobierno/maquetas/a-pie/?nivel=normal&semilla=7'); await listo(); await salta('lucha'); await salta('relevo');
+    await page.evaluate(() => document.querySelector('#ordenes .orden[data-h="relevo"]').click()); await esp(500);
+    const gr = await page.evaluate(() => { const g = document.getElementById('grito'), r = g.getBoundingClientRect(); return { t: g.textContent, ve: g.classList.contains('ve'), dentro: r.left >= 0 && r.right <= innerWidth, cabe: getComputedStyle(g).overflowX === 'visible' || g.scrollWidth <= g.clientWidth + 1 }; });
+    bien(gr.ve && gr.dentro && gr.cabe && /fila/i.test(gr.t), `testudo (${o}): el grito del relevo «${gr.t}» se lee entero`);
+    await examina('manípulo y testudo, al relevar (' + o + ')', page, 'Testudo', { muestras: 1 }); await foto(page, 'testudo-relevo-' + o);
+    /* 2 y 3 · partida nueva: su jefe vuelve por un lado (la raya de girar) y se baja a la vista del oficial */
+    await page.goto(BASE + 'gobierno/maquetas/a-pie/?nivel=normal&semilla=7'); await listo();
+    await salta('jefe'); await oficial('testudo (' + o + ')');
+    const raya = await page.evaluate(() => !document.getElementById('giro').hasAttribute('hidden'));
+    await examina('manípulo y testudo, vista del oficial' + (raya ? ' con la raya de girar' : '') + ' (' + o + ')', page, 'Testudo', { muestras: 2 });
+    await foto(page, 'testudo-oficial-' + o);
+    await final('testudo (' + o + ')', 'testudo-fin-' + o);
   }
 }
 
@@ -131,6 +179,7 @@ if (quiere('falange')) {
     const ret = await page.evaluate(async () => { const q = h => document.querySelector('#ordenes .orden[data-h="' + h + '"]'), F = window.__bloque.S.fal; const ap = q('retirada').classList.contains('apagada'); q('retirada').click(); const r1 = F.orden; await new Promise(r => setTimeout(r, 300)); q('alto').click(); return { ap, r1, r2: F.orden }; });
     bien(!ret.ap && ret.r1 === 'retroceder' && ret.r2 !== 'retroceder', `falange (${o}): «Retirada» recula (${ret.r1}) y «Alto» lo para (${ret.r2})`);
     await foto(page, 'falange-lucha-' + o);
+    await final('falange (' + o + ')', o === 'v' ? 'falange-fin-v' : null);
   }
 }
 
@@ -147,6 +196,15 @@ if (quiere('asculo')) {
     await page.locator('#tira .ficha[data-id="tiradores"]').tap({ force: true, timeout: 20000 }).catch(() => page.evaluate(() => document.querySelector('#tira .ficha[data-id="tiradores"]').click())); await esp(800);
     await examina(`Ásculo, ${bando}, tiradores elegidos (${o})`, page, 'Tirar', { muestras: 2 });
     await foto(page, 'asculo-' + bando + '-' + o);
+    /* el oficial baja también en Ásculo; y cada etiqueta, de su lado del choque y con su dueño */
+    await page.evaluate(() => document.querySelector('#tira .ficha[data-id="todos"]').click()); await oficial(`Ásculo, ${bando} (${o})`);
+    await examina(`Ásculo, ${bando}, vista del oficial (${o})`, page, propia, { muestras: 1 });
+    const lado = await page.evaluate(() => { const S = window.__bloque.S, mal = []; const E = [...document.querySelectorAll('#ests .est')].filter(e => e.style.visibility !== 'hidden' && e.style.display !== 'none' && e.dataset.b !== undefined);
+      for (const a of E) for (const b of E) { const A = S.bloques[+a.dataset.b], B = S.bloques[+b.dataset.b]; if (!A || !B || A.bando !== 'r' || B.bando === 'r' || !(A.contactos || []).some(c => c.b === B)) continue; if (a.getBoundingClientRect().bottom < b.getBoundingClientRect().bottom - 2) mal.push((a.querySelector('b') || a).textContent); }
+      return mal; });
+    bien(!lado.length, `Ásculo, ${bando} (${o}): trabados, cada etiqueta tuya queda de tu lado del choque${lado.length ? ' — ' + lado.join(', ') : ''}`);
+    await foto(page, 'asculo-' + bando + '-oficial-' + o);
+    if (o === 'v') await final(`Ásculo, ${bando}`, 'asculo-' + bando + '-fin-v');
   }
 }
 
@@ -170,6 +228,12 @@ if (quiere('grande')) {
     await page.evaluate(() => document.querySelector('#mn-ordenes .orden[data-h="propia"]').click()); await esp(600);
     const fm = await page.evaluate(() => ({ n: document.querySelectorAll('#mn-formas .mn-f').length, t: [...document.querySelectorAll('#mn-ordenes .orden b')].map(b => b.textContent).join(' · ') }));
     bien(fm.n >= 2 && fm.t === ['Formar…', ...FIJAS].join(' · '), `«Formar…» abre ${fm.n} formas encima y la barra no cambia (${fm.t})`);
+    /* 1 · el juez pilla el montón: sin despejar (como en el examen) hay pares amontonados; despejado, ninguno */
+    await page.evaluate(() => window.__mn.amontona(true)); await esp(1500);
+    const antes = await page.evaluate(MIRA);
+    await page.evaluate(() => window.__mn.amontona(false)); await esp(1500);
+    const despues = await page.evaluate(MIRA);
+    bien(antes.monton > 0 && despues.monton === 0, `batalla grande (${o}): sin despejar el juez ve ${antes.monton} pares de estandartes amontonados; despejado, ${despues.monton}`);
     await foto(page, 'grande-' + o);
     await page.evaluate(() => document.querySelector('#mn-formas [data-volver]') && document.querySelector('#mn-formas [data-volver]').click());
     /* 5 · «Bajar a pie»: la misma barra dentro de la capa */
@@ -180,6 +244,9 @@ if (quiere('grande')) {
     const capa = page.frames().find(f => /maquetas\/bloque/.test(f.url()));
     await examina('«Bajar a pie» (' + o + ')', capa, 'Testudo', { muestras: 3, accion: async k => { if (k === 1) await page.evaluate(() => window.__mn.frente({ x: -10, z: -14 }, { x: 12, z: -20 })); } });
     await foto(page, 'bajar-' + o);
+    /* 7 · a pie, el rival con su soldado y sus colores (el que dice la batalla grande), y su nombre */
+    const sol = await capa.evaluate(async () => { const m = await import('/gobierno/maquetas/bloque/soldados.js'); const P = JSON.parse(new URLSearchParams(location.search).get('lp7')); return { plan: P.g ? P.g.modelo : null, g: m.SOLDADOS.g.galos[0], rival: P.rival && P.rival.Los, obj: document.getElementById('marcha').textContent }; });
+    bien(sol.plan ? sol.g === sol.plan : /^galo/.test(sol.g), `«Bajar a pie» (${o}): el rival «${sol.rival}» sale con su soldado (${sol.g}${sol.plan ? ', pedido ' + sol.plan : ''}) y se nombra («${sol.obj}»)`);
   }
 }
 

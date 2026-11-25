@@ -3,16 +3,18 @@
    node test/combate-atraviesa.test.mjs --viejo    → lo mismo con el carril de las sarisas de antes (FU3c, ?carril=viejo): debe FALLAR
    node test/combate-atraviesa.test.mjs falange    → solo las escenas cuyo nombre contiene «falange»
    Cada escena (la página gobierno/maquetas/bloque/ con sus parámetros) se abre a 390×844 congelada en marcha, se mide desde arriba y
-   desde la vista del oficial, salta a la lucha y se mide otra vez desde los dos sitios. La medida es window.__bloque.choques()
+   desde la vista del oficial, salta a la lucha y se mide otra vez desde los dos sitios. Además, Ásculo JUGADO (JUGADAS: botones, sin congelar). La medida es window.__bloque.choques()
    (gobierno/maquetas/bloque/fisica.js, medirChoques): la geometría que se pinta (matrices de las instancias, filas de huesos, triángulos
    del cuerpo, sarisas y muñones). Tarda unos minutos (render por software).
    DOS VARAS:
    · ASTAS (sarisas, muñones, lanzas, pila y espadas contra cuerpos: 'asta-companero', 'asta-caido', 'asta-rival'): 0 en todas las medidas.
      Una sola, o un error de consola, y la prueba falla (código 1).
+     Regla escrita (fisica.js medirChoques): un caído que aún cae (< 1,5 s) a menos de 0,75 m del dueño del asta le cae encima: cuenta como
+     'caido-vivo' (deuda), no como asta.
    · LO DEMÁS (caídos con vivos o entre sí, escudos y brazos apretados en la lucha): TECHO por escena y tipo (suma de sus cuatro medidas) en
      test/combate-atraviesa.techo.json. El techo es DEUDA MEDIDA, NO TOLERANCIA: son los choques que había el 25/11/2026 y que quedan para el
      paso 2 del Plan A de batallas. Si alguno sube, la prueba falla; cada uno se imprime como «pendiente (paso 2 del Plan A): N». El techo SOLO
-     PUEDE BAJAR: --guarda-techo escribe, para cada escena y tipo, el menor entre el techo que había y lo medido (nunca lo sube). */
+     PUEDE BAJAR (las JUGADAS de Ásculo, que no se congelan, solo miden astas): --guarda-techo escribe, para cada escena y tipo, el menor entre el techo que había y lo medido (nunca lo sube). */
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 const RAIZ = new URL('../', import.meta.url).pathname, PUERTO = 8496;
@@ -34,6 +36,12 @@ const ESCENAS = [
   ['asculo-roma', 'formacion=combinada&escenario=asculo&bando=roma', 'carga'],
   ['bajar-manipulo', 'lp7=' + encodeURIComponent(JSON.stringify(LP7_MAN)), 'carga'],
   ['bajar-falange', 'formacion=falange&lp7=' + encodeURIComponent(JSON.stringify(LP7_FAL)), 'picas']
+].filter(e => e[0].includes(FILTRO));
+/* BT1 (examen 25/11): Ásculo JUGADO, como lo vio el examinador: sin congelar, «Todos» y la orden con los botones del mando (Cargar; con Pirro,
+   también Bajar picas), salto al choque y cuatro medidas a 3 s una de otra, en vertical y en horizontal. [nombre, bando, órdenes, ancho, alto] */
+const JUGADAS = [
+  ['asculo-pirro-jugado-v', 'pirro', ['picas', 'cargar'], 390, 844], ['asculo-pirro-jugado-h', 'pirro', ['cargar'], 844, 390],
+  ['asculo-roma-jugado-v', 'roma', ['cargar'], 390, 844], ['asculo-roma-jugado-h', 'roma', ['cargar'], 844, 390]
 ].filter(e => e[0].includes(FILTRO));
 
 let srv = null;
@@ -70,9 +78,31 @@ try {
     if (err.length) { malos++; console.log('MAL ', nom, '— errores de consola:', err.slice(0, 3).join(' | ')); }
     await p.close();
   }
+  for (const [nom, bando, ordenes, w, h] of JUGADAS) {
+    await servidor();
+    const p = await nav.newPage({ viewport: { width: w, height: h }, hasTouch: true });
+    const err = []; p.on('pageerror', e => err.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/favicon|404/.test(m.text())) err.push(m.text()); });
+    try {
+      await p.goto(`http://localhost:${PUERTO}/gobierno/maquetas/bloque/?semilla=7&nivel=normal&formacion=combinada&escenario=asculo&bando=${bando}`, { waitUntil: 'load' });
+      await p.waitForFunction(() => window.__bloque && window.__bloque.listo && window.__bloque.choques && window.__bloque.gestos && window.__bloque.mando, null, { timeout: 240000 }); await espera(p, 3000);
+      await p.evaluate(o => { const M = window.__bloque.mando; M.elige('todos'); for (const n of o) M.orden(n); }, ordenes);
+      await p.evaluate(() => window.__bloque.salta('choque')); await espera(p, 2000);
+      for (let k = 0; k < 4; k++) {
+        const r = await mide(p); tabla.push({ nom, fase: 'jugada ' + k, vista: 'arriba', ...r });
+        const astas = Object.entries(r.cuenta).reduce((n, [q, v]) => n + (ASTAS.has(q) ? v : 0), 0), bien = astas === 0 && r.hombres > 0;
+        if (!bien) malos++;
+        console.log(`${bien ? 'bien' : 'MAL '} ${nom} · instante ${k}: ${astas} de astas, ${r.sarisas} de sarisas; ${r.total} choques en todo (${r.hombres} hombres) ${JSON.stringify(r.cuenta)}`);
+        for (const m of bien ? [] : r.muestra) console.log('       ' + m);
+        await espera(p, 3000);
+      }
+    } catch (e) { malos++; console.log('MAL ', nom, '— no se pudo medir:', e.message.split('\n')[0]); }
+    if (err.length) { malos++; console.log('MAL ', nom, '— errores de consola:', err.slice(0, 3).join(' | ')); }
+    await p.close();
+  }
 } finally { await nav.close(); srv.kill(); }
 /* lo demás: techo por escena y tipo (deuda medida; solo baja) */
-const deuda = {}; for (const r of tabla) for (const [k, v] of Object.entries(r.cuenta)) if (!ASTAS.has(k)) { const c = r.nom + ' · ' + k; deuda[c] = (deuda[c] || 0) + v; }
+const deuda = {}; for (const r of tabla) if (!r.fase.startsWith('jugada')) for (const [k, v] of Object.entries(r.cuenta)) if (!ASTAS.has(k)) {   /* las jugadas (sin congelar) no dan cifras fijas: solo cuentan sus astas */
+  const c = r.nom + ' · ' + k; deuda[c] = (deuda[c] || 0) + v; }
 const techo = existsSync(TECHO_F) ? JSON.parse(readFileSync(TECHO_F, 'utf8')) : {};
 const vistas = new Set(tabla.map(r => r.nom));
 for (const c of Object.keys(techo)) if (vistas.has(c.split(' · ')[0]) && !(c in deuda)) deuda[c] = 0;

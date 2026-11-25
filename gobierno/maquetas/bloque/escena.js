@@ -36,7 +36,7 @@ import { crearAbierto } from './formaciones/abierto.js';   /* FU5 */
 import { crearDedos } from './dedos.js';
 import { crearCamara } from './camara.js';
 import { separaEstandartes } from './rotulos.js';
-import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas, paraFalange, ponBandos, gestoEspada } from './soldados.js';   /* BT1: gestoEspada, la espada delante del cuerpo */
+import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas, paraFalange, ponBandos, gestoEspada, marcaApretados } from './soldados.js';   /* BT1: gestoEspada, la espada delante del cuerpo */
 import { FIN_LUCHA } from '../../../js/falange.js';
 import { crear as formacionManipulo } from './formaciones/manipulo.js';
 import { crear as formacionTestudo } from './formaciones/testudo.js';
@@ -65,18 +65,20 @@ if (ASC) {   /* el bando azul (la falange de Pirro) lleva falangitas con sarisas
   document.title = 'AQVILA · Ásculo, 279 a.C.'; ASC.bando === 'pirro' ? ponBandos(az, { modelo: 'hastatus' }) : ponBandos(null, { modelo: 'falangita', paleta: pal });
 }
 if (ASC_ENTRADA) {
-  const d = document.createElement('div'); d.id = 'entrada-asculo'; d.style.cssText = 'position:fixed;inset:0;z-index:99;background:#14100c;color:#f1e6c8;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:16px;font:16px/1.35 Georgia,serif;overflow:auto';
-  const b = (id, tit, txt) => '<button data-b="' + id + '" style="min-height:96px;border:2px solid #e9c063;background:#2a2018;color:#f1e6c8;border-radius:10px;padding:10px 14px;text-align:left;font:inherit"><b style="font-size:22px;display:block">' + tit + '</b><span style="font-size:14px">' + txt + '</span></button>';
-  d.innerHTML = '<h1 style="margin:0;font-size:24px;text-align:center">Ásculo, 279 a.C.</h1>' +
+  /* BT1: con el aspecto de las tarjetas de Escaramuzas (pergamino, Cinzel). Desde Escaramuzas ya se elige bando allí y no se pasa por aquí */
+  const d = document.createElement('div'); d.id = 'entrada-asculo'; d.style.cssText = 'position:fixed;inset:0;z-index:99;background:radial-gradient(ellipse at 50% 35%,#f3e6c4,#d9c08c);color:#3a2410;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:16px;font:16px/1.35 Georgia,serif;overflow:auto';
+  const b = (id, tit, txt) => '<button data-b="' + id + '" style="min-height:84px;border:1px solid rgba(60,35,10,.45);background:rgba(255,245,215,.55);color:#3a2410;border-radius:6px;padding:10px 14px;text-align:left;font:inherit;box-shadow:0 2px 6px rgba(60,35,10,.18)"><b style="font:700 20px Cinzel,Georgia,serif;letter-spacing:.03em;display:block;color:#7a2416">' + tit + '</b><span style="font-size:14px;color:#5a4028">' + txt + '</span></button>';
+  d.innerHTML = '<h1 style="margin:0;font:700 24px Cinzel,Georgia,serif;letter-spacing:.06em;text-align:center;color:#7a2416">Ásculo, 279 a.C.</h1><p style="margin:0;text-align:center;font-size:14px;color:#5a4028">Elige bando</p>' +
     b('pirro', 'Ser Pirro', 'Intercaló manípulos itálicos entre los bloques de su falange (Polibio 18.28). Rompe la línea romana.') +
     b('roma', 'Ser Roma', 'Los vélites abrían la batalla y se retiraban entre los manípulos (Polibio 6.21 y 15.9). Aguanta y rompe la falange.') +
-    '<a href="../../../" style="align-self:center;color:#e9c063;font-size:15px;padding:12px 18px">Volver al menú</a>';   /* UN3: salida a Escaramuzas sin el botón «atrás» */
+    '<a href="../../../" style="align-self:center;color:#7a2416;font:700 15px Cinzel,Georgia,serif;padding:12px 18px">Volver al menú</a>';   /* UN3: salida a Escaramuzas sin el botón «atrás» */
   document.body.appendChild(d);
   d.querySelectorAll('button').forEach(x => x.addEventListener('click', () => { const u = new URL(location.href); u.searchParams.set('bando', x.dataset.b); location.href = u.toString(); }));
 }
 /* CB3: ?lucha=reglas vuelve a las bajas por reglas de bloque; por defecto deciden el motor de lucha (js/combate.js) */
 const LUCHA = Q.get('lucha') === 'reglas' ? 'reglas' : 'motor'; let LU = null, acumL = 0;
 let LP7 = null; try { LP7 = Q.get('lp7') ? JSON.parse(Q.get('lp7')) : null; } catch (e) { console.warn('lp7 mal escrito', e); }
+if (LP7 && !FALANGE && (LP7.r || LP7.g)) ponBandos(LP7.r || null, LP7.g || null);   /* BT1: «Bajar a pie» con el soldado y los colores de cada tropa (js/ui-mando.js planApie: r, g); antes se perdía y salían siempre galos */
 const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
 const fr = a => ({ x: Math.sin(a), z: -Math.cos(a) });
@@ -172,6 +174,7 @@ function azulea(mat) {
   mat.customProgramCacheKey = () => 'fu4-soldado-azul'; mat.needsUpdate = true;
 }
 function pintaSoldados() {
+  marcaApretados(TR.figs);   /* BT1: quién está apretado (sin lanza en la mano; la 2.ª fila, espada envainada) */
   PM.multiplyMatrices(camara.projectionMatrix, camara.matrixWorldInverse); frustum.setFromProjectionMatrix(PM);
   const cx = camara.position.x, cz = camara.position.z, L = { r: [], g: [] };
   for (const lista of [TR.figs, TR.caidos]) for (const f of lista) {

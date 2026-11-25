@@ -288,9 +288,34 @@
       for (const u of S.man) { const c = u.lado + ':' + u.tropa; if (cel[c] === undefined) { cel[c] = k[u.lado]++ % 8; letras.push([String(nombreTropa(u.tropa)).trim().charAt(0).toUpperCase(), u.lado, cel[c]]); } celdaDe[u.id] = cel[c]; }
       return ES.crearEstandartes({ THREE, escena, n: S.man.length, talla: TALLA, letras, pano: COLOR });
     }
+    /* BT1: un solo distintivo por unidad (estandarte y, pegada debajo, su barra), y nunca una pila: se colocan por interés (el elegido,
+       los tuyos, los más cerca de la cámara) y el que taparía a otro ya puesto se oculta entero (estandarte y barra). Casi siempre
+       sobran los del rival lejanos. «distintivos» guarda en pantalla el rectángulo de cada uno (lo lee el juez de BT1) */
+    const oculto = new Set(), distintivos = []; let amontona = false;
+    const PX = new THREE.Vector3();
+    function despeja(pos) {
+      oculto.clear(); distintivos.length = 0;
+      const kpx = alto / (2 * Math.tan(camara.fov * Math.PI / 360)), cp = camara.position, L = [];
+      for (const u of S.man) {
+        const q = pos[u.id]; if (!q) continue;
+        const d = Math.hypot(q.x - cp.x, cp.y, q.z - cp.z), H = Math.max(8 * TALLA, 46 * d / kpx) * (sel.includes(u.id) ? 1.15 : 1);
+        PX.set(q.x, 0.92 * H, q.z).project(camara); if (PX.z > 1 || Math.abs(PX.x) > 1.2 || Math.abs(PX.y) > 1.2) continue;
+        const xa = (PX.x + 1) / 2 * ancho, ya = (1 - PX.y) / 2 * alto; PX.set(q.x, 0.3 * H, q.z).project(camara);
+        const yb = (1 - PX.y) / 2 * alto + 17, h = Math.max(20, yb - ya), w = Math.max(30, h * 0.62);   /* el paño (0,46 × 0,6 de H) y la barra debajo */
+        L.push({ id: u.id, l: xa - w / 2, r: xa + w / 2, t: ya, b: yb, p: (sel.includes(u.id) ? 1e6 : 0) + (u.lado ? 0 : 1e5) - d });
+      }
+      L.sort((a, b) => b.p - a.p);
+      /* ni encima de la ficha, la barra de órdenes, las formas o la barra de arriba */
+      const Z = ['ficha', 'ordenes', 'formas', 'arriba'].map(k => $(k)).filter(e => e && !e.hidden && e.offsetParent !== null).map(e => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; });
+      const enZona = a => Z.some(z => a.l < z.r && a.r > z.l && a.t < z.b && a.b > z.t);
+      const pisa = (a, b) => { const ox = Math.min(a.r, b.r) - Math.max(a.l, b.l), oy = Math.min(a.b, b.b) - Math.max(a.t, b.t); return ox > 0 && oy > 0 && ox * oy > 0.12 * Math.min((a.r - a.l) * (a.b - a.t), (b.r - b.l) * (b.b - b.t)); };
+      for (const a of L) { if (!amontona && ((a.p < 1e6 && distintivos.some(b => pisa(a, b))) || enZona(a))) oculto.add(a.id); else distintivos.push(a); }
+    }
     function pintarEstandartes() {
-      if (!estandartes) return; const al = Math.max(0, Math.min(1, acum / PASO));
-      for (const u of S.man) { const p0 = previo[u.id] || u, fuera = u.estado === 'fuera' || u.estado === 'caida' || u.n <= 0;
+      if (!estandartes) return; const al = Math.max(0, Math.min(1, acum / PASO)), pos = [];
+      for (const u of S.man) { const p0 = previo[u.id] || u; if (!(u.estado === 'fuera' || u.estado === 'caida' || u.n <= 0)) pos[u.id] = { x: p0.x + (u.x - p0.x) * al, z: -(p0.y + (u.y - p0.y) * al) }; }
+      despeja(pos);
+      for (const u of S.man) { const p0 = previo[u.id] || u, fuera = u.estado === 'fuera' || u.estado === 'caida' || u.n <= 0 || oculto.has(u.id);
         estandartes.pon(u.id, p0.x + (u.x - p0.x) * al, -(p0.y + (u.y - p0.y) * al), celdaDe[u.id] || 0, u.lado, fuera ? -1 : sel.includes(u.id) ? 1 : vivo(u) ? 0 : 2); }
       estandartes.fin(camara, alto, Tv + performance.now() / 4000);
     }
@@ -450,8 +475,8 @@
       const al = Math.max(0, Math.min(1, acum / PASO)), y = altoN * TALLA * 1.9;
       for (const u of S.man) {
         const m = mans[u.id]; if (!m || !m.barra) continue; const b = m.barra;
-        if (u.estado === 'fuera' || u.estado === 'caida' || (cine && cine.modo === 'apertura')) { if (!b.hidden) b.hidden = true; continue; }   /* CG8a: sin barras en el plano de apertura */
-        const p0 = previo[u.id] || u, ye = estandartes && estandartes.alto(u.id) ? estandartes.alto(u.id) * 0.22 : y; V3.set(p0.x + (u.x - p0.x) * al, ye, -(p0.y + (u.y - p0.y) * al)).project(camara);   /* CG8a: bajo el paño del estandarte */
+        if (u.estado === 'fuera' || u.estado === 'caida' || (cine && cine.modo === 'apertura') || oculto.has(u.id)) { if (!b.hidden) b.hidden = true; continue; }   /* BT1: con su estandarte oculto, su barra también */   /* CG8a: sin barras en el plano de apertura */
+        const p0 = previo[u.id] || u, ye = estandartes && estandartes.alto(u.id) ? estandartes.alto(u.id) * 0.3 : y;   /* BT1: pegada al borde de abajo del paño (0,3 H; la caja cuelga de ahí, css/mando.css) */ V3.set(p0.x + (u.x - p0.x) * al, ye, -(p0.y + (u.y - p0.y) * al)).project(camara);   /* CG8a: bajo el paño del estandarte */
         if (V3.z > 1 || Math.abs(V3.x) > 1.05 || Math.abs(V3.y) > 1.05) { if (!b.hidden) b.hidden = true; continue; }
         b.hidden = false; b.style.transform = 'translate3d(' + Math.round((V3.x + 1) / 2 * ancho) + 'px,' + Math.round((1 - V3.y) / 2 * alto) + 'px,0)';
         const cl = 'mn-e' + (u.lado ? ' ene' : '') + (sel.includes(u.id) ? ' sel' : '') + (!vivo(u) ? ' roto' : '');
@@ -835,6 +860,7 @@
       get lista() { return lista; }, get cerrado() { return cerrado; }, get S() { return S; }, Sim,
       estado: () => ({ t: S.t, fin: S.fase === 'fin', res: S.resultado, sel: sel.slice(), pausa: S.pausa, vel, cam: Object.assign({}, cam), tri: renderer.info.render.triangles, llamadas: renderer.info.render.calls,
         figuras: figs.filter(f => f.est === 0).length, caidas: figs.filter(f => f.est === 1).length, niveles: [0, 1, 2, 3].map(k => figs.filter(f => f.est !== 2 && f.nv === k).length) }),
+      distintivos: () => distintivos.map(d => ({ id: d.id, l: d.l, r: d.r, t: d.t, b: d.b })), amontona: v => { amontona = !!v; },   /* BT1: lo lee el juez (amontona: sin despejar, para ver que el juez lo pilla) */
       elegir: ids => { sel = (ids || []).filter(i => S.man[i] && S.man[i].lado === 0); verFormas = false; pintarHud(true); return sel.slice(); },
       ordenar: o => ordenar(o),
       pausa: v => pausa(v),

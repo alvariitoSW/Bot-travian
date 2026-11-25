@@ -43,7 +43,7 @@ const NO_AHORA = {
 };
 
 export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
-  let C = null, S = null, tocado = false, ests = [], tGrito = 0, tDatos = 0, salva = false, finHecho = false, tFin = -1, tAvisoTrabado = -9, suelta = 0, tAvisoB = 0, avanzo = false;
+  let C = null, S = null, tocado = false, ests = [], tGrito = 0, tDatos = 0, salva = false, finHecho = false, tFin = -1, tAvisoTrabado = -9, suelta = 0, tAvisoB = 0, avanzo = false, finEn = 0;
   const cuenta = { jabSin: 0, jabCon: 0, pilum: 0, agotadaSinRelevo: 0 };
   /* los seis botones, hechos aquí (index.html deja #ordenes vacío): mismo dibujo y misma palabra siempre; el primero, la orden propia */
   const caja = $('ordenes'); caja.classList.add('barra6');
@@ -107,7 +107,10 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     const tu = S.tuyo, w = tu.ancho / 2, F = { x: Math.sin(g.ang), z: -Math.cos(g.ang) }, D = { x: Math.cos(g.ang), z: Math.sin(g.ang) };
     const P = (l, d) => proyecta(g.x + D.x * l + F.x * d, 0.2, g.z + D.z * l + F.z * d);
     const a = P(-w, 0), b = P(w, 0); if (!a[2] && !b[2]) { sv.toggleAttribute('hidden', true); return; }
-    sv.toggleAttribute('hidden', false); const L = `M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`;
+    sv.toggleAttribute('hidden', false);
+    /* BT1: ninguna marca del suelo se dibuja encima de la zona de mando (barra y raya): se recorta por encima de #abajo */
+    const ab = $('abajo').getBoundingClientRect(), corte = Math.max(0, innerHeight - ab.top + 4) + 'px'; if (sv.dataset.corte !== corte) { sv.style.clipPath = 'inset(0 0 ' + corte + ' 0)'; sv.dataset.corte = corte; }
+    const L = `M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`;
     $('giro-l').setAttribute('d', L); $('giro-t').setAttribute('d', L);
     let f = '';   /* tres flechas: hacia dónde mirará la primera fila */
     for (const k of [-0.6, 0, 0.6]) { const q = P(k * w, 6.5), l = P(k * w - 0.9, 1.2), r = P(k * w + 0.9, 1.2);
@@ -117,12 +120,12 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
   $('datosB').addEventListener('click', () => { const ab = $('datos').hidden; $('datos').hidden = !ab; $('datosB').setAttribute('aria-expanded', String(ab)); $('datosB').textContent = ab ? 'Datos ▴' : 'Datos ▾'; tDatos = 0; });
 
   function pon(c) {
-    C = c; S = c.S; tocado = false; finHecho = false; tFin = -1; salva = false; Object.keys(cuenta).forEach(k => { cuenta[k] = 0; });
+    C = c; S = c.S; tocado = false; finHecho = false; tFin = -1; finEn = 0; salva = false; Object.keys(cuenta).forEach(k => { cuenta[k] = 0; });
     const cont = $('ests'); cont.textContent = ''; ests = [];
     for (const b of S.bloques) {
       if (b.papel === 'tiradores') continue;   /* tiradores sueltos: sin estandarte (lanzan y se retiran; un «huye» confundiría) */
       const el = document.createElement('div'); el.className = 'est ' + (b.bando === 'g' ? 'g' : 'r') + (b.papel === 'tuyo' ? ' tuyo' : '');
-      el.innerHTML = (b.papel === 'tuyo' ? '<em>Trabados</em>' : '') + '<i></i><s></s><b></b>'; cont.appendChild(el); ests.push({ b, el, w: el.querySelector('b'), clase: '', pal: '', trab: false });
+      el.innerHTML = (b.papel === 'tuyo' ? '<em>Trabados</em>' : '') + '<i></i><s></s><b></b>'; el.dataset.b = S.bloques.indexOf(b); cont.appendChild(el); ests.push({ b, el, w: el.querySelector('b'), clase: '', pal: '', trab: false });
     }
     suelta = 0; avanzo = false; giro = null; giroVisto = false; $('giro').toggleAttribute('hidden', true);
     $('fin').hidden = true; cont.style.visibility = ''; for (const id of ['borde-i', 'borde-d', 'borde-a']) $(id).classList.remove('ve', 'late');
@@ -207,13 +210,16 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     const [m, cl] = marcha(); if ($('marcha').textContent !== m) $('marcha').textContent = m; $('marcha').className = cl;
     /* estandartes */
     for (const E of ests) {
-      const b = E.b, c = centro(b), [px, py, vis] = proyecta(c.x, 3.6, c.z);
+      /* BT1: el estandarte va sobre la retaguardia de su bloque (no sobre su centro): trabados, el tuyo queda de tu lado del choque y no encima del enemigo */
+      const b = E.b, c0 = centro(b), fa = b.ang || 0, k = (b.fondo || 0) * 0.45, c = { x: c0.x - Math.sin(fa) * k, z: c0.z + Math.cos(fa) * k }, [px, py, vis] = proyecta(c.x, 3.6, c.z);
       if (!vis || b.estado === 'fuera') { E.el.style.display = 'none'; continue; }
       E.el.style.display = ''; E.el.style.transform = `translate(${px.toFixed(1)}px,${py.toFixed(1)}px) translate(-50%,-100%)`;
       const [col, p] = palabraDe(b); if (col !== E.clase) { E.el.classList.remove('verde', 'ambar', 'rojo'); E.el.classList.add(col); E.clase = col; }
       const tb = trab && tu.estado !== 'retira';   /* la placa, solo mientras sigue dentro */
       if (b === tu && tb !== E.trab) { E.el.classList.toggle('trabado', tb); E.trab = tb; }
-      const t = (b.papel === 'tuyo' || b.papel === 'reserva' || b.papel === 'centro' ? (b.papel === 'ala' ? rival(S).Los : NOMBRE[b.papel]) + ' · ' : '') + p;
+      /* BT1: toda etiqueta dice de quién es (antes las alas y los compañeros decían solo «fresca»); en Ásculo la tira pone el nombre del manípulo (data-n) */
+      const quien = E.w.dataset.n ? '' : b.papel === 'ala' ? 'Su ala' : NOMBRE[b.papel] || (b.bando === 'g' ? rival(S).Los : 'Los tuyos');
+      const t = (quien ? quien + ' · ' : '') + p;
       if (t !== E.pal) { E.w.textContent = t; E.pal = t; }
     }
     /* avisos en el borde: flanco que viene, o enemigo pegado por tu costado */
@@ -230,6 +236,8 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     /* datos */
     if (!$('datos').hidden && (tDatos -= dt) <= 0) { datos(); tDatos = 0.4; }
     if (tFin > 0 && (tFin -= dt) <= 0) muestraFin();
+    /* BT1: la tarjeta del final sale siempre, a los 2,5 s REALES de haber ganador (con la máquina lenta, 2,5 s de juego eran minutos) */
+    if (S.ganador && !finHecho) { if (!finEn) finEn = performance.now() + 2500; else if (performance.now() >= finEn) muestraFin(); }
   }
 
   function aviso(tipo, d) {

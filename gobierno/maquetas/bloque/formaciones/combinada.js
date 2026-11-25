@@ -30,7 +30,7 @@ export function crear() {
     for (const f of ctx.TR.figs) {
       const b = f.b; if (!b || !baja.has(b) || f.slot === undefined) continue;
       if (!f.tallaBT1) { f.talla = 1 + ((f.talla || 1) - 1) * 0.2; f.tallaBT1 = true; }   /* de una talla, como en la falange */
-      const h = f.hs || (f.hs = { i: Math.round(f.semilla * 7), kB: 0 }), cols = b.vis.cols; h.r = Math.floor(f.slot / cols); h.f = f.slot % cols; h.huye = b.estado === 'huye' || b.estado === 'fuera'; h.vivo = f.vivo !== false;
+      const h = f.hs || (f.hs = { i: Math.round(f.semilla * 7), kB: 0 }), cols = b.vis.cols; h.r = Math.floor(f.slot / cols); h.f = Math.max(0, Math.min(11, Math.round((f.slot % cols) - (cols - 1) / 2 + 5.5)));   /* la columna en el abanico de 12 de la falange (si no, las de los extremos de un bloque ancho se tumbaban de lado) */ h.huye = b.estado === 'huye' || b.estado === 'fuera'; h.vivo = f.vivo !== false;
       const quiere = h.r < 5 && !h.huye ? baja.get(b) : 0; h.kB += (quiere - h.kB) * Math.min(1, dt * 1.2); if (Math.abs(quiere - h.kB) < 0.002) h.kB = quiere;
       lista.push({ h, f, kB: h.kB, pinta: true });
       /* los brazos, como en la falange: en las cinco primeras filas, con la sarisa bajada y quietos, en guardia y con las manos en el asta */

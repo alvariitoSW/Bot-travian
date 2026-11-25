@@ -17,6 +17,7 @@ import { crearFisica, crearProyectiles, MIN_DIST, ESCUDO, RADIO, ALTO, PROYECTIL
 import { angulos } from '../../../js/tiro.js';   /* ES3b: el ángulo bajo (directo) o alto (parábola) de cada tiro */
 
 export const D_RIVAL = 0.95;     /* m entre dos rivales (centro a centro): los escudos se tocan, no se cruzan */
+export const PAR_FALANGE = 0.7;  /* BT1: m entre dos falangitas dibujados de un mismo bloque (en el hueco, 0,78 de lado): como PAR_FAL de la escena de la falange */
 export const TENDIDO = 1.25;     /* m de los pies a la cabeza del caído */
 export const RAD_CAIDO = 0.22;   /* medio ancho del caído (hombros) */
 export const CAE_T = 1.8;        /* s que tarda en quedar tendido (el muñeco de morir: 2,4 s) */
@@ -40,7 +41,7 @@ export const FRENA = 0.88;       /* el que va contra alguien (k = 1) afloja su p
 export const guardiaDeSerie = (h, S) => S.tuyo.orden === 'testudo' ? (h.fila === 0 ? 'muro' : 'alto') : S.tuyo.forma === 'muro' && h.fila === 0 ? 'muro' : null;   /* FU5: el muro de escudos tambien guarda en 'muro' */
 
 export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla = 1, guardia = guardiaDeSerie }) {
-  const Fi = crearFisica({ H, caidoFijo: true, parMax: D_RIVAL, semilla, parMin: (a, b) => a.bando !== b.bando ? D_RIVAL : undefined });
+  const Fi = crearFisica({ H, caidoFijo: true, parMax: D_RIVAL, semilla, parMin: (a, b) => a.bando !== b.bando ? D_RIVAL : a.fig && b.fig && a.fig.b === b.fig.b && a.fig.b && a.fig.b.tipo === 'falange' ? PAR_FALANGE : undefined });   /* BT1: dos falangitas del mismo bloque, a PAR_FALANGE (si no, sus sarisas no caben) */
   const SF = { fal: [], ene: [], giro: 0 };
   const ahora = () => (typeof performance !== 'undefined' ? performance : Date).now();
   let msPaso = 0, nPaso = 0, T = 0, msMotor = 0;   /* LP7: msMotor, solo el motor (Fi.paso); msPaso, todo el enganche */
@@ -353,7 +354,7 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
      'escudo'         el escudo dentro del núcleo del tronco, los hombros o la cabeza de un compañero vivo
      'caidos'         dos caídos cruzados (sus núcleos) · 'caido-vivo' un vivo metido en un caído
    Márgenes (cuánto tiene que entrar para contar): licencia de medida, en MARGEN. Sin three.js: solo lee arreglos. */
-export const MARGEN = { brazo: 0.025, escudo: 0.025, escudoVerts: 3, caido: 0.04, puntaRival: 0.45 };
+export const MARGEN = { brazo: 0.025, escudo: 0.025, escudoVerts: 3, caido: 0.04, puntaRival: 0.45, cayendo: 1.5, pegado: 0.75 };
 const CADENAS = [   /* [nombre, hueso de un extremo, hueso del otro, huesos cuyos vértices dan el radio, parte] */
   ['tronco', 'spine05', 'spine01', ['spine05', 'spine04', 'spine03', 'spine02', 'spine01'], 'tronco'],
   ['hombros', 'shoulder01.L', 'shoulder01.R', ['clavicle.L', 'clavicle.R', 'shoulder01.L', 'shoulder01.R'], 'tronco'],
@@ -506,7 +507,10 @@ export function medirChoques(escena, op = {}) {
       const S = cortes(H, a.P, a.Q); if (!S.length) continue;
       const smin = Math.min(...S), smax = Math.max(...S), dePunta = (1 - smin) * a.L, dentro = (smax - smin) * a.L;
       const comp = dH ? H.bando === dH.bando : false, extra = { arma: a.tipo, cortes: S.length, dePunta: r2(dePunta) };
-      if (H.caido) apunta('asta-caido', dH, H, dentro, extra);
+      /* REGLA ESCRITA: un caído que aún está cayendo (menos de CAYENDO s) y cuyo cuerpo está a menos de PEGADO m del dueño del asta le cae ENCIMA:
+         el que entra es el cuerpo del caído en el del vivo (se cuenta como 'caido-vivo', en la deuda medida), no el asta en el caído */
+      if (H.caido && dH && H.f && H.f.t < MARGEN.cayendo && Math.hypot(H.x - dH.x, H.z - dH.z) < MARGEN.pegado) apunta('caido-vivo', H, dH, dentro, { parte: 'cae encima (con su asta)' });
+      else if (H.caido) apunta('asta-caido', dH, H, dentro, extra);
       else if (comp) apunta('asta-companero', dH, H, dentro, extra);
       else if (dePunta > MARGEN.puntaRival) apunta('asta-rival', dH, H, dentro, extra);
     }

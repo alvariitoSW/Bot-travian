@@ -76,14 +76,15 @@ export const SUELO_GLSL = `
       vec3 verde = texture2D(uVerde, GIRO * p * 0.12).rgb * vec3(1.12, 1.18, 0.92);
       vec3 tierra = texture2D(uTierra, p * 0.26).rgb;
       float mV = smoothstep(0.32, 0.62, n1 + (n2 - 0.5) * 0.5);
+      mV = mix(mV, 0.4, 0.35 * smoothstep(150.0, 600.0, distance(vW, cameraPosition)));   /* BT1: de lejos, manchas verdes más suaves */
       vec3 c = mix(seca, verde, mV * 0.85);
-      float calva = smoothstep(0.72, 0.82, n2 + (n3 - 0.5) * 0.3), senda = mascaraSenda(p, n3), orilla = orillaSenda(p, n2);
+      float calva = smoothstep(0.72, 0.82, n2 + (n3 - 0.5) * 0.3) * (1.0 - 0.6 * smoothstep(90.0, 420.0, distance(vW, cameraPosition))), senda = mascaraSenda(p, n3), orilla = orillaSenda(p, n2);   /* BT1: de lejos las calvas se apagan (si no, el campo se ve a manchas de camuflaje) */
       c = mix(c, tierra, max(max(senda * 0.85, calva * 0.6), orilla * 0.3));
       #endif
       /* lejos, las matas ya no se dibujan una a una (o no se distinguirían): su color medio cubre el suelo donde crecerían, fuera de
          calvas y senda. Así el campo visto desde arriba es el mismo que a pie, con su hierba amarilla y verde */
       { float lm = smoothstep(30.0, 140.0, distance(vW, cameraPosition)) * (1.0 - calva * 0.85) * (1.0 - senda * 0.9);
-        c = mix(c, mix(vec3(0.26, 0.21, 0.085), vec3(0.13, 0.17, 0.045), mV * 0.85), lm * 0.45); }
+        c = mix(c, mix(vec3(0.25, 0.2, 0.08), vec3(0.14, 0.18, 0.05), mV * 0.7), lm * 0.45); }
       c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.5);   /* laderas, más secas */
       { float mq = texture2D(uRuido, p * 0.0093 + 0.71).g; c = mix(c, vec3(0.2, 0.25, 0.12), smoothstep(0.52, 0.68, mq) * 0.65 * lejania(p)); }   /* lejos, matorral mediterráneo */
       c *= mix(0.84, 1.1, n1);
@@ -149,14 +150,19 @@ function texRuido(THREE) {
 }
 /* la senda: un camino de tierra que cruza el campo por detrás de las líneas romanas y se tuerce (misma fórmula aquí y en el sombreador) */
 const sendaZ = x => 300 + 38 * Math.sin(x * 0.0042 + 0.6) + 12 * Math.sin(x * 0.013) - 0.00009 * x * x;
-const GLSL_SENDA = 'float sendaZ(float x){ return 300.0 + 38.0 * sin(x * 0.0042 + 0.6) + 12.0 * sin(x * 0.013) - 0.00009 * x * x; }\n';
+const GLSL_SENDA = 'float sendaZ(float x){ return 300.0 + 38.0 * sin(x * 0.0042 + 0.6) + 12.0 * sin(x * 0.013) - 0.00009 * x * x; }\n'
+  + 'float sendaX(float z){ return 150.0 + 42.0 * sin(z * 0.005 + 1.0) + 14.0 * sin(z * 0.017); }\n';
+/* BT1 (2.ª vuelta): una segunda senda de frente, que cruza el campo entre los dos ejércitos, como la de a pie */
+const sendaX = z => 150 + 42 * Math.sin(z * 0.005 + 1) + 14 * Math.sin(z * 0.017);
 /* BT1: la escala de este campo para SUELO_GLSL: la senda va de lado a lado (a pie, de frente), algo más ancha que a pie para que se lea
    desde arriba; el matorral, en las lomas de fuera del llano */
-const GLSL_ESCALA = `float mascaraSenda(vec2 p, float n){ return 1.0 - smoothstep(1.0, 2.6, abs(p.y - sendaZ(p.x)) + (n - 0.5) * 2.2); }
-float orillaSenda(vec2 p, float n){ return 1.0 - smoothstep(2.4, 5.5, abs(p.y - sendaZ(p.x)) + (n - 0.5) * 2.2); }
+const GLSL_ESCALA = `float dSenda(vec2 p){ return min(abs(p.y - sendaZ(p.x)), abs(p.x - sendaX(p.y))); }
+float anchoSenda(){ return 1.0 + 0.003 * distance(vW, cameraPosition); }   /* la anchura que se ve: 2 m de cerca; de lejos, algo más, para que se lea */
+float mascaraSenda(vec2 p, float n){ float w = anchoSenda(); return 1.0 - smoothstep(w, w * 2.6, dSenda(p) + (n - 0.5) * 2.2); }
+float orillaSenda(vec2 p, float n){ float w = anchoSenda(); return 1.0 - smoothstep(w * 2.4, w * 5.5, dSenda(p) + (n - 0.5) * 2.2); }
 float lejania(vec2 p){ return smoothstep(700.0, 950.0, max(abs(p.x), abs(p.y) * 1.6)); }
 `;
-const masSenda = (x, z) => 1 - suave(1.0, 2.6, Math.abs(z - sendaZ(x)) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 2) - 0.5) * 2.2);
+const masSenda = (x, z) => 1 - suave(1.0, 2.6, Math.min(Math.abs(z - sendaZ(x)), Math.abs(x - sendaX(z))) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 2) - 0.5) * 2.2);
 const masCalva = (x, z) => suave(0.72, 0.82, ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 1) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 2) - 0.5) * 0.3);
 const masVerde = (x, z) => suave(0.32, 0.62, ruido(x * 0.0031, z * 0.0031, 0) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 1) - 0.5) * 0.5);
 
@@ -238,6 +244,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
 
   /* ---------- piedras: sueltas por el campo y algún peñasco fuera de donde se lucha (una llamada; 80 triángulos cada una) ---------- */
   const FIJAS = [];   /* [x, z, ancho, largo] de lo que echa sombra fija */
+  let gPiedra = null, matPiedra = null;   /* BT1: las mismas piedras, también dentro del llano (ponDentro) */
   {
     const gp = new THREE.IcosahedronGeometry(1, 1), pp = gp.attributes.position, uv = [], col = [], V = new THREE.Vector3();
     for (let i = 0; i < pp.count; i++) {
@@ -252,7 +259,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
     for (let i = 0; i < CV.pie; i++) { const x = (rnd() - 0.5) * 1500, z = (rnd() - 0.5) * 900; piedra(x, z, 0.35 + rnd() * rnd() * 1.4); }
     for (let i = 0; i < 40; i++) { const x = (rnd() - 0.5) * 2 * (LLANO.x + 500), z = (rnd() - 0.5) * 2 * (LLANO.z + 450); if (Math.abs(x) < LLANO.x + 20 && Math.abs(z) < LLANO.z + 20) continue; piedra(x, z, 2.5 + rnd() * 4); }
     for (let i = 0; i < 70; i++) { const x = (rnd() - 0.5) * 1400; piedra(x, sendaZ(x) + (rnd() - 0.5) * 12, 0.3 + rnd() * 0.5); }   /* guijarros junto a la senda */
-    const mat = new THREE.MeshLambertMaterial({ map: tRoca, vertexColors: true });
+    const mat = matPiedra = new THREE.MeshLambertMaterial({ map: tRoca, vertexColors: true }); gPiedra = gp;
     const im = new THREE.InstancedMesh(gp, mat, lista.length); lista.forEach(([m, cc], i) => { im.setMatrixAt(i, m); im.setColorAt(i, cc); });
     im.frustumCulled = false; pon(im);
     for (const [m] of lista) { const e = m.elements, s = Math.hypot(e[0], e[1], e[2]); if (s > 1.2) FIJAS.push([e[12], e[14], s * 1.6, s * 3.2]); }
@@ -312,14 +319,45 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
 
   /* ---------- sombra fija de árboles y peñascos, echada hacia donde cae la sombra del sol (una llamada) ---------- */
   const L2 = Math.hypot(SOL.x, SOL.z), DX = -SOL.x / L2, DZ = -SOL.z / L2, largoSol = L2 / SOL.y;   /* metros de sombra por metro de alto */
-  {
-    const cS = document.createElement('canvas'); cS.width = cS.height = 64;
-    const gc = cS.getContext('2d'), r = gc.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(0,0,0,1)'); r.addColorStop(0.45, 'rgba(0,0,0,.7)'); r.addColorStop(1, 'rgba(0,0,0,0)'); gc.fillStyle = r; gc.fillRect(0, 0, 64, 64);
-    const tS = new THREE.CanvasTexture(cS), gS = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2); texs.push(tS);
-    const som = new THREE.InstancedMesh(gS, new THREE.MeshBasicMaterial({ map: tS, transparent: true, opacity: 0.42, depthWrite: false, color: 0x1a1408, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), Math.max(1, FIJAS.length));
+  const cS = document.createElement('canvas'); cS.width = cS.height = 64;
+  { const gc = cS.getContext('2d'), r = gc.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(0,0,0,1)'); r.addColorStop(0.45, 'rgba(0,0,0,.7)'); r.addColorStop(1, 'rgba(0,0,0,0)'); gc.fillStyle = r; gc.fillRect(0, 0, 64, 64); }
+  const tS = new THREE.CanvasTexture(cS), gS = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2); texs.push(tS);
+  const matS = new THREE.MeshBasicMaterial({ map: tS, transparent: true, opacity: 0.42, depthWrite: false, color: 0x1a1408, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  function sombras(lista) {
+    if (!lista.length) return;
+    const som = new THREE.InstancedMesh(gS, matS, lista.length);
     const Qs = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(DX, DZ)), M = new THREE.Matrix4(), Ps = new THREE.Vector3(), Es = new THREE.Vector3();
-    FIJAS.forEach(([x, z, an, la], i) => { const px = x + DX * la * 0.35, pz = z + DZ * la * 0.35; Ps.set(px, alt(px, pz) + 0.08, pz); Es.set(an, 1, la); M.compose(Ps, Qs, Es); som.setMatrixAt(i, M); });
-    som.count = FIJAS.length; som.frustumCulled = false; som.renderOrder = 1; pon(som);
+    lista.forEach(([x, z, an, la], i) => { const px = x + DX * la * 0.35, pz = z + DZ * la * 0.35; Ps.set(px, alt(px, pz) + 0.08, pz); Es.set(an, 1, la); M.compose(Ps, Qs, Es); som.setMatrixAt(i, M); });
+    som.frustumCulled = false; som.renderOrder = 1; pon(som);
+  }
+  sombras(FIJAS);
+
+  /* ---------- BT1 (2.ª vuelta): dentro del llano también hay árboles, piedras y cipreses junto a las sendas, como a pie; solo donde no
+     estorban: fuera del rectángulo que ocupan los dos ejércitos al empezar, con holgura para que avancen. Se ponen en el primer tick,
+     cuando se sabe dónde están (el simulador no tiene terreno: los árboles no cambian nada de lo que se juega) ---------- */
+  let dentroPuesto = false;
+  function ponDentro(S) {
+    dentroPuesto = true; if (!S || !S.man || !S.man.length) return;
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const u of S.man) { x0 = Math.min(x0, u.x); x1 = Math.max(x1, u.x); z0 = Math.min(z0, -u.y); z1 = Math.max(z1, -u.y); }
+    x0 -= 45; x1 += 45; z0 -= 70; z1 += 70;   /* holgura: el frente que pueden desplegar y la retaguardia; entre los dos ejércitos queda libre */
+    const libre = (x, z, r) => (x < x0 - r || x > x1 + r || z < z0 - r || z > z1 + r) && Math.abs(x) < LLANO.x + 320 && Math.abs(z) < LLANO.z + 300;   /* y una orla de 300 m alrededor del llano */
+    const arb = { cipres: [], olivo: [], pino: [] }, nuevas = [], o = new THREE.Object3D(), E = new THREE.Euler(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), SC = new THREE.Vector3();
+    const arbol = (tipo, x, z, k) => { const e = UNIT_SCALE * k * (0.75 + rnd() * 0.6) * (tipo === 'pino' ? 0.8 : 1); arb[tipo].push(new THREE.Matrix4().compose(V.set(x, alt(x, z) - 0.2, z), Q.setFromEuler(E.set(0, rnd() * 6.28, 0)), SC.set(e, e * (0.9 + rnd() * 0.25), e))); nuevas.push([x, z, (tipo === 'cipres' ? 1.3 : 2.6) * e, (tipo === 'cipres' ? 6 : 7) * e]); };
+    /* bosquetes de olivos y pinos (las encinas del campo de a pie) */
+    const nB = Math.round(CV.arb / 3);
+    for (let k = 0, intentos = 0; k < nB && intentos < nB * 20; intentos++) {
+      const cx = (rnd() - 0.5) * 2 * (LLANO.x + 300), cz = (rnd() - 0.5) * 2 * (LLANO.z + 280); if (!libre(cx, cz, 12) || masSenda(cx, cz) > 0.1) continue;
+      k++; const n = 4 + Math.floor(rnd() * 10), pino = rnd() < 0.15;   /* el pino tiene 1 000 triángulos: pocos */
+      for (let i = 0; i < n; i++) { const a = rnd() * 6.28, d = Math.sqrt(rnd()) * 22, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (libre(x, z, 0)) arbol(pino && rnd() < 0.7 ? 'pino' : 'olivo', x, z, 1.9); }   /* algo mayores, como las figuras de lejos (licencia de vista) */
+    }
+    /* hileras de cipreses junto a las sendas, como el lindero de a pie */
+    for (let x = -LLANO.x; x < LLANO.x; x += 9 + rnd() * 7) { const z = sendaZ(x) - 9; if (rnd() > 0.2 && libre(x, z, 0)) arbol('cipres', x, z, 1.15); }
+    for (let z = -LLANO.z; z < LLANO.z; z += 9 + rnd() * 7) { const x = sendaX(z) + 10; if (rnd() > 0.25 && libre(x, z, 0)) arbol('cipres', x, z, 1.15); }
+    for (const t in arb) { const m = St.staticInstances(t, arb[t]); if (m) pon(m); }
+    /* peñascos y piedras sueltas en las mismas zonas (una llamada) */
+    const lista = []; for (let i = 0; i < 160; i++) { const x = (rnd() - 0.5) * 2 * LLANO.x, z = (rnd() - 0.5) * 2 * LLANO.z; if (libre(x, z, 5)) { const s = rnd() < 0.2 ? 2 + rnd() * 3 : 0.5 + rnd() * 1.2; o.position.set(x, alt(x, z) - s * 0.12, z); o.rotation.set((rnd() - 0.5) * 0.5, rnd() * 6.28, (rnd() - 0.5) * 0.5); o.scale.set(s * (0.8 + rnd() * 0.5), s * (0.7 + rnd() * 0.6), s * (0.8 + rnd() * 0.5)); o.updateMatrix(); lista.push(o.matrix.clone()); if (s > 1.2) nuevas.push([x, z, s * 1.6, s * 3.2]); } }
+    if (lista.length && gPiedra) { const im = new THREE.InstancedMesh(gPiedra, matPiedra, lista.length); const c = new THREE.Color(); lista.forEach((m, i) => { im.setMatrixAt(i, m); im.setColorAt(i, c.setHSL(0.09 + rnd() * 0.04, 0.12 + rnd() * 0.1, 0.62 + rnd() * 0.2)); }); im.frustumCulled = false; pon(im); }
+    sombras(nuevas);
   }
 
   /* ---------- polvo que levantan los pies: nubecillas donde se marcha o se lucha; a contraluz se doran (una llamada, 420 puntos). CG8a: y una nube grande donde chocan (golpe) ---------- */
@@ -354,6 +392,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
   }
   let reloj = 0, ultimaD = 400;
   function tick(dt, S, Sim, camara, altoPx) {
+    if (!dentroPuesto && S) ponDentro(S);
     if (camara) { camara.updateMatrixWorld(); const D = ultimaD = distanciaVista(camara); escena.fog.density = brumaPara(D); matas.mira(camara, D); }   /* BT1: la bruma y la hierba, según lo cerca que mires */
     if (dt > 0) { reloj += dt; uT.value = reloj; }
     if (camara && altoPx) POL_U.uEsc.value = altoPx / (2 * Math.tan(camara.fov * Math.PI / 360));

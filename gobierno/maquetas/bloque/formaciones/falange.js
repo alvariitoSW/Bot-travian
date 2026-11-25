@@ -159,7 +159,7 @@ const suave = x => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 
    (soldados.js paraFalange) como una caja fina: centro, eje a lo ancho (u), medio ancho, medio alto y medio grueso. Solo dibujo */
 const CUERPO_FAL = [[0, 0.12, 0, 0, 0.9, 0, 0.2], [0, 0.9, 0, 0, 1.36, 0, 0.21], [0.18, 1.36, 0, -0.18, 1.36, 0, 0.11], [0, 1.42, 0.04, 0, 1.6, 0.03, 0.13]];
 const ESCUDO_FAL = { c: [0.205, 1.25, 0.17], n: [-0.64, 0, 0.77], R: 0.29, g: 0.03 };   /* el disco: centro, normal, radio y medio grueso */
-const R_ASTA = 0.02, HOLGURA = 0.03;
+const R_ASTA = 0.02, HOLGURA = 0.05;
 const PUNTA_RIVAL = 0.45;   /* el último tramo del asta que puede tocar al rival (golpe, no cruce): el mismo margen que la medida (fisica.js MARGEN.puntaRival) */
 /* desvíos que se prueban (giro sobre la mano: de lado, arriba/abajo), del más pequeño al más grande */
 const DESVIOS = (() => { const o = [[0, 0]]; for (const a of [0.015, 0.03, 0.05, 0.08, 0.11, 0.15]) for (const p of [0, 0.02, -0.02, 0.04]) for (const sg of [1, -1]) o.push([a * sg, p]); for (const p of [0.02, 0.04, 0.06, -0.02]) o.push([0, p]);
@@ -231,8 +231,8 @@ export function pintaSarisas(M, lista, o) {
     /* BT1: si no hay paso limpio para el asta bajada, se queda ALZADA (en abanico, como las filas de atrás) 1,5 s y luego lo vuelve a probar */
     if (h.alzaBT1 !== undefined && !(Tm < h.alzaBT1)) h.alzaBT1 = undefined;
     let atras = 0, kB = 0;
-    const coloca = (kb, corto) => {
-    const primera = h.r === 0; kB = h.huye ? 0 : kb; const al = alzada(h.f, h.r, h.kA ?? abanicoObj(h.r, 0)), pb = bajada(h.r), giro = f.yaw - Math.PI;
+    const coloca = (kb, corto, recto) => {
+    const primera = h.r === 0; kB = h.huye ? 0 : kb; const al = recto ? { delante: 0.03, lado: 0 } : alzada(h.f, h.r, h.kA ?? abanicoObj(h.r, 0)), pb = bajada(h.r), giro = f.yaw - Math.PI;
     V.DA.set(Math.sin(al.lado), Math.cos(al.delante), -Math.sin(al.delante)).normalize(); V.DB.set(0, Math.sin(pb), -Math.cos(pb));
     V.D.copy(V.DA).lerp(V.DB, kB).normalize().applyAxisAngle(V.Y, giro);
     /* la mano: junto al cuerpo con la pica alzada; en el carril de su fila con la pica bajada (marco del hombre: derecha +x, frente −z) */
@@ -246,9 +246,10 @@ export function pintaSarisas(M, lista, o) {
     if (corto) atras = Math.min(atras, 0.45);   /* alzada y corta por detrás: el regatón en alto, sin tocar al caído del suelo */
     V.P.set(f.x + V.Mn.x, H(f.x, f.z) + V.Mn.y, f.z + V.Mn.z).addScaledVector(V.D, -atras);
     };
-    /* alzada junto a un caído, el regatón en alto (apoyado en el suelo caería sobre él) */
+    /* alzada junto a un caído o con un compañero a menos de 0,85 m, el regatón en alto (apoyado en el suelo caería sobre él o entre sus pies) */
     const caidoCerca = !SIN_APARTAR && caidos && cerca([f.x, 0, f.z], [f.x, 0, f.z]).some(c => c.caido && Math.hypot(c.x - f.x, c.z - f.z) < 2.2);
-    coloca(h.alzaBT1 !== undefined ? 0 : it.kB, caidoCerca && (h.alzaBT1 !== undefined || it.kB < 0.5)); const primera = h.r === 0, giro = f.yaw - Math.PI;
+    const alzadaYa = h.alzaBT1 !== undefined || it.kB < 0.5;
+    coloca(h.alzaBT1 !== undefined ? 0 : it.kB, (caidoCerca || f.apretado < 0.85) && alzadaYa, f.apretado < 0.85 && alzadaYa);   /* apretado, alzada derecha (en vertical): inclinada entraba en el de delante */   /* apretado: lo marca escena.js (soldados.js marcaApretados) */ const primera = h.r === 0, giro = f.yaw - Math.PI;
     if (h.picaRota) {
       /* FU3b: el muñón se suelta y cae junto al hombre, inclinado, apoyado en el suelo (0,45 s) */
       let r = rotas.get(h); if (!r) { r = { t0: Tm, P: V.P.clone(), D: V.D.clone() }; rotas.set(h, r); }
@@ -272,7 +273,8 @@ export function pintaSarisas(M, lista, o) {
       if (!hecho && d0 !== DESVIOS[0]) { d0 = DESVIOS[0]; hecho = libre(0, 0); }
       if (!hecho) for (const d of DESVIOS) if (libre(d[0], d[1])) { d0 = d; hecho = true; break; }
       if (!hecho && kB > 0.05) { h.alzaBT1 = Tm + 1.5; coloca(0); W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras]; d0 = DESVIOS[0]; hecho = libre(0, 0); }   /* sin paso limpio: alzada */
-      if (!hecho) { coloca(0, true); W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras]; d0 = DESVIOS[0]; hecho = true; h.alzaBT1 = Math.max(h.alzaBT1 || 0, Tm + 1.5); }   /* y si aún toca (un caído a sus pies): alzada con el regatón en alto */
+      if (!hecho) { coloca(0, true); W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras]; d0 = DESVIOS[0]; if (!libre(0, 0)) { coloca(0, true, true); W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras]; }   /* y si aún toca: derecha, en vertical */
+        hecho = true; h.alzaBT1 = Math.max(h.alzaBT1 || 0, Tm + 1.5); }   /* y si aún toca (un caído a sus pies): alzada con el regatón en alto */
       desvios.set(h, d0); if (forma) forma.desviadas = (forma.desviadas || 0) + (d0 !== DESVIOS[0] ? 1 : 0) + (hecho ? 0 : 1000); if (d0 !== DESVIOS[0]) { libre(d0[0], d0[1]); V.D.set(Da[0], Da[1], Da[2]); V.P.set(Pa[0], Pa[1], Pa[2]); }
     }
     if (!h.picaRota && FI && h.alzaBT1 === undefined) { const r = FI.pica(h, V.P, V.D, SARISA); if (r && r.ret) V.P.addScaledVector(V.D, -r.ret); }

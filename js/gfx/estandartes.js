@@ -66,7 +66,7 @@ export function crearEstandartes({ THREE, escena, n, talla = 1, letras = [], pan
   astas.renderOrder = panos.renderOrder = 5;
   escena.add(astas); escena.add(panos);
 
-  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), P = new THREE.Vector3(), SC = new THREE.Vector3(), C = new THREE.Color();
+  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), P = new THREE.Vector3(), SC = new THREE.Vector3(), C = new THREE.Color(), PJ = new THREE.Vector3();
   const altos = new Float32Array(n), puestos = [];
   const BASE = 8 * talla;    /* metros, de cerca: algo más de tres hombres */
 
@@ -77,7 +77,11 @@ export function crearEstandartes({ THREE, escena, n, talla = 1, letras = [], pan
       if (estado < 0) { M.makeScale(0, 0, 0); astas.setMatrixAt(i, M); panos.setMatrixAt(i, M); altos[i] = 0; continue; }
       const d = Math.hypot(x - cp.x, cp.y, z - cp.z);
       /* de lejos crece: como poco unos 46 px de alto en pantalla */
-      const H = Math.max(BASE, 46 * d / kpx) * (estado === 1 ? 1.15 : 1), roto = estado === 2;
+      /* BT1: de cerca, nunca más de un 18 % del alto de la pantalla; y si su pie cae en la franja de abajo (ficha, barra y órdenes),
+         no se dibuja: un estandarte de diez metros delante de la cámara tapaba la ficha del manípulo elegido */
+      PJ.set(x, 0, z).project(camara);
+      if (PJ.z > 1 || PJ.y < -0.56) { M.makeScale(0, 0, 0); astas.setMatrixAt(i, M); panos.setMatrixAt(i, M); altos[i] = 0; continue; }
+      const H = Math.min(Math.max(BASE, 46 * d / kpx) * (estado === 1 ? 1.15 : 1), 0.18 * altoPx * d / kpx), roto = estado === 2;
       altos[i] = H;
       const yawC = Math.atan2(cp.x - x, cp.z - z), inc = roto ? 0.5 : 0;
       E.set(0, yawC, inc, 'YXZ'); Q.setFromEuler(E); M.compose(P.set(x, 0, z), Q, SC.set(H, H, H)); astas.setMatrixAt(i, M);

@@ -56,7 +56,7 @@ try {
     await p.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 240000 }); await p.waitForTimeout(4000);
     const alto = await p.evaluate(() => { const b = document.getElementById('borde-a'); if (!b) return 0; b.classList.add('ve'); b.classList.remove('late'); return b.getBoundingClientRect().height; });
     await p.waitForTimeout(600);
-    t('el aviso de arriba es una franja fina (≤ 6 % del alto)', alto <= 844 * 0.06, alto);
+    t('el aviso de arriba es solo una línea en el borde (≤ 4 px)', alto <= 4, alto);
     const [r, g, b] = await colorArriba(p, 0.2), cociente = g / Math.max(1, r);
     t('la parte de arriba con el aviso encendido no es roja (verde/rojo ≥ 0,7)', cociente >= 0.7 && r - b < 110, { r: Math.round(r), g: Math.round(g), b: Math.round(b), cociente: +cociente.toFixed(2) });
     await p.close();

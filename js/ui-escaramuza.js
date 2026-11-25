@@ -59,7 +59,7 @@ function precio(k, p) {
 
 /* Estado de la pantalla. ej[0] tuyo, ej[1] rival: {tropa: manípulos}. */
 const S = { paso: 1, pueblo: ['roma', 'cartago'], bolsa: 'mediana', dif: 'normal', gusto: false, dGusto: [10000, 10000],
-  ej: [{}, {}], rivMano: false, editaRiv: false, filtro: 'todas', ficha: null, campo: 'llano', scroll: 0, aviso: '', rivFal: false };
+  ej: [{}, {}], rivMano: false, editaRiv: false, filtro: 'todas', ficha: null, campo: 'llano', scroll: 0, aviso: '', rivFal: false, asc: false };
 const dinero = l => S.gusto ? S.dGusto[l] : l === 0 ? BOLSAS[S.bolsa].d : Math.round(BOLSAS[S.bolsa].d * DIF[S.dif].k);
 const gasto = l => Object.keys(S.ej[l]).reduce((s, k) => s + S.ej[l][k] * precio(k, S.pueblo[l]), 0);
 const cuenta = l => Object.values(S.ej[l]).reduce((s, n) => s + n, 0);
@@ -135,7 +135,8 @@ export function accion(v) {
     case 'ficha': { const [t, l] = x.split(','); S.ficha = Dt().UNITS[t] ? { t, lado: +l || 0, vet: 'curtido' } : null; break; }
     case 'fichax': S.ficha = null; break;
     case 'campo': if (CAMPOS[x]) S.campo = x; break;
-    case 'rivfal': S.rivFal = !S.rivFal; break;   /* FA7: pliega o despliega «Elige rival» de la prueba Falange a pie */
+    case 'rivfal': S.rivFal = !S.rivFal; break;
+    case 'asc': S.asc = !S.asc; break;   /* BT1: Ásculo despliega «Ser Pirro / Ser Roma» aquí mismo (la escena carga una vez, sin su pantalla de entrada) */   /* FA7: pliega o despliega «Elige rival» de la prueba Falange a pie */
     case 'guarda': {
       if (!cuenta(0)) { S.aviso = 'Tu ejército está vacío.'; break; }
       const g = guardados(), n = NOMBRE[S.pueblo[0]] + ' · ' + den(gasto(0)) + ' ◎ · ' + cuenta(0) + ' manípulos';
@@ -217,11 +218,13 @@ function paso1() {
     (g.length ? '<p class="ro-rubrica cg2-r">Mis ejércitos</p><div class="cg2-guard">' + g.map((x, i) => '<div><button class="chip" data-act="escel" data-v="carga:' + i + '">' + esc(x.n) + '</button><button class="cg2-bx" data-act="escel" data-v="borra:' + i + '" aria-label="Borrar">×</button></div>').join('') + '</div>' : '') +
     '<p class="ro-rubrica cg2-r">Pruebas rápidas</p><div class="cg2-pruebas"><a class="esc-testudo" href="gobierno/maquetas/a-pie/"><span><b>Manípulo y Testudo a pie</b><small>Cruza bajo los venablos y pelea con relevos</small></span><i></i></a>' +   /* BT1: una sola prueba (antes «Testudo a pie» y «Manípulo a pie», casi la misma partida) */
     '<button class="esc-falange' + (S.rivFal ? ' on' : '') + '" data-act="escel" data-v="rivfal:" aria-expanded="' + S.rivFal + '"><span><b>Falange a pie</b><small>Elige entre cuatro rivales</small></span><i></i></button>' + (S.rivFal ? rivalesFalange() : '') +
-    '<a class="esc-lucha esc-asculo" href="gobierno/maquetas/bloque/index.html?formacion=combinada&amp;escenario=asculo"><span><b>Ásculo, 279 a.C.</b><small>Falange, manípulos y tiradores: sé Pirro o Roma</small></span><i></i></a></div>';   /* UN3: la escaramuza combinada de ES2–ES4 (contrato del parte ES2) */
+    '<button class="esc-falange esc-asculo' + (S.asc ? ' on' : '') + '" data-act="escel" data-v="asc:" aria-expanded="' + S.asc + '"><span><b>Ásculo, 279 a.C.</b><small>Falange, manípulos y tiradores: sé Pirro o Roma</small></span><i></i></button>' + (S.asc ? bandosAsculo() : '') + '</div>';   /* UN3: la escaramuza combinada de ES2–ES4 (contrato del parte ES2) */
 }
 /* LP3: «Manípulo a pie» sustituye a «Lucha a pie» (aprobado por el usuario: «A, cuando salga LP3»); usa el estilo de esc-lucha.
    FA7: los cuatro rivales de la prueba Falange a pie; cada uno abre la maqueta con ?rival= */
 const RIV_FAL = [['manipulos', 'Manípulos', 'Romanos con pila'], ['caballeria', 'Caballería', 'Busca tu flanco'], ['elefantes', 'Elefantes', 'Se estrellan o te abren'], ['falange', 'Falange', 'Muro contra muro']];
+const ASC_B = [['pirro', 'Ser Pirro', 'Tu falange y dos manípulos itálicos'], ['roma', 'Ser Roma', 'Tres manípulos y tus vélites']];
+const bandosAsculo = () => '<div class="esc-rv"><p class="esc-rv-t">Elige bando</p><div class="esc-rv-g">' + ASC_B.map(([k, n, d]) => '<a class="esc-rv-b" href="gobierno/maquetas/bloque/index.html?formacion=combinada&amp;escenario=asculo&amp;bando=' + k + '"><b>' + n + '</b><small>' + d + '</small></a>').join('') + '</div></div>';
 const rivalesFalange = () => '<div class="esc-rv"><p class="esc-rv-t">Elige rival</p><div class="esc-rv-g">' + RIV_FAL.map(([k, n, d]) => '<a class="esc-rv-b" href="gobierno/maquetas/falange/?rival=' + k + '"><b>' + n + '</b><small>' + d + '</small></a>').join('') + '</div></div>';
 function paso3() {
   const rotulo = '<p class="cg2-nota">' + (S.rivMano ? 'Ejército retocado por ti.' : 'La máquina ha comprado un ejército típico de ' + NOMBRE[S.pueblo[1]] + ' con su dinero.') + '</p>';

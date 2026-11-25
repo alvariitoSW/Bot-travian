@@ -62,16 +62,17 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 .borde.ve{opacity:1}
 .borde span{font:700 13px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 3px #000,0 0 8px #000;line-height:1.25;max-width:100%;overflow-wrap:break-word}   /* BT1: el texto no se sale de su franja ni de la pantalla */
 #borde-i,#borde-d{top:20%;bottom:28%;width:104px}
-#borde-i{left:0;padding-left:8px;background:linear-gradient(to right,rgba(200,32,18,.6),rgba(200,32,18,0) 36px)}
-#borde-d{right:0;padding-right:8px;justify-content:flex-end;text-align:right;background:linear-gradient(to left,rgba(200,32,18,.6),rgba(200,32,18,0) 36px)}
+/* BT1 (2.ª vuelta): de color, solo una línea de 3 px en el borde; el resto, el texto (ninguna capa roja sobre el campo) */
+#borde-i{left:0;padding-left:10px;background:linear-gradient(to right,rgba(200,32,18,.8) 3px,rgba(200,32,18,0) 3px)}
+#borde-d{right:0;padding-right:10px;justify-content:flex-end;text-align:right;background:linear-gradient(to left,rgba(200,32,18,.8) 3px,rgba(200,32,18,0) 3px)}
 /* BT1: arriba, una franja fina en el borde y la frase debajo de la barra de arriba (antes, 150 px de rojo tapaban el cielo y el objetivo) */
-#borde-a{left:0;right:0;top:0;height:12px;overflow:visible;background:linear-gradient(to bottom,rgba(200,32,18,.85),rgba(200,32,18,0))}
+#borde-a{left:0;right:0;top:0;height:3px;overflow:visible;background:rgba(200,32,18,.8)}
 #borde-a span{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top) + 116px);text-align:center}
 .borde.late{animation:late .8s infinite}
 @keyframes late{50%{opacity:.55}}
 
 /* la orden dicha */
-#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 158px);transform:translateX(-50%);max-width:92%;font:700 21px Cinzel,Georgia,serif;letter-spacing:.03em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .25s}
+#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 158px);transform:translateX(-50%);max-width:92%;font:700 21px Cinzel,Georgia,serif;letter-spacing:.03em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;width:max-content;line-height:1.15;text-wrap:balance;opacity:0;transition:opacity .25s}   /* BT1: el grito cabe entero (en dos líneas si hace falta), nunca cortado */
 #grito.ve{opacity:1}
 
 /* abajo: la raya del cansancio de la fila que pelea y la barra común de seis órdenes (BT1; su estilo, .barra6, en css/mando.css) */
