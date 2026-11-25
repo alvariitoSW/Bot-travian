@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~16:15 (vía el vigía del cuadro de otra app, `session_01QiKC38EnJv7cPYMtWAqyff`): «quiero que se arregle esa parte de los porcentajes que siempre me aparecen mal». Causa: dos fuentes a mano (estado de líneas en `lista.json` y % de `camino.json`). CM6 abierta.
 - 25/11 ~16:02 (cuadro, botones): Tropas de élite «A · 2 estaciones» (triarios y équites tardan 2 estaciones; aplica PN2, de paso en comunes); Mapa vivo: estilo al abrir «A · Relieve natural»; Mapa vivo en vertical «A · No, empieza algo más cerca y llena la pantalla» (aplica AM2b).
 - 25/11 (vigía 4): notas de partida del juez de aspecto de batallas (DB0: Animación 5,0, Gráficos 4,5): «A», se dejan así; puede corregirlas cuando quiera.
 - 25/11 (vía debate 2.0): departamentos de batalla «¿Te vale este reparto…?» → «Sí, los seis (Recomendado)»; «¿Cuándo se montan?» → «Ya, antes de M5 y de las oleadas (Recomendado)». Jugabilidad y mando, Motor de guerra, Animación, Gráficos, Arte de soldados, Sonido + examen de jugabilidad. DB0 abierta; SUP1 avisada.
