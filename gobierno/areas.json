@@ -134,7 +134,8 @@
         "test/es3-combinada.test.mjs",
         "test/es4-asculo.test.mjs",
         "test/registro-lleva.test.mjs",
-        "js/tropas.js"
+        "js/tropas.js",
+        "gobierno/maquetas/a-pie/juez-bt1.mjs"
       ],
       "taller": [],
       "juez": {
@@ -441,7 +442,8 @@
         "test/fu1-testudo.test.mjs",
         "js/combate-tropas.js",
         "test/combate-bloque.test.mjs",
-        "gobierno/captura-cb3.mjs"
+        "gobierno/captura-cb3.mjs",
+        "test/combate-atraviesa.test.mjs"
       ],
       "taller": [],
       "da_a": {
@@ -590,7 +592,9 @@
         "gobierno/maquetas/a-pie/campo.js",
         "gobierno/maquetas/falange/campo.js",
         "gobierno/captura-graficos*.mjs",
-        "gobierno/aspecto/graficos*"
+        "gobierno/aspecto/graficos*",
+        "test/graficos-bt1.mjs",
+        "gobierno/aspecto/BT1.md"
       ],
       "taller": [],
       "da_a": {
