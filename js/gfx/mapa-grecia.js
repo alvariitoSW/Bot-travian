@@ -15,12 +15,18 @@ const clamp = (x, a, b) => x < a ? a : x > b ? b : x, mix = (a, b, t) => a + (b 
 const paso = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 export const UPX_MIN = 0.12 / 390;          // lo más cerca: 1,2 km de ancho en un móvil de 390 px
 const DESVIOS = [[0, -30], [0, 30], [-32, 0], [32, 0], [-28, -28], [28, 28]];   // si el icono de una comarca choca, se aparta un poco
+/* PN3c: si el nombre de una polis choca (de lejos, Atenas, Corinto, Mégara y Argos caen a 30 px), se aparta y una línea lo une a su sitio */
+const DESV_POLIS = []; for (const dx of [0, -46, 46, -92, 92, -138, 138]) for (const dy of [0, -28, 28, -56, 56, -84, 84, -112, 112, -140, 140, -168, 168]) if (dx || dy) DESV_POLIS.push([dx, dy]);
+DESV_POLIS.sort((a, b) => Math.hypot(a[0], a[1] * 1.3) - Math.hypot(b[0], b[1] * 1.3));
 const FOV = 30, EL_CERCA = 0.86, EL_LEJOS = 1.2;
 
 const CSS = `
 .mg-caja{overflow:clip;touch-action:none;user-select:none;-webkit-user-select:none;background:#1b2530}
 .mg-caja canvas.mg-gl{position:absolute;inset:0;width:100%;height:100%;display:block}
 .mg-rot{position:absolute;inset:0;overflow:clip;pointer-events:none;font-family:Georgia,'Times New Roman',serif;color:#2a2119}
+.mg-guias{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.mg-guias path{fill:none;stroke:#2a1d10;stroke-width:1.6;stroke-opacity:.85}
+.mg-guias circle{stroke:#fbf3e0;stroke-width:1.5}
 .mg-e{position:absolute;left:0;top:0;display:flex;align-items:center;gap:4px;white-space:nowrap;will-change:transform}
 .mg-e svg{width:100%;height:100%;display:block}
 .mg-polis{pointer-events:auto;padding:2px 5px 2px 5px;border-radius:4px;background:rgba(250,243,224,.93);border:1px solid #6b5335;box-shadow:0 1px 3px #0006;font-size:13.5px;font-weight:bold;letter-spacing:.3px;min-height:24px;cursor:pointer}
@@ -60,6 +66,7 @@ export class MapaGrecia {
     this.r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); this.dprMax = Math.min(window.devicePixelRatio || 1, 2); this.dpr = this.o.dpr || this.dprMax; this.r.setPixelRatio(this.dpr);
     this.cv = this.r.domElement; this.cv.className = 'mg-gl'; host.insertBefore(this.cv, host.firstChild);
     this.rot = document.createElement('div'); this.rot.className = 'mg-rot'; host.insertBefore(this.rot, this.cv.nextSibling);
+    this.guias = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); this.guias.setAttribute('class', 'mg-guias'); this.rot.appendChild(this.guias); this.guiasD = '';
     this.escena = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(FOV, 1, 0.01, 800);
     this.escena.add(new THREE.HemisphereLight('#fff6e4', '#6b6a55', 1.5)); const sol = new THREE.DirectionalLight('#fff1d6', 2.2); sol.position.set(-40, 60, -40); this.escena.add(sol);
     this.V = { x: X(23.05), z: Z(37.75), upx: 21 / 390 }; this.vel = { x: 0, z: 0 }; this.anim = null; this.t = 0; this.t0 = performance.now(); this.medida = { n: 0, ms: 0, lento: 0 };
@@ -121,7 +128,11 @@ export class MapaGrecia {
     this.etq.sort((a, b) => a.pri - b.pri);
   }
   _pintaRotulos(w, h) {
-    const a = this.ancho, cajas = this.o.huecos ? this.o.huecos().slice() : [], v3 = this._v3, ky = this.com.uKy.value, alzaPolis = this.vida.alzaRotulo();
+    const a = this.ancho, cajas = this.o.huecos ? this.o.huecos().slice() : [], v3 = this._v3, ky = this.com.uKy.value, alzaPolis = this.vida.alzaRotulo(); let guias = '';
+    /* PN3c: de lejos (más de 200 km de ancho), cada polis lleva un punto en su sitio que ningún otro nombre tapa */
+    let cx = 0, cy = 0, cn = 0;   // centro del grupo de polis: el nombre que se aparta, hacia fuera (la línea no cruza el grupo)
+    if (a > 20) for (const e of this.etq) if (e.polis) { v3.set(e.x, Math.max(0, this.rel.altura(e.x, e.z)) * ky + alzaPolis, e.z).project(this.cam); const x = (v3.x * 0.5 + 0.5) * w, y = (-v3.y * 0.5 + 0.5) * h;
+      if (v3.z <= 1 && x > 0 && x < w && y > 0 && y < h) { const c = [x - 6, y - 6, x + 6, y + 6]; c.yo = e; cajas.push(c); if (!e.d.classList.contains('mia')) { cx += x; cy += y; cn++; } guias += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4.5" fill="' + e.polis.color + '"/>'; } }
     for (const e of this.etq) {
       let ver = a >= e.rango[0] && a <= e.rango[1] && (!e.zona || this.recursosOn);
       if (ver) { v3.set(e.x, Math.max(0, this.rel.altura(e.x, e.z)) * ky + (e.polis ? alzaPolis : 0), e.z).project(this.cam); if (v3.z > 1) ver = false; }
@@ -131,13 +142,19 @@ export class MapaGrecia {
         if (an === 'izq' && x - sep - bw < 4) an = 'der'; else if (an === 'der' && x + sep + bw > w - 4) an = 'izq';
         const c = an === 'izq' ? [x - sep - bw, y - e.h / 2, x - sep, y + e.h / 2] : an === 'der' ? [x + sep, y - e.h / 2, x + sep + bw, y + e.h / 2] : an === 'abajo' ? [x - bw / 2, y + sep * 0.6 + 4, x + bw / 2, y + sep * 0.6 + 4 + e.h] : an === 'arriba' ? [x - bw / 2, y - sep * 0.6 - e.h, x + bw / 2, y - sep * 0.6] : [x - bw / 2, y - e.h / 2, x + bw / 2, y + e.h / 2];
         const m = this.o.margen || [44, 8, 60, 8];   // arriba, derecha, abajo, izquierda: sitio de los botones de la pantalla
-        if (c[2] < m[3] || c[0] > w - m[1] || c[1] < m[0] || c[3] > h - m[2]) ver = false;
+        const fuera = q => q[2] < m[3] || q[0] > w - m[1] || q[1] < m[0] || q[3] > h - m[2];
+        if (fuera(c) && !(e.polis && x > m[3] && x < w - m[1] && y > m[0] - 20 && y < h - m[2] + 20)) ver = false;   // PN3c: la polis cuyo sitio se ve, aunque su nombre roce un botón, busca otro hueco
         else if (!e.polis && (c[0] < 2 || c[2] > w - 2)) ver = false;
-        else { const choca = q => { for (const o of cajas) if (q[0] < o[2] + 3 && q[2] > o[0] - 3 && q[1] < o[3] + 2 && q[3] > o[1] - 2) return true; return false; };
-          if (choca(c)) { ver = false; if (e.zona) for (const d of DESVIOS) { const q = [c[0] + d[0], c[1] + d[1], c[2] + d[0], c[3] + d[1]]; if (q[0] > 2 && q[2] < w - 2 && q[1] > m[0] && q[3] < h - m[2] && !choca(q)) { c[0] = q[0]; c[1] = q[1]; c[2] = q[2]; c[3] = q[3]; ver = true; break; } } } }
+        else { const choca = q => { for (const o of cajas) if (o.yo !== e && q[0] < o[2] + 3 && q[2] > o[0] - 3 && q[1] < o[3] + 2 && q[3] > o[1] - 2) return true; return false; };
+          if (e.polis && (fuera(c) || choca(c))) { ver = false; let ux = cn ? x - cx / cn : 0, uy = cn ? y - cy / cn : 0; const un = Math.hypot(ux, uy) || 1; ux /= un; uy /= un;
+            const nota = d => Math.hypot(d[0], d[1] * 1.3) - 0.8 * (d[0] * ux + d[1] * uy), cand = ux || uy ? DESV_POLIS.slice().sort((p, q) => nota(p) - nota(q)) : DESV_POLIS;
+            for (const d of cand) { const q = [c[0] + d[0], c[1] + d[1], c[2] + d[0], c[3] + d[1]]; if (q[0] > m[3] && q[2] < w - m[1] && q[1] > m[0] && q[3] < h - m[2] && !choca(q)) { c[0] = q[0]; c[1] = q[1]; c[2] = q[2]; c[3] = q[3]; ver = true;
+            const px = clamp(x, c[0], c[2]), py = clamp(y, c[1], c[3]); guias = '<path d="M' + x.toFixed(1) + ' ' + y.toFixed(1) + 'L' + px.toFixed(1) + ' ' + py.toFixed(1) + '"/>' + guias; break; } } }
+          else if (choca(c)) { ver = false; if (e.zona) for (const d of DESVIOS) { const q = [c[0] + d[0], c[1] + d[1], c[2] + d[0], c[3] + d[1]]; if (q[0] > 2 && q[2] < w - 2 && q[1] > m[0] && q[3] < h - m[2] && !choca(q)) { c[0] = q[0]; c[1] = q[1]; c[2] = q[2]; c[3] = q[3]; ver = true; break; } } } }
         if (ver) { cajas.push(c); if (e.zona) e.d.classList.toggle('compacta', !!compacta); const tr = 'translate(' + Math.round(c[0]) + 'px,' + Math.round(c[1]) + 'px)'; if (e.tr !== tr) { e.tr = tr; e.d.style.transform = tr; } } }
       if (ver !== e.visto) { e.visto = ver; e.d.style.display = ver ? '' : 'none'; }
     }
+    if (guias !== this.guiasD) { this.guiasD = guias; this.guias.innerHTML = guias; }
   }
 
   /* ---------- dedos: arrastrar, pellizcar (anclado bajo los dedos), inercia, doble toque y rueda ---------- */

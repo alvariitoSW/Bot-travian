@@ -11,7 +11,8 @@ import { MapView3D } from './map3d.js';
 import { POLIS, X, Z } from './mapa-grecia-datos.js';
 
 const PONIENTE = { lon: 20.15, lat: 37.95 };   // donde aparecen las marchas que vienen de fuera del mapa (mar Jonio, frente a Zacinto)
-const CERCA = 0.42, ABRE = 12;                  // anchos en decenas de km (en un móvil de 390 px): de cerca de la polis, y al abrir la pestaña
+const CERCA = 0.42, ABRE = 12;                  // anchos en decenas de km (en un móvil de 390 px): de cerca de la polis, y al centrar en ella
+const SIN_EL = Math.sin(1.15);                  // inclinación de la cámara de lejos (mapa-grecia.js: EL_LEJOS 1,2): lo que encoge el norte-sur en pantalla
 const CSS = `
 .mpg{position:absolute;inset:0;z-index:3;background:#1b2530}
 .mpg .mg-polis.mia{background:#fbe7a8;border:2px solid #7a2b20;box-shadow:0 0 0 2px #e3b341,0 2px 6px #000a;font-size:14.5px}
@@ -74,14 +75,21 @@ class Grecia {
       alTocarPolis: q => this._tocarPolis(q), alToque: () => { if (this.opts.onSelect) this.opts.onSelect(null); }, alCuadro: m => this._cuadro(m)
     })).then(P => {
       if (this.muerto) { P.cerrar(); return; }
-      this.P = P; this.mapa = P.mapa; this._medir(); this._marcarMia();
+      this.P = P; this.mapa = P.mapa; this._medir(); this._marcarMia(); this._encajar(0);
       this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); this.svg.setAttribute('class', 'mpg-trazos'); this.mapa.host.insertBefore(this.svg, this.mapa.rot);
       for (const f of this.pend.splice(0)) f();
     }).catch(err => { console.error('No se pudo abrir el mapa de Grecia', err); if (!this.muerto) this.caja.innerHTML = '<div class="mpg-error">No se pudo desplegar el mapa de Grecia en este dispositivo. Puedes jugar desde las pestañas Ciudad y Tropas.</div>'; });
   }
   destruir() { this.muerto = true; if (this.P) this.P.cerrar(); this.caja.remove(); }
-  /* en vertical, un poco más cerca que el mapa de Partida nueva (decisión del usuario); en horizontal cabe más */
-  _abre() { const w = this.host.clientWidth || 390, h = this.host.clientHeight || 844; return h > w ? ABRE : ABRE * 1.5; }
+  /* PN3c (decisión del usuario, 25/11, «A»): al abrir, las 8 polis de golpe, en vertical y en horizontal, en el hueco libre entre los botones */
+  _abre() { const w = this.host.clientWidth || 390, h = this.host.clientHeight || 844; return h > w ? 52 : 30; }   // primer cuadro, antes de medir; luego _encajar
+  _encajar(ms) {
+    const w = this.host.clientWidth || 390, h = this.host.clientHeight || 844, M = this.margen, xs = POLIS.map(p => X(p.lon)), zs = POLIS.map(p => Z(p.lat));
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs);
+    const libW = Math.max(120, w - M[1] - M[3] - 150), libH = Math.max(120, h - M[0] - M[2] - 96);   // sitio para los nombres (a los lados y arriba)
+    const upx = Math.max((x1 - x0) / libW, (z1 - z0) * SIN_EL / libH), ox = (M[3] - M[1]) / 2, oy = (M[0] - M[2]) / 2;
+    this.mapa.irA((x0 + x1) / 2 - ox * upx, (z0 + z1) / 2 - oy * upx / SIN_EL, upx, ms);
+  }
   _luego(f) { if (this.mapa) f(); else this.pend.push(f); }
 
   /* sitio libre entre la barra de arriba, «Marchas», los botones de zoom del juego, «Pasar estación» y las pestañas */
@@ -154,7 +162,7 @@ class Grecia {
 
   /* lo que pide ui.js, en el mapa de Grecia */
   center(id) { const l = this._lugar(id) || this._lugar('roma'); if (l) this._luego(() => this.mapa.irA(l[0], l[1], Math.min(this.mapa.V.upx, ABRE / 390), 700)); }
-  encuadre() { this._luego(() => { if (this.p) this.mapa.irA(X(this.p.lon), Z(this.p.lat), this._abre() / 390, 0); }); }
+  encuadre() { this._luego(() => this._encajar(0)); }
   zoom(f) { this._luego(() => { const V = this.mapa.V; this.mapa.irA(V.x, V.z, V.upx / f, 300); }); }
   /* como en Roma: la cámara baja hasta la polis y se abre la ciudad; al volver, el mapa queda como estaba */
   entrarCiudad(id) {

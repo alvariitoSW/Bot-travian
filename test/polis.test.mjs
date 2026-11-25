@@ -42,7 +42,8 @@ for (const id of IDS) t('partida con ' + id + ': nombre, leva, reclutas, bono y 
   assert.ok(!G.unitOk(c, 'hastati') && !G.unitOk(c, 'velites') && !G.unitOk(c, 'equites'), 'romanas no');
   assert.ok(G.unitOk(c, 'hoplitas') && G.unitOk(c, p.tropa.id), 'hoplitas y su tropa propia sí');
   const val = k => k === 'fel' ? G.bonoSum(k) : G.bonoMul(k), con = {}; for (const k in p.rasgo.bono) con[k] = val(k);
-  nueva(null); for (const k in p.rasgo.bono) { const sin = val(k); assert.notStrictEqual(con[k], sin, id + ': el bono ' + k + ' no se nota'); assert.ok(Math.abs(Math.abs(con[k] - sin) - Math.abs(p.rasgo.bono[k] - (k === 'fel' ? 0 : 1))) < 0.05 + sin * 0.2, id + ' ' + k + ' sale muy distinto de su ficha'); }
+  const bono0 = p.rasgo.bono; p.rasgo.bono = {}; const sinB = {}; for (const k in bono0) sinB[k] = val(k); p.rasgo.bono = bono0;   // PN3c: la misma polis sin su rasgo (su bien ya no es la sal de Roma)
+  nueva(null); for (const k in p.rasgo.bono) { const sin = sinB[k]; assert.notStrictEqual(con[k], sin, id + ': el bono ' + k + ' no se nota'); assert.ok(Math.abs(Math.abs(con[k] - sin) - Math.abs(p.rasgo.bono[k] - (k === 'fel' ? 0 : 1))) < 0.05 + sin * 0.2, id + ' ' + k + ' sale muy distinto de su ficha'); }
   G.newGame('Test', 'italia', { polis: id }); const s2 = G.state; s2.cities.roma.b.cuartel = 2;
   for (let i = 0; i < 40 && !s2.over; i++) { G.pasarEstacion(); if (s2.pending.length) s2.pending.length = 0; }
   const c2 = s2.cities.roma; assert.strictEqual(c2.owner, 'roma'); assert.ok(c2.pop > 0, 'población ' + c2.pop);
@@ -61,6 +62,15 @@ t('partida de Roma: sin polis, «Roma», hastati sí y hoplitas no; Capua suya',
   const c = s.cities.roma; c.b.cuartel = 2; c.b.establo = 1;
   assert.ok(G.unitOk(c, 'hastati') && G.unitOk(c, 'equites')); assert.ok(!G.unitOk(c, 'hoplitas') && !G.unitOk(c, 'peltastas') && !G.unitOk(c, 'jinetes'));
   assert.ok(c.units.hastati > 0 && G.myCities().includes('capua')); assert.strictEqual(G.bonoMul('impuestos'), 1);
+});
+t('PN3c: rivales griegas en la partida de polis; Roma, sin ellas', () => {
+  const s = nueva('megara'), ids = Object.keys(s.cities);
+  assert.deepStrictEqual(ids.sort(), ['argos', 'atenas', 'calcis', 'corinto', 'esparta', 'mileto', 'roma', 'tebas']);
+  assert.strictEqual(D.CITIES.roma.lon, D.POLIS_GR.megara.lon); assert.deepStrictEqual(G.neighbors('roma').sort(), ['atenas', 'corinto', 'tebas']);
+  for (const id of ids) if (id !== 'roma') { assert.strictEqual(s.cities[id].owner, id); assert.ok(D.FACTIONS[id] && G.men(s.cities[id].units) > 0, id); }
+  assert.strictEqual(D.CITIES.roma.esp, 'sal'); nueva('corinto'); assert.strictEqual(D.CITIES.roma.esp, undefined, 'la cerámica no es un bien del juego');
+  const r = nueva(null); assert.ok(!D.CITIES.atenas && !D.FACTIONS.atenas && !r.cities.atenas, 'Roma no ve las polis'); assert.strictEqual(D.CITIES.roma.lon, 12.5); assert.strictEqual(D.CITIES.roma.esp, 'sal');
+  assert.ok(D.EDGES.every(e => D.CITIES[e[0]] && D.CITIES[e[1]]), 'ningún camino a una polis quitada');
 });
 t('la partida corta no cambia aunque se pida polis', () => {
   const s = G.newGame('T', null, { modo: 'corta', polis: 'atenas' }); assert.strictEqual(s.polis, null); assert.strictEqual(D.CITIES.roma.n, 'Roma');
