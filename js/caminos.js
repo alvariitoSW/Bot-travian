@@ -203,7 +203,7 @@
       } else if (!k.cumple) {
         e.fallo++;
         if (e.fallo >= CIFRAS.gracia) { e.logrado = false; e.perdidoEn = mes; e.sost = 0; out.pierde.push(k.id); aviso('Pierdes el ' + nom + '.', 'bad'); }
-        else if (e.fallo === 1) aviso('Peligro: el ' + nom + ' flaquea. Te quedan ' + (CIFRAS.gracia - 1) + ' meses para recuperarlo.', 'warn');
+        else if (e.fallo === 1) aviso('Peligro: el ' + nom + ' flaquea. Recupéralo antes de que acabe la estación.', 'warn');
       }
     });
     const ids = CAM.ORDEN.filter((id) => c.estado[id].logrado);

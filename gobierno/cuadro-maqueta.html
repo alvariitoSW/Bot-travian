@@ -1,0 +1,376 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuadro nuevo (maqueta)</title><style>
+/* Disposición (CM1, 18/11; CM3, 24/11: se añaden Arte y Equipos): el cuadro enseña el juego, no las tareas. Seis vistas con pestañas fijas abajo, para el pulgar:
+   Juego (estandarte, tres órganos y las tres comprobaciones), Lista (la 1.0 línea a línea), Decidir (tres preguntas como mucho)
+   y Taller (sesiones, vigía, pedidos, capturas y, plegado, el tablero entero). */
+:root {
+  --fondo: #f3f0f4; --tabla: #fdfcfd; --tinta: #231c28; --tenue: #6a6170; --raya: #ddd6e1;
+  --purpura: #6d1f52; --sobre-purpura: #fdf7fb; --bronce: #7d5c1e; --bien: #2c6b45; --mal: #a1332b; --aviso: #8a5a00;
+  --estandarte: #4f1239; --estandarte-2: #7a2460; --oro: #e9c877; --sobre-estandarte: #f9eef4; --tenue-estandarte: #d9b9cb;
+  --seg-bien: #2f8a55; --seg-medias: #d39a2a; --seg-falta: #cfc6d4; --suave: #f6eef3;
+  --rotulo: "Cinzel", "Trajan Pro", Georgia, serif; --texto: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --barra: 62px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --fondo: #17131a; --tabla: #221b26; --tinta: #ece6ef; --tenue: #a79cae; --raya: #3a3040;
+  --purpura: #e09cc6; --sobre-purpura: #2a0f20; --bronce: #d2ae68; --bien: #7fcf9d; --mal: #f0958c; --aviso: #e6b659;
+  --estandarte: #2c0d22; --estandarte-2: #4a1639; --oro: #e2c37a; --sobre-estandarte: #f3e6ee; --tenue-estandarte: #bfa0b3;
+  --seg-bien: #5fbf86; --seg-medias: #e0ac45; --seg-falta: #4a3f51; --suave: #2b2030; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --fondo: #17131a; --tabla: #221b26; --tinta: #ece6ef; --tenue: #a79cae; --raya: #3a3040;
+  --purpura: #e09cc6; --sobre-purpura: #2a0f20; --bronce: #d2ae68; --bien: #7fcf9d; --mal: #f0958c; --aviso: #e6b659;
+  --estandarte: #2c0d22; --estandarte-2: #4a1639; --oro: #e2c37a; --sobre-estandarte: #f3e6ee; --tenue-estandarte: #bfa0b3;
+  --seg-bien: #5fbf86; --seg-medias: #e0ac45; --seg-falta: #4a3f51; --suave: #2b2030; color-scheme: dark }
+
+body { background: var(--fondo); color: var(--tinta); font: 16px/1.5 var(--texto); }
+.hoja { max-width: 680px; margin: 0 auto; padding-block: 16px calc(var(--barra) + 40px); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.vista, section { display: flex; flex-direction: column; min-width: 0; }
+.vista { gap: 30px; } section { gap: 12px; scroll-margin-top: 12px; }
+h1, h2 { font-family: var(--rotulo); font-weight: 700; margin: 0; text-wrap: balance; }
+h2 { font-size: 15px; color: var(--bronce); letter-spacing: .12em; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+h2::after { content: ""; flex: 1; height: 1px; background: var(--raya); }
+h2 .n, .grupo .n { font: 600 13px var(--texto); letter-spacing: 0; color: var(--sobre-purpura); background: var(--purpura); border-radius: 999px; padding: 1px 9px; text-transform: none; }
+.titulo { font: 700 26px/1.1 var(--rotulo); letter-spacing: .06em; }
+p { margin: 0; } b { font-weight: 600; }
+code { font-size: .88em; background: var(--raya); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+a { color: var(--purpura); }
+:focus-visible { outline: 2px solid var(--purpura); outline-offset: 2px; }
+.nota { color: var(--tenue); font-size: 14px; }
+.fila { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.lista { display: flex; flex-direction: column; gap: 10px; list-style: none; margin: 0; padding: 0; }
+
+/* estandarte */
+.estandarte { background: linear-gradient(160deg, var(--estandarte-2), var(--estandarte) 70%); color: var(--sobre-estandarte); border-radius: 18px; padding: 20px 18px 0; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+.estandarte .lema { display: flex; flex-direction: column; gap: 6px; }
+.estandarte h1 { font-size: 34px; line-height: 1; letter-spacing: .14em; color: var(--oro); }
+.estandarte .sub { font-size: 13px; color: var(--tenue-estandarte); }
+.estandarte .frase { font-size: 16px; line-height: 1.45; color: var(--sobre-estandarte); }
+.veredicto { align-self: flex-start; font-weight: 600; font-size: 13px; padding: 3px 11px; border-radius: 999px; border: 1.5px solid currentColor; display: inline-flex; align-items: center; gap: 6px; }
+.veredicto::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.veredicto.ok { color: #9be0b6; } .veredicto.no { color: #ffb0a6; } .veredicto.nada { color: var(--tenue-estandarte); }
+.jugar { font: 700 17px var(--rotulo); letter-spacing: .1em; text-transform: uppercase; min-height: 52px; border-radius: 12px; background: var(--oro); color: #3a0c29; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+/* greca: el borde de los mosaicos romanos */
+.greca { height: 16px; margin: 0 -18px; background: var(--estandarte) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0 14h16M14 14V3H4v7h6V7' fill='none' stroke='%23e2c37a' stroke-opacity='.75' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x left center; }
+
+/* botones */
+.boton { font: 600 15px var(--texto); min-height: 44px; padding: 8px 16px; border-radius: 10px; border: 1.5px solid var(--purpura); background: transparent; color: var(--purpura); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
+.boton.lleno { background: var(--purpura); color: var(--sobre-purpura); }
+.boton[disabled] { opacity: .45; cursor: default; }
+.boton.fino { min-height: 44px; padding: 4px 12px; font-size: 14px; border-color: var(--raya); color: var(--tenue); }
+.boton.fino.lleno { border-color: var(--purpura); color: var(--sobre-purpura); }
+textarea, #buscar { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--raya); background: var(--tabla); color: var(--tinta); }
+textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
+
+/* fichas */
+.ficha { background: var(--tabla); border: 1px solid var(--raya); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ficha .quien { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+.ficha.toca { border-top: 3px solid var(--purpura); }
+.ficha.vigia { border: 1.5px solid var(--purpura); }
+.boton.grande { min-height: 52px; font-size: 16px; width: 100%; }
+.asunto { display: flex; gap: 10px; align-items: baseline; font-size: 17px; line-height: 1.3; }
+.asunto .num { flex: none; font: 700 15px var(--rotulo); color: var(--bronce); min-width: 22px; }
+.cambio { display: flex; flex-direction: column; gap: 8px; }
+.mini { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.mini li { display: flex; gap: 8px; min-width: 0; } .mini li b { flex: none; color: var(--purpura); } .mini li span { min-width: 0; overflow-wrap: anywhere; }
+.mini:empty { display: none; }
+.esperan { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.aviso-lista { border: 1.5px solid var(--aviso); background: var(--suave); }
+.aviso-lista .boton { align-self: flex-start; }
+
+/* órganos: un segmento por línea */
+.organos { display: flex; flex-direction: column; gap: 10px; }
+.organo { background: var(--tabla); border: 1px solid var(--raya); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; color: var(--tinta); text-decoration: none; min-height: 44px; }
+.organo .cab { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.organo .cab b { font: 700 19px var(--rotulo); letter-spacing: .06em; color: var(--purpura); }
+.organo .ir { font-size: 13px; color: var(--tenue); white-space: nowrap; }
+.organo .cuenta { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.segs { display: flex; gap: 4px; }
+.segs i { flex: 1; height: 12px; border-radius: 3px; background: var(--seg-falta); }
+.segs .s-si { background: var(--seg-bien); } .segs .s-medias { background: var(--seg-medias); }
+/* marcas de estado: con texto, no solo color */
+.marca { flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; white-space: nowrap; padding: 2px 9px 2px 7px; border-radius: 999px; border: 1px solid currentColor; }
+.marca i { font-style: normal; font-size: 14px; line-height: 1; font-family: "Segoe UI Symbol", "DejaVu Sans", system-ui, sans-serif; }
+.marca.si { color: var(--bien); } .marca.medias { color: var(--aviso); } .marca.falta { color: var(--tenue); }
+.comprob { display: flex; gap: 10px; align-items: flex-start; background: var(--tabla); border: 1px solid var(--raya); border-radius: 12px; padding: 12px; }
+.comprob .num { flex: none; font: 700 17px var(--rotulo); color: var(--bronce); width: 18px; }
+.comprob .que { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: 15px; line-height: 1.35; }
+.comprob .nota { font-size: 13px; }
+
+/* líneas de la lista */
+.lineas { display: flex; flex-direction: column; gap: 8px; }
+.linea { background: var(--tabla); border: 1px solid var(--raya); border-radius: 12px; padding: 0 12px; }
+.linea > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 0; }
+.linea > summary::-webkit-details-marker { display: none; }
+.linea > summary .que { flex: 1; min-width: 0; font-weight: 500; line-height: 1.3; }
+.linea[open] > summary { border-bottom: 1px dashed var(--raya); }
+.linea .cuerpo { display: flex; flex-direction: column; gap: 8px; padding: 12px 0 14px; font-size: 15px; }
+.rotulo { font: 700 13px var(--rotulo); letter-spacing: .08em; color: var(--bronce); margin-top: 4px; }
+.captura { width: 100%; height: auto; max-height: 420px; object-fit: contain; border-radius: 10px; border: 1px solid var(--raya); background: var(--fondo); display: block; }
+.tareas-l { font-size: 13px; color: var(--tenue); overflow-wrap: anywhere; }
+.resto > summary, .plegable > summary { cursor: pointer; font-weight: 600; padding: 12px 14px; border: 1px solid var(--raya); border-radius: 12px; background: var(--tabla); min-height: 44px; box-sizing: border-box; }
+.resto[open] > summary, .plegable[open] > summary { margin-bottom: 10px; }
+.resto .sub { display: block; font-weight: 400; font-size: 13px; color: var(--tenue); margin-top: 2px; }
+.grupos { display: flex; flex-direction: column; gap: 12px; }
+.grupo { display: flex; flex-direction: column; gap: 4px; border-left: 3px solid var(--raya); padding-left: 10px; }
+.grupo.g-lista { border-left-color: var(--seg-bien); } .grupo.g-suelta { border-left-color: var(--mal); }
+.ids { font-size: 13px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.nevera-l { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+
+/* preguntas */
+.opciones { display: flex; flex-direction: column; gap: 8px; }
+.boton.opcion { justify-content: flex-start; text-align: left; gap: 10px; padding: 10px 14px; min-height: 52px; font-weight: 500; }
+.boton.opcion .l { flex: none; font: 700 16px var(--rotulo); width: 18px; }
+.boton.opcion .t { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.rec { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; background: var(--oro); color: #3a0c29; }
+.porque { font-size: 15px; line-height: 1.4; background: var(--suave); border-left: 3px solid var(--oro); padding: 8px 12px; border-radius: 0 8px 8px 0; }
+.delega { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-top: 4px; border-top: 1px dashed var(--raya); }
+.delega .boton { border-style: dashed; }
+.delega .nota { flex: 1; min-width: 160px; font-size: 13px; }
+.cola { text-align: center; }
+
+/* sesiones */
+.sig { display: flex; align-items: center; gap: 10px; background: var(--tabla); border: 1px solid var(--raya); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.sig .id { font: 600 13px var(--texto); color: var(--tenue); flex: none; }
+.sig .que { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 15px; }
+.sig .que .nota { font-size: 13px; } .sig .boton { flex: none; }
+.ses { flex-wrap: wrap; } .ses .que { flex-basis: 60%; }
+.estado { font-size: 12px; font-weight: 600; white-space: nowrap; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.estado.pend { color: var(--tenue); } .estado.medias { color: var(--aviso); } .estado.hecho { color: var(--bien); } .estado.pedido { color: var(--purpura); }
+.estado.pausa { color: var(--tenue); border-style: dashed; }
+.estado.trabaja { color: var(--purpura); } .estado.espera { color: var(--mal); } .estado.acabada { color: var(--bien); }
+
+/* archivo: el tablero entero */
+.archivo { display: flex; flex-direction: column; gap: 12px; }
+.filtros { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.chip { flex: none; font: 500 13px var(--texto); min-height: 40px; padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--raya); background: var(--tabla); color: var(--tinta); cursor: pointer; }
+.chip b { color: var(--tenue); margin-left: 3px; }
+.chip[aria-pressed="true"] { background: var(--purpura); border-color: var(--purpura); color: var(--sobre-purpura); } .chip[aria-pressed="true"] b { color: inherit; }
+.tarea > summary, .carril > summary { list-style: none; cursor: pointer; }
+.tarea > summary::-webkit-details-marker, .carril > summary::-webkit-details-marker { display: none; }
+.tarea { border-top: 1px dashed var(--raya); }
+.tarea > summary { display: flex; gap: 10px; align-items: center; padding: 11px 0; }
+.tarea .id { font: 600 13px var(--texto); font-variant-numeric: tabular-nums; color: var(--bronce); min-width: 30px; flex: none; }
+.tarea .que { flex: 1; min-width: 0; overflow-wrap: anywhere; } .tarea .que small { display: block; font-size: 12px; color: var(--tenue); }
+.tarea.hecha .que { color: var(--tenue); }
+.tarea .cuerpo { display: flex; flex-direction: column; gap: 12px; padding: 0 0 16px; font-size: 15px; overflow-wrap: anywhere; }
+.tarea .sel { width: 22px; height: 22px; flex: none; accent-color: var(--purpura); margin: 0; }
+#pendiente > .tarea { border: 1px solid var(--raya); border-radius: 12px; background: var(--tabla); margin-bottom: 8px; padding: 0 12px; }
+.tarea:has(.sel:checked) { border-color: var(--purpura); }
+.carril { border-top: 1px solid var(--raya); }
+.carril > summary { display: flex; align-items: baseline; gap: 10px; padding: 13px 0; }
+.carril > summary .letra { font: 700 20px var(--rotulo); color: var(--purpura); min-width: 30px; flex: none; }
+.carril > summary .nombre { font-weight: 600; flex: 1; min-width: 0; }
+.carril > summary .cuenta { font-size: 13px; color: var(--tenue); white-space: nowrap; }
+.carril .tareas { display: flex; flex-direction: column; padding: 0 0 12px; }
+.hechos { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 12px 0 0; padding: 0; }
+.hechos li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--tabla); border: 1px solid var(--raya); }
+
+/* capturas e informes */
+.tira { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; margin-right: -16px; padding-right: 16px; }
+.tira figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: 6px; scroll-snap-align: start; max-width: 78vw; }
+.tira img { height: 380px; width: auto; max-width: none; border-radius: 12px; border: 1px solid var(--raya); display: block; }
+.tira figure.ancha img { height: 180px; }
+.tira figcaption { font-size: 13px; color: var(--tenue); max-width: 230px; }
+.tira figcaption b { color: var(--tinta); display: block; } .tira .mal b { color: var(--mal); }
+.informe { border: 1px solid var(--raya); border-radius: 12px; background: var(--tabla); padding: 0 14px; }
+.informes { display: flex; flex-direction: column; gap: 8px; }
+.informe > summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
+.informe .md { font-size: 15px; padding-bottom: 14px; display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere; }
+.informe .md h3 { font: 700 15px var(--rotulo); margin: 8px 0 0; color: var(--bronce); }
+.informe .md ul { margin: 0; padding-left: 20px; } .informe .md .rollo { overflow-x: auto; }
+.informe .md table { border-collapse: collapse; font-size: 13px; }
+.informe .md td, .informe .md th { border: 1px solid var(--raya); padding: 4px 8px; text-align: left; vertical-align: top; min-width: 90px; }
+.ordenes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.ordenes .boton { background: var(--tabla); border-color: var(--raya); color: var(--tinta); text-align: center; min-height: 56px; font-weight: 500; }
+
+/* CM3 · arte: una foto por pieza, dos por fila en el móvil */
+.indice { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-right: -16px; padding-right: 16px; }
+.indice .chip { display: inline-flex; align-items: center; text-decoration: none; min-height: 44px; box-sizing: border-box; }
+.indice .chip b:empty { display: none; }
+.grupo-arte { scroll-margin-top: 12px; }
+.piezas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.pieza { margin: 0; background: var(--tabla); border: 1px solid var(--raya); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; min-width: 0; position: relative; }
+.pieza img, .pieza .sinfoto { width: 100%; height: auto; aspect-ratio: 1; border-radius: 8px; display: block; background: var(--fondo); object-fit: cover; }
+.pieza .sinfoto { display: flex; align-items: center; justify-content: center; color: var(--tenue); font-size: 13px; border: 1px dashed var(--raya); box-sizing: border-box; }
+.pieza figcaption { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pieza figcaption b { font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+.pieza figcaption .nota { font-size: 12px; line-height: 1.3; overflow-wrap: anywhere; }
+.pieza .boton { width: 100%; border-color: var(--purpura); color: var(--purpura); }
+.pieza.mas { display: none; } .grupo-arte.abierto .pieza.mas { display: flex; }
+.pieza > .estado.pedido { position: absolute; top: 14px; left: 14px; background: var(--tabla); }
+.vermas { align-self: stretch; }
+/* CM3 · equipos */
+.equipo { scroll-margin-top: 12px; gap: 8px; }
+.equipo .cab { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.equipo .nom { font: 700 19px var(--rotulo); letter-spacing: .06em; color: var(--purpura); }
+.equipo .de { font-size: 13px; color: var(--tenue); }
+.equipo .cab .estado.pedido { margin-left: auto; }
+.mini.eq { gap: 6px; font-size: 15px; } .mini.eq:empty { display: flex; }
+.mini.eq li b { min-width: 44px; font-size: 13px; line-height: 22px; color: var(--bronce); }
+.mini.eq li.nota { font-size: 14px; }
+.mini.eq .dia { font-style: normal; font-size: 12px; color: var(--tenue); white-space: nowrap; }
+.mini.eq .estado { margin-left: 6px; }
+.equipo .fila { margin-top: 6px; }
+/* hoja de escribir: sube desde abajo, para el pulgar */
+#hoja { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 680px; background: transparent; color: var(--tinta); }
+#hoja::backdrop { background: rgba(20, 12, 22, .55); }
+#hoja form { background: var(--tabla); border-radius: 18px 18px 0 0; border-top: 3px solid var(--purpura); display: flex; flex-direction: column; gap: 10px; padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+#hoja .quien { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+#hoja label { font: 700 17px/1.3 var(--rotulo); letter-spacing: .03em; }
+#hoja .fila .boton { flex: 1; }
+
+/* barras fijas */
+.pestanas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; grid-template-columns: repeat(7, 1fr); background: var(--tabla); border-top: 1px solid var(--raya); padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.pestanas a { position: relative; min-width: 0; min-height: var(--barra); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: var(--tenue); font-size: 12px; font-weight: 500; }
+.pestanas svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.pestanas a[aria-current="page"] { color: var(--purpura); font-weight: 600; }
+.pestanas a[aria-current="page"]::before { content: ""; position: absolute; top: -1px; left: 18%; right: 18%; height: 3px; border-radius: 0 0 3px 3px; background: var(--purpura); }
+.pestanas .n { position: absolute; top: 7px; left: calc(50% + 6px); font: 600 11px var(--texto); min-width: 17px; text-align: center; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: var(--mal); color: var(--tabla); }
+#lote, #aviso { position: fixed; left: 0; right: 0; bottom: calc(var(--barra) + env(safe-area-inset-bottom, 0px)); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
+#lote { z-index: 4; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; background: var(--tabla); border-top: 2px solid var(--purpura); }
+#lote[hidden], [hidden] { display: none !important; }
+#lote .cuenta { font-weight: 600; font-variant-numeric: tabular-nums; }
+#aviso { background: var(--tinta); color: var(--fondo); text-align: center; font-weight: 500; z-index: 6; }
+@media (prefers-reduced-motion: no-preference) { .boton, .chip, .organo { transition: background .15s, color .15s, border-color .15s; } }
+
+/* CM4 · Tu móvil y lo que falta: 4 colores de Okabe-Ito (se distinguen con daltonismo) y trama en «rama sin unir» */
+:root { --m-movil: #00876a; --m-subir: #0b6fb8; --m-obra: #d98e00; --m-rama: #b4529a; --m-falta: #ddd6e1; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --m-movil: #2fc39a; --m-subir: #5aa9ec; --m-obra: #f0b23a; --m-rama: #df8cc6; --m-falta: #3d3443; } }
+:root[data-theme="dark"] { --m-movil: #2fc39a; --m-subir: #5aa9ec; --m-obra: #f0b23a; --m-rama: #df8cc6; --m-falta: #3d3443; }
+.mcabeza { background: var(--tabla); border: 1px solid var(--raya); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.mcabeza .grande { font: 600 20px/1.35 var(--texto); }
+.mcabeza .grande b { color: var(--purpura); font-weight: 700; }
+.mllega { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+.leyenda { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+.leyenda li { display: flex; align-items: center; gap: 8px; }
+.leyenda i, .mtareas i { flex: none; width: 18px; height: 14px; border-radius: 3px; }
+.m-movil { --c: var(--m-movil); } .m-subir { --c: var(--m-subir); } .m-obra { --c: var(--m-obra); } .m-rama { --c: var(--m-rama); } .m-falta { --c: var(--m-falta); }
+.leyenda i, .mtareas i, .mbarra i { background: var(--c); }
+.leyenda .m-rama i, .mtareas .m-rama i, .mbarra i.m-rama { background: repeating-linear-gradient(135deg, var(--c) 0 4px, color-mix(in srgb, var(--c) 55%, var(--tabla)) 4px 7px); }
+.leyenda .m-falta i, .mtareas .m-falta i { outline: 1px dashed var(--tenue); outline-offset: -1px; }
+.mlineas { display: flex; flex-direction: column; gap: 8px; }
+.mlinea { background: var(--tabla); border: 1px solid var(--raya); border-radius: 12px; }
+.mlinea > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-height: 44px; }
+.mlinea > summary::-webkit-details-marker { display: none; }
+.mcab { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.mcab .que { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.mcab .pc { font: 600 14px var(--texto); color: var(--m-movil); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mbarra { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: clip; }
+.mbarra i { flex: 1; min-width: 3px; }
+.mbarra i.m-movil { order: 1; } .mbarra i.m-subir { order: 2; } .mbarra i.m-obra { order: 3; } .mbarra i.m-rama { order: 4; } .mbarra i.m-falta { order: 5; }
+.mlinea .cuerpo { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+.mtareas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.mtareas li { display: grid; grid-template-columns: 18px 3.6em 1fr; column-gap: 8px; align-items: baseline; line-height: 1.35; }
+.mtareas li i { align-self: start; margin-top: 2px; }
+.mtareas li span { min-width: 0; overflow-wrap: anywhere; }
+.mtareas em { grid-column: 3; font-style: normal; color: var(--tenue); font-size: 13px; }
+
+/* CM5: camino a la 1.0, juzgarla y hacia la 2.0 */
+.camino { border: 1.5px solid var(--bronce); gap: 12px; }
+.cpct { display: flex; align-items: baseline; gap: 10px; }
+.cpct b { font: 700 44px/1 var(--rotulo); color: var(--purpura); font-variant-numeric: tabular-nums; }
+.cpct span { font-size: 15px; color: var(--tenue); }
+.cbarra { position: relative; height: 22px; border-radius: 8px; background: var(--seg-falta); overflow: clip; }
+.cbarra span { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--seg-bien), var(--seg-medias)); border-radius: 8px 0 0 8px; }
+.cbarra i { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--tabla); opacity: .85; }
+.pasos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.paso { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px dashed var(--raya); }
+.paso .pn { flex: none; font: 700 16px var(--rotulo); color: var(--bronce); width: 16px; }
+.paso .pq { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; line-height: 1.3; }
+.paso .pd { font-size: 13px; color: var(--tenue); font-variant-numeric: tabular-nums; }
+.paso .pd b { color: var(--tinta); } .paso .nw { white-space: nowrap; }
+.paso.p-si .pq { color: var(--tenue); }
+.riesgos { font-size: 14px; line-height: 1.4; background: var(--suave); border-left: 3px solid var(--aviso); padding: 8px 12px; border-radius: 0 8px 8px 0; }
+.aviso-j { font-size: 14px; font-weight: 600; color: var(--aviso); }
+.juzgar .plegable > summary, .hacia2 .plegable > summary { display: flex; flex-direction: column; }
+.juzgar .sub, .hacia2 .sub { font-weight: 400; font-size: 13px; color: var(--tenue); }
+.jlista { gap: 8px; } .jlista .rotulo { margin-top: 8px; }
+.juicio { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 1px dashed var(--raya); }
+.jq { display: flex; flex-direction: column; gap: 2px; font-size: 15px; line-height: 1.35; }
+.jq span { color: var(--tenue); font-size: 14px; }
+.jv.j-bien { color: var(--bien); font-weight: 600; } .jv.j-mal { color: var(--mal); font-weight: 600; }
+.boton.fino.elegido { border-color: var(--purpura); background: var(--purpura); color: var(--sobre-purpura); }
+  /* CM6: la meta en curso (fase sacada del tablero) */
+  .meta-t { list-style: none; padding: 0; margin: .6rem 0 0; display: grid; gap: .25rem; }
+  .meta-t li { display: flex; gap: .5rem; align-items: baseline; font-size: .95rem; }
+  .meta-t li b { min-width: 3.4rem; }
+  .meta-t li .marca { margin-left: auto; flex: none; }
+  details.v10 > summary { font-weight: 600; padding: .6rem 0; cursor: pointer; }
+
+/* maqueta CM6 */
+.pestanas { grid-template-columns: repeat(4, 1fr) !important; }
+.meta-t { list-style: none; padding: 0; margin: .6rem 0 0; display: grid; gap: .35rem; }
+.meta-t li { display: flex; gap: .5rem; align-items: center; font-size: .95rem; }
+.meta-t li b { min-width: 3.2rem; } .meta-t li > :last-child { margin-left: auto; flex: none; }
+.ses { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
+.ses li { display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem; }
+.ses .eq { grid-column: 2; font-size: .8rem; color: var(--tenue); }
+.ses i.vivo { width: .6rem; height: .6rem; border-radius: 50%; background: var(--bien); margin-top: .45rem; grid-row: span 2; }
+.chips { display: flex; gap: .4rem; flex-wrap: wrap; margin: .4rem 0; }
+.mas details { border-top: 1px solid var(--raya); padding: .2rem 0; } .mas summary { padding: .7rem 0; font-weight: 600; cursor: pointer; }
+.mas summary .sub { display: block; font-weight: 400; font-size: .85rem; color: var(--tenue); }
+.etiqueta-maqueta { position: sticky; top: 0; z-index: 9; background: #7a2a52; color: #fff; text-align: center; font-size: 12px; padding: 3px; }
+</style></head><body>
+<div class="etiqueta-maqueta">MAQUETA · los botones no hacen nada</div>
+<div class="hoja">
+
+<div class="vista" data-vista="parati" id="parati">
+  <header class="estandarte"><div class="lema"><h1>AQVILA</h1><p class="sub">Cuadro de mando · 25 de noviembre</p></div>
+    <span class="veredicto bien">Jueces sin ejecutar</span><a class="jugar" href="#">Jugar ahora</a><div class="greca" aria-hidden="true"></div></header>
+  <section class="ficha vigia"><p><b>Has pulsado 2 cosas que aún no se han aplicado</b></p>
+    <button class="boton lleno grande">Llamar al vigía ahora</button><p class="nota">Sale solo cuando hay algo sin aplicar. Un solo sitio.</p></section>
+  <section aria-label="Preguntas"><h2>Te esperan</h2>
+      <ul class="lista"><li class="ficha toca pregunta"><p class="asunto"><span class="num">I</span><b>Modo supervivencia (SUP1)</b></p><p>El diseño está hecho (rama <code>sup1-diseno</code>, <code>gobierno/estudios/SUP1-diseno.md</code>, 7 capturas). Te esperan 7 preguntas en el chat de SUP1 (<code>session_01QiKC36Sf8RZgvbyrwhY4GL</code>): el tiempo, la duración, la fecha (700–650 a.C.), Tasos, la pelea, el tope de 60 MB y el reparto SUP2–SUP5. Contéstalas allí.</p><div class="opciones fila"></div><div class="fila"><button class="boton fino" data-abrir="r-0">Escribir otra respuesta</button></div><div class="cambio" id="r-0" hidden><label class="quien" for="rx-0">Tu respuesta</label><textarea id="rx-0"></textarea><div class="fila"><button class="boton lleno" data-pedir="respuesta" data-ref="E1" data-titulo="Modo supervivencia (SUP1)" data-texto="rx-0">Enviar respuesta</button></div></div></li></ul>
+      
+    </section>
+  <section class="ficha"><h2>Pide algo</h2>
+    <div class="chips"><button class="chip" aria-pressed="true">Un pedido</button><button class="chip" aria-pressed="false">Una idea para más adelante</button></div>
+    <textarea placeholder="Escribe lo que quieres. El vigía lo coloca donde toca."></textarea>
+    <div class="fila"><button class="boton lleno">Enviar</button></div>
+    <p class="nota">Junta «Pedido libre», «Proponer algo para la 2.0» y «A la nevera»: eran tres cajas para lo mismo.</p></section>
+  <section class="ficha"><details class="plegable"><summary>Juzgar la 1.0 en tu móvil · 18 pruebas<span class="sub">Bien o Mal + nota en cada una. Tus «Mal» van a CR20.</span></summary><p class="nota">(igual que hoy)</p></details></section>
+</div>
+
+<div class="vista" data-vista="ahora" id="ahora" hidden>
+  <section class="ficha camino"><h2>Ahora: 2.0 · M1 Empezar de cero</h2>
+    <div class="cpct"><b>53 %</b><span>hecho · queda 47 %</span></div>
+    <div class="cbarra"><span style="width:53%"></span></div>
+    <p class="nota">6 hechas, 5 en obra y 5 sin empezar. Lo que falta tiene su botón «Encárgala»; lo hecho, plegado abajo.</p>
+    <ul class="meta-t"><li><b>J20b</b><span>Liga de bots aparte</span><span class="marca medias"><i aria-hidden="true">◐</i>en obra</span></li><li><b>PN2</b><span>Ocho polis con su cultura</span><span class="marca medias"><i aria-hidden="true">◐</i>en obra</span></li><li><b>AM2</b><span>Mapa vivo construido</span><span class="marca medias"><i aria-hidden="true">◐</i>en obra</span></li><li><b>AM2b</b><span>Mapa vivo: aspecto de 7,6 a 8,5</span><span class="marca medias"><i aria-hidden="true">◐</i>en obra</span></li><li><b>CM6</b><span>Porcentajes del cuadro de una sola fuente</span><span class="marca medias"><i aria-hidden="true">◐</i>en obra</span></li><li><b>PN3</b><span>Comarca aleatoria y arranque</span><button class="boton fino lleno">Encárgala</button></li><li><b>VI1</b><span>Dos vistas</span><button class="boton fino lleno">Encárgala</button></li><li><b>VI2</b><span>Ver construir y entrenar</span><button class="boton fino lleno">Encárgala</button></li><li><b>AM3</b><span>Recursos por zonas y lujo en algunas ciudades</span><button class="boton fino lleno">Encárgala</button></li><li><b>CR20</b><span>Críticas a la 1.0</span><button class="boton fino lleno">Encárgala</button></li></ul><details class="plegable"><summary>6 hechas</summary><ul class="meta-t"><li><b>J20a</b><span>Subidas en ≤15 min</span><span class="marca si"><i aria-hidden="true">✔</i>hecha</span></li><li><b>ES20</b><span>Solo estaciones por turnos</span><span class="marca si"><i aria-hidden="true">✔</i>hecha</span></li><li><b>PN1</b><span>Menú: Continuar · Partida nueva · Escaramuzas · Opciones</span><span class="marca si"><i aria-hidden="true">✔</i>hecha</span></li><li><b>AM0</b><span>Montar el Departamento de Arte de Mapas</span><span class="marca si"><i aria-hidden="true">✔</i>hecha</span></li><li><b>AM1</b><span>Diseño y maqueta del mapa vivo</span><span class="marca si"><i aria-hidden="true">✔</i>hecha</span></li><li><b>DB0</b><span>Montar los seis departamentos de batalla</span><span class="marca si"><i aria-hidden="true">✔</i>hecha</span></li></ul></details><ul class="meta-t"></ul></section>
+  <section class="ficha"><h2>Trabajando ahora · 5</h2>
+    <ul class="ses"><li><i class="vivo"></i><span><b>AM2b</b> Mejora el aspecto del mapa vivo de Grecia de 7,6 a 8,5.</span><span class="eq">Arte de Mapas</span></li><li><i class="vivo"></i><span><b>PN2</b> Que en Partida nueva elijas entre 8 polis griegas, cada una con su cultura.</span><span class="eq">Ciudades</span></li><li><i class="vivo"></i><span><b>J20b</b> Pone a jugar a los bots aparte, con sus cifras en el cuadro.</span><span class="eq">Gobierno</span></li><li><i class="vivo"></i><span><b>EB1</b> Cómo están hoy las escaramuzas y plan para mejorarlas (habla contigo).</span><span class="eq">Batallas</span></li><li><i class="vivo"></i><span><b>CM6</b> Cuadro de mando: porcentajes y esta propuesta.</span><span class="eq">Gobierno</span></li></ul>
+    <div class="fila"><button class="boton fino">Cerrar las acabadas</button><button class="boton fino">Parar al acabar</button></div></section>
+  <section class="ficha"><h2>Mejorar un equipo</h2>
+    <div class="chips"><button class="chip" aria-pressed="true">Batallas</button><button class="chip" aria-pressed="false">Ciudades</button><button class="chip" aria-pressed="false">Política</button><button class="chip" aria-pressed="false">Mapa y menús</button><button class="chip" aria-pressed="false">Arte</button><button class="chip" aria-pressed="false">Sonido</button><button class="chip" aria-pressed="false">Gobierno</button></div>
+    <textarea placeholder="Qué mejorarías en este equipo"></textarea><div class="fila"><button class="boton lleno">Recomendar mejora</button></div>
+    <p class="nota">Un solo «Recomendar mejora» con el equipo elegido, en vez de una ficha larga por equipo.</p></section>
+</div>
+
+<div class="vista" data-vista="movil" id="movil" hidden>
+  <section class="mcabeza ficha"><p class="grande">Tu móvil tiene la <b>v171</b>. Ya está terminada la <b>v172</b>, pero aún no está en tu móvil.</p>
+    <p><b>Llegará con la próxima subida</b></p><ul><li><b>J20a</b> Subidas en ≤15 min <span class="nota">· M1 · Empezar de cero</span></li><li><b>ES20</b> Solo estaciones por turnos <span class="nota">· M1 · Empezar de cero</span></li><li><b>PN1</b> Menú: Continuar · Partida nueva · Escaramuzas · Opciones <span class="nota">· M1 · Empezar de cero</span></li><li><b>AM0</b> Montar el Departamento de Arte de Mapas <span class="nota">· M1 · Empezar de cero</span></li><li><b>AM1</b> Diseño y maqueta del mapa vivo <span class="nota">· M1 · Empezar de cero</span></li><li><b>DB0</b> Montar los seis departamentos de batalla <span class="nota">· M1 · Empezar de cero</span></li></ul>
+    <button class="boton lleno grande">Subir lo terminado a mi móvil</button></section>
+  <section class="ficha"><h2>Lo nuevo, en capturas</h2><p class="nota">Las capturas nuevas de cada tarea y el recorrido de los jueces, juntos aquí (hoy están en Taller).</p></section>
+</div>
+
+<div class="vista mas" data-vista="mas" id="mas" hidden>
+  <h2>Más</h2>
+  <details><summary>Arte · 124 piezas<span class="sub">Fotos con «Pedir cambio» (igual que hoy)</span></summary></details>
+  <details><summary>La 1.0 · terminada<span class="sub">Su camino, cómo quedó por órganos, sus 18 líneas y sus pruebas</span></summary></details>
+  <details><summary>Ideas guardadas para más adelante<span class="sub">La nevera, solo para leer</span></summary></details>
+  <details><summary>Informes<span class="sub">«¿A dónde vamos?» y los informes guardados</span></summary></details>
+  <details><summary>Tus pedidos<span class="sub">Lo que has pulsado y qué se hizo</span></summary></details>
+  <details><summary>El tablero entero<span class="sub">Para buscar una tarea; cada una con un solo botón «Encárgala»</span></summary></details>
+</div>
+</div>
+<nav class="pestanas" aria-label="Vistas">
+  <a href="#parati"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg>Para ti</a>
+  <a href="#ahora"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>Ahora</a>
+  <a href="#movil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2.5h8a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 20V4A1.5 1.5 0 0 1 8 2.5zM11 18.5h2"/></svg>Tu móvil</a>
+  <a href="#mas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg>Más</a>
+</nav>
+<script>
+function ver(){const h=(location.hash||'#parati').slice(1);document.querySelectorAll('.vista').forEach(v=>v.hidden=v.dataset.vista!==h);
+document.querySelectorAll('.pestanas a').forEach(a=>a.setAttribute('aria-current',a.getAttribute('href')==='#'+h?'page':'false'));scrollTo(0,0);}
+addEventListener('hashchange',ver);ver();
+</script></body></html>

@@ -63,6 +63,7 @@
   const K = { ORIGEN: 0.7, DEMANDA: 1.4, EMPUJE: 30, VUELTA: 0.2, OFERTA: 0.4, FLECHA: 0.03, RUIDO: 0.05, FLETE_TIERRA: 0.03, FLETE_MAR: 0.01, LEGUAS: 10,
     VEL_TIERRA: 4, VEL_MAR: 9, RIESGO_MAR: 0.04, RIESGO_GUERRA: 0.08, RIESGO_TIERRA: 0.01, PORT0: 0.025, PORT_MAX: 0.05, TOPE_NIVEL: 10, MAX_N: 200,
     CADUCA_VIAJE: 0.1, ACAPARA: 3, ACAPARA_PRECIO: 1.5 };
+  MER.MAX_N = K.MAX_N;   // ES20: game.js trocea las compras y ventas grandes con este tope por operación
 
   // ---------- Utilidades ----------
   const obj = x => x && typeof x === 'object' && !Array.isArray(x);
@@ -267,7 +268,7 @@
     if (dueno(s, o.a, ay) !== 'roma') return { ok: false, motivo: 'La ruta sale de una ciudad tuya' };
     const cargas = Math.floor(o.cargas || 0), tope = MER.rutaTope(s, o.a, o.b, ay);
     if (cargas < 1) return { ok: false, motivo: 'Cantidad no válida' };
-    if (cargas > tope) return { ok: false, motivo: tope ? 'Tope de ' + tope + ' cargas al mes' : 'Hace falta un mercado (o puerto por mar) en ' + nomC(o.a) };
+    if (cargas > tope) return { ok: false, motivo: tope ? 'Tope de ' + tope * 3 + ' cargas por estación' : 'Hace falta un mercado (o puerto por mar) en ' + nomC(o.a) };
     const r = { id: 'r' + (++m.seq), a: o.a, b: o.b, prod: o.prod, cargas };
     m.rutas.push(r);
     return { ok: true, motivo: '', ruta: r };

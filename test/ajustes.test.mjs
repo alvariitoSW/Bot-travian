@@ -15,14 +15,12 @@ function campaign1(aggressive, region, dif) {
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0;
-  while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {
-    G.tick(0.25);
+  while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 5000) {   // ES20: por estaciones: pulsa «Pasar estación», resuelve las batallas y ordena
+    if (guard > 1) G.pasarEstacion();
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
-    if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
-    if (guard % 8) continue;
     for (const id of G.myCities()) {
       const c = s.cities[id];
-      if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
+      { let hechos = 0; if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['hastati', 'principes', 'triarii', 'equites']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k), G.recruits(c)); if (n >= 10 && G.train(id, k, n) && ++hechos >= 2) break; } } }   // ES20: como test/campana-bot.js
       for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
       G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
       if (!aggressive) continue;
@@ -36,6 +34,7 @@ function campaign1(aggressive, region, dif) {
         if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { G.send(id, n, u, G.heroAvailable(id)); break; }
       }
     }
+    botMercado(G, D);   // CE2: compra hierro y vende lo que sobra (test/bot-mercado.js); ES20: una vez por estación, tras ordenar
   }
   if (!s.over && G.campanaLarga()) s.over = { win: !!(s.caminos && s.caminos.victoria), why: 'fin de prueba' };   // CE10: sin plazo ni final por Cartago, el bot para en G.finDePrueba()
   assert(s.over, 'la campaña debe terminar');
