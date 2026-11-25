@@ -255,29 +255,29 @@
   "fecha": "2026-11-25T04:45:55.093Z"
  },
  "area:test/ciudad.test.mjs": {
-  "huella": "c9e8a79ea72ab6b2",
+  "huella": "736a88adfe4e9284",
   "ok": true,
-  "fecha": "2026-11-25T13:20:45.117Z"
+  "fecha": "2026-11-25T13:33:43.439Z"
  },
  "area:test/senado.test.js": {
-  "huella": "b11ea9af007dcf0f",
+  "huella": "876cd75b7c16be3c",
   "ok": true,
-  "fecha": "2026-11-25T13:20:55.073Z"
+  "fecha": "2026-11-25T13:33:52.841Z"
  },
  "area:test/saber.test.mjs": {
-  "huella": "fb998b01df71595a",
+  "huella": "b44ef694bce91cee",
   "ok": true,
-  "fecha": "2026-11-25T13:21:13.131Z"
+  "fecha": "2026-11-25T13:34:10.930Z"
  },
  "area:test/diplomacia.test.mjs": {
-  "huella": "51e83fa035c0d686",
+  "huella": "e0f32c66c79d64c5",
   "ok": true,
-  "fecha": "2026-11-25T13:21:18.749Z"
+  "fecha": "2026-11-25T13:34:16.448Z"
  },
  "area:test/encargos.test.mjs": {
-  "huella": "a4c769d1c84aa3e4",
+  "huella": "c1782ad37a432967",
   "ok": true,
-  "fecha": "2026-11-25T13:21:22.781Z"
+  "fecha": "2026-11-25T13:34:20.572Z"
  },
  "area:test/caminos.test.mjs": {
   "huella": "311c4bcf090e5b4a",
@@ -300,13 +300,13 @@
   "fecha": "2026-11-25T12:38:22.309Z"
  },
  "navegador-cerebro": {
-  "huella": "3bf183e0928d5601",
+  "huella": "a06788d98c68ba11",
   "ok": true,
-  "fecha": "2026-11-25T13:27:57.846Z"
+  "fecha": "2026-11-25T13:37:03.189Z"
  },
  "area:gobierno/jueces.mjs --area cerebro": {
-  "huella": "3bf183e0928d5601",
+  "huella": "b81741dafb6b0375",
   "ok": true,
-  "fecha": "2026-11-25T13:27:57.857Z"
+  "fecha": "2026-11-25T13:37:03.199Z"
  }
 }

@@ -1960,3 +1960,4 @@ body.conhojaest #turno { display: none !important; }
 /* fichas de construir y reclutar: «Pagas ahora» y «Tarda» */
 .pagas { font-size: 12px; font-weight: 700; letter-spacing: .02em; margin: 6px 0 2px; color: inherit; opacity: .85; }
 .nota.tarda b, .ds.tarda b { font-weight: 800; }
+#inf.hojaest .he-r small.ord { white-space: normal; color: var(--tinta2); font-size: 11px; }
