@@ -595,7 +595,8 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   assert.strictEqual(G.finTurno(), 3, 'el primer turno acaba en el mes 3');
   assert.strictEqual(G.estacion(0), 'Invierno'); assert.strictEqual(G.estacion(3), 'Primavera'); assert.strictEqual(G.estacion(11), 'Otoño');
   // G.tick no pasa del final del turno
-  G.tick(10); assert(Math.abs(s.t - 3) < 1e-9, 'tick recortado al final del turno: ' + s.t); G.tick(1); assert(Math.abs(s.t - 4) < 1e-9);
+  G.tick(2.5); assert(Math.abs(s.t - 2.5) < 1e-9); G.tick(1); assert(Math.abs(s.t - 3) < 1e-9, 'un paso no se pasa del final de la estación: ' + s.t); G.tick(1); assert(Math.abs(s.t - 4) < 1e-9);
+  { const s2 = G.newGame('Trocea'); s2.marches = []; s2.pending = []; G.tick(10); assert(Math.abs(s2.t - 10) < 1e-9 && s2.informe.length === 1, 'ES20: un salto largo se trocea mes a mes y cruza estaciones: ' + s2.t); G.state = s; }
   assert(Math.abs(G.finTurno() - 6) < 1e-9);
   // una marcha lanzada no llega antes del cambio de estación
   const from = G.myCities().find(id => G.neighbors(id).some(n => s.cities[n].owner !== 'roma'));
@@ -656,7 +657,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
 }
 { // ES20: lo recogido en la estación está ENTERO disponible al empezar la siguiente; lo que pasa del tope se pierde y sale en la hoja
   const s = G.newGame('Cobro'); s.cities.roma.b.almacen = 0; G.state = s; s.alm.materiales = G.capDe('materiales') - 10; const p = G.prod();
-  const r0 = {}; for (const r of D.RES) r0[r] = G.reserva(r);
+  const r0 = Object.assign({}, s.hojaR0); assert(D.RES.every(r => typeof r0[r] === 'number'), 'la partida nueva guarda la reserva con que empieza');
   assert(G.pasarEstacion(), 'pasa la estación entera'); assert(Math.abs(s.t - 3) < 1e-9, 'de golpe al final de la estación: ' + s.t);
   for (const r of D.RES) assert(s.res[r] === 0 && Math.abs(G.disponible(r) - s.alm[r]) < 1e-9, 'nada queda bloqueado fuera del almacén: ' + r);
   const h = G.hojaEstacion(); assert(h && h === s.hoja && h.titulo === 'Primavera del 280 a.C.' && h.n === 2 && h.de === 'Invierno del 280 a.C.', 'hoja de la estación: ' + JSON.stringify(h && [h.titulo, h.n, h.de]));
@@ -669,6 +670,32 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   assert(Array.isArray(h.acaba) && Array.isArray(h.siguiente) && Array.isArray(h.pasa) && h.pasa.length <= 8 && Array.isArray(h.avisos), 'listas de la hoja');
   assert(!h.avisos.some(a => /\(turno \d+\)/.test(a.x)), 'los avisos van sin la cabecera'); assert(!JSON.stringify(h).match(/\bmes(es)?\b/i), 'sin meses en la hoja');
   assert(/^(Primavera|Verano|Otoño|Invierno) · \d+ a\.C\.$/.test(G.dateStr(s.t)), 'fecha por estación: ' + G.dateStr(s.t)); }
+{ // ES20 (revisión): dos hojas seguidas casan y lo ordenado antes de pulsar sale como gastado
+  G.usarCiudad(null); const s = G.newGame('DosHojas'); G.state = s; s.marches = []; s.pending = []; s.cities.roma.b.foro = D.MAX_LVL;
+  assert(G.pasarEstacion()); const h1 = s.hoja; s.marches = []; s.pending = [];
+  const b = Object.keys(D.BUILD).find(k => !D.BUILD[k].sea && !D.BUILD[k].agro && k !== 'mina' && (s.cities.roma.b[k] || 0) >= 1 && G.canAfford(G.costeObra(s.cities.roma, k)) && G.upgrade('roma', k));
+  assert(b, 'se ordena una obra entre las dos hojas'); const cost = s.cities.roma.obras[s.cities.roma.obras.length - 1].costo;
+  assert(G.pasarEstacion()); const h2 = s.hoja;
+  for (const r of D.RES) { const a = h1.entra[r], e = h2.entra[r];
+    assert(Math.abs(a.ahora + e.recogido - e.gastado - e.perdido - e.ahora) <= 2, 'la hoja 2 empieza donde acabó la 1 en ' + r + ': ' + JSON.stringify([a, e]));
+    if (cost[r]) assert(e.ordenado >= cost[r] - 1 && e.gastado >= e.ordenado, 'lo ordenado (' + r + ' ' + cost[r] + ') cuenta como gastado: ' + JSON.stringify(e)); } }
+{ // ES20 (revisión): el Senado mide la guarnición con los lotes que acaban al cerrar la estación
+  G.usarCiudad(null); const s = G.newGame('Guarnicion'); G.state = s; s.marches = []; s.pending = []; const c = s.cities.roma; c.pop = 5000; for (const r of D.RES) s.alm[r] = 1e5;
+  const tot = () => G.myCities().reduce((n, id) => n + G.men(s.cities[id].units), 0);
+  assert(G.train('roma', 'hastati', 200)); const q = s.senado; assert(q, 'hay Senado');
+  q.pide = { mil: { id: 'guarnicion', n: tot() + 150, turno: G.turnoN(s.t), texto: 'Guarnición' } }; q.bandos = ['mil'];
+  let msg = ''; const oe = G.onEvent; G.onEvent = (t, p) => { if (t === 'log' && /Peticiones del Senado/.test(p.x)) msg = p.x; };
+  assert(G.pasarEstacion()); G.onEvent = oe;
+  assert(/cumples con los militares/.test(msg), 'el lote que acaba cuenta para la guarnición: ' + msg); }
+{ // ES20 (revisión): el saber acaba al cerrar la estación, no a mitad
+  G.usarCiudad(null); const s = G.newGame('SaberCierre'); G.state = s; s.marches = []; s.pending = [];
+  s.inv.cola = { id: 'apio', p: 0, P: 0.5, t0: 0 }; G.tick(1); assert(s.inv.cola && s.inv.hechas.apio === undefined, 'a mitad de estación aún no termina');
+  assert(G.pasarEstacion() && !s.inv.cola && s.inv.hechas.apio === 3, 'termina al cerrar la estación'); assert(s.hoja.acaba.some(x => /Saber/.test(x)), 'y sale en la hoja'); }
+{ // ES20 (revisión): al cargar, lo retirado (acueducto) devuelve solo lo pagado antes de regalar las cuotas
+  G.usarCiudad(null); const s = G.newGame('Retirado'); delete s.es20; s.cities.roma.obras.push({ b: 'acueducto', pieza: null, t0: 0, t1: 6, nc: 4, pag: 1, cuota: { materiales: 10 }, costo: { materiales: 40 }, pausa: false });
+  s.alm.materiales = 0; const store = { 'aqvila-save-v1': JSON.stringify(s) }; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  assert(G.load()); const d = G.state.devuelto; assert(d && d.total.materiales === 10, 'devuelve lo pagado (10), no el coste entero: ' + JSON.stringify(d)); assert(G.state.es20 && G.state.hojaR0, 'migrada');
+  delete global.localStorage; }
 { // el informe de la estación suma tres meses
   const s = G.newGame('Informe'); let turno = 0; G.onEvent = t => { if (t === 'turno') turno++; };
   s.cities.roma.b.almacen = 0; for (let i = 0; i < 12; i++) G.tick(0.25);
