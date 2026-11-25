@@ -596,6 +596,7 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Mar en las polis de costa**: hoy Atenas, Corinto y Mileto se ven junto a un río. (A) Poner costa con el mar en su ciudad, en PN3b, unos 2 M [recomendado]; (B) dejar el río y que la costa se vea solo en el mapa vivo. Por qué: Atenas, Corinto y Mileto eran puertos.
 
 
 ## Propuestas por aprobar
