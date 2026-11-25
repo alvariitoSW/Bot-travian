@@ -179,18 +179,18 @@ Preguntas en el chat de SUP1 (formato numerado A/B). Respuestas literales: §11.
 ## 10. Reparto propuesto SUP2–SUP5
 Archivos propios del modo (área nueva «supervivencia» en `areas.json`, la da de alta el vigía). Guardado propio
 `aqvila-superv-v1`, sin tocar `aqvila-save-v1` ni `G.load`. Lógica sin pantalla, probada en Node.
-Gasto medido en esta sesión: 1,6 M (director + 5 departamentos, todo Opus). Lo de abajo es estimación.
+M = millones de tokens (`gasto.mjs`). Gasto medido en esta sesión: 1,6 M (director + departamentos, todo Opus). Lo de abajo es estimación: declarado (esperable).
 
 | Tanda | Qué entrega | Archivos nuevos | Tamaño | Gasto esperable | Depende de |
 |---|---|---|---|---|---|
-| **SUP2** | Botón «Supervivencia» (2 toques), tipo y lore, campamento inicial (vivac), reloj del día y la estación, hoja del alba vacía, dos vistas con su botón, día/noche con antorchas y humo, ambiente sonoro, guardado propio | `js/superv.js`, `js/ui-superv.js`, `js/gfx/superv3d.js`, `css/superv.css`, `test/superv.test.mjs` | Grande | 8–12 M | Pases: una línea en el menú (`js/ui.js`), `sw.js` (subida), cámara del oficial de la maqueta del bloque (Batallas) |
-| **SUP3** | Oficial con su grupo de 12, rueda Tú·Grupo·Perro, columna/línea/sígueme/defender/trabajar, perro, escudos con emblema | `js/sup-grupo.js`, `js/ui-sup-rueda.js`, `js/gfx/sup-camara.js`, `test/sup-grupo.test.mjs` | Grande | 8–12 M | Motor a pie de hoy (`bloque.js`); animaciones del rediseño (si no llegan, las de hoy) |
-| **SUP4** | Trabajos y campamento que crece: panel de hombres, obras tocando el suelo, 5 etapas, foso, empalizada, puerta, torres, talleres; hombres trabajando de verdad; sonidos de trabajo | `js/sup-campamento.js`, `js/gfx/sup-obras.js`, `test/sup-campamento.test.mjs` | Grande (el arte más gordo: 4 movimientos de trabajo, tiendas, puerta, torre) | 12–18 M | Tope de descarga (pregunta 6); movimientos de 0 A.D. (talar, cavar, martillear, acarrear) |
-| **SUP5a** | Oleadas en reglas: calendario, escalado, tipos, bajas, refuerzos, derrota y victoria a los 3 años; defensas con vida; bot bueno aguanta 8/10, bot vago cae 10/10 | `js/sup-oleadas.js`, `js/sup-defensas.js`, `test/sup-oleadas.test.mjs` | Medio | 5–8 M | Nada (no depende del rediseño) |
-| **SUP5b** | La oleada en vivo: enemigos, puestos, brecha, torre, tu fila en la puerta, sálpinx y avisos, hoja del alba con datos, juez de aspecto con los 12 puntos | `js/sup-lucha.js`, `js/ui-sup-oleada.js` | Grande | 10–15 M | **Rediseño de la batalla** (animaciones, cámara, 200 figuras); pases a Combate: muros fijos, enemigos sueltos, dory, hacha contra madera |
+| **SUP2** | Botón «Supervivencia» (2 toques), tipo y lore, campamento inicial (vivac), reloj del día y la estación, hoja del alba vacía, dos vistas con su botón, día/noche con antorchas y humo, ambiente sonoro, guardado propio | `js/superv.js`, `js/ui-superv.js`, `js/gfx/superv3d.js`, `css/superv.css`, `test/superv.test.mjs` | Grande | 2,5 (4–5) M | Pases: una línea en el menú (`js/ui.js`), `sw.js` (subida), cámara del oficial de la maqueta del bloque (Batallas) |
+| **SUP3** | Oficial con su grupo de 12, rueda Tú·Grupo·Perro, columna/línea/sígueme/defender/trabajar, perro, escudos con emblema | `js/sup-grupo.js`, `js/ui-sup-rueda.js`, `js/gfx/sup-camara.js`, `test/sup-grupo.test.mjs` | Grande | 2,5 (4–5) M | Motor a pie de hoy (`bloque.js`); animaciones del rediseño (si no llegan, las de hoy) |
+| **SUP4** | Trabajos y campamento que crece: panel de hombres, obras tocando el suelo, 5 etapas, foso, empalizada, puerta, torres, talleres; hombres trabajando de verdad; sonidos de trabajo | `js/sup-campamento.js`, `js/gfx/sup-obras.js`, `test/sup-campamento.test.mjs` | Grande (el arte más gordo: 4 movimientos de trabajo, tiendas, puerta, torre) | 3 (5–6) M | Tope de descarga (pregunta 6); movimientos de 0 A.D. (talar, cavar, martillear, acarrear) |
+| **SUP5a** | Oleadas en reglas: calendario, escalado, tipos, bajas, refuerzos, derrota y victoria a los 3 años; defensas con vida; bot bueno aguanta 8/10, bot vago cae 10/10 | `js/sup-oleadas.js`, `js/sup-defensas.js`, `test/sup-oleadas.test.mjs` | Medio | 1,5 (2–3) M | Nada (no depende del rediseño) |
+| **SUP5b** | La oleada en vivo: enemigos, puestos, brecha, torre, tu fila en la puerta, sálpinx y avisos, hoja del alba con datos, juez de aspecto con los 12 puntos | `js/sup-lucha.js`, `js/ui-sup-oleada.js` | Grande | 2,5 (4–5) M | **Rediseño de la batalla** (animaciones, cámara, 200 figuras); pases a Combate: muros fijos, enemigos sueltos, dory, hacha contra madera |
 
 Orden: SUP2 → SUP3 → SUP4, con **SUP5a en paralelo** desde SUP2 (solo reglas). SUP5b, cuando el rediseño de la
-batalla haya fijado animaciones y cámara. Total esperable: **45–65 M**.
+batalla haya fijado animaciones y cámara. Total: **12 M declarados, 19–24 M esperables** (esperable = declarado × 1,5–2, como en PLAN-2.0 §4).
 
 Estándar del carril (de SUP0, se mantiene): aspecto ≥ 8,5 con la ficha de §7; se entiende (≤ 2 toques entrar, 1 toque
 cambiar de vista, ≤ 2 toques cada orden, a 390 px y en horizontal); bot de reglas 8/10 y 10/10; sin errores ni red;
