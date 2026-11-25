@@ -85,6 +85,16 @@ SUP1 dejó preguntas a los departamentos en `estudios/SUP1-diseno.md` §2b.
 - **Lo más duro**: se ha gastado en hacer más cosas y poco en terminar una hasta parecerse a las referencias, contra la regla del
   usuario del 19/11 («construimos hasta que sea muy parecido a aquellas referencias»).
 
+## 4c. Propuesta de método (para aprobar; esquema dibujado en la página, sección «Esquema»)
+Hoy: cuatro islas (batalla grande, testudo y manípulo, falange, Ásculo), cada una con sus reglas, sus botones y su mundo; solo
+comparten física, proyectiles y modelos. Cinco reglas para todas las sesiones de batalla: **a** nada nuevo hasta terminar lo
+empezado; **b** «terminado» = se parece a las referencias (captura al lado y examen por una sesión que no construyó; el APTO no
+basta); **c** pruebas que miran lo que se ve (nada atraviesa nada, etiquetas que no se pisan, botones con el mismo nombre);
+**d** lo que se arregla en una escena se arregla en todas; **e** la nota del usuario (≥ 8,5) cierra la tanda. Vuelta de cada
+tanda: ficha → construir en todas → pruebas que miran → examen → nota del usuario (si no llega, vuelve a construir).
+Tandas con sus notas: 1 (F0 T1 T2 T3 T5 T7) · 2 (G3 M4 F1 F2 M5 A5) · 3 (G1 G2 G5 G6 B1) · 4 (A1 A2 A3 A4 F6) · 5 motor de
+golpes a pie. En espera: supervivencia, naval, batalla rápida (R1), escenas o rivales nuevos.
+
 ## 5. Decisiones del usuario (literal)
 (pendiente)
 
