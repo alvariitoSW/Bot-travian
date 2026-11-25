@@ -186,7 +186,7 @@ function pintaSoldados() {
       const d = Math.sqrt(f.d2); let n = d < DMAX[0] && usados[0] < TOPE[b][0] ? 0 : d < DMAX[1] && usados[1] < TOPE[b][1] ? 1 : 2;
       if (usados[n] >= TOPE[b][n]) continue; let mo = tr[modeloDe(f, oficial)] ? f.modelo : hay[0]; if (n >= 1 && tr[FONDO[mo]]) mo = FONDO[mo];   /* LP7: también a media distancia (≤ 30 llamadas con el campo lleno) */ const t = tr[mo][n], i = t.sig(); if (i < 0) continue; usados[n]++;
       const y = H(f.x, f.z); P3.set(f.x, y, f.z); QT.setFromAxisAngle(Y, f.yaw); E3.set(f.talla, f.talla, f.talla); M4.compose(P3, QT, E3);
-      const v4 = var4(f.semilla), mu = t.muestra(f.clip, f.t); t.matriz(i, M4.elements); t.vars(i, v4); t.pose(i, f.clip, f.t, mu); if (f.gesto) f.gesto(t, i, n); else gestoEspada(f, t, i);   /* FU3c: la formación (falange) cambia las filas de huesos de los hombres de cerca: sarisa bajada con las manos en el asta */
+      const v4 = var4(f.semilla), mu = t.muestra(f.clip, f.t); t.matriz(i, M4.elements); t.vars(i, v4); t.pose(i, f.clip, f.t, mu); if (f.gesto) f.gesto(t, i, n); else gestoEspada(f, t, i, !!ar[ARMAS[mo]]);   /* FU3c: la formación (falange) cambia las filas de huesos de los hombres de cerca: sarisa bajada con las manos en el asta */
       const pa = ar[ARMAS[mo]]; if (pa) { const ta = pa[n], ia = ta.sig(); if (ia >= 0) { ta.matriz(ia, M4.elements); ta.vars(ia, v4); ta.pose(ia, f.clip, f.t, ta.muestra(f.clip, f.t)); if (!f.gesto) gestoEspada(f, ta, ia); } }
       if (sombras && ns < 2400 && f.clip !== 'morir') { P3.y = y + 0.04; E3.set(1, 1, 1); QT.identity(); M4.compose(P3, QT, E3); sombras.setMatrixAt(ns++, M4); }
     }

@@ -14,7 +14,7 @@
  "vivo-cerca-v": {
   "dibujo": {
    "llamadas": 28,
-   "tri": 674757
+   "tri": 678922
   }
  },
  "vivo-v": {
@@ -36,7 +36,7 @@
  "vivo-cerca-h": {
   "dibujo": {
    "llamadas": 27,
-   "tri": 668663
+   "tri": 668651
   }
  },
  "vivo-h": {
@@ -62,7 +62,7 @@
  "asculo-v": {
   "dibujo": {
    "llamadas": 28,
-   "tri": 652282
+   "tri": 647026
   },
   "errores": 0,
   "ej": []
@@ -70,7 +70,7 @@
  "asculo-h": {
   "dibujo": {
    "llamadas": 28,
-   "tri": 623324
+   "tri": 621074
   },
   "errores": 0,
   "ej": []

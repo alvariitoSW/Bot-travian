@@ -159,7 +159,8 @@ const suave = x => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 
    (soldados.js paraFalange) como una caja fina: centro, eje a lo ancho (u), medio ancho, medio alto y medio grueso. Solo dibujo */
 const CUERPO_FAL = [[0, 0.12, 0, 0, 0.9, 0, 0.2], [0, 0.9, 0, 0, 1.36, 0, 0.21], [0.18, 1.36, 0, -0.18, 1.36, 0, 0.11], [0, 1.42, 0.04, 0, 1.6, 0.03, 0.13]];
 const ESCUDO_FAL = { c: [0.205, 1.25, 0.17], n: [-0.64, 0, 0.77], R: 0.29, g: 0.03 };   /* el disco: centro, normal, radio y medio grueso */
-const R_ASTA = 0.02, HOLGURA = 0.01;
+const R_ASTA = 0.02, HOLGURA = 0.03;
+const PUNTA_RIVAL = 0.45;   /* el último tramo del asta que puede tocar al rival (golpe, no cruce): el mismo margen que la medida (fisica.js MARGEN.puntaRival) */
 /* desvíos que se prueban (giro sobre la mano: de lado, arriba/abajo), del más pequeño al más grande */
 const DESVIOS = (() => { const o = [[0, 0]]; for (const a of [0.015, 0.03, 0.05, 0.08, 0.11, 0.15]) for (const p of [0, 0.02, -0.02, 0.04]) for (const sg of [1, -1]) o.push([a * sg, p]); for (const p of [0.02, 0.04, 0.06, -0.02]) o.push([0, p]);
   return o.sort((x, y) => Math.hypot(x[0], x[1] * 1.4) - Math.hypot(y[0], y[1] * 1.4)); })();
@@ -176,6 +177,7 @@ function tocaCompanero(P, D, L, c) {
   const p = [rx * c.co - rz * c.se, ry, rx * c.se + rz * c.co], d = [D[0] * c.co - D[2] * c.se, D[1], D[0] * c.se + D[2] * c.co];
   for (let q = 0; q < CUERPO_FAL.length; q++) { const k = CUERPO_FAL[q]; if (dSS(p, d, Lm, [k[0], k[1], k[2]], [k[3], k[4], k[5]]) < k[6] + R_ASTA + HOLGURA) return 'c' + q; }
   for (let q = 0; q < c.brazos.length; q++) { const k = c.brazos[q]; if (dSS(p, d, Lm, [k[0], k[1], k[2]], [k[3], k[4], k[5]]) < k[6] + R_ASTA + HOLGURA) return 'b' + q; }
+  if (c.rival) return false;   /* al rival se le mira solo el cuerpo */
   /* el escudo (un disco): el tramo del asta dentro de su grosor (agrandado por el del asta) y, en él, lo más cerca de su eje */
   const E = ESCUDO_FAL, o = [p[0] - E.c[0], p[1] - E.c[1], p[2] - E.c[2]], on = o[0] * E.n[0] + o[1] * E.n[1] + o[2] * E.n[2], dn = d[0] * E.n[0] + d[1] * E.n[1] + d[2] * E.n[2], m = E.g + R_ASTA + HOLGURA;
   let t0 = 0, t1 = Lm;
@@ -203,22 +205,34 @@ export function crearSarisas(T, escena, n) {
   return { V, sar, mun, desvios: new WeakMap(), rotas: new WeakMap(), quita() { escena.remove(sar); escena.remove(mun); } };
 }
 export function pintaSarisas(M, lista, o) {
-  const { V, sar, mun, desvios, rotas } = M, { H, Tm, estoca = 0, FI = null, forma = null } = o; let ns = 0, nm = 0;
+  const { V, sar, mun, desvios, rotas } = M, { H, Tm, estoca = 0, FI = null, forma = null, rivales = null, caidos = null } = o; let ns = 0, nm = 0;
   /* BT1: los compañeros que se pintan (para apartar las astas): posición, giro, talla y sus brazos según su sarisa (bajada: en su carril) */
   const comp = [], rejilla = new Map(), cel = (x, z) => Math.floor(x / 2) + ',' + Math.floor(z / 2);
   if (!SIN_APARTAR) for (const it of lista) {
-    const h = it.h, f = it.f; if (!f || h.vivo === false) continue;
+    const h = it.h, f = it.f; if (!f) continue;
     const kb = h.huye || h.r >= BAJAN ? 0 : it.kB, cr = CARRIL(h.r), hx = -(0.2 + (cr.x - 0.2) * kb), hy = 1.05 + (cr.y - 1.05) * kb;
     const c = { h, x: f.x, y: H(f.x, f.z), z: f.z, co: Math.cos(f.yaw), se: Math.sin(f.yaw), t: f.talla || 1,
       brazos: [[-0.17, 1.36, 0, hx + 0.05, hy - 0.14, -0.19 * kb + 0.1 * (1 - kb), 0.06], [hx + 0.05, hy - 0.14, -0.19 * kb + 0.1 * (1 - kb), hx - 0.04, hy + 0.06, -0.21 * kb + 0.15 * (1 - kb), 0.05],
         [0.15, 1.34, 0, hx + 0.03, hy - 0.01, 0.3, 0.05]] };
     comp.push(c); const k = cel(c.x, c.z); (rejilla.get(k) || rejilla.set(k, []).get(k)).push(c);
   }
+  /* los caídos: tendidos de espaldas (los pies 0,3 m delante del sitio, la cabeza 1,25 detrás), una cápsula baja; el asta (y su regatón) no los cruza */
+  if (!SIN_APARTAR && caidos) for (const f of caidos) {
+    if (f.t < 2.4) { const c = { h: null, x: f.x, y: H(f.x, f.z), z: f.z, co: Math.cos(f.yaw), se: Math.sin(f.yaw), t: f.talla || 1, brazos: [] }; const k = cel(c.x, c.z); (rejilla.get(k) || rejilla.set(k, []).get(k)).push(c); }   /* aún cayendo: como uno de pie */
+    const y = f.yaw, sx = Math.sin(y), sz = Math.cos(y), g = H(f.x, f.z) + 0.16;
+    const c = { h: null, caido: true, x: f.x, z: f.z, a: [f.x + sx * 1.4, g, f.z + sz * 1.4], b: [f.x - sx * 1.4, g, f.z - sz * 1.4], r: 0.3 };   /* con holgura: brazos y piernas abiertos, y hacia los dos lados (no todos los muñecos caen de espaldas) */ const k = cel(c.x, c.z); (rejilla.get(k) || rejilla.set(k, []).get(k)).push(c); }
+  /* los rivales (Ásculo): el asta puede llegarles con la punta, nunca pasarles por dentro (se mira sin los últimos PUNTA_RIVAL m) */
+  if (!SIN_APARTAR && rivales) for (const f of rivales) { const c = { h: null, rival: true, x: f.x, y: H(f.x, f.z), z: f.z, co: Math.cos(f.yaw), se: Math.sin(f.yaw), t: f.talla || 1, brazos: [] }; const k = cel(c.x, c.z); (rejilla.get(k) || rejilla.set(k, []).get(k)).push(c); }
   const cerca = (P, Q) => { const o = []; for (let x = Math.floor(Math.min(P[0], Q[0]) / 2) - 1; x <= Math.floor(Math.max(P[0], Q[0]) / 2) + 1; x++) for (let z = Math.floor(Math.min(P[2], Q[2]) / 2) - 1; z <= Math.floor(Math.max(P[2], Q[2]) / 2) + 1; z++) { const l = rejilla.get(x + ',' + z); if (l) o.push(...l); } return o; };
   const Pa = [0, 0, 0], Da = [0, 0, 0], Qa = [0, 0, 0];
+  const toca = (P, D, c) => c.caido ? dSS(P, D, SARISA, c.a, c.b) < c.r + R_ASTA + HOLGURA : tocaCompanero(P, D, c.rival ? SARISA - PUNTA_RIVAL : SARISA, c);
   for (const it of lista) {
     if (!it.pinta) continue; const h = it.h, f = it.f;
-    const primera = h.r === 0, kB = h.huye ? 0 : it.kB, al = alzada(h.f, h.r, h.kA ?? abanicoObj(h.r, 0)), pb = bajada(h.r), giro = f.yaw - Math.PI;
+    /* BT1: si no hay paso limpio para el asta bajada, se queda ALZADA (en abanico, como las filas de atrás) 1,5 s y luego lo vuelve a probar */
+    if (h.alzaBT1 !== undefined && !(Tm < h.alzaBT1)) h.alzaBT1 = undefined;
+    let atras = 0, kB = 0;
+    const coloca = (kb, corto) => {
+    const primera = h.r === 0; kB = h.huye ? 0 : kb; const al = alzada(h.f, h.r, h.kA ?? abanicoObj(h.r, 0)), pb = bajada(h.r), giro = f.yaw - Math.PI;
     V.DA.set(Math.sin(al.lado), Math.cos(al.delante), -Math.sin(al.delante)).normalize(); V.DB.set(0, Math.sin(pb), -Math.cos(pb));
     V.D.copy(V.DA).lerp(V.DB, kB).normalize().applyAxisAngle(V.Y, giro);
     /* la mano: junto al cuerpo con la pica alzada; en el carril de su fila con la pica bajada (marco del hombre: derecha +x, frente −z) */
@@ -227,9 +241,14 @@ export function pintaSarisas(M, lista, o) {
     /* BT1: cuánto asta queda detrás de la mano. Bajada, AGARRE (el contrapeso); alzada, el regatón se apoya en el suelo (no lo atraviesa ni llega
        a los pies del de detrás); al bajarla o alzarla, el asta corre entre las manos y el regatón se queda junto a su hombre (al girar sobre la
        mano barría el cuerpo del de detrás). Solo dibujo: la punta de las reglas (bajada) no cambia */
-    let atras = AGARRE - (primera ? 0.6 * estoca : 0);
+    atras = AGARRE - (primera ? 0.6 * estoca : 0);
     if (!SIN_APARTAR) { const ymano = V.Mn.y; if (V.D.y > 0.05) atras = Math.min(atras, (ymano - 0.06) / V.D.y); if (kB > 0.02 && kB < 0.98) atras = Math.min(atras, AGARRE * (1 - 0.72 * Math.sin(Math.PI * kB))); atras = Math.max(0.35, atras); }
+    if (corto) atras = Math.min(atras, 0.45);   /* alzada y corta por detrás: el regatón en alto, sin tocar al caído del suelo */
     V.P.set(f.x + V.Mn.x, H(f.x, f.z) + V.Mn.y, f.z + V.Mn.z).addScaledVector(V.D, -atras);
+    };
+    /* alzada junto a un caído, el regatón en alto (apoyado en el suelo caería sobre él) */
+    const caidoCerca = !SIN_APARTAR && caidos && cerca([f.x, 0, f.z], [f.x, 0, f.z]).some(c => c.caido && Math.hypot(c.x - f.x, c.z - f.z) < 2.2);
+    coloca(h.alzaBT1 !== undefined ? 0 : it.kB, caidoCerca && (h.alzaBT1 !== undefined || it.kB < 0.5)); const primera = h.r === 0, giro = f.yaw - Math.PI;
     if (h.picaRota) {
       /* FU3b: el muñón se suelta y cae junto al hombre, inclinado, apoyado en el suelo (0,45 s) */
       let r = rotas.get(h); if (!r) { r = { t0: Tm, P: V.P.clone(), D: V.D.clone() }; rotas.set(h, r); }
@@ -242,21 +261,29 @@ export function pintaSarisas(M, lista, o) {
     }
     if (!h.picaRota && !SIN_APARTAR) {
       /* BT1: si el asta tocaría a un compañero, gira un poco sobre la mano (de lado o arriba) hasta que pasa limpia; se queda con el último desvío que valía */
-      const W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras];
+      let W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras];
       Pa[0] = V.P.x; Pa[1] = V.P.y; Pa[2] = V.P.z; Qa[0] = V.P.x + V.D.x * SARISA; Qa[1] = V.P.y + V.D.y * SARISA; Qa[2] = V.P.z + V.D.z * SARISA;
       const vecinos = cerca(Pa, Qa).filter(c => c.h !== h), libre = (dy, dp) => {
         const cy = Math.cos(dy), sy = Math.sin(dy), x = V.D.x * cy + V.D.z * sy, z = -V.D.x * sy + V.D.z * cy, hz = Math.hypot(x, z) || 1, yy = V.D.y * Math.cos(dp) + hz * Math.sin(dp), hz2 = hz * Math.cos(dp) - V.D.y * Math.sin(dp);
         Da[0] = x / hz * hz2; Da[1] = yy; Da[2] = z / hz * hz2; const nd = Math.hypot(Da[0], Da[1], Da[2]); Da[0] /= nd; Da[1] /= nd; Da[2] /= nd;
         Pa[0] = W[0] - Da[0] * atras; Pa[1] = W[1] - Da[1] * atras; Pa[2] = W[2] - Da[2] * atras;
-        let n = 0; for (const c of vecinos) if (tocaCompanero(Pa, Da, SARISA, c) && ++n > peor) return false; return n === 0; };
+        let n = 0; for (const c of vecinos) if (toca(Pa, Da, c) && ++n > peor) return false; return n === 0; };
       let peor = 0;   /* con todos tocando, se queda el desvío que toca a menos */
       let d0 = desvios.get(h) || DESVIOS[0], hecho = vecinos.length === 0 || libre(d0[0], d0[1]);
       if (!hecho && d0 !== DESVIOS[0]) { d0 = DESVIOS[0]; hecho = libre(0, 0); }
       if (!hecho) for (const d of DESVIOS) if (libre(d[0], d[1])) { d0 = d; hecho = true; break; }
-      if (!hecho) { let mejor = Infinity; peor = 99; for (const d of DESVIOS) { libre(d[0], d[1]); const n = vecinos.reduce((a, c) => a + (tocaCompanero(Pa, Da, SARISA, c) ? 1 : 0), 0); if (n < mejor) { mejor = n; d0 = d; } } peor = 0; }
+      if (!hecho && kB > 0.05) { h.alzaBT1 = Tm + 1.5; coloca(0); W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras]; d0 = DESVIOS[0]; hecho = libre(0, 0); }   /* sin paso limpio: alzada */
+      if (!hecho) { coloca(0, true); W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras]; d0 = DESVIOS[0]; hecho = true; h.alzaBT1 = Math.max(h.alzaBT1 || 0, Tm + 1.5); }   /* y si aún toca (un caído a sus pies): alzada con el regatón en alto */
+      if (!hecho) { let mejor = Infinity; peor = 99; for (const d of DESVIOS) { libre(d[0], d[1]); const n = vecinos.reduce((a, c) => a + (toca(Pa, Da, c) ? 1 : 0), 0); if (n < mejor) { mejor = n; d0 = d; } } peor = 0; }
       desvios.set(h, d0); if (forma) forma.desviadas = (forma.desviadas || 0) + (d0 !== DESVIOS[0] ? 1 : 0) + (hecho ? 0 : 1000); if (d0 !== DESVIOS[0]) { libre(d0[0], d0[1]); V.D.set(Da[0], Da[1], Da[2]); V.P.set(Pa[0], Pa[1], Pa[2]); }
     }
-    if (!h.picaRota && FI) { const r = FI.pica(h, V.P, V.D, SARISA); if (r && r.ret) V.P.addScaledVector(V.D, -r.ret); }   /* FU4: la punta se para en el cuerpo o el escudo que toca (js/fisica-batalla.js) */
+    if (!h.picaRota && FI && h.alzaBT1 === undefined) { const r = FI.pica(h, V.P, V.D, SARISA); if (r && r.ret) V.P.addScaledVector(V.D, -r.ret); }
+    /* BT1: si la punta se para en un rival que no recula (un jinete, un elefante), el asta resbala hacia atrás entre las manos; si así el regatón
+       entraría en un compañero de detrás, se alza (en abanico) en vez de atravesarlo */
+    if (!h.picaRota && FI && !SIN_APARTAR && h.alzaBT1 === undefined) {
+      Pa[0] = V.P.x; Pa[1] = V.P.y; Pa[2] = V.P.z; Da[0] = V.D.x; Da[1] = V.D.y; Da[2] = V.D.z; Qa[0] = V.P.x + V.D.x * SARISA; Qa[1] = V.P.y + V.D.y * SARISA; Qa[2] = V.P.z + V.D.z * SARISA;
+      if (cerca(Pa, Qa).some(c => c.h !== h && !c.rival && toca(Pa, Da, c))) { h.alzaBT1 = Tm + 1.5; coloca(0, true); }
+    }   /* FU4: la punta se para en el cuerpo o el escudo que toca (js/fisica-batalla.js) */
     if (forma && forma.mide && !h.picaRota && kB > 0.5) forma.picas.push({ h, P: V.P.toArray(), D: V.D.toArray(), L: SARISA });
     V.Q.setFromUnitVectors(V.Z1, V.D); V.M.compose(V.P, V.Q, h.picaRota ? V.Em : V.E);
     if (h.picaRota) { mun.userData.asta.duenos[nm] = f; mun.setMatrixAt(nm++, V.M); } else { sar.userData.asta.duenos[ns] = f; sar.setMatrixAt(ns++, V.M); }
@@ -317,15 +344,15 @@ export function crear() {
       if (forma.mide) forma.picas = [];
       forma.desviadas = 0;   /* BT1: cuántas astas van desviadas (y ×1000 las que no encuentran paso limpio) */
       const lista = [];
-      for (const h of F.fal) { const f = figs.get(h); if (!f || !h.vivo) continue;
+      for (const h of F.fal) { const f = figs.get(h); if (!f) continue; if (!h.vivo) { lista.push({ h, f, kB: 0, pinta: false }); continue; }   /* BT1: el que acaba de caer (aún en pie en el dibujo) también estorba */
         const oculta = h === yo || (V.camP && F.yo && h === F.fal[F.yo.i] && !h.picaRota && Math.hypot(V.camP.x - f.x, V.camP.z - f.z) < 1.7 && V.camP.y < 3.4);   /* FU4 y FU3c: en la vista del oficial su propia sarisa no se pinta (salía como una tabla ante la cámara) */
         lista.push({ h, f, kB: h.huye ? 0 : kBde(h, primera0(h)), pinta: !oculta }); }
-      pintaSarisas(MS, lista, { H, Tm, estoca, FI, forma });
+      pintaSarisas(MS, lista, { H, Tm, estoca, FI, forma, caidos: ctx.TR.caidos });
       /* FU3b: los brazos siguen a la pica (la figura no tiene hueso accesible desde aquí): con la sarisa bajada, la guardia con el arma al frente; con la 1.ª fila
          estocando (bajadas), el golpe; alzada, en reposo. Marchando se deja su andar */
       for (const [h, f] of figs) {
         if (!f.gesto) f.gesto = hazGesto(f, h);
-        f.gk = h.picaRota || h.r >= BAJAN ? 0 : kBde(h, primera0(h)); f.gg = h.r === 0 ? estoca : 0;
+        f.gk = h.picaRota || h.r >= BAJAN || h.alzaBT1 !== undefined ? 0 : kBde(h, primera0(h)); f.gg = h.r === 0 ? estoca : 0;
         if (!h.vivo || h.huye || f.clip === 'morir' || f.v > 0.3) continue;
         if (h.r === 0 && uB >= 0 && uB < 1) { f.clip = 'golpear'; f.t = uB * 1.3; }
         else if (h.r < BAJAN && (h.kB || 0) > 0.5) { if (f.clip !== 'guardia') { f.clip = 'guardia'; f.t = hashH(h) * 3; } }

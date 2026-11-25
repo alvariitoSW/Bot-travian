@@ -207,8 +207,6 @@ if (hayCont) {
   await page.waitForFunction('window.__mn && window.__mn.lista === true && !window.__mn.cerrado', null, { timeout: 180000 }); await esp(1200);
   const despues = await page.evaluate(() => { const S = window.__mn.S; return { t: S.t, n: S.man.map(u => Math.round(u.n)).join(','), fin: S.fase === 'fin' }; });
   bien(!despues.fin && Math.abs(despues.t - antes.t) < 0.6 && despues.n === antes.n, 'la batalla sigue donde iba (segundo ' + Math.round(despues.t) + ', los mismos hombres en pie)');
-  /* BT1: la foto, cuando ya se ha pintado al menos un cuadro (con el render por software y otros navegadores a la vez, el primero tarda) */
-  await page.waitForFunction(() => { const e = window.__mn.estado(); return e.llamadas > 0 && e.tri > 0; }, null, { timeout: 90000 }).catch(() => {});
   await foto('R1-retomada');
   /* BT1 (pase del vigía, de JG2): al retomar, el campo se pinta (antes salió en negro en dos pasadas). Color medio de la franja del medio */
   { const png = (await page.screenshot({ type: 'png' })).toString('base64');

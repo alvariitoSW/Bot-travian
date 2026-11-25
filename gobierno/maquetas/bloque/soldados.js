@@ -140,13 +140,21 @@ export function kitGestos(t, carril = CARRIL_0) {
    (dentro de su propio ancho) con la punta hacia el rival, y el golpe es el tajo de la tabla (al frente). La mano izquierda, con el escudo, al
    pecho. Solo el dibujo: cuándo golpea lo deciden las reglas (el clip de tropas.js). */
 const CON_ESPADA = { guardia: 1, golpear: 1, encajar: 1 }, DUR_GOLPE = 1.55;
-export function gestoEspada(f, t, i) {
-  if (!CON_ESPADA[f.clip]) return;   /* en testudo, la 1.ª fila (el muro) va en guardia: también; los de debajo del techo, «cubrirse», no */
-  const pz = t.s.j.piezas; if (!pz || !pz.espada_hoja) return;
+/* BT1: en la lucha (su bloque trabado), el que espera quieto con la lanza la deja y está en guardia con la espada: la lanza del modelo va
+   cruzada por delante del cuerpo, con el regatón a 1 m a su derecha, y entraba en el vecino y en los caídos del suelo. Licencia de juego */
+const trabado = f => !!(f.b && ((f.b.contactos && f.b.contactos.length) || f.b.estado === 'choque'));
+export function gestoEspada(f, t, i, prestadas = false) {   /* prestadas: el cuerpo de un soldado que toma las armas de otro (soldados.js ARMAS): se le mueve igual */
+  const pz = t.s.j.piezas; if (!prestadas && (!pz || !pz.espada_hoja)) return;
+  let clip = f.clip;
+  if ((clip === 'quieto' || clip === 'andar') && trabado(f) && (prestadas || pz.lanza_asta || pz.pilum_asta)) {
+    if (clip === 'quieto') clip = 'guardia';
+    if (!prestadas) { const mu = t.malla.geometry.attributes.aMuestra; mu.setX(i, clip === 'guardia' ? 2 : 4); mu.needsUpdate = true; }   /* andando, la espada envainada y sin lanza */
+  }
+  if (!CON_ESPADA[clip]) return;   /* en testudo, la 1.ª fila (el muro) va en guardia: también; los de debajo del techo, «cubrirse», no */
   const k = kitGestos(t); if (!k) return;
   const tb = k.tab, cu = t.malla.geometry.attributes.aCuadro, fps = (t.s.j.clips.quieto || {}).fps || 30;
   let a, b, x;
-  if (f.clip === 'golpear') { x = Math.min(1, Math.max(0, f.t / DUR_GOLPE)) * (CJ.tajo - 1); a = Math.floor(x); b = Math.min(a + 1, CJ.tajo - 1); a += tb.F_TAJO; b += tb.F_TAJO; }
+  if (clip === 'golpear') { x = Math.min(1, Math.max(0, f.t / DUR_GOLPE)) * (CJ.tajo - 1); a = Math.floor(x); b = Math.min(a + 1, CJ.tajo - 1); a += tb.F_TAJO; b += tb.F_TAJO; }
   else { x = (f.t * fps) % (CJ.guardia - 1); a = Math.floor(x); b = a + 1; a += tb.F_GUARD; b += tb.F_GUARD; }
   cu.setXYZ(i, a, b, x - Math.floor(x)); cu.needsUpdate = true;
 }

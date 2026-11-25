@@ -35,10 +35,11 @@ export function crear() {
       lista.push({ h, f, kB: h.kB, pinta: true });
       /* los brazos, como en la falange: en las cinco primeras filas, con la sarisa bajada y quietos, en guardia y con las manos en el asta */
       if (!f.gesto) f.gesto = gestoSarisa(f, h, () => S.T);
-      f.gk = h.r < 5 && h.vivo && !h.huye ? h.kB : 0; f.gg = 0;
+      f.gk = h.r < 5 && h.vivo && !h.huye && h.alzaBT1 === undefined ? h.kB : 0; f.gg = 0;
       if (h.vivo && !h.huye && h.r < 5 && h.kB > 0.5 && !(f.v > 0.3) && f.clip !== 'morir' && f.clip !== 'guardia') { f.clip = 'guardia'; f.t = (h.i % 97) * 0.03; }
     }
-    pintaSarisas(MS, lista, { H: ctx.H, Tm: S.T });
+    const bandos = new Set([...baja.keys()].map(b => b.bando)), rivales = ctx.TR.figs.filter(f => f.vivo !== false && f.b && !bandos.has(f.b.bando));   /* el asta no pasa por dentro de un rival */
+    pintaSarisas(MS, lista, { H: ctx.H, Tm: S.T, rivales, caidos: ctx.TR.caidos });
   }
   function monta(c) {
     ctx = c; const { THREE } = c;

@@ -803,6 +803,10 @@
         const [CI, ES] = await Promise.all([import('./gfx/cine-mando.js').catch(() => null), import('./gfx/estandartes.js').catch(() => null)]);   /* CG8a: cámara de cine y estandartes */
         if (cerrado) { entorno.soltar(); soltarSoldados(); return; }
         preparar(); camaraInicial(); colocar(0, true);
+        /* BT1: los sombreadores del campo, la luz y las figuras se compilan con el velo de carga aún puesto; si no, al retomar una batalla
+           guardada el primer cuadro tardaba segundos y el campo se veía negro (pase del vigía, de JG2) */
+        try { if (renderer.compileAsync) await renderer.compileAsync(escena, camara); } catch (e) { /* sin compilar antes: el primer cuadro tarda más */ }
+        if (cerrado) { entorno.soltar(); soltarSoldados(); return; }
         if (ES) estandartes = crearEst(ES);
         if (CI) { cine = CI.crearCine({ THREE, camara, cam, ponCamara, S }); cine.apertura(); }
         if (FIS) FF = FIS.crearFisicaFiguras({ escala: altoN * TALLA / 1.78 });   /* FI4: radios y escudos a la medida de la figura (TALLA) */
