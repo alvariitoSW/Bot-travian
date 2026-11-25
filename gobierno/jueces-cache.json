@@ -310,59 +310,59 @@
   "fecha": "2026-11-25T12:41:46.178Z"
  },
  "area:test/ciudad.test.mjs": {
-  "huella": "9d9d59053042927a",
+  "huella": "25a774031db1afc5",
   "ok": true,
-  "fecha": "2026-11-25T15:37:12.201Z"
+  "fecha": "2026-11-25T16:26:43.658Z"
  },
  "area:test/senado.test.js": {
-  "huella": "88e5c96288695fe7",
+  "huella": "9e15ee547276aa2e",
   "ok": true,
-  "fecha": "2026-11-25T15:37:22.683Z"
+  "fecha": "2026-11-25T16:26:56.524Z"
  },
  "area:test/saber.test.mjs": {
-  "huella": "08656c3049067cd2",
+  "huella": "c89f56c148ac41fa",
   "ok": true,
-  "fecha": "2026-11-25T15:37:41.493Z"
+  "fecha": "2026-11-25T16:27:18.895Z"
  },
  "area:test/diplomacia.test.mjs": {
-  "huella": "c53485445fa7e63d",
+  "huella": "6410b1306a9d356d",
   "ok": true,
-  "fecha": "2026-11-25T15:37:47.184Z"
+  "fecha": "2026-11-25T16:27:26.097Z"
  },
  "area:test/encargos.test.mjs": {
-  "huella": "c1455e59f20d826e",
+  "huella": "fc56fc3b1f32f751",
   "ok": true,
-  "fecha": "2026-11-25T15:37:51.091Z"
+  "fecha": "2026-11-25T16:27:30.567Z"
  },
  "area:test/caminos.test.mjs": {
-  "huella": "397813711105a3ee",
+  "huella": "55ccbe05c33346b3",
   "ok": true,
-  "fecha": "2026-11-25T15:37:51.171Z"
+  "fecha": "2026-11-25T16:27:30.640Z"
  },
  "area:test/este-ano.test.mjs": {
-  "huella": "0f9e2d0df0a81a53",
+  "huella": "8f267b6b4571e2df",
   "ok": true,
-  "fecha": "2026-11-25T14:18:32.496Z"
+  "fecha": "2026-11-25T16:27:30.683Z"
  },
  "area:test/gobernador.test.mjs": {
-  "huella": "d92017d03f11517d",
+  "huella": "d333015045b16539",
   "ok": true,
-  "fecha": "2026-11-25T15:37:51.231Z"
+  "fecha": "2026-11-25T16:27:30.740Z"
  },
  "area:test/calles.test.mjs": {
-  "huella": "a44f27476c5a111c",
+  "huella": "857d660e7f79bd87",
   "ok": true,
-  "fecha": "2026-11-25T14:18:35.428Z"
+  "fecha": "2026-11-25T16:27:33.782Z"
  },
  "navegador-cerebro": {
-  "huella": "042b5f6a12eb0975",
+  "huella": "9a7425ab539bc608",
   "ok": true,
-  "fecha": "2026-11-25T15:38:51.697Z"
+  "fecha": "2026-11-25T16:29:03.415Z"
  },
  "area:gobierno/jueces.mjs --area cerebro": {
-  "huella": "b0f14f81508e8773",
+  "huella": "b8aded4e7ff365f8",
   "ok": true,
-  "fecha": "2026-11-25T15:38:51.709Z"
+  "fecha": "2026-11-25T16:29:03.430Z"
  },
  "sim-liga": {
   "huella": "abc9da41782883d4",
@@ -388,5 +388,10 @@
   "huella": "d8d3fc1fa01289d2",
   "ok": true,
   "fecha": "2026-11-25T16:15:46.182Z"
+ },
+ "area:test/comarca.test.mjs": {
+  "huella": "376498e0ef4b57a6",
+  "ok": true,
+  "fecha": "2026-11-25T16:27:53.039Z"
  }
 }
