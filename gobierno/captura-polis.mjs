@@ -29,7 +29,7 @@ await sesion(390, 844, async page => {
   await page.click('#menu .pn-carta [data-pn="nueva"]'); await page.waitForTimeout(400);
   await foto(page, 'PN2-v-eleccion'); console.log('rejilla', JSON.stringify(await desborda(page)));
   await page.evaluate(() => { document.getElementById('menu').scrollTop = 700; }); await page.waitForTimeout(200); await foto(page, 'PN2-v-eleccion-2');
-  for (const id of ['atenas', 'esparta']) {
+  for (const id of ['atenas', 'esparta', 'corinto', 'argos', 'tebas', 'megara', 'mileto', 'calcis']) {
     await page.evaluate(() => { document.getElementById('menu').scrollTop = 0; });
     await page.click('#menu [data-pnpolis="' + id + '"]'); await page.waitForTimeout(400); await foto(page, 'PN2-v-ficha-' + id); console.log('ficha', id, JSON.stringify(await desborda(page)));
     if (id === 'atenas') { await page.evaluate(() => { document.getElementById('menu').scrollTop = 99999; }); await page.waitForTimeout(200); await foto(page, 'PN2-v-ficha-atenas-2'); }

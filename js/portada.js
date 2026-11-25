@@ -56,11 +56,12 @@
   function fichaPolis(hay) {
     var D = window.DATA, p = D && D.POLIS[polisSel]; if (!p) { vista = 'nueva'; return cartaPropia(hay); }
     var R = window.REGISTRO, fi = R && R.fichas && R.fichas.polis && R.fichas.polis[polisSel], hi = fi && fi.historia, E = D.BUILD[p.edificio.id], T = D.UNITS[p.tropa.id];
-    var lam = window.LAMINAS && window.LAMINAS.edif(p.edificio.id);
+    var lam = window.LAMINAS && window.LAMINAS.edif(p.edificio.id), retr = window.PORTADA_RETRATO ? window.PORTADA_RETRATO(p.tropa.id) : '';
     var lic = '<span class="pn-lic">licencia de juego</span>';
     return '<div class="mct"><p class="ro-rubrica">Tu polis</p><button class="mvolver" data-pn="nueva">Volver</button></div>' +
       '<div class="pn-cab">' + sello(p) + '<div><p class="pn-nom">' + esc(p.n) + '</p><p class="pn-lema">' + esc(p.lema) + '</p></div></div>' +
-      (lam ? '<figure class="pn-fig"><img src="' + lam + '" alt="" loading="lazy"><figcaption>' + esc(p.edificio.n) + ' · ' + (window.LAMINAS_PIE || 'Render de 0 A.D. · CC BY-SA 3.0') + '</figcaption></figure>' : '') +
+      '<div class="pn-imgs">' + (lam ? '<figure class="pn-fig"><img src="' + lam + '" alt="" loading="lazy"><figcaption>' + esc(p.edificio.n) + ' · Render de 0 A.D. · CC BY-SA 3.0</figcaption></figure>' : '') +
+      (retr ? '<figure class="pn-ret"><img src="' + retr + '" alt=""><figcaption>' + esc(p.tropa.n) + '</figcaption></figure>' : '') + '</div>' +
       '<dl class="pn-ds">' +
       '<dt>Rasgo ' + lic + '</dt><dd><b>' + esc(p.rasgo.n) + '.</b> ' + esc(p.rasgo.d) + '</dd>' +
       '<dt>Edificio propio ' + lic + '</dt><dd><b>' + esc(p.edificio.n) + '.</b> ' + esc(p.edificio.d) + ' Empieza un nivel más alto (' + esc(E ? E.n : p.edificio.id) + ').</dd>' +
@@ -89,6 +90,7 @@
     var carta = m.querySelector('section.mcarta:not(.pn-carta)'), lista = m.querySelector('nav.mlista');
     if (!carta || !lista) return;
     // hay partida guardada si ui.js ofrece «Continuar» o el «Volver» de la nueva campaña (solo lo pone con partida)
+    var sub = m.querySelector('.mtop .sub'); if (sub) { var tx = (vista === 'nueva' || vista === 'polis') ? 'Grecia · elige tu polis' : 'El ascenso de Roma · 280–146 a.C.'; if (sub.textContent !== tx) sub.textContent = tx; }   // PN2
     var hay = !!m.querySelector('[data-act="continue"], .mnueva .mvolver[data-act="mpanel"]'), esNueva = carta.classList.contains('mnueva');
     if (vista === 'campana' && !esNueva) vista = 'inicio';
     if (vista !== 'campana' && esNueva && hay) vista = 'campana';   // ui.js sigue en su panel de nueva campaña

@@ -73,4 +73,8 @@ t('una partida vieja sin polis carga como Roma', () => {
   const a = nueva('argos'); G.save(); D.polis = null; assert.ok(G.load()); assert.strictEqual(G.state.polis, 'argos'); assert.strictEqual(D.CITIES.roma.n, 'Argos');
   delete globalThis.localStorage; nueva(null);
 });
+t('élite 2 estaciones; las griegas siguen la misma regla', () => {
+  nueva(null); const L = { triarii: 2, equites: 2, hastati: 1, hoplitas: 1, peltastas: 1, jinetes: 2 };
+  for (const k in L) assert.strictEqual(G.loteEstaciones(k), L[k], k);
+});
 console.log(mal ? '\n' + mal + ' fallos de ' + (n + mal) : '\nPOLIS: APTO (' + n + ' pruebas)'); process.exit(mal ? 1 : 0);

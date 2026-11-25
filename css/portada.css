@@ -116,9 +116,14 @@ body.portada #menu .pn-cab { display: flex; align-items: center; gap: 12px; marg
 body.portada #menu .pn-cab .pn-sello { width: 58px; height: 58px; font-size: 21px; }
 body.portada #menu .pn-nom { margin: 0; font: 700 24px/1.1 'Cinzel', Georgia, serif; letter-spacing: .05em; color: #2b1c0a; }
 body.portada #menu .pn-lema { margin: 2px 0 0; font: 400 14px/1.25 Georgia, 'Noto Serif', serif; color: #5a4220; }
-body.portada #menu .pn-fig { position: relative; margin: 0 0 8px; height: 112px; overflow: clip; border-radius: 5px; background: #d9cdb2; box-shadow: 0 0 0 1.5px #b8862b, 0 2px 4px rgba(0, 0, 0, .35); }
-body.portada #menu .pn-fig img { display: block; width: 100%; height: 100%; object-fit: cover; }
-body.portada #menu .pn-fig figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 8px; font: 400 11px/1.3 Georgia, serif; color: #f3e2b4; background: rgba(23, 17, 13, .72); }
+body.portada #menu .pn-imgs { display: flex; gap: 8px; margin: 0 0 8px; }
+body.portada #menu .pn-fig, body.portada #menu .pn-ret { position: relative; margin: 0; height: 150px; overflow: clip; border-radius: 5px; background: #e9dcb8; box-shadow: 0 0 0 1.5px #b8862b, 0 2px 4px rgba(0, 0, 0, .35); }
+body.portada #menu .pn-fig { flex: 1 1 0; min-width: 0; }
+body.portada #menu .pn-ret { flex: none; width: 34%; background: radial-gradient(circle at 50% 30%, #3a4a66, #141c2c); }
+body.portada #menu .pn-fig img { display: block; width: 100%; height: 100%; object-fit: contain; padding-bottom: 20px; box-sizing: border-box; }
+body.portada #menu .pn-ret img { display: block; width: 100%; height: 100%; object-fit: contain; padding-bottom: 22px; box-sizing: border-box; }
+body.portada #menu .pn-fig figcaption, body.portada #menu .pn-ret figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 6px; font: 400 11px/1.25 Georgia, serif; color: #f3e2b4; background: rgba(23, 17, 13, .78); }
+body.portada #menu .pn-ret figcaption { font-weight: 700; text-align: center; }
 body.portada #menu .pn-ds { margin: 0; display: grid; gap: 2px; font: 400 14px/1.35 Georgia, 'Noto Serif', serif; color: #3a2a12; }
 body.portada #menu .pn-ds dt { margin-top: 6px; font: 700 12px/1.2 'Cinzel', Georgia, serif; letter-spacing: .08em; text-transform: uppercase; color: #7a2414; }
 body.portada #menu .pn-ds dd { margin: 0; display: block; }
@@ -132,6 +137,6 @@ body.portada #menu .pn-volver { width: 100%; min-height: 48px; margin-top: 8px; 
   body.portada #menu .pn-rejilla { grid-template-columns: repeat(4, 1fr); gap: 6px; }
   body.portada #menu .pn-polis { min-height: 112px; padding: 6px 4px; } body.portada #menu .pn-polis small { font-size: 12px; }
   body.portada #menu .pn-sello { width: 38px; height: 38px; font-size: 14px; }
-  body.portada #menu .pn-fig { height: 80px; }
+  body.portada #menu .pn-fig, body.portada #menu .pn-ret { height: 110px; }
   body.portada #menu .pn-cab { margin: 2px 0 4px; }
 }
