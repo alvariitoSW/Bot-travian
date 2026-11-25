@@ -438,7 +438,7 @@ function casas(t) {
       const nbr = E.barrios && E.barrios[l.barrio], hh = hashXZ(l.x, l.z), tj = tinteK(l.tono * 0.8 + 0.1, l.teja, nbr ? nbr.nivel : undefined, l.arrabal, nbr && nbr.tejas, nbr ? CI.caracterBarrio(E, l.barrio) : undefined), ss = h.s * (u < 0 ? 0.001 : 0.8 + 0.2 * f);
       por[h.k].push({ m: matriz(l.x, suelo(l.x, l.z, 3.3 * h.s) - 0.1, l.z, giro, ss, ss * 0.85 * (0.15 + 0.85 * f), ss), muro: tj.muro, teja: [...tejaTono(hh, !!(nbr && nbr.tejas)), tj.teja[3]] }); continue; }
     const n1 = c.nivel === 1 && rs && !!E.urbe;      // UR1: en la Roma en pie, la casa de nivel I es una casa baja de teja, no una choza de paja en mitad del foro
-    if (c.nivel === 1 && !n1) { const tienda = c.desde === 0 && E.mesN < 8, i = tienda ? nt++ : nc++, e = tienda ? 0.82 + 0.3 * l.tono : 0.8 + 0.2 * l.tono; if (i < (tienda ? 40 : 220)) { const mm = matriz(l.x, suelo(l.x, l.z, 4) - 0.05, l.z, giro + (tienda ? l.tipo * 3 : Math.PI / 2 + (l.tipo - 0.5) * 0.5), e * sx, e * sy, e * sx), cc = _c.setScalar(0.8 + 0.34 * l.teja); for (const m of tienda ? [tiendaM] : chozaM) { m.setMatrixAt(i, mm); m.setColorAt(i, cc); } } continue; }
+    if (c.nivel === 1 && !n1) { const tienda = c.desde === 0 && E.mesN < 8, i = tienda ? nt++ : nc++, e = (tienda ? 0.82 + 0.3 * l.tono : 0.8 + 0.2 * l.tono) * (E.sinUrbe ? 1.3 : 1); if (i < (tienda ? 40 : 220)) { const mm = matriz(l.x, suelo(l.x, l.z, 4) - 0.05, l.z, giro + (tienda ? l.tipo * 3 : Math.PI / 2 + (l.tipo - 0.5) * 0.5), e * sx, e * sy, e * sx), cc = _c.setScalar(0.8 + 0.34 * l.teja); for (const m of tienda ? [tiendaM] : chozaM) { m.setMatrixAt(i, mm); m.setColorAt(i, cc); } } continue; }
     const nb = E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined;
     let k; if (fam === CASAS_C.roma) k = c.nivel === 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa' : 'casa_b');
     else { const n = fam.length, lo = Math.max(1, Math.round(n * 0.4)), a = c.nivel === 2 ? 0 : c.nivel === 3 ? Math.floor(n * 0.25) : n - Math.max(2, Math.round(n * 0.5)), b = c.nivel === 2 ? lo : c.nivel === 3 ? Math.min(n, a + Math.max(2, Math.round(n * 0.6))) : n; k = fam[a + Math.floor(l.tipo * (b - a)) % (b - a)]; }
@@ -938,7 +938,7 @@ export class CityView3D {
       const u = E && E.urbe, f = E && E.foro; let R = (u && u.RU ? Math.max(...u.RU) + 7 : 300), cx = f ? f.x : 0, cz = f ? f.z : -20;
       /* CV4a: se encuadra el contorno de la urbe (su centro y su radio de verdad), no un círculo alrededor del foro: junto al río la urbe queda descentrada y se veía pequeña */
       if (u && u.borde && u.borde.length) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const q of u.borde) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[1]); z1 = Math.max(z1, q[1]); } cx = (x0 + x1) / 2; cz = (z0 + z1) / 2; R = 7; for (const q of u.borde) R = Math.max(R, Math.hypot(q[0] - cx, q[1] - cz) + 7); }
-      const ald = !u && this.aldea(); if (ald) { cx = ald.cx; cz = ald.cz; R = ald.r * 2; }      // PN3b: la aldea ocupa la mitad del ancho (antes un tercio) para contar las casas a ojo
+      const ald = !u && this.aldea(); if (ald) { cx = ald.cx; cz = ald.cz; R = ald.r * 1.1; }      // PN3b3: la aldea (ágora, casas y edificios) llena el ancho para contar las casas a ojo
       const asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
       const tv = Math.tan(fov * Math.PI / 360), th = Math.min(tv, tv * asp);
       const dEnc = Math.min(4000, R * PLANO_MARGEN / th);
@@ -968,7 +968,7 @@ export class CityView3D {
         let k = 0, dm = 1e9; p.forEach((q, i) => { const dd = Math.hypot(q[0] - sx, q[1] - sz); if (dd < dm) { dm = dd; k = i; } }); const i0 = Math.max(0, k - 2), i1 = Math.min(p.length - 1, k + 2), a = p[i0], b = p[k]; cam.tx = b[0]; cam.tz = b[1]; cam.az = Math.atan2(-(p[i1][0] - a[0]), -(p[i1][1] - a[1])); } else { cam.tx = f ? f.x : 0; cam.tz = f ? f.z + 20 : 0; cam.az = 0.25; }
       cam.d = 70; cam.elF = 0.3; }
     else if (name === 'ejercito') { const g = this.guarn || (f ? { x: f.x, z: f.z + 46 } : { x: 0, z: 0 }); cam.tx = g.x; cam.tz = g.z; cam.d = 90; cam.az = 0.35; cam.elF = 0.3; }
-    else if (this.aldea()) { const A = this.aldea(); cam.tx = A.cx; cam.tz = A.cz; cam.az = 0; cam.d = Math.max(110, A.r * (vert ? 3.6 : 2.7)); }      // PN3b: la aldea de cerca, más cerca que antes (se cuentan las casas)
+    else if (this.aldea()) { const A = this.aldea(); cam.tx = A.cx; cam.tz = A.cz; cam.az = 0; cam.d = Math.max(85, A.r * (vert ? 2.3 : 1.7)); }      // PN3b: la aldea de cerca, más cerca que antes (se cuentan las casas)
     else { let cx = f ? f.x : 0, cz = f ? f.z - 10 : -20, r = 120; if (E && E.surco && E.surco.length) { cx = cz = 0; for (const p of E.surco) { cx += p[0]; cz += p[1]; } cx /= E.surco.length; cz /= E.surco.length; r = 0; for (const p of E.surco) r = Math.max(r, Math.hypot(p[0] - cx, p[1] - cz)); r = Math.max(r, 120); } cam.tx = cx; cam.tz = cz; cam.az = 0; cam.d = Math.max(260, r * (vert ? 3.6 : 2.8)); }
     ponerCamara();
   }

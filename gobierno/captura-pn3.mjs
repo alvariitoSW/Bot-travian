@@ -6,7 +6,7 @@ import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const RAIZ = process.env.AQ_RAIZ || join(dirname(fileURLToPath(import.meta.url)), '..'), SAL = join(dirname(fileURLToPath(import.meta.url)), 'capturas-tarea'), SOLO = process.env.AQ_SOLO_ROMA, B2 = process.env.AQ_B2;
+const RAIZ = process.env.AQ_RAIZ || join(dirname(fileURLToPath(import.meta.url)), '..'), SAL = join(dirname(fileURLToPath(import.meta.url)), 'capturas-tarea'), SOLO = process.env.AQ_SOLO_ROMA, B2 = process.env.AQ_B2 || process.env.AQ_B3, B3 = process.env.AQ_B3;
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const srv = createServer(async (q, r) => { try { let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html'; if (p.includes('..')) throw 0; const d = await readFile(join(RAIZ, p)); r.writeHead(200, { 'content-type': TIPOS[extname(p)] || 'application/octet-stream' }); r.end(d); } catch { r.writeHead(404); r.end(); } });
 await new Promise(ok => srv.listen(0, '127.0.0.1', ok));
@@ -57,7 +57,13 @@ await sesion(390, 844, async page => { await empezar(page, 'tebas', 4242); await
 await sesion(390, 844, async page => { await empezar(page, 'esparta', 31337); await plano(page, false); await foto(page, 'PN3b-d-esparta'); });
 /* PN3b: Roma antes/después (AQ_SOLO_ROMA=etiqueta: solo esa captura, con AQ_RAIZ apuntando a otra copia del código) y una en horizontal */
 const romaFoto = async (page, n) => { await accion(page, 'newregion', 'italia'); await page.waitForTimeout(3500); await cierra(page); await ciudad(page); await page.waitForTimeout(10000); await cierra(page); await plano(page, false); await page.waitForTimeout(1500); await foto(page, n); };
-if (B2) {
+if (B3) {
+  const a = async page => { await empezar(page, 'atenas', 1013); await plano(page, true); await foto(page, 'PN3b3-arriba'); await plano(page, false); await foto(page, 'PN3b3-cerca');
+    await accion(page, 'tab', 'imperio'); await page.waitForTimeout(2500); await cierra(page); await foto(page, 'PN3b3-imperio'); };
+  a.b2 = true; await sesion(390, 844, a);
+  const t = async page => { await empezar(page, 'tebas', 4242); await plano(page, false); await foto(page, 'PN3b3-tebas'); }; t.b2 = true; await sesion(390, 844, t);
+}
+else if (B2) {
   const a = async page => { await empezar(page, 'atenas', 1013); await plano(page, false); await foto(page, 'PN3b2-atenas-cerca'); await plano(page, true); await foto(page, 'PN3b2-atenas-arriba');
     await accion(page, 'tab', 'imperio'); await page.waitForTimeout(2500); await cierra(page); await foto(page, 'PN3b2-imperio-polis'); console.log('imperio', JSON.stringify(await page.evaluate(() => { const t = document.body.innerText; return { armas: /Dominio por las armas[^\n]*/.exec(t)?.[0], caminos: /Tus caminos/.test(t) }; }))); };
   a.b2 = true; await sesion(390, 844, a);

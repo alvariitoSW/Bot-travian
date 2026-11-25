@@ -18,8 +18,8 @@ export const PERFILES = {
   atenas: { n: 'Ática', cultivo: 'llanura del Cefiso', terrenos: { costa: [3, 'golfo Sarónico'], rio: [2, 'río Cefiso'] } },
   esparta: { n: 'Laconia', cultivo: 'vega del Eurotas', terrenos: { rio: [3, 'río Eurotas'], terrazas: [2, 'río Eurotas'] } },
   corinto: { n: 'Corintia', cultivo: 'llanura costera del istmo', terrenos: { costa: [3, 'golfo de Corinto'], rio: [1, 'fuente Pirene'] } },
-  argos: { n: 'Argólide', cultivo: 'llanura de Argos', terrenos: { llanura: [3, 'río Ínaco'], costa: [1, 'golfo de Argos'] } },
-  tebas: { n: 'Beocia', cultivo: 'llanura beocia', terrenos: { llanura: [3, 'río Ismeno'], pantano: [2, 'lago Copais'] } },
+  argos: { n: 'Argólide', cultivo: 'llanura de Argos', terrenos: { llanura: [3, 'llanura argiva, sin río a la vista'], costa: [1, 'golfo de Argos'] } },
+  tebas: { n: 'Beocia', cultivo: 'llanura beocia', terrenos: { llanura: [3, 'llanura beocia, sin río a la vista'], pantano: [2, 'lago Copais'] } },
   megara: { n: 'Megáride', cultivo: 'llano de Mégara', terrenos: { costa: [3, 'golfo Sarónico'], rio: [1, 'torrentes de la Megáride'] } },
   mileto: { n: 'Jonia', cultivo: 'vega del Meandro', terrenos: { costa: [3, 'golfo Latmio'], rio: [2, 'río Meandro'] } },
   calcis: { n: 'Eubea', cultivo: 'llanura Lelantina', terrenos: { costa: [3, 'estrecho del Euripo'], rio: [1, 'río Lelanto'] } }
