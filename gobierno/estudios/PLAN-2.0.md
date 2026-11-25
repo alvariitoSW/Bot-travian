@@ -259,6 +259,9 @@ M = millones de tokens (`gasto.mjs`). «Esperable» = declarado × 1,5–2 (medi
 | 6 Críticas | CR20 | Lo que critique de la v171, arreglado | Según la crítica | Según la crítica | (por fijar) |
 | Subidas | SB20–SB24 | Cada tanda en su móvil, con jueces rápidos | Gobierno | Pequeño · director | 5 × 0,4 |
 
+**Decidido por el usuario (25/11)**: Fable para el mapa vivo: **«Fable diseña y construye»** (AM1 y AM2 con Fable;
+excepción a «solo Opus»; más caro: medirlo). Reparto: **«Sí, que empiece (Recomendado)»**.
+
 **Total M1**: ≈ 20 M declarados; esperable 30–40 M. Sin las críticas.
 
 **Carriles a la vez** (nunca dos en los mismos archivos): (a) Gobierno: J20a → J20b → subidas; (b) Cerebro, dueño de
