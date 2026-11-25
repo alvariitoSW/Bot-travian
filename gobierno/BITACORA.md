@@ -601,6 +601,7 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Calcis, ¿demasiado fuerte?**: con su mina, a los 15 años tiene 165–710 hombres, más del doble que las otras (13–276). (A) Dejarlo así: es su ventaja y su historia [recomendado]; (B) que su mina dé la mitad. Por qué: Calcis pasa a ser la polis fácil, buena para empezar.
 
 
 ## Propuestas por aprobar
