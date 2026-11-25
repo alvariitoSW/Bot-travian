@@ -72,6 +72,19 @@ luz · 4 Ásculo con la falange de verdad · 5 un motor de golpes a pie (+CB2b).
 Para el modo supervivencia (después, aparte): lo que se acuerde aquí (campo, luz, botones, nada atraviesa nada) le sirve igual;
 SUP1 dejó preguntas a los departamentos en `estudios/SUP1-diseno.md` §2b.
 
+## 4b. Crítica honesta (pedida por el usuario el 25/11: «quiero una crítica muy honesta y brutal sobre el estado actual de las batallas»)
+- **En una frase**: no es todavía un juego de batallas tipo Total War; es un prototipo con piezas buenas sueltas, cosidas a parches.
+  «Son 4 juegos diferentes en un juego» (usuario, 18/11) sigue siendo verdad por dentro.
+- **El problema de fondo es el método**: cada sesión mejora su escena y nadie mira el conjunto; se da por arreglado lo que no lo
+  está (espejo, picas que atraviesan); los jueces dan APTO con fallos que se ven, porque miden que nada se rompa y no que se vea
+  bien; el «jugando bien» de las pruebas es un bot que pulsa el botón que se ilumina («es pulsar botones», usuario, 20/11).
+- **Notas de aspecto (opinión de EB1, sobre 10)**: batalla grande 3 · testudo 4 · falange 5 desde arriba y 3 de cerca ·
+  Ásculo 3 · batalla rápida 2 · manípulo visto por el oficial 6 (lo mejor).
+- **Lo que está bien**: una sola escena a pie, un motor de física y de proyectiles, soldados de un solo sitio, 0 errores, fluido
+  en su móvil. Faltan aspecto y coherencia, no cimientos.
+- **Lo más duro**: se ha gastado en hacer más cosas y poco en terminar una hasta parecerse a las referencias, contra la regla del
+  usuario del 19/11 («construimos hasta que sea muy parecido a aquellas referencias»).
+
 ## 5. Decisiones del usuario (literal)
 (pendiente)
 
