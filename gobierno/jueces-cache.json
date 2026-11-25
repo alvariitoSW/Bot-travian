@@ -255,14 +255,14 @@
   "fecha": "2026-11-25T04:45:55.093Z"
  },
  "area:test/ciudad.test.mjs": {
-  "huella": "c4bd115467da0852",
+  "huella": "82b37f75cc0b349f",
   "ok": true,
-  "fecha": "2026-11-25T12:37:39.084Z"
+  "fecha": "2026-11-25T12:53:31.724Z"
  },
  "area:test/senado.test.js": {
-  "huella": "fc99bf57f8682622",
+  "huella": "476a22dbd6dd7079",
   "ok": true,
-  "fecha": "2026-11-25T12:37:49.223Z"
+  "fecha": "2026-11-25T12:53:41.567Z"
  },
  "area:test/saber.test.mjs": {
   "huella": "f3063db5b12d0f37",
