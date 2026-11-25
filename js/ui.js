@@ -10,12 +10,13 @@ import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez
 import * as Ciudad from './ciudad.js';
 import * as NEC from './necesidades.js';   // CDe1: necesidades de la ciudad (las usa game.js)
 import * as AGRO from './agricultura.js';   // CDe3: campos por suelo (los usa game.js)
+import * as COMARCA from './comarca.js';   // PN3: comarca aleatoria de la partida de polis (la usa game.js)
 import { crearMenu } from './ciudad-menu.js';   // CD1b: botón «Construir» y su menú por familias
 import { abrirMercado, fijarAviso } from './mercado-ui.js';   // CDe3 2b: pantalla del mercado
 import { descargar, copiar, hacerPostal, guardarCopia, cargarCopia, contemplar } from './gfx/movil.js';   // CN18
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
-G.usarCiudad(Ciudad); if (G.usarNecesidades) G.usarNecesidades(NEC); if (G.usarAgricultura) G.usarAgricultura(AGRO);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
+G.usarCiudad(Ciudad); if (G.usarNecesidades) G.usarNecesidades(NEC); if (G.usarAgricultura) G.usarAgricultura(AGRO); if (G.usarComarca) G.usarComarca(COMARCA);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
 const UI = { codice: null, modo: 'gobierno', tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
 const ROMA = D.FACTIONS.roma.col;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -239,7 +240,7 @@ function infoGuardada() {
     const cs = st.cities || {}, ids = Object.keys(cs), mias = ids.filter(k => cs[k] && cs[k].owner === 'roma');
     let hombres = 0; for (const k of mias) for (const u in (cs[k].units || {})) hombres += cs[k].units[u] || 0;
     for (const m of (st.marches || [])) if (m.owner === 'roma') for (const u in (m.units || {})) hombres += m.units[u] || 0;
-    return { fecha: G.dateStr(st.t), gen: st.hero && st.hero.name || '', mias: mias.length, total: ids.length, hombres, fin: !!st.over };
+    return { fecha: G.dateStr(st.t, st.anio0), gen: st.hero && st.hero.name || '', mias: mias.length, total: ids.length, hombres, fin: !!st.over };
   } catch (e) { return null; }
 }
 function subGuardada() { const i = infoGuardada(); return i ? i.fecha : ''; }
@@ -1109,7 +1110,7 @@ function nivelesHtml(c, bid) {
   const L = bid === 'foro' ? (c.b.foro || 1) : (c.b[bid] || 0), tope = bid === 'foro' ? D.MAX_LVL : Math.min(D.MAX_LVL, c.b.foro || 1);
   let h = '<div class="nv5" role="list" aria-label="Niveles del edificio">';
   for (let i = 1; i <= D.MAX_LVL; i++) h += '<span role="listitem" class="nv5-c' + (i <= L ? ' hecho' : '') + (i === L ? ' act' : '') + (i > tope ? ' tope' : '') + '"' + (i === L ? ' aria-current="true"' : '') + '>' + ROM5[i] + (i > tope ? '<i>🔒</i>' : '') + '</span>';
-  h += '</div><div class="nv5-t">' + (bid === 'foro' ? 'Foro' : 'Edificio') + ' a nivel <b>' + (ROM5[L] || '0') + '</b> de ' + ROM5[D.MAX_LVL] + (bid !== 'foro' && tope < D.MAX_LVL ? ' · el Foro (nivel ' + ROM5[tope] + ') pone el tope' : '') + '</div>';
+  h += '</div><div class="nv5-t">' + (bid === 'foro' ? D.BUILD.foro.n : 'Edificio') + ' a nivel <b>' + (ROM5[L] || '0') + '</b> de ' + ROM5[D.MAX_LVL] + (bid !== 'foro' && tope < D.MAX_LVL ? ' · el Foro (nivel ' + ROM5[tope] + ') pone el tope' : '') + '</div>';
   return h;
 }
 const topeForo = (c, bid) => !!bid && bid !== 'foro' && (c.b[bid] || 0) < D.MAX_LVL && (c.b[bid] || 0) >= (c.b.foro || 1);
@@ -1117,8 +1118,8 @@ function fichaHtml(c, sd) {
   const E = G.ciudadE(UI.city), cn = D.CITIES[UI.city].n, lleno = c.obras.length >= G.huecos(c);
   let ico, nom, sub, que, nv, cuerpo = '', e = null, P = null, ob = null;
   if (sd.k === 'foro') {
-    ico = (window.miniEdif && miniEdif('foro', c.b.foro || 1, 'p')) || bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
-    cuerpo = nivelesHtml(c, 'foro') + '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. El foro sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (c.owner === 'roma' ? arcaHtml(c) : '');
+    ico = (window.miniEdif && miniEdif('foro', c.b.foro || 1, 'p')) || bIco('foro'); nom = D.BUILD.foro.n; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
+    cuerpo = nivelesHtml(c, 'foro') + '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. ' + (G.polis() ? 'El ágora' : 'El foro') + ' sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (G.comarcaTexto && G.comarcaTexto() ? '<div class="nota">🗺️ ' + esc(G.comarcaTexto()) + '</div>' : '') + (c.owner === 'roma' ? arcaHtml(c) : '');
   } else {
     e = sd.e || null; ob = sd.o || c.obras.find(q => q.eid === e.id) || null; P = Ciudad.EDIF[e ? e.tipo : sd.o.pieza];
     const bid = P.bid, dg = bid === 'templo' ? G.diosDe(c) : null, k = e ? (e.mejora || 0) : 0;
@@ -1682,7 +1683,7 @@ function viewCodice() {
 function viewLog() {
   if (UI.codice && window.CODICE) return viewCodice();
   // K12b: Crónica en estilo Códice. Tres folios con scroll-snap horizontal (sin scroll infinito): Campaña, Línea del tiempo y Crónica reciente.
-  const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1, cap = ch => '<span class="cod-cap">' + ch + '</span>';
+  const s = S(), year = G.yearOf(s.t), left = G.anioReglas(s.t) - D.END_YEAR + 1, cap = ch => '<span class="cod-cap">' + ch + '</span>';
   const f1 = '<section class="cod-f"><div class="cod-h">' + cap('C') + '<div><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><i>Folio I · La campaña</i></div></div><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p class="cod-st">⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p>' + (window.CODICE ? '<button class="btn ro-bronce cod-b" data-act="codice" data-v="tropas">' + D.BUILD_ICON.escuela + ' Abrir el Códice</button>' : '') + '<button class="btn ro-tinta cod-b" data-act="tomenu">Guardar y salir al menú</button></section>';
   const f2 = '<section class="cod-f"><div class="cod-h">' + cap('L') + '<div><h2>Línea del tiempo</h2><i>Folio II · Lo que fue y lo que viene</i></div></div><div class="tl cod-tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '><b>' + e.y + ' a.C.</b>' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div></section>';
   const f3 = '<section class="cod-f"><div class="cod-h">' + cap('A') + '<div><h2>Anales</h2><i>Folio III · Lo último que ocurrió</i></div></div>' + (s.log.length ? '<div class="cod-an">' + s.log.slice(0, 10).map(l => '<div class="logl ' + l.k + '"><small>' + D.MONTHS[Math.floor(l.t) % 12] + ' · ' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') + '</div>' : '<div class="empty">Aún no ha ocurrido nada.</div>') + '</section>';
@@ -1899,7 +1900,7 @@ document.addEventListener('click', function (e) {
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
     case 'new': case 'newregion': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
-    case 'newpolis': { const pf = D.POLIS[v]; if (!pf) break; if (G.hasSave() && !confirm('Ya tienes una partida guardada. Empezar con ' + pf.n + ' la reemplaza. ¿Seguir?')) break; G.newGame(pf.heroe, 'italia', { polis: v, dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break; }   // PN2: empezar con una polis griega (sobre el mapa de Italia de momento)
+    case 'newpolis': { const pf = D.POLIS[v]; if (!pf) break; if (G.hasSave() && !confirm('Ya tienes una partida guardada. Empezar con ' + pf.n + ' la reemplaza. ¿Seguir?')) break; G.newGame(pf.heroe, 'italia', { polis: v, dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false, semilla: UI.semillaPolis }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break; }   // PN2: empezar con una polis griega (sobre el mapa de Italia de momento). PN3: comarca al azar (UI.semillaPolis la fija para las capturas)
     case 'cortaen': case 'cortafun': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
     case 'novedades': if (UI.menu && (!e.target.closest('.nv-hoja') || el.classList.contains('mvolver'))) { UI.novedades = !UI.novedades; showMenu(); } break;   // CDe3
