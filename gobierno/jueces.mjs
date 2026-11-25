@@ -479,17 +479,17 @@ async function navegador() {
       const lista = await estado(() => !!(window.__mn && window.__mn.lista));
       if (!lista) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('batalla') };
       await espera(2000); await page.waitForFunction(() => window.__mn.cine() !== 'apertura', null, { timeout: 60000 }).catch(() => {});
-      /* una orden con el dedo: tocar un manípulo tuyo y luego «Aguantar» */
+      /* una orden con el dedo: tocar un manípulo tuyo y luego «Alto» (BT1: la barra común; en el simulador, «aguantar») */
       const id = await estado(() => { const S = window.__mn.S, u = S.man.find(m => m.lado === 0 && m.tropa === 'hastati' && m.estado === 'firme') || S.man.find(m => m.lado === 0); return u.id; });
       let elegido = false;
       for (let k = 0; k < 3 && !elegido; k++) { const p = await estado(i => window.__mn.pantalla(i), id); await page.mouse.click(Math.round(p.x), Math.round(p.y)); await espera(700); elegido = (await estado(() => window.__mn.estado().sel)).includes(id); }
-      const b = page.locator('#mn-ordenes .mn-o').filter({ hasText: 'Aguantar' }).first();
+      const b = page.locator('#mn-ordenes .mn-o').filter({ hasText: /^Alto$/ }).first();
       if (elegido && await b.count()) { await b.click(); await espera(500); }
       const obedece = await estado(i => { const u = window.__mn.S.man[i]; return u.orden === 'aguantar' && u.mando === 'jugador'; }, id);
       const retirar = await page.isVisible('#mn-retirar');
       const captura = await foto('batalla');
       const ok = opciones === 3 && retirar && elegido && obedece;
-      return { ok, detalle: ok ? 'hoja de tres opciones; en vivo, «Retirarse» y un manípulo que obedece «Aguantar» dado con el dedo' : 'opciones ' + opciones + ', retirar ' + retirar + ', elegido ' + elegido + ', obedece ' + obedece, captura };
+      return { ok, detalle: ok ? 'hoja de tres opciones; en vivo, «Retirarse» y un manípulo que obedece «Alto» dado con el dedo' : 'opciones ' + opciones + ', retirar ' + retirar + ', elegido ' + elegido + ', obedece ' + obedece, captura };
     });
 
     await paso('La batalla termina y se aplica el resultado', { de: 'batallas', para: ['musculo'] }, async () => {

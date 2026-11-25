@@ -4,6 +4,12 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 179, fecha: '25/11/2026', cosas: [
+      'En la falange, las picas de atrás ya no atraviesan a los compañeros, tampoco vistas desde el oficial.',
+      'Todas las batallas tienen abajo los mismos seis botones: la orden propia de tu tropa, Avanzar, Cargar, Alto, Relevo y Retirada.',
+      'Los nombres de los estandartes y los avisos ya no se pisan ni tapan los botones.',
+      'La batalla grande tiene el mismo campo dorado, la misma luz y los mismos árboles que la batalla a pie, sin tinte rojo ni bruma.',
+      'Testudo y manípulo son una sola prueba en Escaramuzas, y Ásculo se elige allí como Pirro o como Roma.'] },
     { v: 178, fecha: '25/11/2026', cosas: [
       'Calcis tiene veta de hierro: sus Minas de Eubea ya lo producen.',
       'Con una polis, la primera lección te enseña a comprar hierro en el mercado para tus hoplitas.',
