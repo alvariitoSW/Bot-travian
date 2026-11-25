@@ -63,6 +63,7 @@
   const K = { ORIGEN: 0.7, DEMANDA: 1.4, EMPUJE: 30, VUELTA: 0.2, OFERTA: 0.4, FLECHA: 0.03, RUIDO: 0.05, FLETE_TIERRA: 0.03, FLETE_MAR: 0.01, LEGUAS: 10,
     VEL_TIERRA: 4, VEL_MAR: 9, RIESGO_MAR: 0.04, RIESGO_GUERRA: 0.08, RIESGO_TIERRA: 0.01, PORT0: 0.025, PORT_MAX: 0.05, TOPE_NIVEL: 10, MAX_N: 200,
     CADUCA_VIAJE: 0.1, ACAPARA: 3, ACAPARA_PRECIO: 1.5 };
+  MER.MAX_N = K.MAX_N;   // ES20: game.js trocea las compras y ventas grandes con este tope por operación
 
   // ---------- Utilidades ----------
   const obj = x => x && typeof x === 'object' && !Array.isArray(x);

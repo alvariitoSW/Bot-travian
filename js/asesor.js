@@ -4,17 +4,17 @@
   'use strict';
   const LECCIONES = [
     { id: 'cifra', texto: 'La cifra grande dice cuánto mejora tu ciudad si colocas ahí: busca la mayor.', cuando: c => !!c.cifra },
-    { id: 'cuotas', texto: 'Las obras grandes se pagan en cuotas: si faltan denarios, se pausan.', cuando: c => !!c.cuotas },
+    { id: 'cuotas', texto: 'Obras y tropas se pagan enteras al ordenarlas: si no alcanza, no se puede.', cuando: c => !!c.cuotas },
     { id: 'riesgo', texto: 'Un riesgo se apaga al construir la pieza que lo remedia: el botón Construir la resalta.', cuando: c => !!c.riesgo },
     { id: 'barrio', texto: 'Un barrio sube de nivel si recibe agua, grano y cobijo: no le dejes sin nada.', cuando: c => !!c.barrioSube },
-    { id: 'almacen', texto: 'Lo que no cabe en el almacén se pierde cada mes: amplíalo.', cuando: c => !!c.almacenLleno },
+    { id: 'almacen', texto: 'Lo que no cabe en el almacén se pierde al pasar la estación: amplíalo.', cuando: c => !!c.almacenLleno },
     { id: 'arrabal', texto: 'Las casas fuera de la muralla arden y se anegan antes: levanta muralla.', cuando: c => !!c.arrabal },
-    { id: 'turno', texto: 'El tiempo solo avanza al pulsar «Pasar turno»: piensa antes de pulsarlo.', cuando: c => (c.turnos || 0) >= 1 }
+    { id: 'turno', texto: 'El tiempo solo avanza al pulsar «Pasar estación»: piensa antes de pulsarlo.', cuando: c => (c.turnos || 0) >= 1 }
   ];
   /* R4: avisos de UNA frase (≤ 80 caracteres, una acción). ui.js y game.js los arman con estas funciones; test/avisos.test.mjs los recorre.
      Si hay dos avisos a la vez, sale el más urgente: PRIORIDAD (de más a menos). */
   const PRIORIDAD = ['ataque', 'riesgo', 'arrabal', 'almacen', 'hambre', 'tope', 'barrio', 'obra', 'consejo'];
-  const mes1 = n => n + (n === 1 ? ' mes' : ' meses');
+  const mes1 = m => { const n = Math.max(1, Math.ceil((m || 0) / 3 - 1e-9)); return n + (n === 1 ? ' estación' : ' estaciones'); };   // ES20: recibe meses, dice estaciones
   const TEXTOS = {
     obras: (nom, mas, tiempo) => 'En obras: ' + nom + (mas ? ' y ' + mas + ' más' : '') + ', faltan ' + tiempo + '.',
     sinRecursos: () => 'Faltan recursos para nuevas obras: espera a que lleguen.',
@@ -27,16 +27,16 @@
     tranquila: () => 'Estación tranquila: aprovecha para ampliar la ciudad.',
     constructores: () => 'Pon a trabajar a los constructores.',
     refuerza: ciudad => 'Refuerza ' + ciudad + ' antes de que acabe la estación.',
-    llega: (fac, n, ciudad) => fac + ' (' + n + ' hombres) llega a ' + ciudad + ' al acabar este turno.',
+    llega: (fac, n, ciudad) => fac + ' (' + n + ' hombres) llega a ' + ciudad + ' al acabar esta estación.',
     colonos: lugar => 'Los colonos han llegado a ' + lugar + ': funda la colonia.',
-    seAcaba: (grano, meses) => (grano ? 'El grano' : 'Los denarios') + ' se acaban en ' + meses + ' mes(es).',
+    seAcaba: (grano, meses) => (grano ? 'El grano' : 'Los denarios') + ' se acaban en ' + mes1(meses) + '.',
     sinObras: (lista, mas) => 'Sin obras en cola: ' + lista + (mas ? '…' : '') + '.',
     llenoAlm: lista => 'Almacén lleno (' + lista + '): gasta lo que sobra.',
     favor: () => 'Senado: favor bajo, sin tratados ajenos ni levas extra.',
-    mision: (nom, quedan, falta) => 'Senado: ' + nom + ' (' + mes1(quedan) + '): ' + falta.replace(/\.$/, '') + '.',
+    mision: (nom, quedan, falta) => nom + ' (' + mes1(quedan) + '): ' + falta.replace(/\.$/, '') + '.',
     perdido: lista => 'Perdido por almacén lleno: ' + lista + '.',
     cierre: (nom, sobra, cabe, per, completo) => nom + ': sobran ' + sobra + ', caben ' + cabe + ', se perderán ' + per + (completo ? ' si no lo gastas.' : '.'),
-    turno: (partes, grave) => 'Turno: ' + partes + ' (mira la Crónica).',
+    turno: (partes, grave) => 'Estación: ' + partes + ' (mira la Crónica).',
     obraHecha: (ciudad, txt) => 'Obra terminada en ' + ciudad + ': ' + txt + '.',
     tropaLista: (ciudad, n, unidad) => 'Tropa lista en ' + ciudad + ': ' + n + ' ' + unidad + '.',
     ataque: (fac, ciudad) => 'Ataque: ' + fac + ' marcha sobre ' + ciudad + '.',

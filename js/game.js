@@ -211,7 +211,7 @@
     b[k] -= dar; const got = Math.round(dar * p); s.res.denarios += got; return got;
   };
   // lo que se perderá al cerrar el mes de cada bien (producción del mes menos lujo, sobre el tope)
-  G.bienesPerdera = function () { const s = G.state, b = G.bienes(), m = G.bienesMes(), o = {}; for (const k in D.BIENES) { const v = (b[k] || 0) + (m[k] || 0) * (1 - G.fraccionMes()); if (v > D.BIEN_TOPE) o[k] = Math.floor(v - D.BIEN_TOPE); } return o; };
+  G.bienesPerdera = function () { const s = G.state, b = G.bienes(), m = G.bienesMes(), o = {}; for (const k in D.BIENES) { const v = (b[k] || 0) + (m[k] || 0) * Math.max(0, G.finTurno() - s.t); if (v > D.BIEN_TOPE) o[k] = Math.floor(v - D.BIEN_TOPE); } return o; };
   // cierre de mes de los bienes: entra lo de cada ciudad, los ricos consumen lujo, y lo que pasa del tope se pierde (y se cuenta)
   function cierreBienes() {
     const s = G.state, b = s.bienes || (s.bienes = {}), m = G.bienesMes(), per = [];
@@ -641,17 +641,17 @@
       const vende = to === 'denarios', prod = vende ? from : to, cid = G.mercadoMejorCiudad(prod, vende); if (!cid) return 0;
       const ay = G.mercadoAyuda(), pr = M.precio(s, cid, prod, ay), md = mul || 1;
       if (vende) {
-        let n = Math.floor(Math.min(amount, ay.tiene(prod))); n = Math.min(n, Math.floor(ay.cabe('denarios') / Math.max(0.01, pr * md))); if (n < 1) return 0;
+        let n = Math.floor(Math.min(amount, ay.tiene(prod), M.MAX_N || 200)); n = Math.min(n, Math.floor(ay.cabe('denarios') / Math.max(0.01, pr * md))); if (n < 1) return 0;   // ES20: como mucho MAX_N por operación (con la reserva entera se pedía más y fallaba todo)
         const r = M.vender(s, cid, prod, n, ay); if (!r.ok) return 0;
         r.delta.denarios = Math.floor(r.delta.denarios * md * 100) / 100; aplicaDelta(s, r.delta); return Math.floor(r.delta.denarios);
       }
       const ay2 = Object.assign({}, ay, { tiene: p => p === 'denarios' ? Math.min(amount, ay.tiene('denarios')) : ay.tiene(p) });
-      let n = Math.floor(ay2.tiene('denarios') / Math.max(0.01, pr)); for (let k = 0; n >= 1 && k < 30; k++) { const r = M.comprar(s, cid, prod, n, ay2); if (r.ok) { aplicaDelta(s, r.delta); return n; } if (!/denarios/.test(r.motivo)) return 0; n = n > 10 ? Math.floor(n * 0.9) : n - 1; }
+      let n = Math.floor(Math.min(ay2.tiene('denarios') / Math.max(0.01, pr), M.MAX_N || 200, ay.cabe(prod))); for (let k = 0; n >= 1 && k < 30; k++) { const r = M.comprar(s, cid, prod, n, ay2); if (r.ok) { aplicaDelta(s, r.delta); return n; } if (!/denarios/.test(r.motivo)) return 0; n = n > 10 ? Math.floor(n * 0.9) : n - 1; }
       return 0;
     }
     const rate = G.tradeRate() * (mul || 1) * (to === 'hierro' ? D.HIERRO_COMPRA : 1); amount = Math.floor(Math.min(amount, from in s.res ? G.disponible(from) : 0));
     if (!rate || from === to || amount <= 0 || !(from in s.res) || !(to in s.res)) return 0;
-    const got = Math.min(Math.floor(amount * rate), Math.max(0, G.capDe(to) - s.res[to])); if (got <= 0) return 0;
+    const got = Math.min(Math.floor(amount * rate), Math.max(0, G.capDe(to) - s.res[to] - ((s.alm && s.alm[to]) || 0))); if (got <= 0) return 0;   // ES20: cabe en la reserva entera
     gasta(from, Math.ceil(got / rate), true); s.res[to] += got; return got;   // vender no cuenta como gasto del mes
   };
 
@@ -1525,7 +1525,7 @@
       for (const q of c.train.filter(l => s.t >= l.t1 - 1e-9)) { c.train.splice(c.train.indexOf(q), 1); c.units[q.u] = (c.units[q.u] || 0) + q.n; if (q.u !== 'milicia') { if (!c.levas) c.levas = []; c.levas.push({ u: q.u, n: q.n, t: s.t }); } acaba(() => G.log('🛡️ ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + ' listos.')); emit('dirty'); G.parar(T.tropaLista(D.CITIES[id].n, q.n, D.UNITS[q.u].n)); }   // CE3-A1: lotes en paralelo, acaba el que llega a su fin
     }
     // al cerrar la estación se resuelve el mundo (año nuevo, rivales) antes de que lleguen las marchas
-    if (B !== null) { const yb = G.yearOf(s.t); if (yb < y0) newYear(yb, true); turnoIA(yb, 0.25); }
+    if (B !== null) { const yb = G.yearOf(s.t); turnoIA(yb, 0.25); if (yb < y0) newYear(yb, true); }   // ES20: los rivales antes que los hechos del año (como hacía newYear sin turnos)
     // marchas
     if (B !== null) G.encuentros();   // GM15b: ¿se topan en el camino?
     for (let i = s.marches.length - 1; i >= 0; i--) {
@@ -1635,14 +1635,14 @@
   /* ---------- cierre de mes (Q2) ---------- */
   // fracción del mes ya transcurrida (0 a 1)
   G.fraccionMes = () => { const t = G.state.t; return t - Math.floor(t + 1e-9); };
-  // qué pasaría con la caja actual si el mes acabara con la producción que falta
+  // qué se perderá por el tope si la estación acaba con la producción que falta (ES20: antes, el mes): sobra = lo que entra, cabe = hueco del almacén
   G.previsionCierre = function () {
-    const s = G.state, p = G.prod(), cap = G.cap(), rem = 1 - G.fraccionMes(), out = {}, caja = {}, cu = {};
-    for (const r of D.RES) { caja[r] = Math.max(0, s.res[r] + p[r] * rem); cu[r] = cuartoDisp(r); }
+    const s = G.state, p = G.prod(), rem = Math.max(0, G.finTurno() - s.t), out = {}, caja = {};   // ES20: lo que entrará hasta el final de la estación
+    for (const r of D.RES) caja[r] = Math.max(0, s.res[r] + p[r] * rem);
     for (const r of D.RES) { const sobra = caja[r], cabe = Math.max(0, G.capDe(r) - s.alm[r]); out[r] = { sobra: Math.floor(sobra), cabe: Math.floor(cabe), perdera: Math.max(0, Math.floor(sobra - cabe)) }; }
     return out;
   };
-  // avisos de lo que se va a perder (solo con el mes avanzado; con completo=true, también al inicio: previsión del mes entero)
+  // avisos de lo que se va a perder (con completo=true, siempre: previsión de la estación entera)
   G.avisoCierre = function (completo) {
     const s = G.state, out = []; if (!s || (!completo && G.fraccionMes() < D.AVISO_CIERRE)) return out;
     const NOM = D.RES_NOM, pr = G.previsionCierre();
@@ -1673,7 +1673,7 @@
     const rate = G.tradeRate() * D.SOBRA_MUL; if (!rate) { U.motivo = 'sinmercado'; return 0; }   // CE2: lo que sobra se vende barato
     const per = G.previsionCierre()[r].perdera; if (per < 1) { U.motivo = 'sinsobrante'; return 0; }
     const hueco = Math.max(0, G.cap() - s.alm.denarios - s.res.denarios); if (hueco < 1) { U.motivo = 'orolleno'; U.quedara = per; return 0; }
-    const dar = Math.min(per, Math.floor(s.res[r]), Math.floor(hueco / rate)); if (dar < 1) { U.motivo = s.res[r] < 1 ? 'sincaja' : 'orolleno'; U.quedara = per; return 0; }
+    const dar = Math.min(per, Math.floor(G.disponible(r)), Math.floor(hueco / rate)); if (dar < 1) { U.motivo = G.disponible(r) < 1 ? 'sincaja' : 'orolleno'; U.quedara = per; return 0; }   // ES20: se vende de la reserva entera
     const got = G.trade(r, 'denarios', dar, D.SOBRA_MUL); U.got = got; U.vendido = dar; U.quedara = G.previsionCierre()[r].perdera;
     U.motivo = !got ? 'orolleno' : U.quedara >= 1 ? 'parcial' : 'ok';
     return got;
@@ -3498,7 +3498,7 @@
     const s = G.state, B = s.bienes || (s.bienes = {});
     const ay = {
       tiene: p => p === 'denarios' ? G.disponible('denarios') : p in s.res ? G.disponible(p) : Math.floor(B[p] || 0),
-      cabe: p => p in s.res ? Math.max(0, G.capDe(p) - s.res[p]) : Math.max(0, D.BIEN_TOPE - (B[p] || 0)),
+      cabe: p => p in s.res ? Math.max(0, G.capDe(p) - s.res[p] - ((s.alm && s.alm[p]) || 0)) : Math.max(0, D.BIEN_TOPE - (B[p] || 0)),   // ES20: una sola reserva (lo que no cabe se perdería)
       travel: (a, b) => G.travel(a, b),
       esMar: (a, b) => { const e = G.edge(a, b); return e ? !!e[2] : !!(D.CITIES[a].sea && D.CITIES[b].sea); },
       enGuerra: f => G.hayGuerraCon(f),

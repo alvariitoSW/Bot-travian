@@ -16,11 +16,9 @@ function campana(inv, seed) {
     const s = G.newGame('Test'); const meta = G.region().capitalRival;
     const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
     let guard = 0, i = 0, escuela = false;
-    while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {
-      G.tick(0.25);
+    while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 5000) {   // ES20: por estaciones: pulsa «Pasar estación», resuelve las batallas y ordena
+      if (guard > 1) G.pasarEstacion();
       while (s.pending.length && !s.over) { const b = new Battle(G.battleInfo(s.pending[0]).cfg); b.finish(); G.applyBattle(b.result()); }
-      if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
-      if (guard % 8) continue;
       if (inv) {
         if (!s.inv.cola && i < CAMINO.length) { const r = G.invUp(CAMINO[i]); if (r.ok) i++; else if (/Ya estás|Cerrada|Pide la Edad/.test(r.motivo) && !/Faltan|Pide:/.test(r.motivo)) i++; }
         const c = s.cities.roma;
@@ -32,7 +30,7 @@ function campana(inv, seed) {
       for (const id of G.myCities()) {
         const c = s.cities[id];
         if (G.enRevuelta && G.enRevuelta(c)) c.nec.mem.forEach((m, k) => { if (m && m.revuelta) for (const r of ['grano', 'juegos', 'tropas']) if (G.calmarRevuelta(id, k, r).ok) break; });   // CDe2: como el bot de sim.test.js, calma las revueltas de barrio
-        if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
+        { let hechos = 0; if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['hastati', 'principes', 'triarii', 'equites']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k), G.recruits(c)); if (n >= 10 && G.train(id, k, n) && ++hechos >= 2) break; } } }   // ES20: como test/campana-bot.js
         { const E = G.ciudadE(id), bi = E && G.barrioInfo(c);      // CI1b: como un jugador (y como el bot de sim.test.js), si a un barrio le falta agua pone una fuente
           if (bi && G.huecosLibres(c) > 0 && bi.barrios.some(x => /agua/.test(x.falta || '')) && E.edificios.filter(e => e.tipo === 'fuente').length < 1 + bi.barrios.reduce((n, x) => n + x.casas, 0) / 25) {
             const q = require('../js/ciudad.js').mejorSitio(E, 'fuente'); if (q) G.colocar(id, 'fuente', q[0], q[1]); } }
@@ -47,6 +45,7 @@ function campana(inv, seed) {
           if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { G.send(id, n, u, G.heroAvailable(id)); break; }
         }
       }
+      botMercado(G, D);   // CE2: compra hierro y vende lo que sobra (test/bot-mercado.js); ES20: una vez por estación, tras ordenar
     }
     if (!s.over && G.campanaLarga()) s.over = { win: !!(s.caminos && s.caminos.victoria), why: 'fin de prueba' };   // CE10: sin plazo ni final por Cartago, el bot para en G.finDePrueba()
     assert(s.over, 'la campaña debe terminar');
