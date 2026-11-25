@@ -155,7 +155,7 @@ if (op.solo === 'gestos') {   // para depurar: solo gestos y pantalla vertical
         linea('pantalla', `tocar el rótulo de Atenas abre su ficha (${est})`, tocada && fichaAbierta, tocada ? (fichaAbierta ? 'ficha abierta' : 'se tocó pero la ficha no se abre') : 'rótulo no tocable: ' + await page.evaluate(() => { const e = __mapa.etq.find(q => q.polis && q.polis.id === 'atenas'), r = e.d.getBoundingClientRect(), t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return `visto=${e.visto} caja ${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}×${Math.round(r.height)}; encima: ${t ? t.className || t.tagName : '-'}`; }));
         await captura(page, `${pref}-${est}-recursos-v.jpg`);
         await page.click('[data-a="recursos"]'); await page.evaluate(() => __pantalla.ficha(null));
-        await vista(page, { lon: 23.63, lat: 37.945, a: 0.25 }); await captura(page, `${pref}-${est}-puerto-v.jpg`);
+        await page.evaluate(() => { const P = __mapa.vida.polis[0].puertoXZ; __mapa.irA(P[0], P[1] - 0.01, 0.16 / 390, 0); }); await captura(page, `${pref}-${est}-puerto-v.jpg`);   // El Pireo: caserío, muelle y barcas
       }
     }
     // pantalla y gestos en página limpia (sin t fijo no hace falta; estilo a, dpr 1)

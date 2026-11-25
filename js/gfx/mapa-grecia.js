@@ -71,6 +71,7 @@ export class MapaGrecia {
     const [E, masc] = await Promise.all([this.suelo.estilo(this.est), leerImagen('mascaras-a.webp')]); this.masc = masc; this.r.setClearColor(ESTILOS[this.est].niebla);
     this._lineas(); this._rotulos(); this._dedos();
     this.vida = new Vida(this); await this.vida.iniciar(); this.vida.estilo(this.est);
+    for (const P of this.vida.polis) if (P.puertoXZ) { const e = this.etq.find(q => q.lugar && q.lugar.n === P.p.puertoN); if (e) { e.x = P.puertoXZ[0]; e.z = P.puertoXZ[1]; } }   // el rótulo del puerto, sobre su caserío y su muelle
     this.host.classList.toggle('mg-b', this.est === 'b');
     this.vista(this.o.vista || 'corazon'); this.listo = true; this.arranqueMs = Math.round(performance.now() - t0);
     this._ro = new ResizeObserver(() => { for (const e of this.etq) e.w = 0; }); this._ro.observe(this.host);
