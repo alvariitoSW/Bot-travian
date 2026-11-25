@@ -109,5 +109,9 @@ parece a la de a pie.
 En los tres, en espera: R1, supervivencia, naval. Cada tarea da la vuelta de 4c (ficha → construir en todas → pruebas → examen → nota).
 
 ## 5. Decisiones del usuario (literal)
-(pendiente)
+- 25/11, a «1. ¿Qué plan seguimos? (A) Plan A, tres pasos (recomendado) · (B) Plan B, cinco tandas · (C) Plan C, Ásculo de
+  muestra y copiar»: **«1A»**. → Se sigue el **Plan A, tres pasos** (§4d): 1 «Lo común, una sola vez» · 2 «Las formaciones de
+  cerca» · 3 «Una batalla entera», cada uno con su vuelta (ficha → construir en todas → pruebas que miran → examen por otra
+  sesión → nota del usuario ≥ 8,5).
+- Sin contestar todavía: «2. ¿Paramos todo lo nuevo de batallas hasta terminar el plan?».
 
