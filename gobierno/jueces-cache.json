@@ -265,14 +265,14 @@
   "fecha": "2026-11-25T11:57:53.221Z"
  },
  "area:test/movil.test.mjs": {
-  "huella": "f31666d491a9dd51",
+  "huella": "54120b721142ab68",
   "ok": true,
-  "fecha": "2026-11-25T11:23:39.217Z"
+  "fecha": "2026-11-25T12:04:56.188Z"
  },
  "area:test/pausas.test.mjs": {
-  "huella": "31df96e94c7a9d5b",
+  "huella": "1060958d71e45264",
   "ok": true,
-  "fecha": "2026-11-25T11:23:50.450Z"
+  "fecha": "2026-11-25T12:05:05.221Z"
  },
  "area:gobierno/arte.mjs": {
   "huella": "0bff38ec430e9c34",
@@ -285,13 +285,18 @@
   "fecha": "2026-11-25T11:23:50.797Z"
  },
  "navegador-musculo": {
-  "huella": "5a7641918e6ffa88",
+  "huella": "f8d6d9efb69bcab9",
   "ok": true,
-  "fecha": "2026-11-25T12:03:48.344Z"
+  "fecha": "2026-11-25T12:14:12.608Z"
  },
  "area:gobierno/jueces.mjs --area musculo": {
-  "huella": "5a7641918e6ffa88",
+  "huella": "07bf5f3c87eb4fb6",
   "ok": true,
-  "fecha": "2026-11-25T12:03:48.367Z"
+  "fecha": "2026-11-25T12:14:12.619Z"
+ },
+ "area:test/avisos.test.mjs": {
+  "huella": "0ecf655d8a319ab7",
+  "ok": true,
+  "fecha": "2026-11-25T12:04:59.102Z"
  }
 }
