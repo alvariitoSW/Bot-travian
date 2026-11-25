@@ -237,6 +237,29 @@ Cada meta lleva su **estándar** (qué se mide, quién lo mide, valor para aprob
 **Cambia una regla de CLAUDE.md** (época 280–146 a.C.): la Partida nueva va del 800 a.C. en adelante; el vigía la
 cambia al aprobarse el plan. Historia: fichas nuevas de la Grecia arcaica con fuente y dictamen.
 
+### M2 · La polis crece: decisiones (25/11)
+- Ministros: **«Por áreas con objetivo (Recomendado)»**: cada ministro lleva un área (obras, abastos, guerra, comercio);
+  le das un objetivo y una parte del dinero de la estación; construye solo y te cuenta al empezar cada estación; le
+  quitas el mando cuando quieras.
+- Clases: **«Sí, según la polis (Recomendado)»**: Atenas, nobles, ciudadanos, metecos y esclavos; Esparta, espartiatas,
+  periecos e ilotas; cada una pide cosas distintas.
+- Épocas: **«Por logros (Recomendado)»**: tamaño de la polis y saberes; al avanzar, la ciudad se transforma.
+
+### Estándar de M2 (borrador, 25/11)
+| Qué se mide | Quién lo mide | Aprueba si… |
+|---|---|---|
+| Ciudad viva griega | Juez de aspecto | Nota ≥ 7 frente a referencias; no se siente artificial (gente que va a sus sitios, humo, mercado) |
+| Ministros con objetivo | Bot de reglas | Con un objetivo («más comida», «crecer», «murallas»), en 8 estaciones el ministro lo cumple en 8 de 10 partidas sin gastar más de lo dado |
+| Informe del ministro | Juez de pantalla | Al empezar la estación, una hoja corta: qué hizo, qué falta, con imagen |
+| Clases por polis | Bot de reglas | Cada polis con sus clases; cada clase pide ≥ 2 cosas propias; descuidarla 4 estaciones trae una consecuencia visible |
+| Edificios griegos | Juez de arte | ≥ 25 edificios, 0 repetidos, cada uno con su ficha de historia |
+| Militares | Bot de reglas | Herrería, campo de entrenamiento y mercenarios cambian algo medible en tus tropas |
+| Que sirvan | Liga de bots | Todos se construyen alguna vez en 30 años; ninguno es «el único que vale» |
+| Épocas | Liga de bots y juez de aspecto | Arcaica → clásica en 15–40 años según cómo juegues; la ciudad cambia de aspecto (captura antes/después) |
+| Peso | Juez de arte | Descarga ≤ 80 MB |
+| Te gusta | El usuario | Su «Bien» |
+
+
 ## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
 Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
 ayudar fable a hacerlo». Modelo: Opus en todo (regla del 23/11), salvo lo que el usuario decida para el mapa vivo.
