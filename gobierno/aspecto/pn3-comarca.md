@@ -36,3 +36,4 @@ Una fila por examen. Lo juzga una sesión que **no** construyó la tarea, mirand
 | Fecha | Tarea | Quién juzga | Nota | Cierra | Capturas |
 |---|---|---|---|---|---|
 | 25/11/2026 | PN3 | verificador de PN3, que no construyó | 7,5 | no | gobierno/capturas-tarea/PN3-juez-a-atenas-arriba.jpg |
+| 25/11/2026 | PN3b | verificador de PN3b, que no construyó | 8,6 | sí | gobierno/capturas-tarea/PN3b3-arriba.jpg gobierno/capturas-tarea/PN3b3-tebas.jpg gobierno/capturas-tarea/PN3b3-imperio.jpg |
