@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~18:00 (vigía 4, probando la v174): «no veo el mapa nuevo que hemos creado, sigue apareciendo las ciudades de roma en el mapamundi te dije de dejar de momento solo victoria por conquista. Sigue habiendo en la ciudad 2 texturas diferentes para los aldeanos, los gigantes sin cara esos que hay que quitar ya y usar todas las de meshy. Y luego no hemos creado un departamento para que se encargase de crear mapas nuevos? Es exactamente el mismo que el de roma». → AM4 (MAPA de polis = mapa vivo) y PN3b ampliada (victoria por armas, aldeanos de Meshy).
 - 25/11 ~17:45 (vigía 4): «Si a las 2 recomendaciones»: (1) mar en las polis de costa (PN3b, ≈2 M); (2) subir ya con la comarca a 7,5 → subida a main `8529d919` (v174).
 - 25/11 (chat de EB1): «1. ¿Qué plan seguimos? (A) Plan A, tres pasos (recomendado) · (B) Plan B, cinco tandas · (C) Plan C, Ásculo de muestra y copiar» → «1A». Y, con captura: «Aquí se ve con el atraviesan las picas que no se cuántas veces habré repetido que no quiero que pase eso....» (F0, en BT1). BT1 abierta. Pendiente en EB1: «¿Paramos todo lo nuevo de batallas hasta terminar el plan?».
 - 25/11 ~17:05 (vigía 4): subida de la tanda de M1 «Pues lo recomendado entonces» (A): se sube a main cuando cierre PN3, todo junto (menú, estaciones, 8 polis, comarca y arranque en el 800 a.C., mapa vivo).
