@@ -21,7 +21,7 @@ export function crear() {
   const ASC = escenarioAsculo(new URLSearchParams(location.search)), ROMA = !!(ASC && ASC.bando === 'roma');
   let ctx = null, M = null, tira = null, vista = null, aros = [], tAro = 0;
   let MS = null;   /* BT1: las sarisas de los bloques de falange (Ásculo) */
-  const camaras = { v: { d: 110, alto: 88, ad: 30, fov: 56 }, h: { d: 52, alto: 34, ad: 22, fov: 44 } };
+  const camaras = { v: { d: 95, alto: 70, ad: 30, fov: 56 }, h: { d: 52, alto: 34, ad: 22, fov: 44 } };
   /* BT1: los falangitas de Ásculo (bloques 'falange' de js/bloque.js, pintados a hueco por tropas.js) llevan la sarisa de formaciones/falange.js
      (pintaSarisas: mismo carril, mismo apartado). La bajan las cinco primeras filas al trabarse, al cargar o con el rival a menos de 30 m */
   function sarisas(dt) {
