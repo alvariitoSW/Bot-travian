@@ -69,7 +69,7 @@
         "CDe3",
         "CDe4"
       ],
-      "falta": "Pantalla mínima de ciudad (tira fina arriba, barra de 6 pestañas, «Construir» flotante) y agricultura y mercado dentro de la partida: en obra (CDe3). Después, calles con el dedo (CD2a) y casas de la urbe grande que cuentan (CD2b). Embellecer (CD6) salió de la 1.0 el 24/11."
+      "falta": "Nada para la 1.0 (terminada el 25/11)."
     },
     {
       "id": "L2",
@@ -88,7 +88,7 @@
         "CE4b",
         "CDe4"
       ],
-      "falta": "CDe3 (en obra) mete en la partida la agricultura por suelos (AG1) y una parte del mercado (CE4). Después: el resto del mercado (aduanas, contratos del Senado, mercaderes rivales), «Este año» con el tributo de guerra (CE5) y el menú de recursos más artístico y con más imágenes (MN4)."
+      "falta": "Nada para la 1.0 (terminada el 25/11)."
     },
     {
       "id": "L3",
@@ -96,7 +96,7 @@
       "titulo": "Clases sociales: descuidarlas se nota",
       "veras": "Si desatiendes a los plebeyos o a los patricios, lo ves en la ciudad: protestas, gente que se va, obras paradas.",
       "hecho": "Cada ciudad tiene sus clases con su ánimo y puedes dar la ciudadanía. Desde la v157 (24/11) descuidar a una clase se ve: la gente se va del barrio desatendido, baja el favor y estalla la revuelta, que quita los impuestos del barrio (CD5a, CD5b, CDe2). Hechos con Meshy 20 personajes para el menú: seis clases, seis mujeres y siete políticos y ministros (MS3, MS4). CDe4 (v164): menú «Clases sociales» con sus personajes en 3D, ánimo y necesidades por clase y los barrios que protestan (CS3).",
-      "falta": "Rehacer el menú de clases con esos personajes, aligerados a unos 250 KB cada uno; pontífice y tribuno, de momento sin pintar (CS3, se abre al cerrar CDe3).",
+      "falta": "Nada para la 1.0 (terminada el 25/11).",
       "captura": "gobierno/capturas-tarea/CDe2-revuelta.jpg",
       "tareas": [
         "CD5a",
@@ -139,7 +139,7 @@
       "organo": "cerebro",
       "titulo": "Camino del comercio",
       "veras": "Un camino de victoria: riqueza y acuerdos con los reinos, a la vista en «Tus caminos».",
-      "falta": "Todo: la meta y «Tus caminos» (CE10) y el equilibrio con el bot (CE12). Absorbe VC1 a VC3.",
+      "falta": "Nada para la 1.0 (terminada el 25/11). Quedó para después de la 1.0, en pausa en el tablero: CE10.",
       "tareas": [
         "CE10",
         "CDe4"
@@ -151,7 +151,7 @@
       "organo": "cerebro",
       "titulo": "Camino de la política: Príncipe del Senado",
       "veras": "Edil, pretor, cónsul y Príncipe del Senado con la barra de Autoridad; alianza con los reinos, ningún bando hostil y ninguna clase en revuelta.",
-      "falta": "La meta a la vista (CE10). Autoridad y cargos (CE7) quedó sustituida el 23/11 por la ciudad nueva: hoy no hay cargos; CE10 fija cómo se mide este camino.",
+      "falta": "Nada para la 1.0 (terminada el 25/11). Quedó para después de la 1.0, en pausa en el tablero: CE10.",
       "tareas": [
         "CE10",
         "CDe4"
@@ -181,7 +181,7 @@
         "CDe4",
         "CG10"
       ],
-      "falta": "Con la regla de «tres de cuatro, sin plazo», tomar Cartago ya no acaba la partida: lo cambia CE10; CE12 equilibra los cuatro caminos."
+      "falta": "Nada para la 1.0 (terminada el 25/11). Quedó para después de la 1.0, en pausa en el tablero: CE10."
     },
     {
       "id": "L10",
@@ -189,7 +189,7 @@
       "titulo": "Una sola batalla, con un solo aspecto",
       "veras": "Un simulador de batallas en tiempo real, el mismo en campaña y en Escaramuzas: plan previo que se puede saltar con «Ver cómo irá», mando en vivo por manípulos con tus tribunos, y batalla rápida si no quieres jugarla larga.",
       "hecho": "Escaramuzas ya juega la batalla nueva: el simulador de manípulos, mando en vivo (tocar y arrastrar, formar, cargar, relevar, pausa), la luz y el campo elegidos y el soldado nuevo en todas las tropas a pie. Soldados nuevos de Meshy: diez tipos (galos, centurión, triario, vélite) en «Manípulo a pie» (23 y 24/11). «Bajar a pie» desde la batalla grande con manípulos (LP7) y, en la rama, también con la falange (LP7b).",
-      "falta": "Que la campaña use la misma batalla (CG4b, sin empezar); tribunos y plan previo (CG5), batalla rápida (CG7), más épica (CG8), vida y datos por tropa (CG9) y muchos cuerpos con sitio y estandarte propios (GM22). La física en escaramuzas y campaña (FI4) se está rehaciendo.",
+      "falta": "Nada para la 1.0 (terminada el 25/11). Quedó para después de la 1.0, en pausa en el tablero: CG5, CG8, GM22.",
       "captura": "gobierno/capturas-tarea/CG4-3-arrastre-h.jpg",
       "tareas": [
         "BG1",
@@ -230,7 +230,7 @@
       "titulo": "El testudo a pie, dentro del juego",
       "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
       "hecho": "Ya en tu móvil (v155): «Manípulo a pie» (dibujas el frente con el dedo, cuatro órdenes que se iluminan, vista del oficial con el pellizco, trabados en combate y retirada ordenada), la falange con el mismo control (LP6) y «Bajar a pie» de la batalla grande con el control del bloque (LP7). La lucha acaba cuando a un bando le queda el 15 %. El pilum se lanza de verdad (PIL3). En la rama, pendiente de subir: la falange también baja desde la batalla grande, con el rival que tenías delante (LP7b).",
-      "falta": "El duelo de cerca (CG6c), las caras (GM43j), lo que quedó de TP8 (TP8c) y las tácticas de la época (TH1). Hoplitas y Batallón Sagrado aún no bajan: esperan su lanza propia.",
+      "falta": "Nada para la 1.0 (terminada el 25/11). Quedó para después de la 1.0, en pausa en el tablero: CB2b.",
       "captura": "gobierno/capturas-tarea/LP7b-choque-h.jpg",
       "tareas": [
         "TP1",
@@ -283,7 +283,7 @@
         "CG2",
         "CG9"
       ],
-      "falta": "Física en las escaramuzas (FI4, se está rehaciendo); precios medidos con el bot, veteranía y datos por tropa (CG9); despliegue y tribunos (CG5)."
+      "falta": "Nada para la 1.0 (terminada el 25/11). Quedó para después de la 1.0, en pausa en el tablero: CG2."
     },
     {
       "id": "L14",
@@ -299,7 +299,7 @@
       "organo": "musculo",
       "titulo": "Fluido y sin conexión en tu móvil, y publicada",
       "veras": "Juegas una campaña entera en tu móvil sin tirones y sin red. Con tu visto bueno, se publica la 1.0.",
-      "falta": "Subir lo de batallas (LP7b, FE3, FI3u y FI4) con jueces completos (SB5, cuando FI4 suba a la rama); tu prueba en el móvil, sus arreglos pequeños y publicar (V10b).",
+      "falta": "Nada para la 1.0 (terminada el 25/11).",
       "tareas": [
         "V10b",
         "SB6",
@@ -316,7 +316,7 @@
       "organo": "corazon",
       "titulo": "Formaciones en Escaramuzas",
       "veras": "En Escaramuzas eliges tus tropas con su dibujo, su coste y lo que saben hacer (testudo, picas, muro…) y pruebas las formaciones; las escenas a pie quedan como minijuegos.",
-      "falta": "Veteranía y los 12 datos en la ficha (CG9), batalla rápida y minijuegos (CG7) y las tácticas de la época (TH1); física en las escaramuzas (FI4, se está rehaciendo).",
+      "falta": "Nada para la 1.0 (terminada el 25/11). Quedó para después de la 1.0, en pausa en el tablero: CG2, CB2b.",
       "tareas": [
         "TP7a",
         "CG2",
@@ -371,7 +371,7 @@
       "organo": "musculo",
       "titulo": "Menús reordenados y con un solo aspecto antiguo",
       "veras": "Una barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio); llegas al Senado y a la política a un toque; construyes con «Lo hago yo · Encargar · Gobernador»; todo en papiro, tablilla y bronce.",
-      "falta": "MN1 y MN2 hechas. Quedan: pantalla mínima de ciudad (CDe3, en obra), gobernador (MN3), renovación artística con más imágenes en todos los menús y en el de recursos (MN4) y el menú de clases con personajes (CS3, en L3). Absorbe el papiro del Códice y de los avisos (PA1 a PA3).",
+      "falta": "Nada para la 1.0 (terminada el 25/11). Quedó para después de la 1.0, en pausa en el tablero: MN3, MN4.",
       "tareas": [
         "MN1",
         "MN2",

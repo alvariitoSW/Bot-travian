@@ -45,14 +45,14 @@
   "fecha": "2026-11-25T15:30:15.291Z"
  },
  "fichas": {
-  "huella": "cc5774a59771818b",
+  "huella": "937cf5622037c0db",
   "ok": true,
-  "fecha": "2026-11-25T15:31:34.374Z"
+  "fecha": "2026-11-25T15:35:55.443Z"
  },
  "mapa": {
-  "huella": "add85594fde57ea6",
+  "huella": "1c9b5aeb364caab4",
   "ok": true,
-  "fecha": "2026-11-25T15:31:34.783Z"
+  "fecha": "2026-11-25T15:35:55.912Z"
  },
  "saber": {
   "huella": "333641657839c6f6",
@@ -375,8 +375,8 @@
   "fecha": "2026-11-25T14:30:58.640Z"
  },
  "porcentajes": {
-  "huella": "23ee58c58214a4db",
+  "huella": "43390ff01ce47122",
   "ok": true,
-  "fecha": "2026-11-25T15:31:34.755Z"
+  "fecha": "2026-11-25T15:35:56.095Z"
  }
 }

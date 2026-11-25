@@ -86,6 +86,7 @@ const enLinea = new Map();
 for (const l of lineas) {
   for (const id of l.tareas || []) { enLinea.set(id, l.id); if (!porId.has(id)) avisa(l.id + ': la tarea ' + id + ' no está en el tablero'); }
   if (l.estadoEscrito != null) avisa(l.id + ': lista.json escribe «estado» a mano («' + l.estadoEscrito + '»); se ignora, sale del tablero: bórralo');
+  if (l.estado === 'hecha' && l.falta && !/^\s*nada\b/i.test(l.falta)) avisa(l.id + ': la línea está hecha, pero su texto «falta» aún pide cosas; ponlo al día en lista.json');
   if (!(l.tareas || []).length && l.estado !== 'hecha') avisa(l.id + ': sin tareas en el tablero y con algo que falta; dale sus tareas');
 }
 async function lineaHtml(l) {
