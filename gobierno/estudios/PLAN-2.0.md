@@ -378,6 +378,12 @@ departamento de animación, de gráficos ni de jugabilidad.
   campamento o regimiento apostado en una región). Se abre una sesión de diseño aparte para recibir sus vídeos.
 - Tamaño: **«1.000–2.000 (Recomendado)»** hombres por bando en una batalla grande, a medir en su móvil.
 
+### Modo supervivencia (25/11)
+Diseño: rama `diseno-supervivencia` (abe4f99), `gobierno/estudios/SUP0-modo-supervivencia.md`, con las decisiones
+literales del usuario. Aquí decidió: **«Carril aparte (Recomendado)»** (fuera de las 5 metas, con su meta y su estándar)
+y **«Sí, ya (Recomendado)»** a abrir **SUP1**: mesa de diseño (sin construir) con Batallas, Combate, Músculo, Arte,
+Sonido e Historia que cierre tiempo, pelea en oleadas y campamento, con ficha de objetivo (aspecto ≥ 8,5).
+
 ## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
 Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
 ayudar fable a hacerlo». Modelo: Opus en todo (regla del 23/11), salvo lo que el usuario decida para el mapa vivo.
