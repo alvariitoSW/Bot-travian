@@ -169,9 +169,9 @@ void main(){
   vec3 c = texture2D(tMacro, uv).rgb, m = texture2D(tMasc, uv).rgb, tinta = vec3(0.29, 0.19, 0.12);
   float campos = m.r, bosque = m.g, sombra = m.b, g1 = grano(p, 0.006), g2 = grano(p + 5.3, 0.0015);
   /* rayado de las umbrías: una trama, y otra cruzada donde más oscuro */
-  float r1 = raya(p + (g1 - 0.5) * uPx * 5.0, 0.9, 0.17), r2 = raya(p, -0.5, 0.17);
-  float tr = r1 * smoothstep(0.12, 0.4, sombra) * 0.6 + r2 * smoothstep(0.45, 0.8, sombra) * 0.5;
-  c = mix(c, tinta, tr * (1.0 - bosque * 0.6));
+  float r1 = raya(p + (g1 - 0.5) * uPx * 5.0, 0.9, 0.17), r2 = raya(p + (g2 - 0.5) * uPx * 4.0, 0.9, 0.34), lejosR = smoothstep(0.0015, 0.006, uPx);
+  float tr = r1 * smoothstep(0.12, 0.4, sombra) * 0.55 + r2 * smoothstep(0.5, 0.85, sombra) * 0.4;
+  c = mix(c, tinta, tr * (1.0 - bosque * 0.6) * mix(0.18, 1.0, lejosR)); c *= 1.0 - 0.2 * smoothstep(0.15, 0.8, sombra) * (1.0 - lejosR);
   /* bosque: arbolitos a tinta con aguada verde */
   if (bosque > 0.05) { vec3 cp = copas(p, 0.003, 0.45 + 0.5 * bosque); float vb = smoothstep(0.04, 0.012, uPx) * smoothstep(0.1, 0.5, bosque);
     float aro = cp.x * (1.0 - smoothstep(0.0, 0.9, cp.y * 1.8)); c = mix(c, vec3(0.52, 0.62, 0.38), cp.x * 0.75 * vb); c = mix(c, tinta, clamp(aro * 0.9 + cp.z * 0.5, 0.0, 1.0) * vb * 0.8); }
@@ -179,17 +179,17 @@ void main(){
   float v2 = smoothstep(5.0, 15.0, 0.011 / uPx) * smoothstep(0.25, 0.6, campos), v1 = smoothstep(4.0, 12.0, 0.2 / uPx) * smoothstep(0.25, 0.6, campos);
   if (v1 > 0.001) { vec4 h1, h2; float b1, b2; vec2 f1, f2; parcela(pc, 0.085, h1, b1, f1); parcela(pc + 1.3, 0.012, h2, b2, f2);
     c = mix(c, c * mix(vec3(1.07, 1.0, 0.80), vec3(0.88, 1.0, 0.84), h1.r), v1 * 0.6);
-    float rs = raya(p + (g1 - 0.5) * uPx * 4.0, h1.g * 3.1, 0.2) * step(0.45, h1.b); c = mix(c, tinta, rs * v1 * (1.0 - v2 * 0.7) * 0.13);
+    float rs = raya(p + (g1 - 0.5) * uPx * 4.0, h1.g * 3.1, 0.2) * step(0.45, h1.b); c = mix(c, tinta, rs * v1 * (1.0 - v2) * 0.13);
     float sur = smoothstep(0.6, 0.95, sin((h2.a > 0.5 ? f2.x : f2.y) * 31.0)) * step(0.35, h2.r); c = mix(c, tinta, sur * v2 * 0.09 * smoothstep(0.0035, 0.0012, uPx));
-    c = mix(c, c * mix(vec3(1.05, 0.98, 0.8), vec3(0.88, 0.98, 0.82), h2.g), v2 * 0.55);
+    c = mix(c, c * mix(vec3(1.05, 0.98, 0.8), vec3(0.88, 0.98, 0.82), h2.g), v2 * 0.4);
     if (h1.r > 0.78) { vec3 ol = copas(p, 0.0016, 0.85); float vo = smoothstep(0.012, 0.004, uPx), aro = ol.x * (1.0 - smoothstep(0.0, 0.9, ol.y * 1.8)); c = mix(c, vec3(0.56, 0.64, 0.40), ol.x * 0.7 * vo); c = mix(c, tinta, clamp(aro * 0.8 + ol.z * 0.4, 0.0, 1.0) * vo * 0.7); }   // olivar a pluma
     float w2 = uPx / 0.012, w1 = uPx / 0.085, cerca1 = smoothstep(0.012, 0.004, uPx);
-    c = mix(c, tinta, smoothstep(w2 * 1.5, w2 * 0.5, b2) * v2 * 0.2); c = mix(c, tinta, smoothstep(w1 * 2.0, w1 * 0.6, b1) * v1 * cerca1 * 0.24); }
+    c = mix(c, tinta, smoothstep(w2 * 1.5, w2 * 0.5, b2) * v2 * 0.13); c = mix(c, tinta, smoothstep(w1 * 2.0, w1 * 0.6, b1) * v1 * cerca1 * 0.16); }
   /* monte bajo: matas sueltas a pluma (de cerca) */
   if (uPx < 0.006) { float monte = clamp(1.0 - campos * 1.6 - bosque * 2.0, 0.0, 1.0), vm = smoothstep(0.006, 0.002, uPx) * monte; vec3 mt = copas(p + 7.1, 0.0024, 0.28);
     float aro = mt.x * (1.0 - smoothstep(0.0, 0.9, mt.y * 1.8)); c = mix(c, vec3(0.60, 0.66, 0.42), mt.x * 0.55 * vm); c = mix(c, tinta, clamp(aro * 0.8 + mt.z * 0.35, 0.0, 1.0) * vm * 0.6); }
   /* línea de costa a tinta, siempre fina */
-  c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.15, abs(costaKm(p)) / max(0.25, uPx * 21.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9);
+  c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.15, abs(costaKm(p)) / max(0.25, uPx * 14.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9);
   c *= 0.93 + 0.14 * g2; c *= 0.96 + 0.08 * texture2D(tRuido, p * vec2(0.9, 0.25)).a;
   c *= sombraNube(p); c = fuera(c, p);
   if (ac < -2.5) discard;   // el mar lo pinta su propia capa (se descarta al final: las lecturas de textura de arriba necesitan a sus vecinos)
@@ -203,7 +203,7 @@ void main(){
   vec2 p = vW.xz, u = uvM(p); float ext = step(u.x, 0.0) + step(1.0, u.x) + step(u.y, 0.0) + step(1.0, u.y);
   float a = altM(p); if (ext < 0.5 && a > 60.0) discard;                       // tierra firme: el mar no tiene nada que pintar
   float ac = altCosta(p, a), dk = -costaKm(p);
-  if (ext > 0.5) { vec2 e0 = vec2(1.0) / uMarco.zw, q0 = max(uMarco.xy - p, p - uMarco.xy - e0); float s0 = smoothstep(0.0, 10.0, max(q0.x, q0.y)); ac = -mix(clamp(-a, 400.0, 3000.0), 1800.0, s0); dk = 9.0; }
+  if (ext > 0.5) { vec2 e0 = vec2(1.0) / uMarco.zw, q0 = max(uMarco.xy - p, p - uMarco.xy - e0); float s0 = smoothstep(0.0, 1.5, max(q0.x, q0.y)); ac = -mix(clamp(-a, 400.0, 3000.0), 1800.0, s0); dk = 9.0; }
   if (ac > 1.0 && ext < 0.5) discard;
   float hondo = max(0.0, -ac), px = uPx * 10.0;                                   // px: km por píxel
   /* distancia a la orilla: de lejos, la del dato; de cerca, la que da el fondo (así sigue a la orilla fina) */
@@ -225,7 +225,7 @@ void main(){
   float ola = sin(q * 7.0 - t * 1.1 + n1 * 7.0) * 0.5 + 0.5;
   float esp = smoothstep(1.0, 0.08, q) * smoothstep(0.5, 0.92, ola * (0.55 + n2)); esp = max(esp, smoothstep(0.28, 0.03, q) * 0.85);
   esp = mix(esp, step(0.4, esp), uDura); c = mix(c, cEspuma, esp * uEspuma * mix(0.6, 1.0, uCerca));
-  if (uTinta > 0.0) c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.15, abs(costaKm(p)) / max(0.25, uPx * 21.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9 * uTinta * (1.0 - ext));   // la carta: la tinta de la orilla también por el lado del mar
+  if (uTinta > 0.0) c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.15, abs(costaKm(p)) / max(0.25, uPx * 14.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9 * uTinta * (1.0 - ext));   // la carta: la tinta de la orilla también por el lado del mar
   c *= sombraNube(p); vec2 e2 = vec2(1.0) / uMarco.zw;
   if (uCarta > 0.5 || p.y < uMarco.y + 4.0 || p.x > uMarco.x + e2.x - 4.0) c = fuera(c, p); else c = mix(cNiebla, c, bordeMar(p));
   gl_FragColor = vec4(c, ext > 0.5 ? 1.0 : smoothstep(1.0, -1.5, ac));
@@ -268,7 +268,7 @@ export const ESTILOS = {
     rio: { color: '#5fa2bd', borde: '#2c5a70', opacidad: 0.95 }, camino: { color: '#e6d2a2', borde: '#6a543a', opacidad: 0.9, trazo: 0 } },
   b: { n: 'Carta antigua viva', suelo: 'suelo-b.webp', masc: 'mascaras-b.webp', niebla: '#d9c9a0', nubes: 0.16, nubesAltas: 0,
     mar: { costa: '#a9c2b4', hondo: '#8fb0ae', brillo: '#fff8e0', espuma: '#f4ecd6', fuerzaBrillo: 0.05, fuerzaEspuma: 0.5, ondas: 0.3, rayas: 0.7, dura: 0, tinta: 1 },
-    rio: { color: '#4f7f92', borde: '#3c606e', opacidad: 0.95 }, camino: { color: '#8a2c20', borde: '#8a2c20', opacidad: 0.9, trazo: 5 } }
+    rio: { color: '#3f7890', borde: '#2f5666', opacidad: 1, minPx: 2.6 }, camino: { color: '#8a2c20', borde: '#8a2c20', opacidad: 0.95, trazo: 5, minPx: 2.5 } }
 };
 
 export class Suelo {

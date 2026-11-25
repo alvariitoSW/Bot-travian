@@ -71,7 +71,7 @@ export class MapaGrecia {
     const [E, masc] = await Promise.all([this.suelo.estilo(this.est), leerImagen('mascaras-a.webp')]); this.masc = masc; this.r.setClearColor(ESTILOS[this.est].niebla);
     this._lineas(); this._rotulos(); this._dedos();
     this.vida = new Vida(this); await this.vida.iniciar(); this.vida.estilo(this.est);
-    for (const P of this.vida.polis) if (P.puertoXZ) { const e = this.etq.find(q => q.lugar && q.lugar.n === P.p.puertoN); if (e) { e.x = P.puertoXZ[0]; e.z = P.puertoXZ[1]; } }   // el rótulo del puerto, sobre su caserío y su muelle
+    for (const P of this.vida.polis) if (P.puertoXZ) { const e = this.etq.find(q => q.lugar && q.lugar.n === P.p.puertoN); if (e) { e.x = P.puertoXZ[0]; e.z = P.puertoXZ[1] - P.puertoR * 1.25; } }   // el rótulo del puerto, sobre su caserío y su muelle
     this.host.classList.toggle('mg-b', this.est === 'b');
     this.vista(this.o.vista || 'corazon'); this.listo = true; this.arranqueMs = Math.round(performance.now() - t0);
     this._ro = new ResizeObserver(() => { for (const e of this.etq) e.w = 0; }); this._ro.observe(this.host);
@@ -107,7 +107,7 @@ export class MapaGrecia {
     for (const t in BASICOS) { const m = new THREE.Mesh(cintas(aros.filter(a => a.z.t === t)), materialLinea(this.com, { ancho: 0, minPx: 2.6, color: BASICOS[t].color, opacidad: 0.9, trazo: 4, alza: 2.5 })); m.frustumCulled = false; m.renderOrder = 3; this.cercos.add(m); }
     for (const m of [this.rios, this.caminos]) { m.frustumCulled = false; m.renderOrder = 2; this.escena.add(m); } this.escena.add(this.cercos); this._estiloLineas();
   }
-  _estiloLineas() { const E = ESTILOS[this.est], pon = (m, o) => { const u = m.material.uniforms; u.uColor.value.copy(new THREE.Color().setRGB(...hex(o.color), THREE.LinearSRGBColorSpace)); u.uColor2.value.copy(new THREE.Color().setRGB(...hex(o.borde), THREE.LinearSRGBColorSpace)); u.uOpacidad.value = o.opacidad; u.uTrazo.value = o.trazo || 0; };
+  _estiloLineas() { const E = ESTILOS[this.est], pon = (m, o) => { const u = m.material.uniforms; u.uColor.value.copy(new THREE.Color().setRGB(...hex(o.color), THREE.LinearSRGBColorSpace)); u.uColor2.value.copy(new THREE.Color().setRGB(...hex(o.borde), THREE.LinearSRGBColorSpace)); u.uOpacidad.value = o.opacidad; u.uTrazo.value = o.trazo || 0; u.uMinPx.value = o.minPx || 1.8; };
     pon(this.rios, E.rio); pon(this.caminos, E.camino); }
 
   /* ---------- rótulos (HTML: nítidos a 390 px) ---------- */

@@ -148,9 +148,9 @@ function pintarPlano(T, estilo, lado) {
     if (T.conTemplo) cosas.push({ z: T.acro.z + T.acro.r * 0.2, templo: true });
     cosas.sort((a, b) => a.z - b.z); const EST = 1.28;   // la cámara mira inclinada y aplasta lo vertical: se estira para que el alzado se vea derecho
     for (const o of cosas) {
-      if (o.templo) { const rx = Math.max(rA * 1.05, 0.0085 * k); g.save(); g.translate(qA[0], qA[1]); g.scale(1, EST); penaTinta(g, 0, 0, rx, T.acro.alto, rr); temploTinta(g, 0, rx * 0.12, rx * 1.25, T.color); g.restore(); }
+      if (o.templo) { const rx = Math.max(rA * 1.05, 0.0085 * k); g.save(); g.translate(qA[0], qA[1]); g.scale(1, EST); penaTinta(g, 0, 0, rx, T.acro.alto, rr); temploTinta(g, 0, rx * 0.14, rx * 1.5, T.color); g.restore(); }
       else if (o.arbol) { const q = px(o.x, o.z); g.save(); g.translate(q[0], q[1]); g.scale(1, EST); arbolTinta(g, 0, 0, o.e * k, o.cip); g.restore(); }
-      else { const h = o.h, q = px(h.x, h.z); g.save(); g.translate(q[0], q[1] + h.d * k * 0.3); g.scale(1, EST); casitaTinta(g, 0, 0, h.w * k * 1.12, h.t, Math.abs(Math.sin(h.ang)) > 0.7, h.t < 0.15 ? T.color : h.u < 0.45 ? '#b9764a' : h.u < 0.78 ? '#c9a070' : '#a99060', h.u > 0.5 ? '#f3e8cb' : '#e8d8b0'); g.restore(); } }
+      else { const h = o.h, q = px(h.x, h.z); if (T.conTemplo) { const rx = Math.max(rA * 1.05, 0.0085 * k), dy = q[1] - qA[1]; if (Math.abs(q[0] - qA[0]) < rx * 1.3 && dy > -rx * 0.3 && dy < rx * (1.0 + 0.3 * T.acro.alto) * EST) continue; } g.save(); g.translate(q[0], q[1] + h.d * k * 0.3); g.scale(1, EST); casitaTinta(g, 0, 0, h.w * k * 1.12, h.t, Math.abs(Math.sin(h.ang)) > 0.7, h.t < 0.15 ? T.color : h.u < 0.45 ? '#b9764a' : h.u < 0.78 ? '#c9a070' : '#a99060', h.u > 0.5 ? '#f3e8cb' : '#e8d8b0'); g.restore(); } }
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.NoColorSpace; t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; return t;
 }
@@ -189,13 +189,15 @@ export class Vida {
     for (const p of POLIS) this.polis.push(this._polis(p, alt));
     this._barcos(); this._rebanos(); this._nubes(); this._arboles();
     /* márgenes de la carta (solo estilo B, de lejos): título arriba y rosa de los vientos abajo, para que el pergamino no quede vacío */
-    this.margenes = []; const T = '#4a2f1c', lam = (dib, z) => { const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d'); g.textAlign = 'center'; g.fillStyle = T; g.strokeStyle = T; g.lineJoin = 'round'; dib(g);
-      const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const me = new THREE.Mesh(new THREE.PlaneGeometry(56, 14).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tx, transparent: true, depthTest: false, depthWrite: false, opacity: 0 })); me.position.set(XI + ANCHO / 2, 0.05, z); me.renderOrder = 8; me.frustumCulled = false; me.visible = false; this.g.add(me); this.margenes.push(me); };
-    lam(g => { g.font = 'italic 96px Georgia, serif'; try { g.letterSpacing = '30px'; } catch (e) {} g.fillText('ΕΛΛΑΣ', 512, 120); try { g.letterSpacing = '6px'; } catch (e) {} g.font = 'italic 34px Georgia, serif'; g.fillText('Carta de las polis de Grecia y de sus riquezas', 512, 180);
-      g.lineWidth = 3; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(512 + s * 130, 214); g.lineTo(512 + s * 430, 214); g.stroke(); g.beginPath(); g.arc(512 + s * 110, 214, 6, 0, 7); g.fill(); } }, ZN - 9.5);
-    lam(g => { g.translate(512, 128); g.lineWidth = 2.5; g.beginPath(); g.arc(0, 0, 84, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 74, 0, 7); g.stroke();
-      for (let i = 0; i < 16; i++) { const L = i % 4 === 0 ? 116 : i % 2 === 0 ? 82 : 50; g.save(); g.rotate(i * Math.PI / 8); g.beginPath(); g.moveTo(0, -L); g.lineTo(9, 0); g.lineTo(-9, 0); g.closePath(); g.fillStyle = i % 2 ? '#c9b98c' : (i % 4 === 0 ? '#7a2b20' : T); g.fill(); g.stroke(); g.restore(); }
-      g.fillStyle = T; g.font = 'italic 30px Georgia, serif'; g.fillText('Céfiro', -300, 10); g.fillText('Euro', 300, 10); g.font = 'bold 26px Georgia, serif'; g.fillText('N', 0, -92); }, ZN + FONDO + 9.5);
+    this.margenes = []; let T = '#4a2f1c'; const lam = (dib, z, est) => { const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d'); g.textAlign = 'center'; g.fillStyle = T; g.strokeStyle = T; g.lineJoin = 'round'; dib(g);
+      const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const me = new THREE.Mesh(new THREE.PlaneGeometry(56, 14).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tx, transparent: true, depthTest: false, depthWrite: false, opacity: 0 })); me.position.set(XI + ANCHO / 2, 0.05, z); me.renderOrder = 8; me.frustumCulled = false; me.visible = false; me.userData.est = est; this.g.add(me); this.margenes.push(me); };
+    for (const EST of ['b', 'a']) { T = EST === 'b' ? '#4a2f1c' : '#f6efdc';
+      lam(g => { if (EST === 'a') { g.fillStyle = g.strokeStyle = '#27405a'; } g.font = 'italic 96px Georgia, serif'; try { g.letterSpacing = '30px'; } catch (e) {} g.fillText('ΕΛΛΑΣ', 512, 120); try { g.letterSpacing = '6px'; } catch (e) {} g.font = 'italic 34px Georgia, serif'; g.fillText('Carta de las polis de Grecia y de sus riquezas', 512, 180);
+      g.lineWidth = 3; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(512 + s * 130, 214); g.lineTo(512 + s * 430, 214); g.stroke(); g.beginPath(); g.arc(512 + s * 110, 214, 6, 0, 7); g.fill(); } }, ZN - 9.5, EST);
+      lam(g => { g.translate(512, 128); g.lineWidth = 2.5; g.beginPath(); g.arc(0, 0, 84, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 74, 0, 7); g.stroke();
+      for (let i = 0; i < 16; i++) { const L = i % 4 === 0 ? 116 : i % 2 === 0 ? 82 : 50; g.save(); g.rotate(i * Math.PI / 8); g.beginPath(); g.moveTo(0, -L); g.lineTo(9, 0); g.lineTo(-9, 0); g.closePath(); g.fillStyle = i % 2 ? (EST === 'a' ? '#5f8fae' : '#c9b98c') : (i % 4 === 0 ? (EST === 'a' ? '#e9c46a' : '#7a2b20') : T); g.fill(); g.stroke(); g.restore(); }
+      g.fillStyle = T; g.font = 'italic 30px Georgia, serif'; g.fillText('Céfiro', -300, 10); g.fillText('Euro', 300, 10); g.font = 'bold 26px Georgia, serif'; g.fillText('N', 0, -92); }, ZN + FONDO + 9.5, EST);
+    }
     /* canteras y minas: dos o tres labores por comarca de piedra o de hierro, donde hay roca o monte */
     this.labores = []; this.tLabor = {}; const rl = azar(53), masc = this.m.masc, geoL = new THREE.PlaneGeometry(1, 1, 6, 6).rotateX(-Math.PI / 2);
     for (const z of ZONAS) { if (z.t !== 'piedra' && z.t !== 'hierro') continue; const zx = X(z.lon), zz = Z(z.lat), R = z.r / 10, pts = [];
@@ -215,7 +217,7 @@ export class Vida {
     const nc = p.pri === 1 ? 6 : 4; for (let i = 0; i < nc; i++) { const a = i / nc * Math.PI * 2 + rnd() * 0.5, r = 25 + (i % 3) * 8 + rnd() * 4; P.piezas.push({ k: ['grie_casa', 'grie_casa_b', 'grie_casa_c'][i % 3], x: Math.cos(a) * r, z: Math.sin(a) * r, r: -a + Math.PI / 2 + (rnd() - 0.5) * 0.6, e: 0.95 }); }
     for (let i = 0; i < 4; i++) { const a = rnd() * 6.28, r = 40 + rnd() * 8; P.piezas.push({ k: i % 2 ? 'olivo' : 'cipres', x: Math.cos(a) * r, z: Math.sin(a) * r, r: rnd() * 6, e: i % 2 ? 0.9 : 1.4 }); }
     /* de lejos (B): la ciudad dibujada a tinta */
-    const sello = new THREE.Sprite(new THREE.SpriteMaterial({ map: iconoCiudad(p), transparent: true, depthWrite: false })); sello.center.set(0.5, 0.12); sello.renderOrder = 5; sello.position.set(P.x, 0, P.z); this.g.add(sello); P.sello = sello;
+    const sello = new THREE.Sprite(new THREE.SpriteMaterial({ map: iconoCiudad(p), transparent: true, depthWrite: false })); sello.center.set(0.5, 0.42); sello.renderOrder = 5; sello.position.set(P.x, 0, P.z); this.g.add(sello); P.sello = sello;
     /* de cerca: plano de calles tendido sobre el relieve y casas una a una (la polis y, si tiene, su puerto) */
     const R = 0.05 + p.casas / 300 * 0.032, F = FORMA[p.id] || {}, sem = POLIS.indexOf(p) * 97 + 11; P.R = R;
     if (F.aldeas) { P.barrios = []; for (let i = 0; i < F.aldeas; i++) { const a = 0.6 + i / (F.aldeas - 1) * 6.283, d = i ? R * 1.05 : 0; P.barrios.push(this._barrio({ x: P.x + Math.cos(a) * d, z: P.z + Math.sin(a) * d, color: p.color }, alt, Math.round(p.casas / F.aldeas), R * 0.4, sem + i * 13, i === 0, { nR: 5, acroD: 0.5, acroR: 0.2, alto: 1 })); } }
@@ -227,7 +229,7 @@ export class Vida {
         let muelle = null; if (agua) { const d = Math.hypot(agua[0] - mejor[0], agua[1] - mejor[1]), ux = (agua[0] - mejor[0]) / d, uz = (agua[1] - mejor[1]) / d; let s0 = 0; while (s0 < d && alt(mejor[0] + ux * s0, mejor[1] + uz * s0) > 1) s0 += 0.001;
           const a0 = [mejor[0] + ux * (s0 - 0.003), mejor[1] + uz * (s0 - 0.003)], L = 0.024; muelle = { a: a0, b: [a0[0] + ux * (L + 0.003), a0[1] + uz * (L + 0.003)] };
           [[0.5, 1], [0.5, -1], [0.92, 1], [0.92, -1]].forEach((q, n) => { const s1 = 0.003 + L * q[0]; this.amarrados.push({ fijo: true, x: a0[0] + ux * s1 - uz * 0.0036 * q[1], z: a0[1] + uz * s1 + ux * 0.0036 * q[1], rumbo: Math.atan2(ux, uz) + (n % 2 ? Math.PI : 0), ri: n, guerra: n === 0 }); }); }
-        const b = this._barrio({ x: mejor[0], z: mejor[1], color: p.color }, alt, 34, 0.026, POLIS.indexOf(p) * 131 + 5, false, muelle ? { muelle } : undefined); if (b.T.casas.length > 3) { P.barrios.push(b); P.puertoXZ = [b.T.cx, b.T.cz]; } } }
+        const b = this._barrio({ x: mejor[0], z: mejor[1], color: p.color }, alt, 34, 0.026, POLIS.indexOf(p) * 131 + 5, false, muelle ? { muelle } : undefined); if (b.T.casas.length > 3) { P.barrios.push(b); P.puertoXZ = [b.T.cx, b.T.cz]; P.puertoR = b.T.R; } } }
     /* humo de los hogares */
     P.humo = new THREE.Group(); P.humo.position.set(P.x, 0, P.z); this.g.add(P.humo); P.humos = [];
     for (let i = 0; i < 6; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tHumoA, transparent: true, depthWrite: false, opacity: 0 })); s.renderOrder = 6; P.humo.add(s); P.humos.push({ s, f: i / 6, vx: 0.5 + rnd() * 0.3, o: i < 4 ? [8, 16, -6] : [-22, 10, 14], tam: i < 4 ? 1 : 0.7 }); }
@@ -260,13 +262,14 @@ export class Vida {
     const vela = new THREE.PlaneGeometry(0.42, 0.34).translate(0, 0.32, 0.06), palo = new THREE.PlaneGeometry(0.02, 0.5).translate(0, 0.3, 0.05).rotateY(Math.PI / 2), estela = new THREE.PlaneGeometry(0.34, 1.3).rotateX(-Math.PI / 2).translate(0, 0.004, -0.95);
     const I = (g, mat) => { const im = new THREE.InstancedMesh(g, mat, n); im.frustumCulled = false; this.g.add(im); return im; };
     this.bCascos = I(casco, new THREE.MeshLambertMaterial({ color: '#7a5230' })); this.bVelas = I(vela, new THREE.MeshLambertMaterial({ color: '#ffffff', side: THREE.DoubleSide })); this.bEstelas = I(estela, new THREE.MeshBasicMaterial({ map: this.tEstela, transparent: true, opacity: 0.5, depthWrite: false })); this.bEstelas.renderOrder = 2;
-    this.bDib = I(new THREE.PlaneGeometry(1.5, 1.5).translate(0, 0.45, 0), new THREE.MeshBasicMaterial({ map: iconoBarco(0), transparent: true, depthWrite: false })); this.bDib.renderOrder = 5;
+    this.bDib = I(new THREE.PlaneGeometry(1.15, 1.15).translate(0, 0.35, 0), new THREE.MeshBasicMaterial({ map: iconoBarco(1), transparent: true, depthWrite: false })); this.bDib.renderOrder = 5;
     const col = new THREE.Color(); lista.forEach((b, i) => { this.bVelas.setColorAt(i, col.set(b.guerra ? '#c9553f' : i % 2 ? '#f2e6c8' : '#e2d2a8')); b.modelo = null; this.barcos.push(b); });
     this._m4 = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._q2 = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._v = new THREE.Vector3(); this._eje = new THREE.Vector3(0, 1, 0); this._cero = new THREE.Matrix4().makeScale(0, 0, 0);
   }
   /* ---------- árboles de cerca: pinos y encinas con volumen, solo alrededor de la cámara (se recolocan al moverse) ---------- */
   _arboles() {
-    const N = 2200, pino = new THREE.ConeGeometry(0.5, 1.6, 5, 1, true).translate(0, 0.9, 0), copa = new THREE.IcosahedronGeometry(0.7, 0).scale(1, 0.72, 1).translate(0, 0.55, 0), mat = new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true });
+    const N = 2200, pino = new THREE.ConeGeometry(0.5, 1.7, 7, 1, true).translate(0, 0.95, 0), copa = new THREE.IcosahedronGeometry(0.7, 0), mat = new THREE.MeshLambertMaterial({ color: '#ffffff' });
+    copa.setAttribute('normal', new THREE.BufferAttribute(Float32Array.from(copa.attributes.position.array, v => v / 0.7), 3)); copa.scale(1, 0.72, 1).translate(0, 0.55, 0);   // luz redonda: la copa no enseña sus caras
     const I = g => { const im = new THREE.InstancedMesh(g, mat, N); im.count = 0; im.frustumCulled = false; im.visible = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.g.add(im); return im; };
     this.arb = { pinos: I(pino), copas: I(copa), N, clave: '', col: new THREE.Color() };
   }
@@ -312,12 +315,13 @@ export class Vida {
     const m = this.m, upx = m.V.upx, a = m.ancho, ky = m.com.uKy.value, alt = m.rel.altura, B = this.est === 'b';
     /* el caserío de lejos mide siempre unos 21 px de radio (nunca menos que la polis real); por debajo de ~16 km de ancho deja paso al plano y a las casas */
     const fuera = paso(0.9, 1.3, a), cerca = a < 1.3, plano = a < A_PLANO, I = this.lejosInst; for (const k in I) I[k].n = 0;
-    this._radioPx = cerca ? clamp(0.06 / upx, 12, 46) : mix(38, 21, paso(3, 12, a));
-    for (const P of this.polis) { const y = Math.max(0, alt(P.x, P.z)) * ky, esc = clamp(Math.max(mix(38, 21, paso(3, 12, a)) * upx, P.R * 0.9) / 0.95, 0.02, 2.6) * (0.6 + 0.4 * fuera), ee = E * esc;
+    const rLejos = mix(mix(44, 21, paso(3, 12, a)), 16, paso(30, 50, a)), pxSello = mix(86, mix(50, 42, paso(25, 45, a)), paso(3, 14, a));
+    this._radioPx = cerca ? clamp(0.06 / upx, 12, 46) : B ? pxSello * 0.42 : rLejos;
+    for (const P of this.polis) { const y = Math.max(0, alt(P.x, P.z)) * ky, esc = clamp(Math.max(rLejos * upx, P.R * 0.9) / 0.95, 0.02, 2.6) * (0.6 + 0.4 * fuera), ee = E * esc;
       const enVista = Math.abs(P.x - m.V.x) < w * upx * 0.75 + 3 * esc && Math.abs(P.z - m.V.z) < h * upx * 1.3 + 3 * esc;
       P.lejos.visible = !B && fuera > 0.02 && enVista; if (P.lejos.visible) { P.lejos.position.y = y + upx * 0.6; P.lejos.scale.setScalar(esc); P.lejos.material.opacity = 0.85 * fuera;
         for (const z of P.piezas) { const L = I[z.k]; if (!L || L.n >= 40) continue; this._m4.compose(this._v.set(P.x + z.x * ee, y + (z.k === 'grie_templo' ? 5 : 4.6) * ee * z.e, P.z + z.z * ee), this._q.setFromAxisAngle(this._eje, z.r), this._s.setScalar(ee * z.e)); for (const im of L.g.children) im.setMatrixAt(L.n, this._m4); L.n++; } }
-      P.sello.visible = B && a > 0.9; if (P.sello.visible) { P.sello.position.y = y; const sz = Math.max(mix(66, a > 25 && P.p.pri === 3 ? 32 : 38, paso(3, 14, a)) * upx, P.R * 1.6); P.sello.scale.set(sz, sz, 1); P.sello.material.opacity = fuera; }
+      P.sello.visible = B && a > 0.9; if (P.sello.visible) { P.sello.position.y = y; const sz = Math.max(pxSello * (a > 25 && P.p.pri === 3 ? 0.85 : 1) * upx, P.R * 1.6); P.sello.scale.set(sz, sz, 1); P.sello.material.opacity = fuera; }
       for (const b of P.barrios) { const ver = plano && Math.abs(b.T.cx - m.V.x) < w * upx + b.lado && Math.abs(b.T.cz - m.V.z) < h * upx * 1.6 + b.lado; b.plano.visible = ver;
         if (ver) { const u = b.plano.material.uniforms; if (!b.tex[this.est]) b.tex[this.est] = pintarPlano(b.T, this.est, b.lado); u.tPlano.value = b.tex[this.est]; u.uOp.value = paso(A_PLANO, A_PLANO * 0.6, a); }
         else if (!plano) for (const k in b.tex) { b.tex[k].dispose(); delete b.tex[k]; }   // al alejarse se suelta la memoria del plano
@@ -352,8 +356,8 @@ export class Vida {
       R.im.instanceMatrix.needsUpdate = true; }
     /* canteras y minas: se ven desde media altura; nunca miden menos de unos 44 px */
     const vl = paso(16, 9, a); for (const L of this.labores) { const ver = vl > 0.02 && Math.abs(L.x - m.V.x) < w * upx * 0.8 && Math.abs(L.z - m.V.z) < h * upx * 1.3; L.me.visible = ver; if (!ver) continue;
-      const kk = L.t + this.est; if (!this.tLabor[kk]) this.tLabor[kk] = pintaLabor(L.t, B); const u = L.me.material.uniforms; u.tPlano.value = this.tLabor[kk]; u.uOp.value = vl; L.me.scale.setScalar(clamp(60 * upx, 0.05, 0.7)); }
-    for (const me of this.margenes) { const o = B ? paso(34, 46, a) : 0; me.visible = o > 0.01; me.material.opacity = o * 0.9; }
+      const kk = L.t + this.est; if (!this.tLabor[kk]) this.tLabor[kk] = pintaLabor(L.t, B); const u = L.me.material.uniforms; u.tPlano.value = this.tLabor[kk]; u.uOp.value = vl; L.me.scale.setScalar(clamp(78 * upx, 0.06, 0.8)); }
+    for (const me of this.margenes) { const o = me.userData.est === this.est ? paso(34, 46, a) : 0; me.visible = o > 0.01; me.material.opacity = o * (B ? 0.9 : 0.8); }
     /* nubes altas: pasan de oeste a este y se apartan al acercarse */
     const fn = (B ? 0 : 0.55) * paso(9, 26, a); for (const N of this.nubes) { N.m.visible = fn > 0.01; if (!N.m.visible) continue; const f = (N.x0 + t * 0.0035) % 1; N.m.position.set(XI - 10 + f * (ANCHO + 20), N.y, N.z0); N.m.material.opacity = fn * Math.sin(Math.PI * f); }
   }
@@ -387,10 +391,12 @@ function pintaLabor(tipo, B) {
       g.fillStyle = B ? '#f7efd8' : ['#f4efe2', '#e6dfcd', '#f8f4ea', '#ddd5c0'][i]; g.fill(); g.lineWidth = B ? 2.4 : 1.6; g.stroke(); g.fillStyle = B ? 'rgba(58,36,22,.35)' : 'rgba(70,60,48,.45)'; g.fillRect(x0 + 6, y + 18, x1 - x0 - 6, 6);
       if (B) { g.lineWidth = 1.3; g.beginPath(); for (let x = x0 + 10; x < x1; x += 9) { g.moveTo(x, y + 6); g.lineTo(x - 3, y + 17); } g.stroke(); } }
     for (let i = 0; i < 7; i++) { const x = 50 + rr() * 150, y = 196 + rr() * 30, w = 14 + rr() * 10; g.fillStyle = 'rgba(40,30,20,.3)'; g.fillRect(x + 3, y + 3, w, w * 0.6); g.fillStyle = B ? '#f7efd8' : '#f6f2e8'; g.fillRect(x, y, w, w * 0.6); g.lineWidth = B ? 2 : 1.2; g.strokeRect(x, y, w, w * 0.6); }
-  } else { /* bocas de mina en la ladera, con su entibado, y escombreras rojizas */
-    for (let i = 0; i < 5; i++) { const x = 60 + rr() * 140, y = 150 + rr() * 70, r = 16 + rr() * 16; g.fillStyle = B ? 'rgba(150,84,60,.55)' : ['#8a5a44', '#6f5a50', '#9a6a4c'][i % 3]; g.beginPath(); g.ellipse(x, y, r * 1.3, r * 0.7, 0, 0, 7); g.fill(); if (B) { g.lineWidth = 1.6; g.stroke(); } }
-    for (const q of [[86, 110], [150, 92], [186, 132]]) { g.fillStyle = B ? TINTA : '#1c1612'; g.beginPath(); g.moveTo(q[0] - 17, q[1] + 20); g.lineTo(q[0] - 17, q[1] - 4); g.arc(q[0], q[1] - 4, 17, Math.PI, 0); g.lineTo(q[0] + 17, q[1] + 20); g.closePath(); g.fill();
-      g.strokeStyle = B ? TINTA : '#c9a070'; g.lineWidth = B ? 3 : 4; g.beginPath(); g.moveTo(q[0] - 21, q[1] + 22); g.lineTo(q[0] - 19, q[1] - 14); g.moveTo(q[0] + 21, q[1] + 22); g.lineTo(q[0] + 19, q[1] - 14); g.moveTo(q[0] - 25, q[1] - 16); g.lineTo(q[0] + 25, q[1] - 16); g.stroke(); g.strokeStyle = B ? TINTA : 'rgba(60,48,34,.8)'; }
+  } else { /* bocas de mina en la ladera, con su entibado claro, sendas y escombreras rojizas */
+    g.lineWidth = B ? 3 : 5; g.strokeStyle = B ? TINTA : '#e8d6a8'; g.beginPath(); g.moveTo(86, 130); g.quadraticCurveTo(110, 190, 60, 236); g.moveTo(150, 112); g.quadraticCurveTo(140, 180, 128, 244); g.moveTo(186, 152); g.quadraticCurveTo(200, 200, 176, 240); g.stroke();
+    for (let i = 0; i < 6; i++) { const x = 52 + rr() * 152, y = 168 + rr() * 60, r = 18 + rr() * 16; g.fillStyle = B ? 'rgba(170,84,54,.6)' : ['#b0603c', '#8c5a48', '#c27a4a'][i % 3]; g.beginPath(); g.ellipse(x, y, r * 1.3, r * 0.7, 0, 0, 7); g.fill(); g.strokeStyle = B ? TINTA : 'rgba(60,36,22,.6)'; g.lineWidth = B ? 1.8 : 1.4; g.stroke();
+      g.fillStyle = 'rgba(255,230,190,.35)'; g.beginPath(); g.ellipse(x - r * 0.3, y - r * 0.2, r * 0.6, r * 0.25, 0, 0, 7); g.fill(); }
+    for (const q of [[86, 110], [150, 92], [186, 132]]) { g.fillStyle = B ? '#f1e3bd' : '#d9c7a0'; g.beginPath(); g.ellipse(q[0], q[1] + 4, 34, 30, 0, 0, 7); g.fill(); g.fillStyle = B ? TINTA : '#140f0c'; g.beginPath(); g.moveTo(q[0] - 18, q[1] + 22); g.lineTo(q[0] - 18, q[1] - 4); g.arc(q[0], q[1] - 4, 18, Math.PI, 0); g.lineTo(q[0] + 18, q[1] + 22); g.closePath(); g.fill();
+      g.strokeStyle = B ? TINTA : '#8a5a30'; g.lineWidth = B ? 3.5 : 6; g.beginPath(); g.moveTo(q[0] - 22, q[1] + 24); g.lineTo(q[0] - 20, q[1] - 16); g.moveTo(q[0] + 22, q[1] + 24); g.lineTo(q[0] + 20, q[1] - 16); g.moveTo(q[0] - 27, q[1] - 18); g.lineTo(q[0] + 27, q[1] - 18); g.stroke(); }
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.NoColorSpace; return t;
 }
