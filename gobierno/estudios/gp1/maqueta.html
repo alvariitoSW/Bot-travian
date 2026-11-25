@@ -1,0 +1,167 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>GP1 · maquetas de los menús de política de la polis</title>
+<style>
+*{box-sizing:border-box}body{margin:0;width:390px;background:#11151c;font-family:Georgia,serif;color:#1c120c}
+.scr{width:390px;height:800px;position:relative;overflow:hidden;background:#11151c;display:flex;flex-direction:column}
+.top{margin:26px 8px 0;padding:6px 14px;border-radius:20px;background:#1d2533;color:#eee;font-size:14px}
+.top small{color:#aab;letter-spacing:1px;font-size:10px;margin-left:8px}
+.vaso{flex:1;margin:8px;background:#d98a4a;border-radius:10px;border:2px solid #1c120c;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.greca{height:14px;flex:none;background:#e9b06e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='14'%3E%3Cpath d='M0 11.5h15V2.5H4.5v6h6.5V5.5' fill='none' stroke='%231c120c' stroke-width='1.7'/%3E%3C/svg%3E") repeat-x;border-top:2px solid #1c120c;border-bottom:2px solid #1c120c}
+.vaso>.greca:first-child{border-top:0}.vaso>.greca:last-child{border-bottom:0}
+.tabs{display:flex;justify-content:center;gap:26px;padding:8px 0 4px}
+.tabs div{text-align:center;font-size:10px;letter-spacing:1px;color:#3a2010}
+.tabs i{display:block;width:40px;height:40px;border-radius:50%;border:2px solid #1c120c;background:#e9b06e;font-style:normal;font-size:20px;line-height:36px;margin:0 auto 2px}
+.tabs .on i{background:#1c120c;box-shadow:0 0 0 3px #f0dfb8}.tabs .on{color:#1c120c;font-weight:bold}
+.cu{flex:1;padding:4px 12px 8px;display:flex;flex-direction:column;position:relative}
+.estela{align-self:center;background:#f0dfb8;border:2px solid #1c120c;border-radius:40px 40px 4px 4px;padding:8px 18px 6px;text-align:center;min-width:230px}
+.estela b{display:block;font-size:19px;font-variant:small-caps;letter-spacing:.5px}
+.estela span{font-size:12px;display:inline-block;margin:2px 3px 0;background:#d98a4a55;border-radius:9px;padding:1px 7px}
+.pied{display:flex;justify-content:center;gap:3px;margin:8px 0 2px;align-items:center}
+.pied i{width:10px;height:10px;border-radius:50%;border:1.5px solid #1c120c;background:transparent;display:block}
+.pied i.s{background:#f6ecd0}.pied i.n{background:#1c120c}.pied u{width:2px;height:18px;background:#7a1f1f;display:block;margin:0 2px}
+.cta{text-align:center;font-size:13px;margin-bottom:4px}.cta b{font-size:16px}
+.agora{flex:1;display:flex;border-top:2px solid #1c120c;position:relative;background:linear-gradient(#e39a58,#d98a4a)}
+.zona{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:4px 2px 6px;border-right:1.5px dashed #1c120c66}
+.zona:last-child{border-right:0}.zona h4{margin:0 0 auto;font-size:13px;letter-spacing:2px;font-weight:normal;padding-top:4px}
+.gr{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 0;max-width:122px}
+.f{display:block;margin:0 -1px}
+.cuerda{border-top:3px double #1c120c;padding:3px 8px 0;display:flex;align-items:flex-end;gap:0;opacity:.55;font-size:11px;font-style:italic}
+.cuerda span{margin-left:8px;padding-bottom:6px}
+.band{display:flex;align-items:center;gap:8px;background:#7a1f1f;color:#f6ecd0;border-radius:6px;padding:5px 10px;font-size:12.5px;margin-top:6px}
+.bandeja{display:flex;justify-content:space-around;align-items:flex-start;padding:8px 4px 0}
+.fic{width:74px;text-align:center;font-size:10.5px;line-height:1.15}
+.fic i{display:block;width:50px;height:50px;border-radius:50%;margin:0 auto 3px;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;font-style:normal;font-size:24px;line-height:46px}
+.fic.gas i{opacity:.3;box-shadow:none}
+.fant{position:absolute;width:50px;height:50px;border-radius:50%;background:#f0dfb8cc;border:2px dashed #1c120c;font-size:24px;line-height:46px;text-align:center}
+.glo{position:absolute;background:#1c120c;color:#f6ecd0;border-radius:10px;padding:3px 9px;font-size:12px;white-space:nowrap}
+.btns{display:flex;gap:8px;margin:0 8px 8px}.btns div{flex:1;text-align:center;padding:10px 4px;border-radius:8px;font-size:15px;color:#f6ecd0;min-height:48px;background:#3a2a1a;line-height:1.2}
+.btns .vot{flex:2.2;background:#7a1f1f;font-size:18px;font-variant:small-caps;letter-spacing:1px}.btns small{display:block;font-size:11px;font-variant:normal;letter-spacing:0;opacity:.85}
+.nav{display:flex;gap:3px;margin:0 8px 8px}.nav b{flex:1;text-align:center;font-size:9.5px;padding:9px 0;background:#2a2018;color:#e8d8b0;border-radius:4px}.nav b.on{outline:2px solid #b03a2a}
+.bema{position:relative;height:150px;border-top:2px solid #1c120c;background:linear-gradient(#e9a868,#e39a58)}
+.piedra{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:150px;height:44px;background:#f0dfb8;border:2px solid #1c120c;border-bottom:0;border-radius:6px 6px 0 0}
+.cleps{position:absolute;right:10px;top:10px;text-align:center;font-size:10px}
+.cleps b{display:block;font-size:20px;letter-spacing:2px}
+.publico{display:flex;justify-content:space-around;align-items:flex-end;padding:8px 2px 4px;border-top:2px solid #1c120c;background:#d98a4a}
+.publico>div{text-align:center;font-size:10.5px}.publico .gr{max-width:90px}
+.args{display:flex;gap:10px;margin-top:8px}
+.arg{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 4px 0 #1c120c;padding:8px 6px;text-align:center;clip-path:polygon(4% 0,96% 3%,100% 92%,88% 100%,6% 97%,0 12%);min-height:120px}
+.arg em{font-style:normal;font-size:30px;display:block}.arg b{font-size:15px;display:block;margin-bottom:4px;font-variant:small-caps;letter-spacing:1px}
+.arg .ef{display:flex;justify-content:center;align-items:flex-end;gap:2px;font-size:13px}.up{color:#2f6a22;font-weight:bold}.dn{color:#7a1f1f;font-weight:bold}
+.urnas{display:flex;justify-content:center;gap:50px;margin:10px 0 2px;text-align:center;font-size:12px;letter-spacing:2px}
+.filas{margin-top:6px}.fila{display:flex;align-items:center;gap:6px;padding:5px 6px;border-top:1.5px solid #1c120c55}
+.fila .p{display:flex;flex-wrap:wrap;gap:3px;flex:1}.fila .p i{width:14px;height:14px;border-radius:50%;border:1.5px solid #1c120c;display:block}
+.fila .p i.s{background:#f6ecd0}.fila .p i.n{background:#1c120c}
+.fila.sel{background:#f0dfb8;border:2px solid #1c120c;border-radius:8px}
+.trato{font-size:12px;background:#1c120c;color:#f6ecd0;border-radius:12px;padding:5px 9px;white-space:nowrap}
+.ostr{position:relative;flex:1}
+.os{position:absolute;background:#c9703a;border:2px solid #1c120c;padding:14px 10px 10px;text-align:center;font-size:12px;width:128px;box-shadow:3px 4px 0 #1c120c88}
+.os b{display:block;font-family:"Courier New",monospace;letter-spacing:2px;font-size:15px;color:#f6ecd0;text-shadow:0 0 1px #1c120c}
+.os small{display:block;margin-top:2px}
+.rueda{position:relative;height:330px;margin-top:2px}
+.nodo{position:absolute;width:104px;text-align:center;font-size:10.5px;line-height:1.15}
+.nodo i{display:block;width:54px;height:54px;border-radius:50%;margin:0 auto 2px;border:2px solid #1c120c;background:#e9b06e;font-style:normal;font-size:26px;line-height:50px}
+.nodo b{display:block;font-size:13px}.nodo.on i{background:#1c120c;box-shadow:0 0 0 4px #f0dfb8}
+.lin{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px}.lin span{background:#f0dfb8;border:1.5px solid #1c120c;border-radius:12px;padding:3px 9px;font-size:12px}
+.olla{display:flex;align-items:center;gap:8px;margin-top:8px;background:#7a1f1f;color:#f6ecd0;border-radius:8px;padding:7px 10px;font-size:12.5px}
+.olla .seg{display:flex;gap:3px}.olla .seg i{width:14px;height:14px;border-radius:50%;border:1.5px solid #f6ecd0;display:block}.olla .seg i.x{background:#f6ecd0}
+.esc{position:relative;flex:1}
+.pel{position:absolute;left:0;height:86px;background:#f0dfb8;border:2px solid #1c120c;border-left:0;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:11.5px;line-height:1.2}
+.pel em{font-style:normal;font-size:28px}.pel b{display:block;font-size:15px;font-variant:small-caps;letter-spacing:.5px}
+.pel.fut{background:#e9b06e;opacity:.75}
+.tit{position:absolute;left:0;top:0;background:#1c120c;color:#f0dfb8;font:bold 12px Arial;padding:3px 8px;border-radius:0 0 8px 0;z-index:9}
+</style></head><body>
+<script>
+const K='#1c120c',C='#f0dfb8';
+function fig(b,p,w){w=w||22;const k=p=='no'?'#7a1f1f':K;let s=`<svg class="f" width="${w}" height="${w*1.7}" viewBox="0 0 20 34">`;
+ if(b=='H')s+=`<path d="M17.5 3v29M16.3 4l1.2-3.5L18.7 4z" stroke="${k}" stroke-width="1" fill="${k}"/>`;
+ if(b=='P')s+=`<path d="M17 8v24" stroke="${k}" stroke-width="1.2"/><ellipse cx="17" cy="6.5" rx="1.9" ry="5" fill="${k}"/>`;
+ if(b=='N')s+=`<path d="M17.5 8v24" stroke="${k}" stroke-width="1.3"/><circle cx="17.5" cy="7" r="1.8" fill="${k}"/>`;
+ s+=`<circle cx="10" cy="5" r="3.6" fill="${k}"/><path d="${b=='P'?'M6.5 10h7l1.5 15h-10z':'M6 10h8l2.5 20h-13z'}" fill="${k}"/><path d="M7.5 ${b=='P'?25:30}v${b=='P'?8:3}M12.5 ${b=='P'?25:30}v${b=='P'?8:3}" stroke="${k}" stroke-width="2"/>`;
+ if(p=='si')s+=`<path d="M7.5 12L3 2.5" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(p=='tu')s+=`<path d="M13 12L21 8" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(b=='H')s+=`<circle cx="8.5" cy="19" r="5.4" fill="${k}" stroke="${C}" stroke-width="1"/><circle cx="8.5" cy="19" r="1.6" fill="${C}"/>`;
+ if(b=='N')s+=`<path d="M6.3 12.5L15 24M7 4.2h6" stroke="${C}" stroke-width="1.4"/>`;
+ if(b=='M')s+=`<path d="M.8 23c0-2.4 5.4-2.4 5.4 0 0 4-1 7-2.7 10C1.8 30 .8 27 .8 23zM2.3 21h2.4" fill="${k}" stroke="${C}" stroke-width=".8"/>`;
+ return s+'</svg>'}
+function gr(l,w){return '<div class="gr">'+l.split(',').map(x=>{const[b,p,n]=x.split(':');return fig(b,p,w).repeat(+n)}).join('')+'</div>'}
+function pied(s,d,n,f){let h='<div class="pied">';for(let i=0;i<s+d+n;i++){if(i==f)h+='<u></u>';h+=`<i class="${i<s?'s':i<s+d?'':'n'}"></i>`}return h+'</div>'}
+function urna(c){return `<svg width="64" height="70" viewBox="0 0 64 70"><path d="M20 4h24v6c14 6 16 16 16 26 0 16-12 28-22 30H26C16 64 4 52 4 36c0-10 2-20 16-26z" fill="${c}" stroke="${K}" stroke-width="2.5"/><path d="M8 30h48" stroke="${c==K?C:K}" stroke-width="2"/></svg>`}
+const TOP='<div class="top">🪙 270 &nbsp;🌾 450 &nbsp;🧱 800<small>ATENAS · OTOÑO · 780 a.C.</small></div>';
+const NAV='<div class="nav"><b>CIUDAD</b><b class="on">ÁGORA</b><b>SABER</b><b>TROPAS</b><b>MAPA</b><b>POLIS</b></div>';
+function tabs(n){const t=[['🏛️','HOY'],['☸️','RÉGIMEN'],['🪜','CARGOS']];return '<div class="tabs">'+t.map((x,i)=>`<div class="${i==n?'on':''}"><i>${x[0]}</i>${x[1]}</div>`).join('')+'</div>'}
+const EST='<div class="estela"><b>Guerra a Mégara</b><span>⚔️ atacar Mégara</span><span>🧺 pobres −3</span></div>';
+function scr(id,tit,n,cu,btns){document.write(`<section id="${id}" class="scr"><div class="tit">${tit}</div>${TOP}<div class="vaso"><div class="greca"></div>${tabs(n)}<div class="cu">${cu}</div><div class="greca"></div></div>${btns?'<div class="btns">'+btns+'</div>':''}${NAV}</section>`)}
+const CUERDA=`<div class="cuerda">${fig('P','',17).repeat(7)}<span>Los pobres miran. No votan. 😠</span></div>`;
+
+/* A1 */
+scr('a1','A · El ágora (1): mueve a la gente',0,EST+pied(12,4,8,13)+'<div class="cta"><b>12 sí</b> · hacen falta 13</div>'+
+`<div class="agora"><div class="zona"><h4>🌿 SÍ</h4>${gr('N:si:10,H:si:2',24)}</div><div class="zona"><h4>dudan</h4>${gr('N::4',24)}</div><div class="zona"><h4>NO</h4>${gr('H:no:4,M:no:4',24)}</div>
+<svg style="position:absolute;left:0;top:0" width="346" height="100%" viewBox="0 0 346 260" preserveAspectRatio="none"><path d="M175 262C185 200 230 190 262 205" fill="none" stroke="#1c120c" stroke-width="2.5" stroke-dasharray="6 5"/></svg>
+<div class="fant" style="left:238px;bottom:74px">🤝</div><div class="glo" style="left:196px;bottom:132px">Hoplitas: +2 al sí</div></div>`+CUERDA+
+`<div class="bandeja"><div class="fic"><i>🪙</i>Plata<br>30 por 1 voto</div><div class="fic gas"><i>🤝</i>Promesa<br>«sin leva este año»</div><div class="fic"><i>🌾</i>Grano<br>40 por 2 votos</div></div>`,
+'<div>Dejar<br>pasar</div><div class="vot">Contar las manos<small>arrastra una ficha a un grupo</small></div>');
+
+/* A2 */
+scr('a2','A · El ágora (2): se cuentan las manos',0,EST+pied(14,0,10,13)+'<div class="cta"><b>14 manos</b> · sale adelante</div>'+
+`<div class="agora"><div class="zona" style="flex:1.6"><h4>🌿 SÍ</h4>${gr('N:si:10,H:si:4',24).replace('max-width:122px','')}</div><div class="zona"><h4>NO</h4>${gr('N:no:4,H:no:2,M:no:4')}</div>
+<div class="glo" style="left:8px;top:34px;background:#f0dfb8;color:#1c120c;border:2px solid #1c120c">📯 «¡Catorce manos!»</div></div>`+CUERDA.replace('😠','')+
+`<div class="lin" style="margin-top:8px"><span>⚔️ Puedes atacar Mégara</span><span>🤝 Debes: sin leva este año</span><span>🐎 Nobles −2</span></div>`,
+'<div class="vot">Seguir</div>');
+
+/* B */
+scr('b1','B · El discurso: tú hablas, ellos se mueven',0,EST+pied(12,4,8,13)+'<div class="cta"><b>12 sí</b> · hacen falta 13</div>'+
+`<div class="bema"><div class="piedra"></div><div style="position:absolute;left:50%;bottom:44px;transform:translateX(-50%)">${fig('N','tu',44)}</div>
+<div class="cleps">Reloj de agua<b>💧💧<span style="opacity:.25">💧</span></b>te quedan 2</div>
+<div class="glo" style="left:10px;top:12px;background:#f0dfb8;color:#1c120c;border:2px solid #1c120c">📯 «¿Quién quiere hablar?»</div></div>
+<div class="publico"><div>${gr('N:si:10,N::4',17)}Nobles</div><div>${gr('H:si:2,H:no:4',17)}Hoplitas</div><div>${gr('M:no:4',17)}Mercaderes</div></div>
+<div class="args"><div class="arg"><em>⚔️</em><b>Gloria</b><div class="ef">${fig('H','si',20)}<span class="up">▲▲</span>&nbsp;${fig('M','no',20)}<span class="dn">▼</span></div></div>
+<div class="arg"><em>🏺</em><b>Los abuelos</b><div class="ef">${fig('N','si',20)}<span class="up">▲▲</span>&nbsp;${fig('P','no',20)}<span class="dn">▼</span></div></div></div>
+<div class="cta" style="margin-top:8px">Toca un argumento. Mira quién levanta la mano.</div>`,'');
+
+/* C */
+function fila(b,nom,s,d,n,sel,tr){return `<div class="fila ${sel?'sel':''}">${fig(b,'',22)}<span style="width:74px;font-size:13px">${nom}</span><div class="p">${'<i class="s"></i>'.repeat(s)+'<i></i>'.repeat(d)+'<i class="n"></i>'.repeat(n)}</div>${tr?`<span class="trato">${tr}</span>`:''}</div>`}
+scr('c1','C · Las piedras: lo mínimo',0,EST+`<div class="urnas"><div>${urna('#f6ecd0')}<br>SÍ · 12</div><div>${urna(K)}<br>NO · 8</div></div><div class="cta">hacen falta <b>13</b> blancas</div>
+<div class="filas">${fila('N','Nobles',10,4,0,1,'🪙 30 → ○ blanca')}${fila('H','Hoplitas',2,0,4,0,'')}${fila('M','Mercaderes',0,0,4,0,'')}
+<div class="fila" style="opacity:.5">${fig('P','',22)}<span style="font-size:13px;font-style:italic">Pobres · no votan</span></div></div>
+<div class="cta" style="margin-top:10px">Toca un bando para ver qué pide por sus piedras.</div>`,
+'<div>Dejar<br>pasar</div><div class="vot">Echar las piedras<small>saldría que no: 12 de 13</small></div>');
+
+/* Ostracismo */
+scr('o1','Para las tres · Ostracismo (solo en democracia)',0,`<div class="estela"><b>Ostracismo</b><span>🚶 10 años fuera</span><span>una vez cada 10 años</span></div>
+<div class="cta" style="margin-top:8px">Elige un tejo. El pueblo raya su nombre.</div>
+<div class="ostr">
+<div class="os" style="left:6px;top:14px;transform:rotate(-5deg);clip-path:polygon(0 8%,30% 0,100% 6%,94% 70%,70% 100%,8% 92%)">${fig('N','no',30)}<b>NOBLES</b><small>su cabecilla · 😠 18</small></div>
+<div class="os" style="right:4px;top:44px;transform:rotate(4deg);clip-path:polygon(6% 0,92% 4%,100% 60%,80% 100%,14% 94%,0 40%);outline:0;background:#f0dfb8">${fig('M','no',30)}<b style="color:#1c120c;text-shadow:none">MERCADERES</b><small>su cabecilla · 😠 22<br><b style="font:bold 12px Georgia;letter-spacing:0;color:#7a1f1f;text-shadow:none">elegido</b></small></div>
+<div class="os" style="left:74px;top:196px;transform:rotate(2deg);clip-path:polygon(4% 4%,60% 0,100% 20%,96% 96%,30% 100%,0 70%)">${fig('H','',30)}<b>HOPLITAS</b><small>su cabecilla · 🙂 55</small></div>
+</div>
+<div class="lin"><span>⛵ Mercaderes: humor 22 → 50</span><span>🐎 Nobles: miedo, +5</span></div>`,
+'<div>Ahora no</div><div class="vot">Contar los tejos<small>hacen falta 6 de cada 10</small></div>');
+
+/* Régimen */
+scr('r1','Para las tres · Régimen: la rueda',1,`<div class="rueda">
+<svg style="position:absolute;left:0;top:0" width="342" height="330" viewBox="0 0 342 330"><defs><marker id="m" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1c120c"/></marker></defs>
+<path d="M205 50Q262 70 276 118" fill="none" stroke="#7a1f1f" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#m)"/>
+<path d="M276 210Q262 258 208 278" fill="none" stroke="#1c120c" stroke-width="2" marker-end="url(#m)"/>
+<path d="M134 278Q80 258 66 210" fill="none" stroke="#1c120c" stroke-width="2" marker-end="url(#m)"/><path d="M78 196Q96 246 140 264" fill="none" stroke="#1c120c" stroke-width="2" marker-end="url(#m)"/>
+<path d="M240 164H104" fill="none" stroke="#1c120c" stroke-width="2" marker-end="url(#m)"/></svg>
+<div class="nodo on" style="left:119px;top:0"><i>🐎</i><b>Aristocracia</b>mandan los nobles</div>
+<div class="nodo" style="right:-8px;top:122px"><i>👑</i><b>Tiranía</b>tú decretas</div>
+<div class="nodo" style="left:119px;top:246px"><i>✋</i><b>Democracia</b>vota el pueblo</div>
+<div class="nodo" style="left:-8px;top:122px"><i>⚖️</i><b>Oligarquía</b>votan los ricos</div>
+<div class="glo" style="left:206px;top:62px;transform:rotate(38deg);background:#7a1f1f">faltan 2 estaciones</div>
+</div>
+<div class="cta" style="margin:2px 0 0"><b>Hoy: Aristocracia</b> · votan ${fig('N','',16).replace('class="f"','style="display:inline;vertical-align:-6px"')}14 ${fig('H','',16).replace('class="f"','style="display:inline;vertical-align:-6px"')}6 ${fig('M','',16).replace('class="f"','style="display:inline;vertical-align:-6px"')}4</div>
+<div class="lin"><span>✔ Jinetes −20 %</span><span>✖ No armas a los pobres</span></div>
+<div class="olla">🔥<div><b>Pobres hartos</b> · si sigue, llega el tirano (tú)</div><div class="seg"><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i></div></div>`,'');
+
+/* Cargos */
+scr('k1','Para las tres · Cargos: la escalera',2,`<div class="esc">
+<div class="pel fut" style="top:6px;width:338px"><em>🌿</em><div><b>Arconte epónimo</b>El año lleva tu nombre.</div></div>
+<div class="pel fut" style="top:100px;width:276px"><em>🏛️</em><div><b>Arconte</b>Juzgas y presides.</div></div>
+<div class="pel fut" style="top:194px;width:214px"><em>🛡️</em><div><b>Polemarco</b>Mandas la guerra.</div></div>
+<div class="pel" style="top:288px;width:156px"><em>⚖️</em><div><b>Agoránomo</b>El mercado.</div></div>
+<div style="position:absolute;left:168px;top:300px">${fig('N','tu',40)}</div>
+<div class="glo" style="left:222px;top:318px">Tú estás aquí</div>
+</div>
+<div class="olla" style="background:#1c120c">⭐<div><b>Prestigio 12 de 30</b> para subir a Polemarco</div></div>`,'');
+</script></body></html>
