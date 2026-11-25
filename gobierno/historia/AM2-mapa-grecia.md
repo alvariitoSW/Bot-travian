@@ -71,3 +71,16 @@ Mileto, las Termópilas y la desembocadura del Aqueloo (han avanzado varios km d
 sin calzadas (caminos de tierra). Licencias de juego marcadas: Euripo ensanchado, costa de hoy (Mileto), ríos con agua
 todo el año, El Pireo y la plata del Laurion adelantados, Esparta apiñada, templo clásico de piedra, trirreme (s. VI) y
 mercante romano de 0 A.D. hasta que Arte haga barcos y templos arcaicos. Fuentes: las de las tablas y los puntos de arriba.
+
+## Añadido de AM2b (25/11) — lo nuevo que se ve y su dictamen
+| Qué | Dictamen | Fuente o razón |
+|---|---|---|
+| **Mileto con calles en retícula** | histórico, pero **adelantado: licencia de juego** | La retícula es de la reconstrucción tras el saqueo persa (479 a.C.), atribuida a Hipódamo de Mileto (Aristóteles, *Política* 2.8, 1267b). Se usa para que Mileto se reconozca de un vistazo. |
+| **Ciudades apiñadas** (casas entre las calles, no solo a lo largo) | probable | Tejido irregular de las polis antiguas (Atenas: Tucídides 2.14–17; «Heráclides Crítico» 1.1, calles estrechas y mal trazadas). Esparta sigue en aldeas (Tucídides 1.10). |
+| **Peñas altas** de Atenas, Corinto y Argos | histórico | Acrópolis, Acrocorinto (Estrabón 8.6.21) y Larisa de Argos (Pausanias 2.24). Tamaño agrandado para leerse en el móvil: licencia de juego. |
+| **Muelle de madera con barcas** en cada puerto | probable | Fondeaderos y varaderos; los muelles de obra del Pireo son del s. V a.C. (Tucídides 1.93). De madera, no de piedra. |
+| **Canteras a la vista** (Pentélico, Paros, Ténaro, Tasos, Corinto, Mégara) | histórico | Las de la tabla de recursos. Frentes en bancales: Pausanias 1.19.6 (Pentélico). |
+| **Bocas de mina** (hierro de Laconia, Eubea, Sérifos y Calcídica; plata del Laurion) | histórico; Laurion adelantado (ya marcado) | Las de la tabla; galerías con entibado: Jenofonte, *Póroi* 4. |
+| **Carta antigua: casas y templo dibujados en alzado** | licencia de estilo | Es la manera de las cartas dibujadas a mano; no pretende ser un documento griego (los griegos no dejaron mapas así). |
+
+**Dictamen (AM2b)**: APTO CON NOTAS. Nada romano ni imperial añadido. Licencia nueva: la retícula de Mileto, adelantada.
