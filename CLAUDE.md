@@ -79,7 +79,7 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
 - **Gasto**: sin tope ni corte (usuario 24/11: las sesiones siguen hasta acabar), pero medido con `node gobierno/gasto.mjs` y apuntado en el parte. El director no construye.
-  **Sin Fable** (usuario, 18/11: «hay que dejar de usar Fable 5.2»): dirige, diseña y construye **Opus**. La skill
+  **Sin Fable** (usuario, 18/11: «hay que dejar de usar Fable 5.2»): dirige, diseña y construye **Opus**. Excepción (usuario, 25/11, «Fable diseña y construye»): AM1 y AM2 del mapa vivo, con gasto medido. La skill
   `ahorro` revisa los partes y propone recortes.
 - **Objetivos finales** (usuario, 18/11): `gobierno/OBJETIVOS.md` manda sobre el tablero. Léela al empezar y di a qué línea
   sirve tu tarea; si no sirve a ninguna, no se hace. Lo empezado se termina; nada entra sin sacar otra.
