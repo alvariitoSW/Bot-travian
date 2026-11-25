@@ -145,31 +145,27 @@ pie; ciudad desde arriba, pantalla mínima, agricultura y mercado; construir has
 tiritas; solo Opus; ministerios «A»; cadenas sin supervisión y subidas con jueces APTO; descarga hasta ~56 MB.
 
 ## 3. Metas de la 2.0
-Propuesta del director (25/11), en debate. Cada idea de la nevera, colgada de una meta o fuera.
+**Versión 2 (25/11), tras la idea central del usuario.** Decidido: **800 a.C.** «(Recomendado)»; **«Solo Grecia»**;
+**«Tu comarca aleatoria (Recomendado)»** (el terreno de tu ciudad cambia cada partida según la región; el Mediterráneo
+sigue real). La campaña Roma contra Cartago (280–146) queda jugable y en pausa. La versión 1 (5 metas sueltas) queda
+sustituida.
 
-**M1 · La base: Partida nueva y la 1.0 pulida** (todas las áreas; medio). *Terminada cuando* el menú tiene «Partida nueva» (Italia o Campaña en pausa), los jueces juegan la partida nueva en minutos y lo que el usuario critique de la v171 está
-arreglado y lo da por bueno en su móvil. Dentro: sus críticas; textos cortados («Pirro», «Tu manípulo», avisos);
-hoplitas y Batallón Sagrado bajan a pie; regla del 15 % en todas las tropas; física de escaramuza bajo 1 ms; guía de juego al día.
+En una frase: *eliges Grecia, empiezas en el 800 a.C. con un ágora y unas casas en una comarca nueva cada vez, y
+levantas tu polis hasta ganar.* Se reutiliza de la 1.0: construir, ministros, gobernador, clases y necesidades,
+agricultura, mercado, caminos de victoria y batallas a pie (falange, hoplitas).
 
-**M2 · Ganar sin guerra** (Cerebro: Política y Ciudades; grande). *Terminada cuando* se puede ganar por política, por
-ciudad y por ciencia, y los bots lo logran 4–7 de 10 cada uno. Dentro: calibrar caminos (CE12); vuelve la ciencia
-(CE11); Senado vivo: votaciones, cónsules con nombre, dictador, triunfos (SN3–SN5, MR1-4); imagen de época en sucesos
-(P158); Aníbal revisado; dificultad que cambia al enemigo; bot que pone servicios. Decide antes: «una sola política».
+| Meta | Terminada cuando… | Tamaño |
+|---|---|---|
+| **M1 · Empezar de cero** | Menú → Partida nueva → Grecia → comarca aleatoria → ágora, pocas casas, materias básicas y un núcleo de gente. Los jueces juegan esta partida en minutos. Críticas a la 1.0 arregladas | Medio |
+| **M2 · La polis crece** | La levantas tú o la delegas en tus ministros; crece y pide por clases; edificios griegos con aspecto propio, ninguno repetido; militares (herrería, campo de entrenamiento, mercenarios); bella (nota ≥ 7) | Grande |
+| **M3 · Ejército y comercio desde la ciudad** | Las tropas salen de tus edificios; comercias con tus vecinos | Grande |
+| **M4 · Ganar** | Se gana por armas, comercio, política, ciudad y ciencia en esta partida; política griega (asamblea, consejo, arcontes) | Grande |
+| **M5 · Guerra** | Las batallas de la 1.0 enganchadas a la partida (hoplitas, falange) y un asedio corto | Medio |
 
-**M3 · Una ciudad que da gusto** (Cerebro: Ciudades + Arte; grande). *Terminada cuando* hay edificios nuevos y la
-ciudad se ve bella. Dentro: edificios (ED0: herrería, campo de entrenamiento, mercenarios; Meshy); embellecer (CD6) y
-pulido (CI1c); texturas Poly Haven; galo realista (AR1). Choca con: descarga llena (55,6/56 MB) y créditos de Meshy.
+Cada meta lleva su **estándar** (qué se mide, quién lo mide, valor para aprobar); se escriben meta a meta con el usuario.
 
-**M4 · Guerra completa** (Corazón; grande). *Terminada cuando* se puede asediar y asaltar una ciudad y jugar batallas
-históricas. Dentro: asalto a la muralla, versión corta primero (BG1, L10); Heraclea, Cannas y Zama con retos (ES0);
-jinete propio; arqueros contra falange; brazos que no atraviesan; elefante que dobla filas; mando como Rome II (P163); pellizco.
-
-**M5 · Un mundo más ancho** (Músculo + Corazón; grande). *Terminada cuando* el mapa tiene ~45 ciudades y se puede
-jugar con otro pueblo. Dentro: P183; Cartago jugable (P160); más tropas (P159). Choca con: peso de la descarga.
-
-**Fuera de la 2.0 (propuesto)**: Roma 3D (RM1–7); mapa libre (C14, GM25); Grecia, Egeo y mitología (P173–P175, MG1,
-CI2); Nova Roma (P164); batalla dentro de la ciudad (P161); tarjetas de tinta (P162); vídeos con piezas de museo
-(P165); luz y hora del día (CR4). Gobierno (skills, gasto, auditoría): no es meta del juego; lo hace el vigía si sobra.
+**Cambia una regla de CLAUDE.md** (época 280–146 a.C.): la Partida nueva va del 800 a.C. en adelante; el vigía la
+cambia al aprobarse el plan. Historia: fichas nuevas de la Grecia arcaica con fuente y dictamen.
 
 ## 4. Orden
 (en debate)
