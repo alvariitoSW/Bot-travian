@@ -1,0 +1,169 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>GP1b · El juego de intrigas de la polis (maquetas)</title><style>
+*{box-sizing:border-box}body{margin:0;width:390px;background:#11151c;font-family:Georgia,serif;color:#1c120c}
+.scr{width:390px;height:800px;position:relative;overflow:hidden;background:#11151c;display:flex;flex-direction:column}
+.top{margin:26px 8px 0;padding:6px 14px;border-radius:20px;background:#1d2533;color:#eee;font-size:14px}
+.top small{color:#aab;letter-spacing:1px;font-size:10px;margin-left:8px}
+.vaso{flex:1;margin:8px;background:#d98a4a;border-radius:10px;border:2px solid #1c120c;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.greca{height:14px;flex:none;background:#e9b06e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='14'%3E%3Cpath d='M0 11.5h15V2.5H4.5v6h6.5V5.5' fill='none' stroke='%231c120c' stroke-width='1.7'/%3E%3C/svg%3E") repeat-x;border-top:2px solid #1c120c;border-bottom:2px solid #1c120c}
+.vaso>.greca:first-child{border-top:0}.vaso>.greca:last-child{border-bottom:0}
+.tabs{display:flex;justify-content:center;gap:26px;padding:8px 0 4px}
+.tabs div{text-align:center;font-size:10px;letter-spacing:1px;color:#3a2010}
+.tabs i{display:block;width:40px;height:40px;border-radius:50%;border:2px solid #1c120c;background:#e9b06e;font-style:normal;font-size:20px;line-height:36px;margin:0 auto 2px}
+.tabs .on i{background:#1c120c;box-shadow:0 0 0 3px #f0dfb8}.tabs .on{color:#1c120c;font-weight:bold}
+.cu{flex:1;padding:4px 12px 8px;display:flex;flex-direction:column;position:relative}
+.estela{align-self:center;background:#f0dfb8;border:2px solid #1c120c;border-radius:40px 40px 4px 4px;padding:8px 18px 6px;text-align:center;min-width:230px}
+.estela b{display:block;font-size:19px;font-variant:small-caps;letter-spacing:.5px}
+.estela span{font-size:12px;display:inline-block;margin:2px 3px 0;background:#d98a4a55;border-radius:9px;padding:1px 7px}
+.pied{display:flex;justify-content:center;gap:3px;margin:8px 0 2px;align-items:center}
+.pied i{width:10px;height:10px;border-radius:50%;border:1.5px solid #1c120c;background:transparent;display:block}
+.pied i.s{background:#f6ecd0}.pied i.n{background:#1c120c}.pied u{width:2px;height:18px;background:#7a1f1f;display:block;margin:0 2px}
+.cta{text-align:center;font-size:13px;margin-bottom:4px}.cta b{font-size:16px}
+.agora{flex:1;display:flex;border-top:2px solid #1c120c;position:relative;background:linear-gradient(#e39a58,#d98a4a)}
+.zona{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:4px 2px 6px;border-right:1.5px dashed #1c120c66}
+.zona:last-child{border-right:0}.zona h4{margin:0 0 auto;font-size:13px;letter-spacing:2px;font-weight:normal;padding-top:4px}
+.gr{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 0;max-width:122px}
+.f{display:block;margin:0 -1px}
+.cuerda{border-top:3px double #1c120c;padding:3px 8px 0;display:flex;align-items:flex-end;gap:0;opacity:.55;font-size:11px;font-style:italic}
+.cuerda span{margin-left:8px;padding-bottom:6px}
+.band{display:flex;align-items:center;gap:8px;background:#7a1f1f;color:#f6ecd0;border-radius:6px;padding:5px 10px;font-size:12.5px;margin-top:6px}
+.bandeja{display:flex;justify-content:space-around;align-items:flex-start;padding:8px 4px 0}
+.fic{width:74px;text-align:center;font-size:10.5px;line-height:1.15}
+.fic i{display:block;width:50px;height:50px;border-radius:50%;margin:0 auto 3px;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;font-style:normal;font-size:24px;line-height:46px}
+.fic.gas i{opacity:.3;box-shadow:none}
+.fant{position:absolute;width:50px;height:50px;border-radius:50%;background:#f0dfb8cc;border:2px dashed #1c120c;font-size:24px;line-height:46px;text-align:center}
+.glo{position:absolute;background:#1c120c;color:#f6ecd0;border-radius:10px;padding:3px 9px;font-size:12px;white-space:nowrap}
+.btns{display:flex;gap:8px;margin:0 8px 8px}.btns div{flex:1;text-align:center;padding:10px 4px;border-radius:8px;font-size:15px;color:#f6ecd0;min-height:48px;background:#3a2a1a;line-height:1.2}
+.btns .vot{flex:2.2;background:#7a1f1f;font-size:18px;font-variant:small-caps;letter-spacing:1px}.btns small{display:block;font-size:11px;font-variant:normal;letter-spacing:0;opacity:.85}
+.nav{display:flex;gap:3px;margin:0 8px 8px}.nav b{flex:1;text-align:center;font-size:9.5px;padding:9px 0;background:#2a2018;color:#e8d8b0;border-radius:4px}.nav b.on{outline:2px solid #b03a2a}
+.bema{position:relative;height:150px;border-top:2px solid #1c120c;background:linear-gradient(#e9a868,#e39a58)}
+.piedra{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:150px;height:44px;background:#f0dfb8;border:2px solid #1c120c;border-bottom:0;border-radius:6px 6px 0 0}
+.cleps{position:absolute;right:10px;top:10px;text-align:center;font-size:10px}
+.cleps b{display:block;font-size:20px;letter-spacing:2px}
+.publico{display:flex;justify-content:space-around;align-items:flex-end;padding:8px 2px 4px;border-top:2px solid #1c120c;background:#d98a4a}
+.publico>div{text-align:center;font-size:10.5px}.publico .gr{max-width:90px}
+.args{display:flex;gap:10px;margin-top:8px}
+.arg{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 4px 0 #1c120c;padding:8px 6px;text-align:center;clip-path:polygon(4% 0,96% 3%,100% 92%,88% 100%,6% 97%,0 12%);min-height:120px}
+.arg em{font-style:normal;font-size:30px;display:block}.arg b{font-size:15px;display:block;margin-bottom:4px;font-variant:small-caps;letter-spacing:1px}
+.arg .ef{display:flex;justify-content:center;align-items:flex-end;gap:2px;font-size:13px}.up{color:#2f6a22;font-weight:bold}.dn{color:#7a1f1f;font-weight:bold}
+.urnas{display:flex;justify-content:center;gap:50px;margin:10px 0 2px;text-align:center;font-size:12px;letter-spacing:2px}
+.filas{margin-top:6px}.fila{display:flex;align-items:center;gap:6px;padding:5px 6px;border-top:1.5px solid #1c120c55}
+.fila .p{display:flex;flex-wrap:wrap;gap:3px;flex:1}.fila .p i{width:14px;height:14px;border-radius:50%;border:1.5px solid #1c120c;display:block}
+.fila .p i.s{background:#f6ecd0}.fila .p i.n{background:#1c120c}
+.fila.sel{background:#f0dfb8;border:2px solid #1c120c;border-radius:8px}
+.trato{font-size:12px;background:#1c120c;color:#f6ecd0;border-radius:12px;padding:5px 9px;white-space:nowrap}
+.ostr{position:relative;flex:1}
+.os{position:absolute;background:#c9703a;border:2px solid #1c120c;padding:14px 10px 10px;text-align:center;font-size:12px;width:128px;box-shadow:3px 4px 0 #1c120c88}
+.os b{display:block;font-family:"Courier New",monospace;letter-spacing:2px;font-size:15px;color:#f6ecd0;text-shadow:0 0 1px #1c120c}
+.os small{display:block;margin-top:2px}
+.rueda{position:relative;height:330px;margin-top:2px}
+.nodo{position:absolute;width:104px;text-align:center;font-size:10.5px;line-height:1.15}
+.nodo i{display:block;width:54px;height:54px;border-radius:50%;margin:0 auto 2px;border:2px solid #1c120c;background:#e9b06e;font-style:normal;font-size:26px;line-height:50px}
+.nodo b{display:block;font-size:13px}.nodo.on i{background:#1c120c;box-shadow:0 0 0 4px #f0dfb8}
+.lin{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px}.lin span{background:#f0dfb8;border:1.5px solid #1c120c;border-radius:12px;padding:3px 9px;font-size:12px}
+.olla{display:flex;align-items:center;gap:8px;margin-top:8px;background:#7a1f1f;color:#f6ecd0;border-radius:8px;padding:7px 10px;font-size:12.5px}
+.olla .seg{display:flex;gap:3px}.olla .seg i{width:14px;height:14px;border-radius:50%;border:1.5px solid #f6ecd0;display:block}.olla .seg i.x{background:#f6ecd0}
+.esc{position:relative;flex:1}
+.pel{position:absolute;left:0;height:86px;background:#f0dfb8;border:2px solid #1c120c;border-left:0;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:11.5px;line-height:1.2}
+.pel em{font-style:normal;font-size:28px}.pel b{display:block;font-size:15px;font-variant:small-caps;letter-spacing:.5px}
+.pel.fut{background:#e9b06e;opacity:.75}
+.tit{position:absolute;left:0;top:0;background:#1c120c;color:#f0dfb8;font:bold 12px Arial;padding:3px 8px;border-radius:0 0 8px 0;z-index:9}
+
+.pasos{display:flex;justify-content:center;gap:8px;align-items:center;font-size:13px;margin-top:2px}
+.pasos i{width:18px;height:18px;border-radius:50%;border:2px solid #1c120c;background:#f0dfb8;display:block}.pasos i.g{background:transparent;opacity:.4}
+.sala{position:relative;flex:1;background:linear-gradient(#3a1d12,#5a2c18);border:2px solid #1c120c;border-radius:8px;margin-top:6px;overflow:hidden}
+.lecho{position:absolute;width:104px;background:#f0dfb8;border:2px solid #1c120c;border-radius:8px;padding:5px 4px 4px;text-align:center;font-size:11px;line-height:1.2;box-shadow:0 5px 0 #1c120c}
+.lecho b{display:block;font-size:13px}.lecho .f{margin:0 auto}
+.lecho.tu{background:#e9b06e}
+.sello{display:inline-block;background:#7a1f1f;color:#f6ecd0;border-radius:10px;padding:1px 7px;font-size:10.5px;margin-top:2px}
+.sello.ab{background:#2f6a22}
+.crat{position:absolute;left:50%;top:128px;transform:translateX(-50%);text-align:center;color:#f0dfb8;font-size:11px}
+.vino{width:150px;height:12px;border-radius:6px;border:1.5px solid #f0dfb8;background:linear-gradient(90deg,#9cc 0,#7a1f1f 100%);position:relative;margin:4px auto 2px}
+.vino u{position:absolute;left:64%;top:-5px;width:6px;height:20px;background:#f0dfb8;border:1.5px solid #1c120c;border-radius:3px}
+.acc{display:flex;gap:6px;margin-top:8px}.acc div{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;border-radius:8px;text-align:center;font-size:10.5px;padding:5px 2px;line-height:1.15}
+.acc em{display:block;font-style:normal;font-size:22px}.acc b{display:block;font-size:12.5px}
+.red{position:relative;height:330px}
+.per{position:absolute;width:76px;text-align:center;font-size:11px;line-height:1.1}
+.per i{display:block;width:50px;height:50px;border-radius:50%;margin:0 auto 1px;border:2px solid #1c120c;background:#e9b06e;overflow:hidden;padding-top:6px}
+.per i .f{margin:0 auto}.per.on i{background:#f0dfb8;box-shadow:0 0 0 4px #1c120c}
+.ficha{background:#f0dfb8;border:2px solid #1c120c;border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.45}
+.ficha b.n{font-size:16px;font-variant:small-caps;letter-spacing:.5px}
+</style></head><body><script>
+const K='#1c120c',C='#f0dfb8';
+function fig(b,p,w){w=w||22;const k=p=='no'?'#7a1f1f':K;let s=`<svg class="f" width="${w}" height="${w*1.7}" viewBox="0 0 20 34">`;
+ if(b=='H')s+=`<path d="M17.5 3v29M16.3 4l1.2-3.5L18.7 4z" stroke="${k}" stroke-width="1" fill="${k}"/>`;
+ if(b=='P')s+=`<path d="M17 8v24" stroke="${k}" stroke-width="1.2"/><ellipse cx="17" cy="6.5" rx="1.9" ry="5" fill="${k}"/>`;
+ if(b=='N')s+=`<path d="M17.5 8v24" stroke="${k}" stroke-width="1.3"/><circle cx="17.5" cy="7" r="1.8" fill="${k}"/>`;
+ s+=`<circle cx="10" cy="5" r="3.6" fill="${k}"/><path d="${b=='P'?'M6.5 10h7l1.5 15h-10z':'M6 10h8l2.5 20h-13z'}" fill="${k}"/><path d="M7.5 ${b=='P'?25:30}v${b=='P'?8:3}M12.5 ${b=='P'?25:30}v${b=='P'?8:3}" stroke="${k}" stroke-width="2"/>`;
+ if(p=='si')s+=`<path d="M7.5 12L3 2.5" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(p=='tu')s+=`<path d="M13 12L21 8" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(b=='H')s+=`<circle cx="8.5" cy="19" r="5.4" fill="${k}" stroke="${C}" stroke-width="1"/><circle cx="8.5" cy="19" r="1.6" fill="${C}"/>`;
+ if(b=='N')s+=`<path d="M6.3 12.5L15 24M7 4.2h6" stroke="${C}" stroke-width="1.4"/>`;
+ if(b=='M')s+=`<path d="M.8 23c0-2.4 5.4-2.4 5.4 0 0 4-1 7-2.7 10C1.8 30 .8 27 .8 23zM2.3 21h2.4" fill="${k}" stroke="${C}" stroke-width=".8"/>`;
+ return s+'</svg>'}
+
+function fx(b,p,w,x,y){return fig(b,p,w).replace('<svg class="f"',`<svg x="${x}" y="${y}"`)}
+const TOP='<div class="top">🪙 270 &nbsp;🌾 450 &nbsp;🧱 800<small>ATENAS · OTOÑO · 594 a.C.</small></div>';
+const NAV='<div class="nav"><b>CIUDAD</b><b class="on">POLÍTICA</b><b>SABER</b><b>TROPAS</b><b>MAPA</b><b>POLIS</b></div>';
+function scr(id,tit,cu,btns){document.write(`<section id="${id}" class="scr"><div class="tit">${tit}</div>${TOP}<div class="vaso" style="background:#e9b06e"><div class="cu" style="padding-top:8px">${cu}</div></div>${btns?'<div class="btns">'+btns+'</div>':''}${NAV}</section>`)}
+const BODY='M132 26H218V40C218 92 300 128 305 250C310 372 244 470 204 512H232V534H118V512H146C106 470 40 372 45 250C50 128 132 92 132 40Z';
+function anfora(b1,b2,b3,extra){return `<svg width="350" height="548" viewBox="0 0 350 548" style="align-self:center">
+<defs><clipPath id="c${++anfora.n}"><path d="${BODY}"/></clipPath></defs>
+<path d="M132 52C70 50 50 110 78 150M218 52C280 50 300 110 272 150" fill="none" stroke="${K}" stroke-width="11" stroke-linecap="round"/>
+<path d="${BODY}" fill="${K}"/><g clip-path="url(#c${anfora.n})">
+<rect x="0" y="58" width="350" height="34" fill="#d98a4a"/><path d="M120 86h12v-18h-7v10h3M140 86h12v-18h-7v10h3M160 86h12v-18h-7v10h3M180 86h12v-18h-7v10h3M200 86h12v-18h-7v10h3M220 86h12v-18h-7v10h3" fill="none" stroke="${K}" stroke-width="2"/>
+<rect x="0" y="128" width="350" height="88" fill="#d98a4a"/><rect x="0" y="224" width="350" height="124" fill="#d98a4a"/><rect x="0" y="356" width="350" height="86" fill="#d98a4a"/>
+${[0,1,2,3,4,5,6,7,8].map(i=>`<path d="M${95+i*20} 512L${105+i*20} 452L${115+i*20} 512z" fill="#d98a4a"/>`).join('')}
+${b1}${b2}${b3}</g>${extra||''}</svg>`}
+anfora.n=0;
+const TEMPLO=`<path d="M140 168L175 146L210 168zM143 170h64v4h-64zM147 176h5v34h-5zM160 176h5v34h-5zM173 176h5v34h-5zM186 176h5v34h-5zM199 176h5v34h-5zM138 210h74v6h-74z" fill="${K}"/>`;
+const TRIP=`<path d="M92 214L100 186M116 214L108 186M104 214V186M92 186h24M98 180c0-7 12-7 12 0z" stroke="${K}" stroke-width="2.4" fill="${K}"/><path d="M104 174c-6-8 6-10 0-20" fill="none" stroke="${K}" stroke-width="1.6" stroke-dasharray="3 3"/>`;
+const LECHO=(x,y)=>`<path d="M${x} ${y}h62v6h-62zM${x+3} ${y+6}v14M${x+59} ${y+6}v14M${x} ${y}c0-10 10-10 12 0" stroke="${K}" stroke-width="2.5" fill="${K}"/>`;
+const CRAT=(x,y)=>`<path d="M${x} ${y}h30c0 14-6 20-10 24h5v4h-20v-4h5c-4-4-10-10-10-24z" fill="${K}" stroke="#f0dfb8" stroke-width="1"/>`;
+const glo=(x,y,t,c)=>`<g><rect x="${x}" y="${y}" rx="9" width="${t.length*6.3+14}" height="18" fill="${c||'#f0dfb8'}" stroke="${K}" stroke-width="1.5"/><text x="${x+7}" y="${y+13}" font-size="11" font-family="Georgia" fill="${c?'#f6ecd0':K}">${t}</text></g>`;
+
+/* V1 */
+scr('v1','Intrigas (1) · La polis es una vasija viva',
+anfora(TEMPLO+TRIP+fx('N','',20,224,180)+fx('N','',20,244,180),
+ fx('N','si',22,60,300)+fx('N','',22,80,300)+fx('M','',22,100,300)+fx('H','',22,150,304)+fx('H','no',22,170,304)+fx('H','',22,190,304)+fx('P','',22,236,304)+fx('P','no',22,256,304)+fx('M','',22,276,304),
+ LECHO(110,410)+fx('N','',20,128,376)+CRAT(184,404)+fx('M','',20,224,404),
+ `<path d="M214 26L206 70L222 104L204 150L226 200L210 236" fill="none" stroke="#f0dfb8" stroke-width="3"/><path d="M214 26L206 70L222 104L204 150L226 200L210 236" fill="none" stroke="#7a1f1f" stroke-width="1.2"/>
+ ${glo(232,96,'Discordia 4 de 6','#7a1f1f')}${glo(118,132,'ACRÓPOLIS · oráculo')}${glo(56,228,'ÁGORA')}${glo(58,264,'¡rumor!','#7a1f1f')}${glo(226,268,'hoy se vota','#1c120c')}${glo(96,360,'TU CASA · banquete esta noche')}`)+
+`<div class="pasos">Hoy te quedan <i></i><i></i><i class="g"></i> pasos · toca una franja</div>`,
+'<div class="vot">Acabar el día</div>');
+
+/* V2 */
+scr('v2','Intrigas (2) · El banquete: donde se trama todo',
+`<div class="estela" style="min-width:260px"><b>Banquete en tu casa</b><span>🍷 3 invitados</span><span>🌙 1 paso</span></div>
+<div class="sala">
+<div class="lecho" style="left:8px;top:10px">${fig('N','',26)}<b>Filón</b>noble · quiere ser Polemarco<br><span class="sello">🔒 secreto</span></div>
+<div class="lecho" style="right:8px;top:10px">${fig('M','',26)}<b>Eudoro</b>mercader · te debe 1 favor<br><span class="sello ab">🔓 trigo aguado</span></div>
+<div class="crat"><svg width="56" height="52" viewBox="0 0 34 30">${CRAT(2,1)}</svg><div class="vino"><u></u></div>agua ← vino → puro<br><b style="color:#f6ecd0">Lenguas sueltas · riña 2 de 5</b></div>
+<div class="lecho" style="left:8px;top:232px">${fig('H','',26)}<b>Nicóstrato</b>hoplita · odia a Filón<br><span class="sello">🔒 secreto</span></div>
+<div class="lecho tu" style="right:8px;top:232px">${fig('N','tu',26)}<b>Tú</b>anfitrión<br><span class="sello">tus secretos: 2</span></div>
+<svg style="position:absolute;left:0;top:0" width="346" height="360"><path d="M112 300C210 300 250 210 250 124" fill="none" stroke="#7a1f1f" stroke-width="2.5" stroke-dasharray="6 5"/><path d="M60 126V230" fill="none" stroke="#7a1f1f" stroke-width="3"/></svg>
+</div>
+<div class="acc"><div><em>🥂</em><b>Brindar</b>amistad +1</div><div><em>🎯</em><b>Cótabo</b>juego de puntería: gana su favor</div><div><em>🗝️</em><b>Tirar de la lengua</b>abre un secreto · riña +1</div><div><em>🤝</em><b>Tramar</b>un plan entre dos</div></div>`,
+'<div>Despedirlos</div><div class="vot">Tirar de la lengua a Filón<small>con este vino: 3 de cada 4 veces</small></div>');
+
+/* V3 */
+const P=(x,y,b,n,on,p)=>`<div class="per ${on?'on':''}" style="left:${x}px;top:${y}px"><i>${fig(b,p||'',22)}</i>${n}</div>`;
+scr('v3','Intrigas (3) · La red: quién quiere, sabe y debe',
+`<div class="red"><svg style="position:absolute;left:0;top:0" width="342" height="330">
+<path d="M171 50L290 120" stroke="#7a1f1f" stroke-width="3"/><path d="M171 50L52 120" stroke="#f0dfb8" stroke-width="3"/><path d="M52 120L80 250" stroke="#f0dfb8" stroke-width="3"/>
+<path d="M290 120L262 250" stroke="#1c120c" stroke-width="2" stroke-dasharray="5 4"/><path d="M80 250L262 250" stroke="#7a1f1f" stroke-width="3"/><path d="M171 160L171 60M171 160L262 250" stroke="#1c120c" stroke-width="2" stroke-dasharray="5 4"/></svg>
+${P(133,4,'N','Filón',1)}${P(252,84,'H','Nicóstrato')}${P(14,84,'N','Calescro')}${P(42,214,'P','Demo, el remero')}${P(224,214,'M','Eudoro')}${P(133,126,'N','<b>Tú</b>',0,'tu')}
+</div>
+<div class="lin" style="margin:0 0 6px"><span style="background:#f0dfb8">━ amigos o boda</span><span style="background:#7a1f1f;color:#f6ecd0">━ enemigos</span><span>┅ te deben o lo sabes</span></div>
+<div class="ficha"><b class="n">Filón, hijo de Calias</b> · cabeza de los nobles<br>🎯 <b>Quiere</b>: ser Polemarco este año<br>🗝️ <b>Secreto</b>: huyó en la batalla de Mégara <i>(lo sabéis tú y Nicóstrato)</i><br>⚖️ <b>Sabe de ti</b>: nada todavía</div>
+<div class="acc"><div><em>🤫</em><b>Callar</b>a cambio de 4 votos</div><div><em>📣</em><b>Contarlo</b>en el ágora: escándalo</div><div><em>💍</em><b>Boda</b>tu hija y su hijo</div><div><em>🏺</em><b>Tejo</b>pedir su ostracismo</div></div>`,'');
+
+/* V4 */
+scr('v4','Intrigas (4) · Al final: la vasija de tu vida',
+anfora(fx('N','tu',24,110,172)+`<path d="M150 214h70M158 214v-22h54v22M212 196l24-8" stroke="${K}" stroke-width="3" fill="none"/><circle cx="168" cy="214" r="9" fill="${K}"/><circle cx="204" cy="214" r="9" fill="${K}"/>`+fx('H','',24,170,150),
+ fx('N','no',22,70,300)+fx('P','si',22,130,300)+fx('P','si',22,150,300)+fx('H','si',22,170,300)+fx('P','si',22,190,300)+fx('M','si',22,210,300)+fx('N','tu',26,250,292),
+ fx('H','',20,100,404)+fx('H','',20,120,404)+fx('H','',20,140,404)+fx('H','no',20,200,404)+fx('H','no',20,220,404),
+ `${glo(92,132,'561 · Vuelves en carro, tirano')}${glo(60,228,'594 · Perdonas las deudas')}${glo(106,360,'600 · Vences a Mégara')}`)+
+`<div class="pasos" style="font-size:12.5px">Cada gran decisión se pinta. Se guarda y se enseña.</div>`,
+'<div>Guardar imagen</div><div class="vot">Otra vida</div>');
+</script></body></html>
