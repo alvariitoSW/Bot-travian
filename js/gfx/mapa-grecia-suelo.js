@@ -93,8 +93,8 @@ uniform float uCarta;
 vec3 fuera(vec3 c, vec2 p){ vec2 e = vec2(1.0) / uMarco.zw, q = min(p - uMarco.xy, uMarco.xy + e - p); float d = min(q.x, q.y);
   if (uCarta > 0.5) { vec3 papel = cNiebla * (0.95 + 0.1 * texture2D(tRuido, p * 0.05).b); float w = max(0.12, uPx * 1.6);
     c = mix(papel, c, smoothstep(-0.2, 0.2, d / w)); float f1 = smoothstep(w, 0.0, abs(d + 0.6)) + smoothstep(w * 0.6, 0.0, abs(d + 1.0)); return mix(c, vec3(0.29, 0.19, 0.12), clamp(f1, 0.0, 1.0) * 0.9); }
-  float n = texture2D(tRuido, p * 0.03 + vec2(t * 0.002, 0.0)).b * 0.6 + texture2D(tRuido, p * 0.11).r * 0.4; float n2 = texture2D(tRuido, p * 0.27 + vec2(t * 0.004, 0.0)).g; vec3 bruma = mix(cNiebla * vec3(0.86, 0.9, 0.96), vec3(0.98, 0.98, 0.97), smoothstep(0.35, 0.7, n * 0.7 + n2 * 0.3)); bruma *= 0.94 + 0.1 * n2;
-  return mix(bruma, c, smoothstep(-0.3 - n * 1.5, 2.0 + n * 3.0, d)); }
+  float n = texture2D(tRuido, p * 0.03 + vec2(t * 0.002, 0.0)).b * 0.6 + texture2D(tRuido, p * 0.11).r * 0.4; float n2 = texture2D(tRuido, p * 0.27 + vec2(t * 0.004, 0.0)).g; vec3 bruma = mix(cNiebla * vec3(0.9, 0.94, 0.99), vec3(0.98, 0.98, 0.97), smoothstep(0.52, 0.8, n * 0.75 + n2 * 0.25) * 0.85);
+  return mix(bruma, c, smoothstep(-1.0 - n * 4.0, 3.0 + n * 6.0, d)); }
 float bordeMar(vec2 p){ vec2 e = vec2(1.0) / uMarco.zw; return smoothstep(-0.5, 3.5, min(p.y - uMarco.y, uMarco.x + e.x - p.x)) * smoothstep(-34.0, -12.0, p.x - uMarco.x) * smoothstep(-40.0, -14.0, uMarco.y + e.y - p.y); }
 `;
 const GLSL_FORMAS = `
@@ -179,10 +179,10 @@ void main(){
   float v2 = smoothstep(5.0, 15.0, 0.011 / uPx) * smoothstep(0.25, 0.6, campos), v1 = smoothstep(5.0, 15.0, 0.07 / uPx) * smoothstep(0.25, 0.6, campos);
   if (v1 > 0.001) { vec4 h1, h2; float b1, b2; vec2 f1, f2; parcela(pc, 0.085, h1, b1, f1); parcela(pc + 1.3, 0.012, h2, b2, f2);
     c = mix(c, c * mix(vec3(1.06, 1.0, 0.82), vec3(0.9, 1.0, 0.86), h1.r), v1 * 0.6);
-    float sur = smoothstep(0.75, 0.95, sin((h2.a > 0.5 ? f2.x : f2.y) * 31.0)) * step(0.35, h2.r); c = mix(c, tinta, sur * v2 * 0.13 * smoothstep(0.0035, 0.0012, uPx));
-    c = mix(c, c * mix(vec3(1.05, 0.98, 0.8), vec3(0.88, 0.98, 0.82), h2.g), v2 * 0.55); c = mix(c, tinta, smoothstep(0.045, 0.02, b2) * v2 * 0.32); c = mix(c, tinta, smoothstep(0.016, 0.006, b1) * v1 * 0.3); }
+    float sur = smoothstep(0.75, 0.95, sin((h2.a > 0.5 ? f2.x : f2.y) * 31.0)) * step(0.35, h2.r); c = mix(c, tinta, sur * v2 * 0.05 * smoothstep(0.0035, 0.0012, uPx));
+    c = mix(c, c * mix(vec3(1.05, 0.98, 0.8), vec3(0.88, 0.98, 0.82), h2.g), v2 * 0.55); c = mix(c, tinta, smoothstep(0.04, 0.02, b2) * v2 * 0.15); c = mix(c, tinta, smoothstep(0.016, 0.006, b1) * v1 * 0.3); }
   /* línea de costa a tinta, siempre fina */
-  c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.45, abs(costaKm(p)) / max(0.22, uPx * 14.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9);
+  c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.15, abs(costaKm(p)) / max(0.25, uPx * 21.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9);
   c *= 0.93 + 0.14 * g2; c *= 0.96 + 0.08 * texture2D(tRuido, p * vec2(0.9, 0.25)).a;
   c *= sombraNube(p); c = fuera(c, p);
   if (ac < -2.5) discard;   // el mar lo pinta su propia capa (se descarta al final: las lecturas de textura de arriba necesitan a sus vecinos)
@@ -218,7 +218,7 @@ void main(){
   float ola = sin(q * 7.0 - t * 1.1 + n1 * 7.0) * 0.5 + 0.5;
   float esp = smoothstep(1.0, 0.08, q) * smoothstep(0.5, 0.92, ola * (0.55 + n2)); esp = max(esp, smoothstep(0.28, 0.03, q) * 0.85);
   esp = mix(esp, step(0.4, esp), uDura); c = mix(c, cEspuma, esp * uEspuma * mix(0.6, 1.0, uCerca));
-  if (uTinta > 0.0) c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.45, abs(costaKm(p)) / max(0.22, uPx * 14.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9 * uTinta * (1.0 - ext));   // la carta: la tinta de la orilla también por el lado del mar
+  if (uTinta > 0.0) c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.15, abs(costaKm(p)) / max(0.25, uPx * 21.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9 * uTinta * (1.0 - ext));   // la carta: la tinta de la orilla también por el lado del mar
   c *= sombraNube(p); vec2 e2 = vec2(1.0) / uMarco.zw;
   if (uCarta > 0.5 || p.y < uMarco.y + 4.0 || p.x > uMarco.x + e2.x - 4.0) c = fuera(c, p); else c = mix(cNiebla, c, bordeMar(p));
   gl_FragColor = vec4(c, ext > 0.5 ? 1.0 : smoothstep(1.0, -1.5, ac));

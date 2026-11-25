@@ -225,8 +225,8 @@ export class Vida {
     const m = this.m, upx = m.V.upx, a = m.ancho, ky = m.com.uKy.value, alt = m.rel.altura, B = this.est === 'b';
     /* el caserío de lejos mide siempre unos 21 px de radio (nunca menos que la polis real); por debajo de ~16 km de ancho deja paso al plano y a las casas */
     const fuera = paso(0.9, 1.3, a), cerca = a < 1.3, plano = a < A_PLANO, I = this.lejosInst; for (const k in I) I[k].n = 0;
-    this._radioPx = cerca ? clamp(0.06 / upx, 12, 46) : 21;
-    for (const P of this.polis) { const y = Math.max(0, alt(P.x, P.z)) * ky, esc = clamp(Math.max(21 * upx, P.R * 0.9) / 0.95, 0.02, 2.6) * (0.6 + 0.4 * fuera), ee = E * esc;
+    this._radioPx = cerca ? clamp(0.06 / upx, 12, 46) : mix(30, 21, paso(3, 12, a));
+    for (const P of this.polis) { const y = Math.max(0, alt(P.x, P.z)) * ky, esc = clamp(Math.max(mix(30, 21, paso(3, 12, a)) * upx, P.R * 0.9) / 0.95, 0.02, 2.6) * (0.6 + 0.4 * fuera), ee = E * esc;
       const enVista = Math.abs(P.x - m.V.x) < w * upx * 0.75 + 3 * esc && Math.abs(P.z - m.V.z) < h * upx * 1.3 + 3 * esc;
       P.lejos.visible = !B && fuera > 0.02 && enVista; if (P.lejos.visible) { P.lejos.position.y = y + upx * 0.6; P.lejos.scale.setScalar(esc); P.lejos.material.opacity = 0.85 * fuera;
         for (const z of P.piezas) { const L = I[z.k]; if (!L || L.n >= 40) continue; this._m4.compose(this._v.set(P.x + z.x * ee, y + (z.k === 'grie_templo' ? 5 : 4.6) * ee * z.e, P.z + z.z * ee), this._q.setFromAxisAngle(this._eje, z.r), this._s.setScalar(ee * z.e)); for (const im of L.g.children) im.setMatrixAt(L.n, this._m4); L.n++; } }
