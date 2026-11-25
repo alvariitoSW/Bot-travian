@@ -280,7 +280,8 @@ export function montarBarrioUI(vista, ctx) {
   function pintarCapas() {
     const D = est.D; if (!D) return;
     if (est.capa) { vista.quitarCapa('barrios'); const cv = pintarZona(D, zonaNecesidad(D, est.capa), COL_NEC[est.capa], 0.5); vista.capaSuelo('zonas', cv, D.rect, { orden: 1, bajoCasas: true }); }
-    else { vista.quitarCapa('zonas'); vista.capaSuelo('barrios', pintarManchas(D), D.rect, { orden: 0, bajoCasas: true }); }
+    else { const Ea = G && G.ciudadE && U ? G.ciudadE(ciudadId()) : null, suave = !!(Ea && Ea.sinUrbe && (Ea.mesN - (Ea.n0 || 0)) < 12);      // PN3b: la aldea del primer año, con manchas apenas visibles
+      vista.quitarCapa('zonas'); vista.capaSuelo('barrios', pintarManchas(D), D.rect, { orden: 0, bajoCasas: true, opacidad: suave ? 0.3 : 1 }); }
     pintarRemedio(); ponerEtiquetas(); est.firma = ''; posicionar();
   }
   function pintarRemedio() {

@@ -147,3 +147,9 @@ body.aspecto #tabs3 button { min-width: 0; overflow: clip; font-size: 10px; lett
   body.aspecto #tabs3 button span { display: none; }
   body.aspecto #tabs3 button i img { width: 24px; height: 24px; }
 }
+
+/* PN3b: la «Lección» ocupa una tira baja de dos líneas con el botón al lado (antes tapaba media aldea al empezar) */
+html body #linea.leccion { display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 10px; max-height: none; font-size: 12px; line-height: 1.25; }
+html body #linea.leccion #l-nota { flex: none; margin: 0; font-size: 11px; }
+html body #linea.leccion #l-texto { flex: 1; min-width: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: clip; }
+html body #linea.leccion #l-ok { flex: none; margin: 0; min-height: 44px; padding: 0 10px; font-size: 12px; }

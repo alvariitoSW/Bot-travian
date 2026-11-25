@@ -124,7 +124,7 @@ export function crearRio(texs, U, mar) {
     const zN = mar ? -9000 : P[i][1] - nz * w, xN = mar ? P[i][0] : P[i][0] - nx * w;
     pos.set([P[i][0] + nx * w, NIVEL_RIO, P[i][1] + nz * w, xN, NIVEL_RIO, zN], i * 6); uv.set([0, s / 60, mar ? (P[i][1] + nz * w + 9000) / 123 : 1.3, s / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-  const nm = texs.water_norm || null, mat = new THREE.MeshPhongMaterial({ color: mar ? '#4f7f92' : '#6f8288', specular: '#e0d2b8', shininess: 60, normalMap: nm, normalScale: new THREE.Vector2(0.35, 0.35), transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+  const nm = texs.water_norm || null, mat = new THREE.MeshPhongMaterial({ color: mar ? '#4f7f92' : '#6f8288', specular: '#e0d2b8', shininess: 60, normalMap: nm, normalScale: new THREE.Vector2(0.35, 0.35), transparent: true, opacity: mar ? 1 : 0.9, side: THREE.DoubleSide });
   if (nm) mat.onBeforeCompile = sh => { sh.uniforms.uTiempo = U.uTiempo; sh.vertexShader = 'uniform float uTiempo;\n' + sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\n vNormalMapUv.y += uTiempo * 0.02;'); };
   const m = new THREE.Mesh(geo, mat); m.receiveShadow = true; return m;
 }

@@ -162,8 +162,8 @@ const ESC_C = { roma: 1, grie: 1.06, cart: 1.17 };            // las casas grieg
 const TEMPLO_C = { grie: ['grie_templo', 1.09], cart: ['cart_templo', 1.02] };
 const TEMPLO_PZ = ['grie_templo', 'cart_templo', 'grie_templo_m', 'grie_bouleuterion'];
 /* CD7: en las ciudades griegas, templo y curia (bouleuterion) de Meshy si cargaron; si no, lo de siempre */
-const GRIE_M = { templo: ['grie_templo_m', 1.09], curia: ['grie_bouleuterion', 1.0] };
-function piezaGriega(tipo, d) { const g = cul === 'grie' && GRIE_M[tipo]; return g && L[g[0]] && L[g[0]].niv ? [g[0], g[1], d[2], d[3]] : null; }
+const GRIE_M = { templo: ['grie_templo_m', 1.09], curia: ['grie_bouleuterion', 1.0], foro: ['grie_bouleuterion', 0.95] };      // PN3b: el ágora de la polis es el bouleuterion (no el foro romano)
+function piezaGriega(tipo, d) { const g = cul === 'grie' && GRIE_M[tipo] && (tipo !== 'foro' || (E && E.sitioLibre)) && GRIE_M[tipo]; return g && L[g[0]] && L[g[0]].niv ? [g[0], g[1], d[2], d[3]] : null; }
 const TINTE_O = { galos: { m: [0.97, 1.03, 0.94], t: [0.96, 1.02, 0.95] }, iberos: { m: [1.04, 0.97, 0.86], t: [1.03, 0.96, 0.88] }, etruscos: { m: [1.03, 0.96, 0.92], t: [1.04, 0.95, 0.9] }, campanos: { m: [1.02, 1.0, 0.94], t: [1.0, 0.98, 0.94] }, mamertinos: { m: [1.0, 0.97, 0.93], t: [1.0, 0.97, 0.94] } };
 let cul = 'roma', tinteO = null;
 function tinteBase(a, b) {                               // muro y teja por cultura (grie y cart: la función tinte() de gobierno/maquetas/ciudad2)
@@ -935,7 +935,7 @@ export class CityView3D {
       const u = E && E.urbe, f = E && E.foro; let R = (u && u.RU ? Math.max(...u.RU) + 7 : 300), cx = f ? f.x : 0, cz = f ? f.z : -20;
       /* CV4a: se encuadra el contorno de la urbe (su centro y su radio de verdad), no un círculo alrededor del foro: junto al río la urbe queda descentrada y se veía pequeña */
       if (u && u.borde && u.borde.length) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const q of u.borde) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[1]); z1 = Math.max(z1, q[1]); } cx = (x0 + x1) / 2; cz = (z0 + z1) / 2; R = 7; for (const q of u.borde) R = Math.max(R, Math.hypot(q[0] - cx, q[1] - cz) + 7); }
-      const ald = !u && this.aldea(); if (ald) { cx = ald.cx; cz = ald.cz; R = ald.r * 3; }      // PN3: la aldea ocupa un tercio del ancho
+      const ald = !u && this.aldea(); if (ald) { cx = ald.cx; cz = ald.cz; R = ald.r * 2; }      // PN3b: la aldea ocupa la mitad del ancho (antes un tercio) para contar las casas a ojo
       const asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
       const tv = Math.tan(fov * Math.PI / 360), th = Math.min(tv, tv * asp);
       const dEnc = Math.min(4000, R * PLANO_MARGEN / th);
