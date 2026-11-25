@@ -67,6 +67,12 @@ Lectura: hoy la ciudad tiene «Desde arriba / De cerca», «Ciudad entera», «C
 (`js/ui.js`, menú de vistas). Propuesta: una sola vista con zoom (M1); personas y soldados con un solo estilo de arte
 (M2); ciudad viva griega rehecha desde cero (M2) y su fusión con Roma después de la 2.0; tiempo solo por estaciones (M1).
 
+Respuestas (25/11): tiempo **«Por turnos (Recomendado)»**: al empezar la estación cobras lo recogido, das órdenes y
+pulsas «Pasar estación»; obras y tropas duran 1, 2 o más estaciones, con andamios a la vista. Vistas: **«Dos vistas»**:
+desde arriba para construir y otra de cerca para mirar (fuera «Ciudad entera», «Calle» y «Tropas»; necesidades, un botón
+encima). Estilo: **«De momento ambos para ir más rápido ambos pueden convivir»**: Meshy y 0 A.D. conviven; no se
+unifica en la 2.0.
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
