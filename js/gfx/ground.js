@@ -116,12 +116,15 @@ const RESERVA = { terr_grass: '#908c58', terr_dry: '#868a50', terr_dirt: '#a99f8
 export const texturasMundo = () => { const o = {}; for (const k in RESERVA) o[k] = tex(k) || lisa(RESERVA[k]); o.water_norm = tex('water_norm'); return o; };
 
 
-export function crearRio(texs, U) {
-  const n = RIO.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let s = 0;
-  for (let i = 0; i < n; i++) { const a = RIO[Math.max(0, i - 1)], b = RIO[Math.min(n - 1, i + 1)], L = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / L, nz = (b[0] - a[0]) / L, w = 80; if (i) s += Math.hypot(RIO[i][0] - RIO[i - 1][0], RIO[i][1] - RIO[i - 1][1]);
-    pos.set([RIO[i][0] + nx * w, NIVEL_RIO, RIO[i][1] + nz * w, RIO[i][0] - nx * w, NIVEL_RIO, RIO[i][1] - nz * w], i * 6); uv.set([0, s / 60, 1.3, s / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
+export function crearRio(texs, U, mar) {
+  /* PN3b: con mar, la cinta es solo la orilla sur del río y todo lo que queda al norte hasta el horizonte es agua de mar (la misma malla) */
+  const P = mar ? [[-9000, RIO[0][1], 0], ...RIO.map(q => [q[0], q[1], 1]), [9000, RIO[RIO.length - 1][1], 0]] : RIO.map(q => [q[0], q[1], 1]);
+  const n = P.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let s = 0;
+  for (let i = 0; i < n; i++) { const a = P[Math.max(0, i - 1)], b = P[Math.min(n - 1, i + 1)], L = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / L, nz = (b[0] - a[0]) / L, w = 80 * P[i][2]; if (i) s += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+    const zN = mar ? -9000 : P[i][1] - nz * w, xN = mar ? P[i][0] : P[i][0] - nx * w;
+    pos.set([P[i][0] + nx * w, NIVEL_RIO, P[i][1] + nz * w, xN, NIVEL_RIO, zN], i * 6); uv.set([0, s / 60, mar ? (P[i][1] + nz * w + 9000) / 123 : 1.3, s / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-  const nm = texs.water_norm || null, mat = new THREE.MeshPhongMaterial({ color: '#6f8288', specular: '#e0d2b8', shininess: 60, normalMap: nm, normalScale: new THREE.Vector2(0.35, 0.35), transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+  const nm = texs.water_norm || null, mat = new THREE.MeshPhongMaterial({ color: mar ? '#4f7f92' : '#6f8288', specular: '#e0d2b8', shininess: 60, normalMap: nm, normalScale: new THREE.Vector2(0.35, 0.35), transparent: true, opacity: 0.9, side: THREE.DoubleSide });
   if (nm) mat.onBeforeCompile = sh => { sh.uniforms.uTiempo = U.uTiempo; sh.vertexShader = 'uniform float uTiempo;\n' + sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\n vNormalMapUv.y += uTiempo * 0.02;'); };
   const m = new THREE.Mesh(geo, mat); m.receiveShadow = true; return m;
 }

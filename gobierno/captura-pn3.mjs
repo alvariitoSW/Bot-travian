@@ -6,7 +6,7 @@ import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..'), SAL = join(RAIZ, 'gobierno/capturas-tarea');
+const RAIZ = process.env.AQ_RAIZ || join(dirname(fileURLToPath(import.meta.url)), '..'), SAL = join(dirname(fileURLToPath(import.meta.url)), 'capturas-tarea'), SOLO = process.env.AQ_SOLO_ROMA;
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const srv = createServer(async (q, r) => { try { let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html'; if (p.includes('..')) throw 0; const d = await readFile(join(RAIZ, p)); r.writeHead(200, { 'content-type': TIPOS[extname(p)] || 'application/octet-stream' }); r.end(d); } catch { r.writeHead(404); r.end(); } });
 await new Promise(ok => srv.listen(0, '127.0.0.1', ok));
@@ -15,6 +15,7 @@ const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftsh
 await mkdir(SAL, { recursive: true });
 const errores = [];
 async function sesion(ancho, alto, f) {
+  if (SOLO && !f.roma) return;
   const ctx = await br.newContext({ viewport: { width: ancho, height: alto }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, serviceWorkers: 'block' }), page = await ctx.newPage();
   page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|GPU stall|GL Driver/.test(m.text())) errores.push(m.text().slice(0, 300)); });
   page.on('pageerror', e => errores.push('EXCEPCIÓN: ' + String(e.stack || e.message).slice(0, 500)));
@@ -41,18 +42,25 @@ async function empezar(page, polis, semilla) {
 const plano = async (page, arriba) => { const en = await page.evaluate(() => !!(UI.cityV && UI.cityV.enPlano)); if (en !== arriba) { await accion(page, 'cplano'); await page.waitForTimeout(2500); } };
 await sesion(390, 844, async page => {
   await empezar(page, 'atenas', 1013);
-  await plano(page, true); await foto(page, 'PN3-a-atenas-arriba');
-  await plano(page, false); await foto(page, 'PN3-b-atenas-cerca');
+  await plano(page, true); await foto(page, 'PN3b-a-atenas-arriba');
+  await plano(page, false); await foto(page, 'PN3b-b-atenas-cerca');
   await page.evaluate(() => { UI.bsel = { k: 'foro' }; }); await accion(page, 'cvistas'); await page.waitForTimeout(300); await accion(page, 'cvistas'); await page.waitForTimeout(1200);
-  await foto(page, 'PN3-f-ficha-agora');
+  await foto(page, 'PN3b-f-ficha-agora');
   console.log('ficha', JSON.stringify(await page.evaluate(() => { const t = document.body.innerText; const i = t.indexOf('Comarca de'); return { agora: /Ágora/.test(t), foro: /\bForo\b/.test(t), comarca: i >= 0 ? t.slice(i, i + 160) : null }; })));
   await page.evaluate(() => { UI.bsel = null; }); await accion(page, 'cclose'); await page.waitForTimeout(400);
   await accion(page, 'tab', 'map'); await page.waitForTimeout(3000); await cierra(page);
-  await foto(page, 'PN3-e-barra-800');
+  await foto(page, 'PN3b-e-barra-800');
   console.log('barra', JSON.stringify(await page.evaluate(() => { const t = document.body.innerText; const m = t.match(/[^\n]{0,40}800 a\.C\.[^\n]{0,20}/); return m ? m[0] : null; })));
 });
-await sesion(390, 844, async page => { await empezar(page, 'atenas', 77777); await plano(page, true); await foto(page, 'PN3-c-atenas-otra-semilla'); });
-await sesion(390, 844, async page => { await empezar(page, 'tebas', 4242); await plano(page, true); await foto(page, 'PN3-d-tebas'); });
-await sesion(390, 844, async page => { await empezar(page, 'esparta', 31337); await plano(page, false); await foto(page, 'PN3-d-esparta'); });
+await sesion(390, 844, async page => { await empezar(page, 'atenas', 77777); await plano(page, true); await foto(page, 'PN3b-c-atenas-otra-semilla'); });
+await sesion(390, 844, async page => { await empezar(page, 'tebas', 4242); await plano(page, true); await foto(page, 'PN3b-d-tebas'); });
+await sesion(390, 844, async page => { await empezar(page, 'esparta', 31337); await plano(page, false); await foto(page, 'PN3b-d-esparta'); });
+/* PN3b: Roma antes/después (AQ_SOLO_ROMA=etiqueta: solo esa captura, con AQ_RAIZ apuntando a otra copia del código) y una en horizontal */
+const romaFoto = async (page, n) => { await accion(page, 'newregion', 'italia'); await page.waitForTimeout(3500); await cierra(page); await ciudad(page); await page.waitForTimeout(10000); await cierra(page); await plano(page, false); await page.waitForTimeout(1500); await foto(page, n); };
+if (SOLO) { const f = page => romaFoto(page, 'PN3b-roma-' + SOLO); f.roma = true; await sesion(390, 844, f); }
+else {
+  await sesion(390, 844, page => romaFoto(page, 'PN3b-roma-despues'));
+  await sesion(844, 390, async page => { await empezar(page, 'atenas', 1013); await plano(page, false); await foto(page, 'PN3b-horizontal-atenas'); });
+}
 await br.close(); srv.close();
 console.log(errores.length ? 'ERRORES DE CONSOLA (' + errores.length + '):\n' + errores.join('\n') : 'Errores de consola: 0');

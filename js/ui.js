@@ -2062,7 +2062,20 @@ function frame(now) {
 
 window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.cityV && !$('citywrap').hidden) UI.cityV.resize(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && S() && !UI.menu) G.save(); });
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
+/* Vigía 25/11: al abrir y al volver al juego se busca versión nueva; si llega, un aviso la ofrece (la página abierta sigue con los archivos viejos hasta recargar) */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  const habia = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js').then(r => { r.update().catch(() => { }); document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update().catch(() => { }); }); }).catch(() => { });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!habia || document.getElementById('avisoVersion')) return;
+    caches.keys().then(ks => ks.filter(k => /^aqvila-v\d+$/.test(k)).sort((a, b) => b.slice(8) - a.slice(8))[0] || '', () => '').then(k => {
+      const b = document.createElement('button'); b.id = 'avisoVersion'; b.type = 'button';
+      b.textContent = 'Hay una versión nueva' + (k ? ' (' + k.replace('aqvila-', '') + ')' : '') + '. Toca para actualizar';
+      b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:99999;min-height:48px;padding:10px 14px;border:2px solid #8a6d2b;border-radius:14px;background:#f3e2b3;color:#3a2a10;font:600 16px system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.35)';
+      b.onclick = () => location.reload(); document.body.appendChild(b);
+    });
+  });
+}
 
 document.body.classList.add('aspecto');   // CDe4 (MN4a): el aspecto nuevo (papiro, bronce, iconos pintados); quitar la clase lo apaga
 fijarAviso((x, k) => toast(x, k)); buildTop(); buildTabs(); initBandeja();

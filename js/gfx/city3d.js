@@ -15,7 +15,7 @@ import * as Civicas from './civicas.js';          // CN15d: dique, arca del foro
 import * as trajin from './trajin.js';              // CN15b: cuadrilla de obra y recuas (lo escribe otro encargo)
 import * as Fachadas from './fachadas.js';           // CN15a: puestos, toldos y ropa de la plaza y los barrios (lo escribe otro encargo)
 import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES, tintesEstacion, OPC_SUELO } from './ground.js';
-import { altura, RIO, NIVEL_RIO, azar, distRio } from './mundo.js';
+import { altura, RIO, NIVEL_RIO, azar, distRio, ponMar } from './mundo.js';
 import * as CI from '../ciudad.js';
 import * as Calles from '../calles.js';           // CD2a: calles con el dedo y el arquitecto (reglas)
 import * as Calles3d from './calles3d.js';
@@ -327,7 +327,8 @@ export function mundo(estado) {
   vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; OPC_SUELO.apretado = romaS(); tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); Civicas.reiniciar(); trajin.reiniciar();
   for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, estBarM, estBarL, surcoM, aradoM, plazaM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
   dinM = andM = andL = estBarM = estBarL = surcoM = aradoM = plazaM = null; plazaF = ''; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
-  sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); sueloJ.terreno(E && E.terreno); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
+  const hayMar = !!(E && E.terreno === 'costa'); ponMar(hayMar);      // PN3b: la polis de costa tiene mar al norte del río (antes de crear suelo y árboles)
+  sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); sueloJ.terreno(E && E.terreno); scene.add(sueloJ.malla); rio = crearRio(G.T, U, hayMar); scene.add(rio);
   /* lámina de la crecida: una cinta más ancha que el río, escondida bajo el cauce hasta que toca */
   { const n = RIO.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let sl = 0; for (let i = 0; i < n; i++) { const a = RIO[Math.max(0, i - 1)], b = RIO[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / l, nz = (b[0] - a[0]) / l, w = 124; if (i) sl += Math.hypot(RIO[i][0] - RIO[i - 1][0], RIO[i][1] - RIO[i - 1][1]); pos.set([RIO[i][0] + nx * w, 0, RIO[i][1] + nz * w, RIO[i][0] - nx * w, 0, RIO[i][1] - nz * w], i * 6); uv.set([0, sl / 60, 2.5, sl / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
@@ -336,7 +337,7 @@ export function mundo(estado) {
   { const B = new Bulto(), rnd = azar(99), Rr = (a, b) => a + (b - a) * rnd(), P = PUENTE, c = Math.cos(P.ang), s = Math.sin(P.ang), y = NIVEL_RIO + 5.2, AN = 9.6;
     /* UR1: puente de pilotes, de orilla a orilla (antes medía 84 y el río 104: no llegaba). Tablero de tablas sobre caballetes de tres pilotes con riostras,
        largueros, barandilla y una rampa de tierra en cada cabeza. Modelo: el pons Sublicius, todo de madera y sin hierro (Dionisio 3.45; Plinio 36.100). */
-    const orilla = sg => { let u = 20; while (u < 110 && altura(P.x + c * u * sg, P.z + s * u * sg) < NIVEL_RIO + 1.6) u += 1; return u + 2; }, u0 = -orilla(-1), u1 = orilla(1);
+    const orilla = sg => { let u = 20; while (u < (hayMar && sg < 0 ? 42 : 110) && altura(P.x + c * u * sg, P.z + s * u * sg) < NIVEL_RIO + 1.6) u += 1; return u + 2; }, u0 = -orilla(-1), u1 = orilla(1);
     const en = (u, l) => [P.x + c * u - s * l, P.z + s * u + c * l];
     for (let u = u0; u < u1; u += 1.6) { const q = en(u + 0.8, 0), k = rnd(); B.caja(1.52, 0.42, AN, q[0], y, q[1], k < 0.33 ? '#7a6347' : k < 0.66 ? '#6c573e' : '#84704f', -P.ang); }      // tablas
     for (const l of [-3.9, 0, 3.9]) { const q = en((u0 + u1) / 2, l); B.caja(u1 - u0, 0.7, 0.6, q[0], y - 0.55, q[1], '#4f3f2e', -P.ang); }                                              // largueros
@@ -345,7 +346,7 @@ export function mundo(estado) {
       { const q = en(u, 0); B.caja(1, 0.8, AN + 1.6, q[0], y - 1.25, q[1], '#54432f', -P.ang); B.caja(0.4, 0.4, 9.6, q[0], y - 3.4, q[1], '#463829', -P.ang, 0.42); B.caja(0.4, 0.4, 9.6, q[0], y - 3.4, q[1], '#463829', -P.ang, -0.42); } }
     for (const l of [-AN / 2 + 0.3, AN / 2 - 0.3]) { { const q = en((u0 + u1) / 2, l); B.caja(u1 - u0, 0.3, 0.3, q[0], y + 2.3, q[1], '#5c4a38', -P.ang); B.caja(u1 - u0, 0.22, 0.22, q[0], y + 1.3, q[1], '#5c4a38', -P.ang); }      // barandilla
       for (let u = u0 + 0.5; u <= u1 - 0.4; u += 4.5) { const q = en(u, l); B.caja(0.42, 2.5, 0.42, q[0], y + 1.2, q[1], '#4f3f2e', -P.ang); } }
-    for (const [u, sg] of [[u0, -1], [u1, 1]]) for (let k = 0; k < 40; k++) { const q = en(u + sg * (0.8 + k * 1.6), 0), ys = altura(q[0], q[1]), yt = y - 0.3 * (k + 1); if (yt < ys + 0.25) break; B.caja(1.56, 0.42, AN, q[0], yt, q[1], k % 2 ? '#7a6347' : '#6c573e', -P.ang, 0, 0); if (k % 3 === 0) for (const l of [-4.2, 4.2]) { const e = en(u + sg * (0.8 + k * 1.6), l); B.caja(0.7, yt - ys + 2, 0.7, e[0], (yt + ys - 2) / 2, e[1], '#463829', -P.ang); } }      // rampas de tablas hasta el suelo
+    for (const [u, sg] of [[u0, -1], [u1, 1]]) for (let k = 0; k < (hayMar && sg < 0 ? 0 : 40); k++) { const q = en(u + sg * (0.8 + k * 1.6), 0), ys = altura(q[0], q[1]), yt = y - 0.3 * (k + 1); if (yt < ys + 0.25) break; B.caja(1.56, 0.42, AN, q[0], yt, q[1], k % 2 ? '#7a6347' : '#6c573e', -P.ang, 0, 0); if (k % 3 === 0) for (const l of [-4.2, 4.2]) { const e = en(u + sg * (0.8 + k * 1.6), l); B.caja(0.7, yt - ys + 2, 0.7, e[0], (yt + ys - 2) / 2, e[1], '#463829', -P.ang); } }      // rampas de tablas hasta el suelo
     for (let i = 0; i < RIO.length - 1; i++) { const p = RIO[i], q = RIO[i + 1]; if (Math.abs(p[0]) > 900) continue; const ang = Math.atan2(q[1] - p[1], q[0] - p[0]);
       for (const l of [1, -1]) for (let k = 0; k < 3; k++) { if (rnd() < 0.45) continue; const r = Rr(17, 27), x = p[0] - Math.sin(ang) * r * l + Rr(-5, 5), z = p[1] + Math.cos(ang) * r * l + Rr(-5, 5), yy = altura(x, z); if (yy > NIVEL_RIO + 2.5 || yy < NIVEL_RIO - 1.2) continue; for (let j = 0; j < 4; j++) B.cono(Rr(0.5, 0.9), Rr(3, 5), 4, x + Rr(-1.6, 1.6), Math.max(yy, NIVEL_RIO) + 1.8, z + Rr(-1.6, 1.6), rnd() < 0.5 ? '#7c8448' : '#9a9050', 1, Rr(0, 3)); } }
     estM = new THREE.Mesh(B.geo(), matBulto); estM.castShadow = estM.receiveShadow = true; scene.add(estM); }
