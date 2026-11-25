@@ -83,6 +83,25 @@ Precisión (25/11, literal): «Y lo d las vistas tendría 2, la de desde arriba,
 hay». → Vista 1 «Desde arriba» (construir); vista 2 la ciudad 3D de hoy por la que te mueves (la que hoy abre «De
 cerca»). Se quitan «Ciudad entera», «Calle» y «Tropas».
 
+
+### M1: añadidos y arranque (usuario, 25/11, literal)
+«M1: 2- hay que poder elegir más polis, y que cada una tenga su cultura específica que ya se desarrollará más con el
+departamento de historia y de arte pero de momento se puede reciclar lo que hay. 3- hay que crear el departamento de
+arte de mapas para que mejoren el mapa básico de roma que hay y lo lleven a. Otro nivel con un mapa vivo bien renderizado
+que cada uno disponga en diferentes partes del mapa de los recursos básicos, y los de lujo haya en algunas ciudades y los
+que no haya los tengas que conseguir por comercio o por conquista de esa ciudad y explotación de sus recursos. De momento
+empieza con la m1 y la juzgo».
+→ **M1 aprobada para empezar** (M2–M5 siguen en debate). Añadidos a M1:
+- **Más polis** (propuesta: 8 — Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto, Calcis), cada una con su cultura
+  (rasgo, edificio o tropa propia y ficha), reciclando lo que hay; Historia y Arte la amplían después.
+- **Departamento de Arte de Mapas** (nuevo, dentro del Músculo, con el taller de Arte): mapa vivo y bien renderizado.
+- **Recursos repartidos por el mapa**: los básicos en distintas zonas; los de lujo solo en algunas ciudades; lo que no
+  tienes, por comercio o conquistando la ciudad y explotando su recurso.
+
+**Orden dentro de M1 (tandas)**: 1) jueces rápidos y liga de bots (para medir lo demás) → 2) tiempo por estaciones →
+3) menú, elegir polis, arranque y comarca → 4) dos vistas y ver construir/entrenar → 5) mapa vivo y recursos (Arte de
+Mapas, puede ir en paralelo desde la tanda 2) → 6) críticas a la 1.0 cuando el usuario las dé.
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
@@ -193,7 +212,10 @@ agricultura, mercado, caminos de victoria y batallas a pie (falange, hoplitas).
 | Qué se mide | Quién lo mide | Aprueba si… |
 |---|---|---|
 | Menú nuevo | Juez de pantalla 390 px | Continuar, Partida nueva y Escaramuzas a la vista; campaña con «en pausa»; ≤ 3 toques hasta empezar; botones ≥ 44 px |
-| Elegir polis | Juez de pantalla | Atenas, Esparta y Corinto con una línea de su carácter |
+| Elegir polis | Juez de pantalla y bot de reglas | ≥ 8 polis; cada una distinta en ≥ 2 cosas (rasgo, edificio, tropa) con su ficha; todas sobreviven con el bot |
+| Mapa vivo | Juez de aspecto | Nota ≥ 7 frente a referencias (mapa de campaña tipo Total War): relieve, agua, ciudades vivas |
+| Recursos en el mapa | Bot de reglas | Cada básico en ≥ 3 zonas; cada lujo en 1–3 ciudades; sin comercio ni conquista no hay lujo; conquistar una ciudad da su recurso |
+| Departamento de Arte de Mapas | Vigía | Guía propia, archivos suyos en areas.json y su juez |
 | Comarca aleatoria | Bot de reglas, 20 comarcas | 20 distintas, 20 con agua, cultivo y sitio para el ágora, coherentes con la polis |
 | Arranque mínimo | Bot de reglas | Ágora, 5–8 casas, 100–200 personas, materias básicas |
 | Primeros minutos | Bot «jugador nuevo» | ≥ 5 cosas que hacer en 10 min; siguiendo al asesor nadie pasa hambre |
