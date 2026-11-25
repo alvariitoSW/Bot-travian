@@ -160,19 +160,19 @@
   "fecha": "2026-11-25T04:48:15.005Z"
  },
  "navegador-batallas": {
-  "huella": "dd76c728866cc795",
+  "huella": "8ab5f4924a8e20ff",
   "ok": true,
-  "fecha": "2026-11-25T03:08:49.000Z"
+  "fecha": "2026-11-25T04:52:47.162Z"
  },
  "area:gobierno/jueces.mjs --area batallas": {
-  "huella": "72ad0d11850e51b9",
+  "huella": "3da3a5876035a1a7",
   "ok": true,
-  "fecha": "2026-11-25T03:08:49.011Z"
+  "fecha": "2026-11-25T04:52:47.172Z"
  },
  "area:gobierno/juez-guerra.mjs": {
-  "huella": "a4b6c31cf9dfd1a8",
+  "huella": "4708d125890ec9b8",
   "ok": true,
-  "fecha": "2026-11-25T03:34:47.865Z"
+  "fecha": "2026-11-25T05:14:21.008Z"
  },
  "area:test/fu3-falange.test.mjs": {
   "huella": "8a76adac61c1b454",
