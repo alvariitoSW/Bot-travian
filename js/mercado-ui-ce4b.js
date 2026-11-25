@@ -119,6 +119,7 @@
   }
   const med = (id, tam) => '<span class="mu-med" style="width:' + tam + 'px;height:' + tam + 'px">' + ico(id, Math.round(tam * .66)) + '</span>';
   const denH = x => num(x, 2) + ' ' + ico('denarios', 15);
+  const estM = m => { const n = Math.max(1, Math.ceil((+m || 0) / 3 - 1e-9)); return n + (n === 1 ? ' estación' : ' estaciones'); };   // ES20: meses internos dichos en estaciones
   const sello = f => f > 0 ? '<span class="mu-sello up" role="img" aria-label="sube">▲</span>' : f < 0 ? '<span class="mu-sello dn" role="img" aria-label="baja">▼</span>' : '<span class="mu-sello eq" role="img" aria-label="estable">=</span>';
   const ESCUDO = 'M4 3h24v14c0 7-6 11-12 13C10 28 4 24 4 17z';
   const EMBLEMA = {
@@ -224,7 +225,7 @@
       h += '<div class="mu-sec"><h3>Precios en ' + esc(nomC(c)) + '</h3><div class="mu-rej">' + tab.map(x =>
         '<button type="button" class="mu-btn mu-prod" data-mu="prod" data-p="' + esc(x.prod) + '" aria-pressed="' + (x.prod === E.prod) + '"><span class="ic">' + med(x.prod, 44) + '</span>' +
         '<span class="nm">' + esc(x.n) + '</span><span class="pr">' + num(x.precio, 2) + ' ' + sello(x.flecha) + (x.motivo ? '<span class="mu-mot">' + esc(x.motivo) + '</span>' : '') + '</span></button>').join('') + '</div>' +
-        '<p class="mu-nota">Precio de una carga, en denarios. Sello rojo ▲: sube. Sello verde ▼: baja, respecto al mes pasado.</p></div>';
+        '<p class="mu-nota">Precio de una carga, en denarios. Sello rojo ▲: sube. Sello verde ▼: baja, respecto a la estación pasada.</p></div>';
       if (!E.prod) h += consejo();
       return h;
     }
@@ -249,20 +250,20 @@
     function cuentaH(r) {
       const m = M(); let cu, fl;
       try { cu = m.rutaCuenta(s, r, ay); fl = m.flete(s, r.a, r.b, r.prod, r.cargas, ay); } catch (e) { return ''; }
-      const fila = (k, v, cl) => '<span>' + k + '</span><b class="' + (cl || '') + '">' + v + '</b>';
-      return '<div class="mu-cuenta">' + fila('Compra', denH(cu.compra)) + fila('Venta', denH(cu.venta)) + fila('Flete', denH(cu.flete)) + fila('Aduana', denH(cu.portoria || 0)) +
-        '<span class="tot">Neto al mes</span><b class="tot ' + (cu.neto >= 0 ? 'mu-dn' : 'mu-up') + '">' + denH(cu.neto) + '</b></div>' +
-        '<p class="mu-nota">' + ico(fl.via === 'mar' ? 'barco' : 'carro', 16) + (fl.via === 'mar' ? ' Por mar' : ' Por tierra') + ' · ' + fl.meses + (fl.meses === 1 ? ' mes' : ' meses') + ' · riesgo de perder la carga ' + Math.round((fl.riesgo || 0) * 100) + ' %' + (fl.bloqueado ? ' · PUERTO BLOQUEADO' : '') + '</p>';
+      const fila = (k, v, cl) => '<span>' + k + '</span><b class="' + (cl || '') + '">' + v + '</b>';   // ES20: por estación (3 envíos)
+      return '<div class="mu-cuenta">' + fila('Compra', denH(cu.compra * 3)) + fila('Venta', denH(cu.venta * 3)) + fila('Flete', denH(cu.flete * 3)) + fila('Aduana', denH((cu.portoria || 0) * 3)) +
+        '<span class="tot">Neto por estación</span><b class="tot ' + (cu.neto >= 0 ? 'mu-dn' : 'mu-up') + '">' + denH(cu.neto * 3) + '</b></div>' +
+        '<p class="mu-nota">' + ico(fl.via === 'mar' ? 'barco' : 'carro', 16) + (fl.via === 'mar' ? ' Por mar' : ' Por tierra') + ' · ' + estM(fl.meses) + ' · riesgo de perder la carga ' + Math.round((fl.riesgo || 0) * 100) + ' %' + (fl.bloqueado ? ' · PUERTO BLOQUEADO' : '') + '</p>';
     }
     function pRutas() {
       const m = M(), ms = s.mercado || {}, h0 = [];
       const rutas = ms.rutas || [], viajes = ms.viajes || [];
       let h = '<div class="mu-sec"><h3>Tus rutas</h3>';
       if (!rutas.length) h += '<p class="mu-p mu-sub">Aún no tienes rutas. Una ruta lleva carga sola cada mes.</p>';
-      else h += '<ul class="mu-lis">' + rutas.map(r => '<li><span class="mu-p"><b>' + esc(nomC(r.a)) + ' → ' + esc(nomC(r.b)) + '</b><br>' + ico(r.prod, 20) + ' ' + esc(nomP(r.prod)) + ' · ' + r.cargas + ' cargas al mes</span>' + cuentaH(r) +
+      else h += '<ul class="mu-lis">' + rutas.map(r => '<li><span class="mu-p"><b>' + esc(nomC(r.a)) + ' → ' + esc(nomC(r.b)) + '</b><br>' + ico(r.prod, 20) + ' ' + esc(nomP(r.prod)) + ' · ' + r.cargas * 3 + ' cargas por estación</span>' + cuentaH(r) +
         '<button type="button" class="mu-btn mu-mal" data-mu="rquitar" data-id="' + esc(r.id) + '">Quitar ruta</button></li>').join('') + '</ul>';
       h += '</div>';
-      if (viajes.length) h += '<div class="mu-sec"><h3>Viajes en curso</h3><ul class="mu-lis">' + viajes.map(v => '<li><span class="mu-p"><b>' + esc(nomC(v.a)) + ' → ' + esc(nomC(v.b)) + '</b><br>' + ico(v.prod, 20) + ' ' + v.cargas + ' cargas de ' + esc(nomP(v.prod)) + ' · faltan ' + v.resta + (v.resta === 1 ? ' mes' : ' meses') + '</span></li>').join('') + '</ul></div>';
+      if (viajes.length) h += '<div class="mu-sec"><h3>Viajes en curso</h3><ul class="mu-lis">' + viajes.map(v => '<li><span class="mu-p"><b>' + esc(nomC(v.a)) + ' → ' + esc(nomC(v.b)) + '</b><br>' + ico(v.prod, 20) + ' ' + v.cargas + ' cargas de ' + esc(nomP(v.prod)) + ' · faltan ' + estM(v.resta) + '</span></li>').join('') + '</ul></div>';
       // formulario
       const o = misCiudades().indexOf(E.ciudad) >= 0 ? E.ciudad : misCiudades()[0];
       const dests = todas().filter(x => x !== o);
@@ -289,7 +290,7 @@
       let h = cab(cabSenado()) + '<div class="mu-sec"><h3>Leyes del mercado</h3>';
       let pos = []; try { pos = m.contratosPosibles(s, ay); } catch (e) { pos = []; }
       h += '<ul class="mu-lis">' + pos.map(k => {
-        const vig = (ms.contratos || []).filter(x => x.id === k.id && x.hasta > mes).map(x => x.hasta - mes + ' meses' + (x.f ? ' con ' + nomF(x.f) : ''));
+        const vig = (ms.contratos || []).filter(x => x.id === k.id && x.hasta > mes).map(x => estM(x.hasta - mes) + (x.f ? ' con ' + nomF(x.f) : ''));
         let acc = '';
         if (k.id === 'tratado') {
           const op = k.opciones || [];
@@ -304,13 +305,13 @@
       const PB = m.PUBLICANOS || {};
       const quien = k => k.n || (PB[k.tipo] && PB[k.tipo].n) || k.tipo;
       h += '<p class="mu-p"><b>Ofertas</b></p>';
-      h += pv.ofertas.length ? '<ul class="mu-lis">' + pv.ofertas.map(k => '<li><span class="mu-p mu-ley">' + med('tablilla', 44) + '<span><b>' + esc(quien(k)) + '</b><br>Piden ' + esc(k.cargas + ' cargas de ' + nomP(k.prod)) + (k.destino ? ' para ' + esc(nomC(k.destino)) : '') + '.<br>Pagan ' + denH(k.paga) + ' · plazo ' + k.plazo + ' meses · la oferta caduca en ' + Math.max(0, k.caduca - mes) + '.</span></span>' +
+      h += pv.ofertas.length ? '<ul class="mu-lis">' + pv.ofertas.map(k => '<li><span class="mu-p mu-ley">' + med('tablilla', 44) + '<span><b>' + esc(quien(k)) + '</b><br>Piden ' + esc(k.cargas + ' cargas de ' + nomP(k.prod)) + (k.destino ? ' para ' + esc(nomC(k.destino)) : '') + '.<br>Pagan ' + denH(k.paga) + ' · plazo ' + estM(k.plazo) + ' · la oferta caduca en ' + estM(Math.max(0, k.caduca - mes)) + '.</span></span>' +
         '<button type="button" class="mu-btn" data-mu="pujar" data-id="' + esc(k.id) + '">Pujar (fianza ' + num(k.fianza, 0) + ')</button></li>').join('') + '</ul>' : '<p class="mu-p mu-sub">Hoy los publicanos no ofrecen nada.</p>';
       h += '<p class="mu-p"><b>Aceptados</b></p>';
       h += pv.aceptados.length ? '<ul class="mu-lis">' + pv.aceptados.map(k => {
         const t = tengo(k.prod), n = Math.max(0, Math.min(k.falta != null ? k.falta : k.cargas - k.entregado, t == null ? 1e9 : Math.floor(t)));
         const pc = Math.min(100, Math.round(100 * (k.entregado || 0) / Math.max(1, k.cargas)));
-        return '<li><span class="mu-p mu-ley">' + med(k.prod, 44) + '<span><b>' + esc(quien(k)) + '</b><br>' + esc(nomP(k.prod)) + (k.destino ? ' para ' + esc(nomC(k.destino)) : '') + ' · pagan ' + denH(k.paga) + ' · quedan ' + Math.max(0, (k.hasta || 0) - mes) + ' meses.</span></span>' +
+        return '<li><span class="mu-p mu-ley">' + med(k.prod, 44) + '<span><b>' + esc(quien(k)) + '</b><br>' + esc(nomP(k.prod)) + (k.destino ? ' para ' + esc(nomC(k.destino)) : '') + ' · pagan ' + denH(k.paga) + ' · quedan ' + estM(Math.max(0, (k.hasta || 0) - mes)) + '.</span></span>' +
           '<div class="mu-barra" role="progressbar" aria-valuemin="0" aria-valuemax="' + k.cargas + '" aria-valuenow="' + (k.entregado || 0) + '"><i style="width:' + pc + '%"></i></div><span class="mu-p">Entregado ' + (k.entregado || 0) + ' de ' + k.cargas + '</span>' +
           '<button type="button" class="mu-btn mu-ok" data-mu="entregar" data-id="' + esc(k.id) + '" data-n="' + n + '"' + (n < 1 ? ' disabled' : '') + '>Entregar ' + n + '</button></li>';
       }).join('') + '</ul>' : '<p class="mu-p mu-sub">No has aceptado ningún contrato.</p>';

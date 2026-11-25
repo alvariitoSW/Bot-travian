@@ -525,20 +525,21 @@ async function navegador() {
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.state.speed = 0; });
       await cierraAvisos();
       if (!(await page.locator('#turno:not([hidden])').count())) return { ok: false, detalle: 'no hay botón «Pasar estación»' };
-      await page.evaluate(() => { const b = document.getElementById('inf'); if (b) b.remove(); document.getElementById('turno').click(); });
+      /* ES20: dos toques seguidos pasan UNA estación y la hoja sale sola, una vez (sin llamar a UI.consejoModal) */
+      const t0 = await page.evaluate(() => { UI.infoCierra(); Game.autoVivo = true; window.__hojas = 0; window.__obsH = new MutationObserver(l => { for (const m of l) for (const n of m.addedNodes) if (n.id === 'inf') window.__hojas++; }); window.__obsH.observe(document.body, { childList: true }); const t = Game.state.t, b = document.getElementById('turno'); b.click(); b.click(); return t; });
       await espera(500);
       const toasts = await estado(() => document.querySelectorAll('#toasts .toast').length);
-      await cierraAvisos();
-      await estado(() => { const b = document.getElementById('inf'); if (b) b.remove(); UI.consejoModal(); });
-      await espera(200);
+      for (let i = 0; i < 20 && !(await estado(() => !!document.getElementById('inf'))); i++) { await cierraAvisos(); await estado(() => { Game.state.pending.length = 0; }); await espera(300); }
+      const sola = await estado(() => { window.__obsH.disconnect(); return { n: window.__hojas, dt: Game.state.t, oculto: document.getElementById('turno').hidden || getComputedStyle(document.getElementById('turno')).display === 'none' }; });
+      const unaVez = sola.n === 1 && Math.abs(sola.dt - t0 - 3) < 1e-6 && sola.oculto;
       const m = await estado(() => { const r = id => { const e = document.getElementById(id); return e ? e.getBoundingClientRect() : null; }; const i = r('inf'), a = r('inf-mas'), b = r('inf-seguir'); return { i: i && i.height, a: a && a.height, b: b && b.height }; });
       if (await page.locator('#inf-mas').count()) await page.click('#inf-mas'); await espera(200);
       const d = await estado(() => { const e = document.getElementById('inf-seguir'); if (!e) return null; const r = e.getBoundingClientRect(); return { b: r.bottom, l: r.left, r: r.right }; });
       const captura = await foto('inf-detalle');
       await estado(() => { UI.infoCierra(); });
       const dentro = !!d && d.b <= 844 && d.l >= 0 && d.r <= 390;
-      const ok = toasts <= 2 && !!m.i && m.i <= 844 * 2 / 3 + 1 && (m.a === null || m.a >= 40) && m.b >= 40 && dentro;
-      return { ok, detalle: 'avisos=' + toasts + ' #inf=' + (m.i | 0) + ' px; «Ver más»=' + (m.a | 0) + ' «A trabajar»=' + (m.b | 0) + ' px; detalle ' + (dentro ? 'dentro' : 'FUERA') + ' de pantalla', captura };
+      const ok = unaVez && toasts <= 2 && !!m.i && m.i <= 844 * 2 / 3 + 1 && (m.a === null || m.a >= 40) && m.b >= 40 && dentro;
+      return { ok, detalle: 'hoja sola ' + sola.n + ' vez/veces, ' + (sola.dt - t0) + ' meses pasados con dos toques, botón oculto ' + sola.oculto + '; avisos=' + toasts + ' #inf=' + (m.i | 0) + ' px; «Ver más»=' + (m.a | 0) + ' «Empezar la estación»=' + (m.b | 0) + ' px; detalle ' + (dentro ? 'dentro' : 'FUERA') + ' de pantalla', captura };
     });
 
     await paso('R3 sin reloj (ES20): no hay velocidad ni pausas; el tiempo solo pasa con «Pasar estación»', 'musculo', async () => {

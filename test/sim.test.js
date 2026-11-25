@@ -679,6 +679,13 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   for (const r of D.RES) { const a = h1.entra[r], e = h2.entra[r];
     assert(Math.abs(a.ahora + e.recogido - e.gastado - e.perdido - e.ahora) <= 2, 'la hoja 2 empieza donde acabó la 1 en ' + r + ': ' + JSON.stringify([a, e]));
     if (cost[r]) assert(e.ordenado >= cost[r] - 1 && e.gastado >= e.ordenado, 'lo ordenado (' + r + ' ' + cost[r] + ') cuenta como gastado: ' + JSON.stringify(e)); } }
+{ // ES20 (revisión 2): tras pasar estación todo está en el almacén (s.res a 0); el encargo de denarios y el objetivo «reserva» de un ministro ven la reserva entera
+  G.usarCiudad(null); const s = G.newGame('Reserva'); G.state = s; s.marches = []; s.pending = [];
+  assert(G.pasarEstacion()); s.marches = []; s.pending = [];
+  const den = Math.floor(G.reserva('denarios')); assert(den > 0, 'hay denarios en la reserva: ' + den);
+  assert.strictEqual(G.MEDIDAS.denarios(s), den, 'el encargo «Arcas llenas» mide la reserva entera (caja ' + s.res.denarios + ', almacén ' + s.alm.denarios + ')');
+  const MIN = require('../js/ministros.js');
+  for (const r of ['grano', 'denarios', 'materiales', 'hierro']) assert.strictEqual(Math.floor(MIN.medir(s, { tipo: 'reserva', recurso: r })), Math.floor(G.reserva(r)), 'el ministro mide la reserva entera de ' + r); }
 { // ES20 (revisión): el Senado mide la guarnición con los lotes que acaban al cerrar la estación
   G.usarCiudad(null); const s = G.newGame('Guarnicion'); G.state = s; s.marches = []; s.pending = []; const c = s.cities.roma; c.pop = 5000; for (const r of D.RES) s.alm[r] = 1e5;
   const tot = () => G.myCities().reduce((n, id) => n + G.men(s.cities[id].units), 0);

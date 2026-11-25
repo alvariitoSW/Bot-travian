@@ -90,6 +90,7 @@ let host = null;
 const G = () => window.Game, M = () => window.MERCADO, D = () => window.DATA, S = () => window.Game && window.Game.state;
 const nomC = id => (D().CITIES[id] && D().CITIES[id].n) || id;
 const nomP = p => (M().PRODUCTOS[p] && M().PRODUCTOS[p].n) || p;
+const estM = m => { const n = Math.max(1, Math.ceil((+m || 0) / 3 - 1e-9)); return n + (n === 1 ? ' estación' : ' estaciones'); };   // ES20: meses internos dichos en estaciones
 const nomF = f => (D().FACTIONS[f] && D().FACTIONS[f].n) || f;
 const mias = () => G().myCities();
 
@@ -132,11 +133,11 @@ function vistaRutas(mal) {
   if (!rutas.length) h += '<div class="mu-vacio">Aún no tienes rutas. Crea una abajo y irá sola cada mes.</div>';
   for (const r of rutas) {
     let c = null; try { c = M().rutaCuenta(s, r, ay); } catch (e) { c = null; }
-    h += '<div class="mu-caja"><h3>' + mini(r.prod).replace('class="mu-mini"', 'class="mu-mini" style="width:26px;height:26px;vertical-align:middle"') + ' ' + esc(nomP(r.prod)) + ' · ' + esc(nomC(r.a)) + ' → ' + esc(nomC(r.b)) + '</h3><p>' + r.cargas + ' cargas al mes</p>' +
+    h += '<div class="mu-caja"><h3>' + mini(r.prod).replace('class="mu-mini"', 'class="mu-mini" style="width:26px;height:26px;vertical-align:middle"') + ' ' + esc(nomP(r.prod)) + ' · ' + esc(nomC(r.a)) + ' → ' + esc(nomC(r.b)) + '</h3><p>' + r.cargas * 3 + ' cargas por estación</p>' +
       (c ? '<div class="mu-cu"><span>Compra</span><b>' + d1(c.compra) + '</b><span>Venta</span><b>' + d1(c.venta) + '</b><span>Flete</span><b>' + d1(c.flete) + '</b><span>Aduana</span><b>' + d1(c.portoria) + '</b><span>Ganas</span><b class="' + (c.neto >= 0 ? 'mu-up' : 'mu-dn') + '">' + (c.neto >= 0 ? '+' : '') + d1(c.neto) + '</b></div>' : '') +
       '<div class="mu-btns"><button type="button" class="mu-btn peli" data-m="quitar" data-v="' + r.id + '">Quitar esta ruta</button></div></div>';
   }
-  if (viajes.length) h += '<div class="mu-sub">VIAJES EN CAMINO</div>' + viajes.map(v => '<div class="mu-fila"><span>' + esc(nomP(v.prod)) + ' ×' + v.cargas + ' · ' + esc(nomC(v.a)) + ' → ' + esc(nomC(v.b)) + '</span><b>' + v.resta + (v.resta === 1 ? ' mes' : ' meses') + '</b></div>').join('');
+  if (viajes.length) h += '<div class="mu-sub">VIAJES EN CAMINO</div>' + viajes.map(v => '<div class="mu-fila"><span>' + esc(nomP(v.prod)) + ' ×' + v.cargas + ' · ' + esc(nomC(v.a)) + ' → ' + esc(nomC(v.b)) + '</span><b>' + estM(v.resta) + '</b></div>').join('');
   const dest = E.destino && E.destino !== E.cid ? E.destino : (opcionesDestino()[0] || ''); E.destino = dest;
   const tope = dest ? M().rutaTope(s, E.cid, dest, ay) : 0; E.cargas = Math.max(1, Math.min(E.cargas, tope || 1));
   let cu = null; try { if (dest) cu = M().rutaCuenta(s, { a: E.cid, b: dest, prod: E.rprod, cargas: E.cargas }, ay); } catch (e) { cu = null; }
@@ -144,7 +145,7 @@ function vistaRutas(mal) {
     '<label class="mu-lab" for="mu-prod">Producto</label><select id="mu-prod" class="mu-sel" data-m="rprod">' + M().ORDEN.map(p => '<option value="' + p + '"' + (p === E.rprod ? ' selected' : '') + '>' + esc(nomP(p)) + '</option>').join('') + '</select>' +
     '<span class="mu-lab">Cargas' + (tope ? ' (hasta ' + tope + ')' : '') + '</span><div class="mu-paso"><button type="button" data-m="cargas" data-v="-1" aria-label="Una carga menos">−</button><b>' + E.cargas + '</b><button type="button" data-m="cargas" data-v="1" aria-label="Una carga más">+</button></div>' +
     (cu ? '<div class="mu-cu"><span>Compra</span><b>' + d1(cu.compra) + '</b><span>Venta</span><b>' + d1(cu.venta) + '</b><span>Flete + aduana</span><b>' + d1(cu.flete + cu.portoria) + '</b><span>Ganarías</span><b class="' + (cu.neto >= 0 ? 'mu-up' : 'mu-dn') + '">' + (cu.neto >= 0 ? '+' : '') + d1(cu.neto) + '</b></div>' : '') +
-    '<div class="mu-btns"><button type="button" class="mu-btn" data-m="rutacrear"' + (mal || !dest ? ' disabled' : '') + '>Crear ruta mensual</button><button type="button" class="mu-btn sec" data-m="viaje"' + (mal || !dest ? ' disabled' : '') + '>Enviar un viaje ahora</button></div></div>';
+    '<div class="mu-btns"><button type="button" class="mu-btn" data-m="rutacrear"' + (mal || !dest ? ' disabled' : '') + '>Crear ruta</button><button type="button" class="mu-btn sec" data-m="viaje"' + (mal || !dest ? ' disabled' : '') + '>Enviar un viaje ahora</button></div></div>';
   return h;
 }
 
@@ -167,7 +168,7 @@ function vistaSenado() {
   }
   let pv = { ofertas: [], aceptados: [] }; try { pv = G().publicanosVer(); } catch (e) { /* sin publicanos */ }
   h += '<div class="mu-sub">CONTRATOS PÚBLICOS (PUBLICANOS)</div>';
-  h += '<div class="mu-caja">' + (pv.ofertas.length ? pv.ofertas.map(k => '<div class="mu-fila"><span><b>' + esc(k.n) + '</b><br>' + k.cargas + ' cargas de ' + esc(nomP(k.prod).toLowerCase()) + (k.destino ? ' para ' + esc(nomC(k.destino)) : '') + '. Pagan ' + k.paga + ' denarios, plazo ' + k.plazo + ' meses.</span><button type="button" class="mu-btn" data-m="pujar" data-v="' + esc(k.id) + '">Pujar (fianza ' + k.fianza + ')</button></div>').join('') : '<div class="mu-vacio">Hoy los censores no sacan nada a subasta.</div>') + '</div>';
+  h += '<div class="mu-caja">' + (pv.ofertas.length ? pv.ofertas.map(k => '<div class="mu-fila"><span><b>' + esc(k.n) + '</b><br>' + k.cargas + ' cargas de ' + esc(nomP(k.prod).toLowerCase()) + (k.destino ? ' para ' + esc(nomC(k.destino)) : '') + '. Pagan ' + k.paga + ' denarios, plazo ' + estM(k.plazo) + '.</span><button type="button" class="mu-btn" data-m="pujar" data-v="' + esc(k.id) + '">Pujar (fianza ' + k.fianza + ')</button></div>').join('') : '<div class="mu-vacio">Hoy los censores no sacan nada a subasta.</div>') + '</div>';
   if (pv.aceptados.length) h += '<div class="mu-caja">' + pv.aceptados.map(k => { const tiene = Math.floor(G().mercadoAyuda().tiene(k.prod) || 0), n = Math.max(0, Math.min(k.falta, tiene)); return '<div class="mu-fila"><span><b>' + esc(k.n) + '</b><br>Entregado ' + (k.entregado || 0) + ' de ' + k.cargas + ' de ' + esc(nomP(k.prod).toLowerCase()) + '.</span><button type="button" class="mu-btn" data-m="entregar" data-v="' + esc(k.id) + '" data-n="' + n + '"' + (n < 1 ? ' disabled' : '') + '>Entregar ' + n + '</button></div>'; }).join('') + '</div>';
   h += '<p class="mu-nota">Los publicanos arrendaban al Estado obras y suministros (Polibio 6.17.2-5; Livio 23.48.10-49.4; 25.3.8-4.11). Cifras y plazos: licencia de juego.</p>';
   const ad = G().aduanasVer();

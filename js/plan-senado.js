@@ -379,7 +379,7 @@
     const falta = {};
     for (const o of pend) { const e = enc(o.mid); if (!(e && e.plan === o.id)) continue; const c = P.coste(s, o.b, nivelB(s.cities[o.ciudad], o.b), ayuda); for (const r in c) falta[r] = (falta[r] || 0) + c[r]; }
     for (const r in falta) {
-      const d = falta[r] - ((s.res && s.res[r]) || 0);
+      const d = falta[r] - (Math.max(0, (s.res && s.res[r]) || 0) + Math.max(0, (s.alm && s.alm[r]) || 0));   // ES20: reserva entera
       if (d > 0) aviso('Faltan ' + Math.ceil(d) + ' de ' + r + ' para las obras de esta estación', 'bad', 'falta:' + r);
     }
     return { efectos, avisos: p.avisos };

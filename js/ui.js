@@ -128,7 +128,7 @@ G.onEvent = function (type, p) {
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) carta('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
   else if (type === 'turno') { if (window.MINISTROS_UI) MINISTROS_UI.pintar(); UI.dirty = true; }
-  else if (type === 'hoja') setTimeout(() => { if (S() && !UI.menu) hojaEstMuestra(false); }, 0);   // ES20: al cerrar la estación sale su hoja (tras la votación del Senado, que ya está abierta)
+  else if (type === 'hoja') { UI.hojaPend = true; UI.dirty = true; }   // ES20: al cerrar la estación sale su hoja, en cuanto no haya carta, batalla ni fuego por medio (hojaEstEspera)
   else if (type === 'victoria') { if (!UI.camVic) setTimeout(camVictoria, 0); }
   else if (type === 'over') { if (!UI.binfo) showOver(); }
 };
@@ -287,7 +287,7 @@ function startGame() {
   const sitio = G.fundando() ? G.modo().inicio.fundar.sitio : null, cap = S() && S().capital;
   UI.city = sitio || (cap && S().cities[cap] ? cap : 'roma');   // I8: en «fundar de la nada» la ciudad es el sitio; con capital propia, esa
   if (sitio) { UI.tab = 'city'; iniciarFundar(); } else { UI.cityList = false; setTab('city'); }
-  if (!sitio && G.hojaEstacion && G.hojaEstacion()) setTimeout(() => { if (S() && !UI.menu) hojaEstMuestra(false); }, 900);   // ES20: al cargar, la hoja de la última estación
+  UI.pasando = false; UI.hojaPend = !sitio && !!(G.hojaEstacion && G.hojaEstacion());   // ES20: al cargar, la hoja de la última estación (sale tras «Dónde lo dejaste»)
 }
 /* I8: «Fundar de la nada». Con el reloj parado (G.fundando) se abre la pantalla de fundar; si la vista 3D aún carga, se reintenta en 0,4 s. */
 function iniciarFundar() {
@@ -383,17 +383,24 @@ function hojaEstHtml(h, mas) {
   return '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-t">' + esc(h.titulo || G.dateStr(S().t)) + '</div><div class="he-cu">' +
     '<div class="he-s he-entra"><b class="he-st">Entra</b><div class="he-rs">' + res + '</div></div>' +
     sec('acaba', 'Se acaba', 'Nada terminó esta estación.') + sec('siguiente', 'La próxima estación', 'Nada termina la próxima estación.') + sec('pasa', 'Pasa', '') + sec('avisos', 'Consejo', '') + '</div>' +
-    '<div class="inf-b">' + (hayMas ? '<button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">' + (mas ? 'Ver menos' : 'Ver más') + '</button>' : '') + sen + '<button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">A trabajar</button></div>';
+    '<div class="inf-b">' + (hayMas ? '<button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">' + (mas ? 'Ver menos' : 'Ver más') + '</button>' : '') + sen + '<button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Empezar la estación</button></div>';
 }
 function hojaEstMuestra(mas) {
   const h = G.hojaEstacion && G.hojaEstacion(); let el = $('inf');
   if (!h || !S() || S().over) { hojaEstCierra(); return; }
   if (!el) { el = document.createElement('div'); el.id = 'inf'; document.body.appendChild(el); }
-  el.className = 'inf ro-carta hojaest' + (mas ? ' mas' : ''); el.innerHTML = hojaEstHtml(h, !!mas); UI.hojaEstMas = !!mas;
+  el.className = 'inf ro-carta hojaest' + (mas ? ' mas' : ''); el.innerHTML = hojaEstHtml(h, !!mas); UI.hojaEstMas = !!mas; UI.pasando = false;
   document.body.classList.add('conhojaest'); UI.dirty = true;
 }
 function hojaEstCierra() { const el = $('inf'); if (el) el.remove(); document.body.classList.remove('conhojaest'); UI.hojaEstMas = false; }
 const consejoModal = () => hojaEstMuestra(false);   // nombre viejo (UI.consejoModal)
+/* la hoja pendiente sale cuando no hay modal, batalla por decidir o en curso, ni fuego; hasta entonces «Pasar estación» sigue cerrado */
+function hojaEstEspera() {
+  const s = S(); if (!UI.hojaPend || !s || UI.menu) return;
+  if (s.over) { UI.hojaPend = false; UI.pasando = false; return; }
+  if (UI.modalOpen || UI.nueva || UI.modalQ.length || s.pending.length || s.vivo || UI.fundar) return;
+  UI.hojaPend = false; hojaEstMuestra(false);
+}
 UI.infoMas = function () { if ($('inf')) hojaEstMuestra(!UI.hojaEstMas); };
 UI.infoCierra = function () { hojaEstCierra(); UI.dirty = true; };
 /* el botón «Pasar estación»: dice a qué estación se pasa */
@@ -422,6 +429,7 @@ function hudFundando(s) {
 function tickUI() {
   const s = S(); if (s && !UI.camVic && !UI.modalOpen && s.caminos && s.caminos.victoria && !s.caminos.victoriaVista && window.CAMINOS_UI) camVictoria();   // CDe4: pantalla de victoria por caminos
   if (!s) return;
+  hojaEstEspera();   // ES20: la hoja que espera a que se cierre una carta, una batalla o un fuego
   if (G.fundando()) { hudFundando(s); return; }   // I8: sin ciudad aún no hay cuentas; I8b: la barra enseña lo que traen los colonos
   if (UI.map && UI.map.cities) for (const id in UI.map.cities) { if (!D.CITIES[id] || !D.CITIES[id].antes) continue; const sp = UI.map.cities[id].el.querySelector('span'); if (sp && sp.textContent !== D.CITIES[id].n) sp.textContent = D.CITIES[id].n; }   // H14: el nombre del mapa cambia con la fecha (Poblado íbero → Carthago Nova)
   const p = G.prod(), pr = G.previsionCierre();
@@ -431,7 +439,7 @@ function tickUI() {
   hudDock();
   $('date').textContent = G.dateStr(s.t);
   /* ES20: «Pasar estación» siempre a la vista (no con un modal ni con la hoja de estación abiertos; en batalla la pantalla es otra) */
-  const sig = estSiguiente(s), tu = $('turno'); tu.hidden = !!(s.over || UI.modalOpen || $('inf')); tu.title = 'Pasar a la estación siguiente: ' + sig.toLowerCase();
+  const sig = estSiguiente(s), tu = $('turno'); tu.hidden = !!(s.over || UI.modalOpen || UI.pasando || UI.hojaPend || $('inf')); tu.title = 'Pasar a la estación siguiente: ' + sig.toLowerCase();
   setTxt('turno', '<i class="tu-lacre">' + RO_LACRE + '</i><b>Pasar estación</b><span class="tu-est"> · ' + (ESTA_A[sig] || sig) + '</span>');
   document.querySelectorAll('[data-t1]').forEach(e => {
     const t0 = +e.dataset.t0, t1 = +e.dataset.t1, f = Math.max(0, Math.min(1, (s.t - t0) / (t1 - t0)));
@@ -638,7 +646,7 @@ const barrioFrase = bi => {
 /* CN13b: techar un barrio con tejas (el fuego ya no salta de casa en casa). Botón pequeño en cada fila del barrio. */
 const techoBtn = i => {
   const t = G.techoInfo(UI.city, i); if (t.hecho) return '<span class="tj-ok" title="El fuego no salta entre estas casas">techado</span>';
-  if (t.enObra) return '<span class="tj-ok" title="' + esc(t.motivo) + '">techando · ' + t.enObra + 'm</span>';
+  if (t.enObra) return '<span class="tj-ok" title="' + esc(t.motivo) + '">techando · ' + mesesEst(t.enObra) + '</span>';
   if (!t.coste || t.casas < 1) return '';
   const cs = Object.keys(t.coste).filter(r => t.coste[r] > 0).map(r => D.RES_ICON[r] + fmt(t.coste[r])).join(' ');
   return '<button class="chip tj' + (t.motivo ? ' no' : '') + '" data-act="techar" data-v="' + i + '"' + (t.motivo ? ' disabled' : '') + ' title="' + esc('Techos de teja: el fuego no salta entre las casas. Tarda ' + mesesEst(t.plazo) + '. ' + (t.motivo || '')) + '">Techar barrio · ' + cs + '</button>';
@@ -1056,7 +1064,7 @@ function avisoArrabal(E) {
 }
 function consejo(c, id) {
   id = id || UI.city; const s = S(), cap = G.cap(), E = c.owner === 'roma' ? G.ciudadE(id) : null, flags = {};
-  const lleno = D.RES.filter(r => r !== 'denarios').map(r => [r, s.res[r] / G.capDe(r)]).filter(x => x[1] >= 0.9).sort((x, y) => y[1] - x[1])[0];
+  const lleno = D.RES.filter(r => r !== 'denarios').map(r => [r, G.reserva(r) / G.capDe(r)]).filter(x => x[1] >= 0.9).sort((x, y) => y[1] - x[1])[0];
   const tope = c.pop >= G.popCap(c) - 1;
   if (E && lleno && E.abiertas.includes('almacen')) flags.almacen = 'alerta';
   if (E && tope) flags.viviendas = 'alerta';
@@ -1151,7 +1159,7 @@ function leccionHoy() {
   try { const rg = G.riesgos(UI.city) || []; riesgo = rg.some(r => r.meses <= G.avisoMeses()); } catch (e) { }
   try { arrabal = !!avisoArrabal(G.ciudadE(UI.city)); } catch (e) { }
   try { cuotas = !!(c && c.obras && c.obras.some(o => o.q)); } catch (e) { }
-  try { const cap = G.cap(); lleno = !!cap && D.RES.filter(r => r !== 'denarios').some(r => s.res[r] / G.capDe(r) >= 0.9); } catch (e) { }
+  try { const cap = G.cap(); lleno = !!cap && D.RES.filter(r => r !== 'denarios').some(r => G.reserva(r) / G.capDe(r) >= 0.9); } catch (e) { }
   const ctx = { mes: Math.floor(s.t + 1e-9), ahora: Date.now(), colocando: (UI.modo3 || 'mirar') !== 'mirar', cifra: !!$('l-cifra').textContent, cuotas, riesgo, barrioSube: false, almacenLleno: lleno, arrabal, turnos: !!s.turnos };
   const r = ASESOR.siguiente(s.ajustes, ctx); return r || null;
 }
@@ -1689,7 +1697,7 @@ function sheetSitio(id) {
   const orig = G.myCities().filter(o => D.CITIES[o] && s.cities[o].owner === 'roma');
   if (!UI.colDesde || orig.indexOf(UI.colDesde) < 0) UI.colDesde = orig.indexOf('roma') >= 0 ? 'roma' : orig[0];
   const mar = s.marches.find(m => m.colonos && m.to === id), v = k.estado === 'libre' && UI.colDesde ? G.puedeEnviarColonos(UI.colDesde, id) : { ok: false, motivo: '' };
-  const key = 'sitio' + id + k.estado + UI.colDesde + orig.join() + v.ok + v.motivo + (mar ? (G.turnos ? G.turnosFaltan(mar) : Math.round((mar.t1 - s.t) * 2)) : '');
+  const key = 'sitio' + id + k.estado + UI.colDesde + orig.join() + v.ok + v.motivo + (mar ? G.turnosFaltan(mar) : '');
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
   const K = G.COLONOS, coste = D.POP_ICON + ' ' + K.pop + ' · ' + coste5({ grano: K.grano, denarios: K.denarios });
   let h = '<button class="x" data-act="unsel" aria-label="Cerrar la ficha">✕</button><h3>' + esc(d.n) + '<span class="tagf" style="background:#8a6a2c">' + (TIPO_COL[d.tipo] || 'Colonia') + '</span></h3><p>' + esc(d.h) + '</p>';
@@ -1762,7 +1770,7 @@ function renderSheet() {
   if (!s.cities[UI.sel]) { sh.hidden = true; UI.sheetKey = ''; return; }
   const id = UI.sel, c = s.cities[id], d = D.CITIES[id], f = D.FACTIONS[c.owner], mine = c.owner === 'roma';
   const src = G.neighbors(id).filter(n => s.cities[n].owner === 'roma'), inc = s.marches.filter(m => m.to === id && !m.sitio), esp = s.marches.filter(m => m.sitio && m.from === id), sal = c.owner === 'roma' ? G.salidasPosibles(id, G.heroAvailable(id)) : [];
-  const key = esp.map(m => m.id + (m.postura || '')).join() + sal.map(x => x.m.id).join() + id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + (G.turnos ? G.turnosFaltan(m) : Math.round((m.t1 - s.t) * 2))).join();
+  const key = esp.map(m => m.id + (m.postura || '')).join() + sal.map(x => x.m.id).join() + id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + G.turnosFaltan(m)).join();
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
   let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + f.n + '</span></h3><p>' + esc(d.h) + '</p>';
   h += '<span class="stat">🧱 ' + (id === 'roma' && mine && G.faseMuralla(c) === 1 ? 'Muralla vieja de toba' : FASE_MURALLA[G.faseMuralla(c)]) + ' · Defensa ' + G.nivelMuralla(c) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');
@@ -1880,7 +1888,6 @@ document.addEventListener('click', function (e) {
   switch (a) {
     case 'dif': if (el.dataset.d === 'm') { UI.difSel = v; const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else { const r = G.ponerAjustes({ dif: v }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Dificultad ' + (DIF_NOM[v] || v) + ': vale desde la estación siguiente.'); } render(); } break;
     case 'asesor': if (el.dataset.d === 'm') UI.asesorSel = el.checked; else { G.ponerAjustes({ asesor: el.checked }); G.save(); UI.linK = null; pintaLinea(); } break;
-    case 'pausas': { const r = G.ponerAjustes({ pausas: v }); if (!r.ok) toast(r.motivo, 'bad'); else G.save(); render(); break; }
     case 'suceso': { const a = G.ajustes(), r = G.ponerAjustes({ suc: { [v]: !a.suc[v] } }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Vale desde la estación siguiente.'); } render(); break; }
     case 'repetirasesor': if (typeof ASESOR !== 'undefined') { ASESOR.repetir(S().ajustes); G.save(); UI.linK = null; pintaLinea(); toast('Los consejos volverán a salir.'); } break;
     case 'cubos': case 'arder': { if (!G.vivo()) break; const r = a === 'cubos' ? G.apagarFuego() : G.dejarArder(); if (r && r.ok === false) { toast(r.motivo || 'No se pudo'); break; } UI.vivoK = ''; vivoPinta(); G.save(); UI.dirty = true; break; }
@@ -1913,7 +1920,10 @@ document.addEventListener('click', function (e) {
     case 'plan-prio': case 'plan-est': case 'plan-nuevo': case 'plan-sug': case 'plan-add': case 'plan-cierra': case 'plan-ciu': case 'plan-poner': case 'plan-quitar': case 'plan-mover': case 'plan-votar': case 'plan-aband': case 'plan-aband-no': case 'plan-aband-si': planAccion(a, v); break;
     case 'sent': UI.senT = v; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;   // MN2: pestañas del Senado
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
-    case 'turno': { if (s.vivo) { toast('🔥 Primero decide qué hacer con el fuego.', 'bad'); break; } if (s.over || s.pending.length || UI.modalOpen) break; hojaEstCierra(); AV.acum = []; let hecho = false; try { hecho = G.pasarEstacion(); } finally { const l = AV.acum; AV.acum = null; if (!hecho) toastResumen(l); } UI.dirty = true; tickUI(); break; }   // ES20: lo pasado va a la hoja de estación; si una batalla o un fuego la cortan, un aviso
+    case 'turno': { if (UI.pasando || UI.hojaPend) break; if (s.vivo) { toast('🔥 Primero decide qué hacer con el fuego.', 'bad'); break; } if (s.over || s.pending.length || UI.modalOpen) break;
+      UI.pasando = true; $('turno').hidden = true; hojaEstCierra(); AV.acum = []; let hecho = false;   // ES20: cerrojo: una pulsación, una estación (se abre al salir la hoja)
+      try { hecho = G.pasarEstacion(); } finally { const l = AV.acum; AV.acum = null; if (!hecho) { UI.pasando = false; toastResumen(l); } else if (!UI.hojaPend && !$('inf')) UI.pasando = false; }
+      UI.dirty = true; tickUI(); break; }   // lo pasado va a la hoja de estación; si una batalla o un fuego la cortan, un aviso
     case 'tira': { const e = $('tpanel'); e.hidden = !e.hidden; $('tira-b').setAttribute('aria-expanded', String(!e.hidden)); if (!e.hidden) { $('cuentas').hidden = true; $('popsheet').hidden = true; tpanelPinta(true); } break; }   // CDe3
     case 'menumodo': if (UI.hoja && UI.hoja.id === 'menu' && !$('hoja').hidden) hojaCierra(); else hojaAbre('menu'); break;
     case 'marchas': if (UI.hoja && UI.hoja.id === 'marchas' && !$('hoja').hidden) hojaCierra(); else hojaAbre('marchas'); break;

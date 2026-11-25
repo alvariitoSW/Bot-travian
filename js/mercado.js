@@ -268,7 +268,7 @@
     if (dueno(s, o.a, ay) !== 'roma') return { ok: false, motivo: 'La ruta sale de una ciudad tuya' };
     const cargas = Math.floor(o.cargas || 0), tope = MER.rutaTope(s, o.a, o.b, ay);
     if (cargas < 1) return { ok: false, motivo: 'Cantidad no válida' };
-    if (cargas > tope) return { ok: false, motivo: tope ? 'Tope de ' + tope + ' cargas al mes' : 'Hace falta un mercado (o puerto por mar) en ' + nomC(o.a) };
+    if (cargas > tope) return { ok: false, motivo: tope ? 'Tope de ' + tope * 3 + ' cargas por estación' : 'Hace falta un mercado (o puerto por mar) en ' + nomC(o.a) };
     const r = { id: 'r' + (++m.seq), a: o.a, b: o.b, prod: o.prod, cargas };
     m.rutas.push(r);
     return { ok: true, motivo: '', ruta: r };

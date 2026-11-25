@@ -412,7 +412,7 @@
     if (d.pago === 'denarios') return G.disponible('denarios') >= coste ? { denarios: coste } : null;
     const pr = G.previsionCierre(), pago = {}; let falta = coste;
     for (const r of ['materiales', 'hierro', 'grano']) {
-      if (falta <= 0) break; const v = D.ARCA.valor[r], n = Math.min(Math.floor(pr[r].perdera), Math.floor(Math.max(0, s.res[r])), Math.ceil(falta / v)); if (n < 1) continue;
+      if (falta <= 0) break; const v = D.ARCA.valor[r], n = Math.min(Math.floor(pr[r].perdera), Math.floor(G.disponible(r)), Math.ceil(falta / v));   // ES20: de la reserva entera if (n < 1) continue;
       pago[r] = n; falta -= n * v; }
     if (falta > 0) { const v = D.ARCA.valor.grano, mas = Math.ceil(falta / v), hay = Math.floor(G.disponible('grano') - (pago.grano || 0)); if (hay < mas) return null; pago.grano = (pago.grano || 0) + mas; }
     return pago;
@@ -2792,7 +2792,7 @@
     barrios: s => { let n = 0; for (const id of propias(s)) n += G.barrioInfo(s.cities[id]).barrios.length; return n; },
     barrioNivel: s => { let n = 0; for (const id of propias(s)) for (const b of G.barrioInfo(s.cities[id]).barrios) n = Math.max(n, b.nivel); return n; },
     fuentes: s => { let n = 0; for (const id of propias(s)) { const E = ELBAR(s.cities[id]); if (E) n += E.edificios.filter(e => e.tipo === 'fuente' && !e.obra && !e.ruina).length; } return n; },
-    denarios: s => Math.floor(s.res.denarios),
+    denarios: s => Math.floor(Math.max(0, s.res.denarios || 0) + Math.max(0, (s.alm && s.alm.denarios) || 0)),   // ES20: la reserva entera
     encargos: s => Object.keys(s.encargos.hechos).filter(k => s.encargos.hechos[k] === 'ok').length
   };
   const medida = (s, c) => { const f = G.MEDIDAS[c.tipo]; return f ? f(s) : 0; };
@@ -3142,7 +3142,7 @@
   G.senadoMensual = function () {
     const s = G.state, q = SQ(), mes = mesAhora(s); if (!q) return;
     q.gastos = q.gastos.filter(g => g.hasta > mes); for (const g of q.gastos) s.res.denarios += g.denarios;
-    if (s.res.grano <= 0) G.senadoActo('hambre');
+    if (G.disponible('grano') <= 0) G.senadoActo('hambre');   // ES20: sin grano en toda la reserva
     if (q.pagaHasta > mes) { const m = G.mantenimiento().tropas, n = Math.max(1, tropasTotal(s)); s.res.denarios += 1200 * m / n; }
     G.promesasMes();
   };
