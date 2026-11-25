@@ -205,7 +205,7 @@ agricultura, mercado, caminos de victoria y batallas a pie (falange, hoplitas).
 | **M1 · Empezar de cero** | (1) Menú: Continuar · Partida nueva · Escaramuzas · Opciones; Partida nueva → Grecia o Campaña «en pausa». (2) Eliges Atenas, Esparta o Corinto. (3) Comarca aleatoria según la región. (4) Arranque: ágora, 5–8 casas, 100–200 personas, materias básicas. (5) Tiempo solo por estaciones, por turnos: cobras al empezar, «Pasar estación». (6) Dos vistas: «Desde arriba» y la ciudad 3D por la que te mueves; necesidades encima. (7) Se ve construir (andamios, obreros) y entrenar (reclutas en el cuartel) durante la estación. (8) Jueces rápidos (≤15 min) y liga de bots desde partidas avanzadas. (9) Críticas a la 1.0 arregladas | **Grande** (creció: era «Medio») |
 | **M2 · La polis crece** | Ciudad viva griega rehecha desde cero (la de Roma se siente artificial); la levantas tú o delegas en ministros; crece y pide por clases; edificios griegos con aspecto propio, ninguno repetido; militares (herrería, campo de entrenamiento, mercenarios); tres épocas que cambian el aspecto (barro y madera → mármol); bella (nota ≥ 7); texturas Poly Haven; descarga hasta ~80 MB; Meshy cuando haya créditos | Grande |
 | **M3 · Ejército y comercio desde la ciudad** | Las tropas salen de tus edificios; comercias con tus vecinos (mercado y agricultura de la 1.0, en griego) | Grande |
-| **M4 · Ganar** | Se gana por armas, comercio, política, ciudad y ciencia en esta partida; política griega (asamblea, consejo, arcontes); los bots logran cada camino 4–7 de 10; imagen de época en sucesos | Grande |
+| **M4 · Política y dominio** | Regímenes que cambian (aristocracia → tiranía → democracia u oligarquía), asamblea o consejo que vota; se gana solo por armas: todas las ciudades o el 90 % del territorio; sin plazo | Grande |
 | **M5 · Guerra** | Las batallas de la 1.0 enganchadas a la partida (hoplitas, falange), también en Escaramuzas, y un asedio corto | Medio |
 
 ### Estándar de M1 (borrador, 25/11)
@@ -311,6 +311,29 @@ Aplicado:
 | Te gusta | El usuario | Su «Bien» |
 
 
+### M4 · Ganar: decisiones (25/11)
+- Política: **«Regímenes que cambian (Recomendado)»**: aristocracia → tiranía → democracia u oligarquía; cada régimen
+  cambia qué clase manda y qué puedes hacer; asamblea o consejo votan tus propuestas; el descontento trae tirano o revuelta.
+- Cómo se gana, literal: «Vamos a dejar el como ganar más adelante para evitar que los jueces jueguen partidas
+  infinitas, de momento es abierto hasta conquistar todas las ciudades del mapa o el 90% del territorio simplemente que
+  sea dominio por armas simplemente». → En la 2.0 **solo se gana por armas**: todas las ciudades del mapa o el 90 % del
+  territorio. Los otros caminos (comercio, política, ciudad, ciencia) quedan **fuera de la 2.0**, para después.
+- Final: **«Sin plazo (Recomendado)»**.
+- La meta pasa a llamarse **M4 · Política y dominio**.
+
+### Estándar de M4 (borrador, 25/11)
+| Qué se mide | Quién lo mide | Aprueba si… |
+|---|---|---|
+| Regímenes | Bot de reglas | ≥ 4 regímenes; cada uno cambia qué clase manda y ≥ 2 cosas que puedes hacer |
+| Cambios de régimen | Liga de bots, 50 años | El régimen cambia al menos una vez en 7 de 10 partidas, por descontento o por tu elección |
+| Asamblea o consejo | Bot de reglas | Votan tus propuestas; pierdes al menos 3 de cada 10 si no cuidas a las clases que mandan |
+| Tirano o revuelta | Bot de reglas | Descuidar a la clase que manda 6 estaciones trae tirano o revuelta, con aviso antes |
+| Victoria por armas | Liga de bots, desde partidas avanzadas | Con todas las ciudades o el 90 % del territorio, sale la pantalla de victoria; el bot lo logra desde una partida avanzada en ≤ 20 min de juez |
+| Se entiende | Juez de pantalla | Régimen, votación y avance hacia la victoria a la vista en ≤ 2 toques |
+| Aspecto | Juez de aspecto con ficha | Nota ≥ 8,5 (asamblea, ágora, retratos de época) |
+| Te gusta | El usuario | Su «Bien» |
+
+
 ## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
 Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
 ayudar fable a hacerlo». Modelo: Opus en todo (regla del 23/11), salvo lo que el usuario decida para el mapa vivo.
@@ -347,6 +370,7 @@ partidas avanzadas griegas de la liga llegan con PN3.
 `ui.js`) son el cuello de botella; la comarca aleatoria es técnica nueva; el mapa vivo pesa en la descarga (tope ~80 MB).
 
 ## 5. Lo que queda fuera de la 2.0
+**Añadido el 25/11 (usuario)**: los caminos de victoria por comercio, política, ciudad y ciencia (en la 2.0 solo se gana por armas).
 Propuesto (versión 2), en debate: mejoras de la campaña Roma contra Cartago (en pausa); Roma, Cartago y otras
 civilizaciones jugables (P160); mundo de 45 ciudades (P183); Roma 3D (RM1–7); mapa libre (C14, GM25); batallas
 históricas (ES0); batalla dentro de la ciudad (P161); mitología (MG1); Egeo (P175); tarjetas de tinta (P162); vídeos con
