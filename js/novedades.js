@@ -11,9 +11,9 @@
       'La cámara sigue sola al choque, el campo es más verde y los caballos ya no salen negros.',
       'La falange a pie tiene su propia explicación al empezar.'] },
     { v: 168, fecha: '24/11/2026', cosas: [
-      'Falange a pie nueva: baja las sarisas a tiempo, cierra los huecos y aguanta el empuje.',
+      'Cada tropa tiene sus datos y tres grados de veteranía; en la batalla verás sanos, heridos y muertos.',
+      'Falange a pie nueva: baja las sarisas a tiempo, cierra los huecos y aguanta el empuje; si se parten, siguen con el muñón.',
       'Othismos: cuando las dos falanges chocan, empuja a compás y mira la barra para no ceder.',
-      'Las sarisas se parten en el choque y los falangitas siguen con el muñón.',
       'Rivales nuevos para la falange: ya no son tu reflejo, nadie atraviesa a nadie, los elefantes aguantan y rompen picas, y llegan hasta 144 enemigos.',
       'Muro de escudos y orden abierto en el abanico del estandarte: muro contra lo que viene de frente, abierto para pasar.',
       'Tácticas de la época en la batalla dirigida: los triarios se alzan, la falange cae por el flanco, el que queda rodeado sufre y la furia gala se agota.'] },

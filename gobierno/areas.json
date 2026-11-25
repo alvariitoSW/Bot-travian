@@ -155,7 +155,9 @@
           "test/fu3c-falange.test.mjs",
           "test/fu5-formaciones.test.mjs",
           "test/tacticas.test.mjs",
-          "test/fu4-rivales.test.mjs"
+          "test/fu4-rivales.test.mjs",
+          "test/tropas.test.mjs",
+          "test/tropas-sim.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",
