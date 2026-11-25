@@ -1,0 +1,245 @@
+{
+ "lejos-v": {
+  "grecia": true,
+  "rotulos": [
+   "Argos",
+   "Tebas",
+   "Mégaratu polis",
+   "Calcis",
+   "Golfo Sarónico",
+   "Golfo de Argos",
+   "Golfo de Eubea",
+   "Ática",
+   "Megáride",
+   "Eubea",
+   "Egina",
+   "Helicón",
+   "Citerón",
+   "Istmo",
+   "Lago Copais"
+  ],
+  "mia": "Mégaratu polis",
+  "miaVista": true,
+  "ancho": 12,
+  "estilo": "a",
+  "romanosEncima": [],
+  "info": {
+   "arranqueMs": 396,
+   "triangulos": 144761,
+   "llamadas": 95,
+   "texturas": 25,
+   "geometrias": 39,
+   "msPorCuadro": 130.7,
+   "cuadros": 6,
+   "dpr": 2,
+   "ancho": 12,
+   "estilo": "a"
+  }
+ },
+ "comarca-v": {
+  "grecia": true,
+  "rotulos": [
+   "Mégaratu polis",
+   "Canteras de Mégara",
+   "Megáride"
+  ],
+  "mia": "Mégaratu polis",
+  "miaVista": true,
+  "ancho": 3.2,
+  "estilo": "a",
+  "romanosEncima": [],
+  "info": {
+   "arranqueMs": 396,
+   "triangulos": 138214,
+   "llamadas": 48,
+   "texturas": 31,
+   "geometrias": 49,
+   "msPorCuadro": 47,
+   "cuadros": 22,
+   "dpr": 2,
+   "ancho": 3.2,
+   "estilo": "a"
+  }
+ },
+ "polis-v": {
+  "grecia": true,
+  "rotulos": [
+   "Mégaratu polis"
+  ],
+  "mia": "Mégaratu polis",
+  "miaVista": true,
+  "ancho": 0.5,
+  "estilo": "a",
+  "romanosEncima": [],
+  "info": {
+   "arranqueMs": 396,
+   "triangulos": 169974,
+   "llamadas": 36,
+   "texturas": 31,
+   "geometrias": 55,
+   "msPorCuadro": 33.7,
+   "cuadros": 37,
+   "dpr": 2,
+   "ancho": 0.5,
+   "estilo": "a"
+  }
+ },
+ "hoja": {
+  "sel": "roma",
+  "hoja": true,
+  "texto": "✕\nMÉGARAMÉGARA\n\nMadre de colonias y viajes por mar.\n\n🧱 Sin muralla · Defensa 0💰 ★★★⚔ Fuerza 64Bien: 🧂 Sal\nHoplitas 20\nPeltastas 30\nEntrar en Mégara"
+ },
+ "marchas": [
+  "⚔De poniente · 800",
+  "⚔300 · hacia poniente"
+ ],
+ "hojaMarchas": "MARCHAS\n1 MARCHA EN CURSO\nDe Mégara a Syracusae · llega en 1 estación\nIr a mi general",
+ "entrar": "city",
+ "volver": {
+  "grecia": true,
+  "rotulos": [
+   "Mégaratu polis"
+  ],
+  "mia": "Mégaratu polis",
+  "miaVista": true,
+  "ancho": 0.42,
+  "estilo": "a",
+  "romanosEncima": [],
+  "info": {
+   "arranqueMs": 396,
+   "triangulos": 162676,
+   "llamadas": 36,
+   "texturas": 36,
+   "geometrias": 62,
+   "msPorCuadro": 21.6,
+   "cuadros": 103,
+   "dpr": 1.5,
+   "ancho": 0.42,
+   "estilo": "a"
+  }
+ },
+ "lejos-h": {
+  "grecia": true,
+  "rotulos": [
+   "Atenas",
+   "Corinto",
+   "Tebas",
+   "Mégaratu polis",
+   "Golfo de Corinto",
+   "Élide",
+   "Acaya",
+   "Egina",
+   "Andros",
+   "Citerón"
+  ],
+  "mia": "Mégaratu polis",
+  "miaVista": true,
+  "ancho": 18,
+  "estilo": "a",
+  "romanosEncima": [],
+  "info": {
+   "arranqueMs": 393,
+   "triangulos": 142817,
+   "llamadas": 73,
+   "texturas": 23,
+   "geometrias": 38,
+   "msPorCuadro": 108.5,
+   "cuadros": 6,
+   "dpr": 2,
+   "ancho": 18,
+   "estilo": "a"
+  }
+ },
+ "comarca-h": {
+  "grecia": true,
+  "rotulos": [
+   "Atenas",
+   "Mégaratu polis",
+   "Canteras de Mégara",
+   "Megáride",
+   "Salamina",
+   "El Pireo",
+   "Istmo"
+  ],
+  "mia": "Mégaratu polis",
+  "miaVista": true,
+  "ancho": 3.2,
+  "estilo": "a",
+  "romanosEncima": [],
+  "info": {
+   "arranqueMs": 393,
+   "triangulos": 152292,
+   "llamadas": 61,
+   "texturas": 34,
+   "geometrias": 53,
+   "msPorCuadro": 45.7,
+   "cuadros": 21,
+   "dpr": 2,
+   "ancho": 3.2,
+   "estilo": "a"
+  }
+ },
+ "polis-h": {
+  "grecia": true,
+  "rotulos": [
+   "Mégaratu polis"
+  ],
+  "mia": "Mégaratu polis",
+  "miaVista": true,
+  "ancho": 0.5,
+  "estilo": "a",
+  "romanosEncima": [],
+  "info": {
+   "arranqueMs": 393,
+   "triangulos": 143779,
+   "llamadas": 36,
+   "texturas": 34,
+   "geometrias": 59,
+   "msPorCuadro": 31.8,
+   "cuadros": 35,
+   "dpr": 2,
+   "ancho": 0.5,
+   "estilo": "a"
+  }
+ },
+ "roma-v": {
+  "grecia": false,
+  "polis": null,
+  "etiquetas": [
+   "Roma🦅 170",
+   "⚔Volsinii130",
+   "Capua60",
+   "⚔Mediolanum300",
+   "⚔Panormus821",
+   "⚔Lilybaeum1200",
+   "⚔Perusia120",
+   "⚔Clusium110",
+   "⚔Rusellae80",
+   "⚔Neapolis140",
+   "Cosa273 a.C.",
+   "Ariminum268 a.C."
+  ],
+  "dist": 46
+ },
+ "roma-h": {
+  "grecia": false,
+  "polis": null,
+  "etiquetas": [
+   "Roma🦅 170",
+   "⚔Volsinii130",
+   "Capua60",
+   "⚔Tarentum296",
+   "⚔Mediolanum300",
+   "⚔Messana150",
+   "⚔Agrigentum210",
+   "⚔Panormus821",
+   "⚔Lilybaeum1200",
+   "⚔Carales590",
+   "⚔Perusia120",
+   "⚔Clusium110"
+  ],
+  "dist": 46
+ },
+ "errores": [],
+ "fallos": []
+}

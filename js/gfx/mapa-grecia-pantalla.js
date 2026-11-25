@@ -41,6 +41,13 @@ const CSS = `
 .mgp-carga{position:absolute;inset:0;display:grid;place-items:center;background:#1c1610;color:#f1e3c0;font-size:15px;z-index:5}
 @media (orientation:landscape){.mgp-ficha{left:auto;width:330px}.mgp-leyenda{right:auto;max-width:320px}.mgp-titulo b{display:inline;margin-right:8px}}
 .mgp-pantalla{position:fixed;inset:0;z-index:9000;background:#1c1610}
+.mgp-partida .mgp-titulo,.mgp-partida .mgp-zoom{display:none}
+.mgp-partida .mgp-arriba{top:var(--mgp-arriba,56px);left:auto;justify-content:flex-end}
+.mgp-partida .mgp-leyenda{top:calc(var(--mgp-arriba,56px) + 52px)}
+.mgp-partida .mgp-abajo{bottom:var(--mgp-abajo,140px);left:var(--mgp-izq,8px)}
+.mgp-partida .mgp-ficha{bottom:calc(var(--mgp-abajo,140px) + 54px);left:var(--mgp-izq,8px)}
+.mgp-partida .mgp-leyenda{left:var(--mgp-izq,8px)}
+@media (orientation:landscape){.mgp-partida .mgp-ficha{left:auto}}
 `;
 const NOMBRE = { a: 'Relieve natural', b: 'Carta antigua' };
 
@@ -49,7 +56,7 @@ export async function montarMapaGrecia(caja, opts) {
   if (!document.getElementById('mgp-css')) { const s = document.createElement('style'); s.id = 'mgp-css'; s.textContent = CSS; document.head.appendChild(s); }
   let estilo = opts.estilo; if (!estilo) { try { estilo = localStorage.getItem('aqvila-mapa-estilo'); } catch (e) {} } if (estilo !== 'b') estilo = 'a';
   const rec = (k, o, lujo) => '<span class="rec' + (lujo ? ' lujo' : '') + '"><i style="--c:' + o.color + '">' + ICONOS[k] + '</i>' + o.n + '</span>';
-  const raiz = document.createElement('div'); raiz.className = 'mgp'; caja.appendChild(raiz);
+  const raiz = document.createElement('div'); raiz.className = 'mgp' + (opts.enPartida ? ' mgp-partida' : ''); caja.appendChild(raiz);   // AM4: dentro de la partida, sin título ni zoom propios (los pone el juego)
   raiz.innerHTML = '<div class="mgp-mapa"></div>' +
     '<div class="mgp-arriba">' + (opts.onVolver ? '<button data-a="volver">Volver</button>' : '') + '<div class="mgp-titulo"><b>Grecia</b><span data-r="lema"></span></div><button data-a="estilo" aria-label="Cambiar el estilo del mapa"></button></div>' +
     '<div class="mgp-leyenda" hidden><span class="f">' + Object.keys(BASICOS).map(k => rec(k, BASICOS[k])).join('') + '<span class="rec lujo"><i style="--c:#cfd6dd">' + ICONOS.plata + '</i>Lujo (solo en esa polis)</span></span></div>' +
@@ -60,9 +67,10 @@ export async function montarMapaGrecia(caja, opts) {
   const $ = s => raiz.querySelector(s), hoja = $('.mgp-ficha'), regla = $('.mgp-regla'), bEst = $('[data-a="estilo"]'), lema = $('[data-r="lema"]');
   let kmPrev = 0, estVisto = '', huecos = null;
   /* sitio que ocupan los botones: los rótulos del mapa no se meten debajo */
-  const mideHuecos = () => { const r0 = raiz.getBoundingClientRect(); huecos = [...raiz.querySelectorAll('.mgp-zoom, .mgp-arriba > *, .mgp-fila, .mgp-regla, .mgp-leyenda:not([hidden])')].map(e => { const r = e.getBoundingClientRect(); return [r.left - r0.left - 4, r.top - r0.top - 4, r.right - r0.left + 4, r.bottom - r0.top + 4]; }).filter(r => r[2] > r[0] + 8); return huecos; };
+  const mideHuecos = () => { const r0 = raiz.getBoundingClientRect(); huecos = [...raiz.querySelectorAll('.mgp-zoom, .mgp-arriba > *, .mgp-fila, .mgp-regla, .mgp-leyenda:not([hidden])')].map(e => { const r = e.getBoundingClientRect(); return [r.left - r0.left - 4, r.top - r0.top - 4, r.right - r0.left + 4, r.bottom - r0.top + 4]; }).filter(r => r[2] > r[0] + 8); if (opts.huecosExtra) huecos.push(...opts.huecosExtra(r0)); return huecos; };
   new ResizeObserver(() => { huecos = null; }).observe(raiz);
-  let mapa; try { mapa = new MapaGrecia($('.mgp-mapa'), Object.assign({}, opts, { estilo, huecos: () => huecos || mideHuecos(), onPolis: p => ficha(p), onToque: () => ficha(null), onCambio: m => {
+  let mapa; try { mapa = new MapaGrecia($('.mgp-mapa'), Object.assign({}, opts, { estilo, huecos: () => huecos || mideHuecos(), onPolis: p => { if (!(opts.alTocarPolis && opts.alTocarPolis(p))) ficha(p); }, onToque: () => { ficha(null); if (opts.alToque) opts.alToque(); }, onCambio: m => {
+    if (opts.alCuadro) opts.alCuadro(m);   // AM4: la partida pinta encima sus marchas y su selección
     if (m.est !== estVisto) pintaEstilo(); const km100 = m.kmPor100px(); if (Math.abs(km100 - kmPrev) / km100 < 0.02) return; kmPrev = km100;
     const pasos = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]; let k = pasos[0]; for (const q of pasos) if (q <= km100 * 0.9) k = q;
     regla.firstChild.textContent = k < 1 ? (k * 1000) + ' m' : k + ' km'; regla.lastChild.style.width = Math.round(k / km100 * 100) + 'px';
@@ -89,7 +97,7 @@ export async function montarMapaGrecia(caja, opts) {
     else if (a === 'volver' && opts.onVolver) opts.onVolver(); });
   try { await mapa.iniciar(); } catch (e) { try { mapa.destruir(); } catch (x) {} raiz.remove(); throw e; }
   pintaEstilo(); $('.mgp-carga').hidden = true;
-  return { mapa, raiz, ficha, cerrar() { mapa.destruir(); raiz.remove(); } };
+  return { mapa, raiz, ficha, rehacerHuecos() { huecos = null; }, cerrar() { mapa.destruir(); raiz.remove(); } };
 }
 
 /* a pantalla completa, por encima del juego, con «Volver» */
