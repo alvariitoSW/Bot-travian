@@ -178,7 +178,9 @@ async function navegador() {
       const cap = await foto('escaramuzas-testudo');
       if (m.h < 44 || m.d > 390 || !/Testudo a pie/.test(m.t) || !/\/gobierno\/maquetas\/a-pie\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
       await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
-      const titulo = await page.title(); await espera(1500);
+      const titulo = await page.title();
+      /* J20a: «Salir» se engancha al terminar de cargar la escena (gobierno/maquetas/bloque/escena.js pone __bloque.listo); se espera a eso, no a un plazo fijo */
+      await page.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 120000 }).catch(() => { }); await espera(1500);
       await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
       const ok = /Testudo a pie/.test(titulo);
@@ -203,7 +205,8 @@ async function navegador() {
       const elegido = rivales.find(r => /rival=caballeria$/.test(r.url)) || rivales[0], antes = errores.length;
       await page.locator('#hoja a.esc-rv-b[href$="' + elegido.url.split('/').pop() + '"]').click();
       await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
-      const titulo = await page.title(), ruta = page.url(); await espera(4000);
+      const titulo = await page.title(), ruta = page.url();
+      await page.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 120000 }).catch(() => { }); await espera(4000);   // J20a: igual que en el testudo
       const capE = await foto('falange-escena'), fallosE = errores.slice(antes);
       await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
