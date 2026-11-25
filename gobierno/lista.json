@@ -465,7 +465,12 @@
       },
       {
         "tareas": [
-          "SUP1"
+          "SUP1",
+          "SUP2",
+          "SUP3",
+          "SUP4",
+          "SUP5a",
+          "SUP5b"
         ],
         "nota": "Modo supervivencia: carril aparte (usuario 25/11), mesa de diseño en marcha."
       },

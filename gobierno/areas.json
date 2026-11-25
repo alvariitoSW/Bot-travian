@@ -609,6 +609,30 @@
           "gobierno/fichas.mjs"
         ]
       }
+    },
+    "supervivencia": {
+      "nombre": "Modo supervivencia (carril SUP, aparte de las metas; usuario 25/11): vivac, oficial y sus 12, campamento y oleadas",
+      "en_vigor": true,
+      "propios": [
+        "js/superv*.js",
+        "js/gfx/superv-*.js",
+        "css/superv*.css",
+        "test/superv*.mjs",
+        "gobierno/maquetas/supervivencia/",
+        "gobierno/captura-superv*.mjs",
+        "assets/superv*/"
+      ],
+      "taller": [],
+      "juez": {
+        "logica": [],
+        "navegador": [],
+        "si_toca_arte": [
+          "gobierno/arte.mjs"
+        ],
+        "al_subir": []
+      },
+      "guia": "gobierno/estudios/SUP1-diseno.md",
+      "objetivo": "SUP1-diseno.md: ficha de objetivo y aspecto ≥ 8,5; SUP2 pone su juez de lógica y de navegador."
     }
   }
 }
