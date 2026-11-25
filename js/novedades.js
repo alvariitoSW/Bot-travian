@@ -64,8 +64,8 @@
       'La ciudad se ve desde arriba, como un plano.',
       'Botones de Construir, Ministros y plan del Senado.'] }
   ];
-  /* AVANCE: lo escribe gobierno/avance.mjs desde gobierno/lista.json; no tocar a mano */
-  const AVANCE = {"hecho":69,"total":18,"hechas":8,"medias":9,"faltan":1,"pendientes":[{"t":"Camino del comercio","e":"a medias"},{"t":"Camino de la política: Príncipe del Senado","e":"a medias"},{"t":"Camino de las armas","e":"a medias"},{"t":"Una sola batalla, con un solo aspecto","e":"a medias"},{"t":"El testudo a pie, dentro del juego","e":"a medias"},{"t":"Escaramuzas: batallas sueltas desde el menú","e":"a medias"},{"t":"Fluido y sin conexión en tu móvil, y publicada","e":"por hacer"},{"t":"Formaciones en Escaramuzas","e":"a medias"},{"t":"Menús reordenados y con un solo aspecto antiguo","e":"a medias"},{"t":"Soldados nuevos, con licencia clara","e":"a medias"}]};
+  /* AVANCE: lo escribe gobierno/avance.mjs desde gobierno/lista.json y el tablero; no tocar a mano */
+  const AVANCE = {"hecho":75,"total":18,"hechas":9,"medias":9,"faltan":0,"pendientes":[{"t":"Camino del comercio","e":"a medias"},{"t":"Camino de la política: Príncipe del Senado","e":"a medias"},{"t":"Camino de las armas","e":"a medias"},{"t":"Una sola batalla, con un solo aspecto","e":"a medias"},{"t":"El testudo a pie, dentro del juego","e":"a medias"},{"t":"Escaramuzas: batallas sueltas desde el menú","e":"a medias"},{"t":"Fluido y sin conexión en tu móvil, y publicada","e":"a medias"},{"t":"Formaciones en Escaramuzas","e":"a medias"},{"t":"Menús reordenados y con un solo aspecto antiguo","e":"a medias"}]};
   /* FIN AVANCE */
   NOVEDADES.avance = AVANCE;
   root.NOVEDADES = NOVEDADES;
