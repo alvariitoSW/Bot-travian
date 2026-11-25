@@ -65,9 +65,9 @@
   "fecha": "2026-11-25T14:24:03.968Z"
  },
  "investigador": {
-  "huella": "8e6e13f62fdacca4",
+  "huella": "e2bb8a88ed4bc4d3",
   "ok": true,
-  "fecha": "2026-11-25T13:22:28.351Z"
+  "fecha": "2026-11-25T14:42:13.094Z"
  },
  "diplomacia": {
   "huella": "0b43bfeb3423d06b",
@@ -80,9 +80,9 @@
   "fecha": "2026-11-25T14:23:28.812Z"
  },
  "ajustes": {
-  "huella": "6194ccf0be171ba5",
+  "huella": "03f0d750a67209e5",
   "ok": true,
-  "fecha": "2026-11-25T13:37:42.970Z"
+  "fecha": "2026-11-25T14:57:40.421Z"
  },
  "guerra-jugada": {
   "huella": "c633dc2346664ad0",
@@ -255,9 +255,9 @@
   "fecha": "2026-11-25T04:45:55.093Z"
  },
  "sim-liga": {
-  "huella": "bb65155e411e81e2",
+  "huella": "4339e627ba9737c3",
   "ok": true,
-  "fecha": "2026-11-25T13:20:02.597Z"
+  "fecha": "2026-11-25T14:39:50.092Z"
  },
  "area:test/mapa.test.mjs": {
   "huella": "e610f4a957ab2b1d",
