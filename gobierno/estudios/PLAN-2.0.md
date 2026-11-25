@@ -79,6 +79,10 @@ obra aparecen en el solar andamios, obreros y material; durante la estación se 
 estación, hecha (si dura 2, a medias en la primera). Tropas: reclutas entrenando en el patio del cuartel; al pasar
 estación forman y quedan listas.
 
+Precisión (25/11, literal): «Y lo d las vistas tendría 2, la de desde arriba, la de poder moverte por la ciudad que ya
+hay». → Vista 1 «Desde arriba» (construir); vista 2 la ciudad 3D de hoy por la que te mueves (la que hoy abre «De
+cerca»). Se quitan «Ciudad entera», «Calle» y «Tropas».
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
