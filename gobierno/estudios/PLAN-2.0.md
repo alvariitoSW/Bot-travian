@@ -289,6 +289,28 @@ Aplicado:
 - **Épocas**: se definen más adelante (objetivos de cada época por fijar).
 - **Descarga**: sin tope fijo; se puede pasar de 80 MB; se mide.
 
+### M3 · Ejército y comercio: decisiones (25/11)
+- Soldados: **«De tus clases (Recomendado)»**: el hoplita es un ciudadano que se paga su panoplia; los pobres, ligeros;
+  mercenarios pagados; llamar a muchos baja el trabajo; en Esparta los espartiatas solo hacen la guerra y los ilotas trabajan.
+- Comercio: **«Rutas y colonias (Recomendado)»**: rutas con polis vecinas y colonias por el mar (Sicilia, sur de Italia,
+  mar Negro), que dan recursos y lujo.
+- Moneda: **«Llega con un saber (Recomendado)»**: trueque al principio; la dracma es un saber hacia el 600 a.C.
+
+### Estándar de M3 (borrador, 25/11)
+| Qué se mide | Quién lo mide | Aprueba si… |
+|---|---|---|
+| Soldados de tus clases | Bot de reglas | Cada tropa sale de una clase o es mercenaria; llamar a la mitad de los ciudadanos baja la producción de forma visible; Esparta funciona con ilotas |
+| Tropas desde edificios | Bot de reglas y juez de pantalla | Cada tropa pide su edificio; se ve entrenar (M1) |
+| Mejoras y tropas nuevas | Bot de reglas | Cada saber militar mejora algo medible o desbloquea una tropa más fuerte |
+| Mantener el ejército | Liga de bots | Un ejército grande cuesta: sin comida o paga hay deserciones; el bot que sobre-recluta pierde |
+| Rutas | Bot de reglas | Rutas con polis vecinas; cada una renta según lo que lleva; se cortan en guerra |
+| Colonias | Liga de bots | Fundas una colonia en ≤ 30 años jugando normal; da recurso o lujo que tu polis no tiene |
+| Trueque y moneda | Bot de reglas | Antes de la dracma solo trueque; con el saber, la moneda sube el comercio de forma medible |
+| Se entiende | Juez de pantalla | Reclutar, ruta y colonia en ≤ 3 toques cada una |
+| Aspecto | Juez de aspecto con ficha de objetivo | Nota ≥ 8,5 (barcos, colonias en el mapa, cuartel con reclutas) |
+| Te gusta | El usuario | Su «Bien» |
+
+
 ## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
 Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
 ayudar fable a hacerlo». Modelo: Opus en todo (regla del 23/11), salvo lo que el usuario decida para el mapa vivo.
