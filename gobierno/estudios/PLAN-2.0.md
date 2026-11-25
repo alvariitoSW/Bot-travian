@@ -359,6 +359,16 @@ Aplicado:
 | Te gusta | El usuario | Su «Bien» |
 
 
+### Plan entero: «Todavía no» (25/11). Antes, la batalla (literal)
+«La batalla la quiero definir mucho mejor, primero se todo hablar sobre el diseño de batallas, la unificación del motor
+de guerra el departamento de animación, gráficos, jugabilidad, arte etc». → Debate de batallas abierto (ver §3b).
+Estado medido hoy: dos alturas con motores distintos. General: `js/simulador.js` (manípulos como rectángulos; mando en
+vivo `ui-mando.js`, batalla rápida, tácticas, maniobra; lo usan campaña y Escaramuzas). A pie: `bloque.js` +
+`bloque-ia.js` (motor único FU), `falange.js`, `combate.js` (hombre a hombre, escudo y arma), `fisica-batalla.js`,
+`tiro.js`, `mando-varios.js` (Ásculo). Queda `battle.js` viejo (carácter del rival y planes). Departamentos de hoy:
+Batallas (mando, campo, pantallas), Combate (motor de lucha, física, soldados y movimientos), Arte, Sonido. No hay
+departamento de animación, de gráficos ni de jugabilidad.
+
 ## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
 Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
 ayudar fable a hacerlo». Modelo: Opus en todo (regla del 23/11), salvo lo que el usuario decida para el mapa vivo.
