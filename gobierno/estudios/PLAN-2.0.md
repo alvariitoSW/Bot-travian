@@ -237,8 +237,37 @@ Cada meta lleva su **estándar** (qué se mide, quién lo mide, valor para aprob
 **Cambia una regla de CLAUDE.md** (época 280–146 a.C.): la Partida nueva va del 800 a.C. en adelante; el vigía la
 cambia al aprobarse el plan. Historia: fichas nuevas de la Grecia arcaica con fuente y dictamen.
 
-## 4. Orden
-(en debate)
+## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
+Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
+ayudar fable a hacerlo». Modelo: Opus en todo (regla del 23/11), salvo lo que el usuario decida para el mapa vivo.
+M = millones de tokens (`gasto.mjs`). «Esperable» = declarado × 1,5–2 (medido en la 1.0: ×1,51 de media, hasta ×2,7).
+
+| Tanda | ID | Qué verás | Área | Tamaño · agentes | M decl. (esperable) |
+|---|---|---|---|---|---|
+| 1 Jueces | J20a | Subidas en ≤15 min | Gobierno | Medio · constructor + revisor | 1,5 (2–3) |
+| 1 Jueces | J20b | Cifras de la liga de bots en el cuadro, desde partidas avanzadas | Gobierno | Grande · constructor + revisor | 2,0 (3–4) |
+| 2 Tiempo | ES20 | Solo estaciones: cobras al empezar, hoja de estación, «Pasar estación» | Cerebro (comunes) | Grande · constructor + revisor + verificador | 2,0 (3–5) |
+| 3 Partida | PN1 | Menú: Continuar · Partida nueva · Escaramuzas · Opciones; campaña «en pausa» | Músculo | Medio · constructor | 0,8 (1–1,5) |
+| 3 Partida | PN2 | 8 polis con su cultura (rasgo, edificio o tropa reciclada) y ficha | Cerebro + Historia | Medio · constructor + revisor | 1,5 (2–3) |
+| 3 Partida | PN3 | Comarca aleatoria y arranque con ágora, 5–8 casas y 100–200 personas | Cerebro + Arte | Grande · constructor + revisor + verificador | 2,5 (4–5) |
+| 4 Ciudad | VI1 | Dos vistas: «Desde arriba» y la ciudad por la que te mueves | Cerebro | Pequeño · director | 0,6 (1) |
+| 4 Ciudad | VI2 | Andamios y obreros en las obras; reclutas entrenando | Cerebro + Arte | Medio · constructor + verificador | 1,5 (2–3) |
+| 5 Mapa | AM0 | Departamento de Arte de Mapas montado (guía, archivos, juez) | Gobierno | Pequeño · director | 0,4 (0,5) |
+| 5 Mapa | AM1 | Diseño y maqueta del mapa vivo, con capturas, para que el usuario elija | Arte de Mapas | Medio · diseñador | 1,0 (1,5–2) |
+| 5 Mapa | AM2 | Mapa vivo construido (relieve, agua, ciudades vivas, Grecia con sus polis) | Arte de Mapas | Grande · constructor + verificador | 2,5 (4–5) |
+| 5 Mapa | AM3 | Recursos por zonas; lujo solo en algunas ciudades; por comercio o conquista | Cerebro + Arte de Mapas | Medio · constructor + revisor | 1,5 (2–3) |
+| 6 Críticas | CR20 | Lo que critique de la v171, arreglado | Según la crítica | Según la crítica | (por fijar) |
+| Subidas | SB20–SB24 | Cada tanda en su móvil, con jueces rápidos | Gobierno | Pequeño · director | 5 × 0,4 |
+
+**Total M1**: ≈ 20 M declarados; esperable 30–40 M. Sin las críticas.
+
+**Carriles a la vez** (nunca dos en los mismos archivos): (a) Gobierno: J20a → J20b → subidas; (b) Cerebro, dueño de
+los comunes: ES20 → PN2 → PN3 → VI1 → VI2 → AM3; (c) Músculo: PN1 (pase a los comunes); (d) Arte de Mapas: AM0 → AM1 →
+AM2, desde el primer día (archivos propios del mapa). Puntos de espera: PN3 necesita ES20; AM3 necesita AM2 y PN2; las
+partidas avanzadas griegas de la liga llegan con PN3.
+
+**Riesgos**: ES20 cambia la economía entera y el guardado (re-equilibrar con la liga); los comunes (`game.js`, `data.js`,
+`ui.js`) son el cuello de botella; la comarca aleatoria es técnica nueva; el mapa vivo pesa en la descarga (tope ~80 MB).
 
 ## 5. Lo que queda fuera de la 2.0
 Propuesto (versión 2), en debate: mejoras de la campaña Roma contra Cartago (en pausa); Roma, Cartago y otras
