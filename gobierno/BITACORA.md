@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 (chat de EB1): «1. ¿Qué plan seguimos? (A) Plan A, tres pasos (recomendado) · (B) Plan B, cinco tandas · (C) Plan C, Ásculo de muestra y copiar» → «1A». Y, con captura: «Aquí se ve con el atraviesan las picas que no se cuántas veces habré repetido que no quiero que pase eso....» (F0, en BT1). BT1 abierta. Pendiente en EB1: «¿Paramos todo lo nuevo de batallas hasta terminar el plan?».
 - 25/11 ~17:05 (vigía 4): subida de la tanda de M1 «Pues lo recomendado entonces» (A): se sube a main cuando cierre PN3, todo junto (menú, estaciones, 8 polis, comarca y arranque en el 800 a.C., mapa vivo).
 - 25/11 ~16:45 (vigía 4): «1A 2 a»: (1) se aplica el cuadro nuevo simplificado de CM6 (4 pestañas, un botón por acción); (2) las partidas de polis empiezan en el 800 a.C. (lo aplica PN3).
 - 25/11 (chat de SUP1, botones): tiempo «Tiempo seguido»; duración «3 años, ~1 h 45 (Recomendado)» (antes: «Esto habría UE evitar que los jueces jugases 3,h y tardaswn tanto en pasar las pruebas por qué las partidas son largas»); fecha «700–650 a.C. (Recomendado)»; lugar «Frontera Argos–Esparta»; pelea «Las dos a la vez (Recomendado)»; peso «Subir el tope a 60 MB (Recomendado)»; reparto SUP2–SUP5 «Sí, aprobado (Recomendado)». Área `supervivencia` dada de alta. Abrir SUP2: pendiente de cuándo (el usuario dijo: primero la jugabilidad de las batallas, EB1).

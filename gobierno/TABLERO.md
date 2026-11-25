@@ -674,3 +674,10 @@ Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cereb
   - ⬜ SUP4 **Trabajos y campamento en 5 etapas** (grande; 3 M, 5–6; necesita el tope de 60 MB).
   - ⬜ SUP5a **Reglas de las oleadas y bots** (medio; 1,5 M, 2–3; en paralelo desde SUP2).
   - ⬜ SUP5b **La pelea en vivo** (grande; 2,5 M, 4–5; espera al rediseño de la batalla).
+
+## Carril 2.0 · Batallas (plan A de EB1, aprobado por el usuario el 25/11: «1A»; `gobierno/estudios/EB1-estado-batallas.md`, rama `estado-batallas`)
+Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pruebas que miran lo que se ve → examen de jugabilidad por quien no construyó → nota del usuario ≥ 8,5. En espera: batalla rápida (R1), supervivencia (SUP2–SUP5), naval.
+  - 🔶 BT1 **Paso 1 · Lo común, una sola vez**: nada atraviesa nada (F0: las sarisas atraviesan a los compañeros), una sola barra de órdenes, etiquetas que no se pisan, un solo campo y una sola luz, testudo y manípulo a pie juntos en una prueba. Sesión `session_01QiKC37zgjc4vgjv1qazD4k`, rama `bt1-lo-comun`.
+  - ⬜ BT2 **Paso 2 · Las formaciones de cerca**: testudo como caparazón, falange con la sarisa del oficial y picas legibles, golpes con su movimiento (CB2b), vuelven vélites y triarios.
+  - ⬜ BT3 **Paso 3 · Una batalla entera**: batalla grande con soldados visibles, bloques prietos, aros, estandartes; Ásculo con la falange de «Falange a pie» y resultado a la campaña; un motor de golpes a pie (CB3) para todas.
+
