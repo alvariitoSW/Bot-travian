@@ -170,9 +170,9 @@
   "fecha": "2026-11-25T04:52:47.172Z"
  },
  "area:gobierno/juez-guerra.mjs": {
-  "huella": "6612415c65a6bce7",
+  "huella": "e999c71c2cda7ed4",
   "ok": true,
-  "fecha": "2026-11-25T05:50:41.161Z"
+  "fecha": "2026-11-25T23:27:10.107Z"
  },
  "area:test/fu3-falange.test.mjs": {
   "huella": "9c7300a45024e81a",
@@ -300,14 +300,14 @@
   "fecha": "2026-11-25T21:40:07.391Z"
  },
  "area:gobierno/juez-aspecto.mjs animacion": {
-  "huella": "09e8cdddbdc5e1b6",
+  "huella": "e999c71c2cda7ed4",
   "ok": true,
-  "fecha": "2026-11-25T22:34:50.858Z"
+  "fecha": "2026-11-25T23:27:10.468Z"
  },
  "area:gobierno/juez-aspecto.mjs graficos": {
-  "huella": "09e8cdddbdc5e1b6",
+  "huella": "e999c71c2cda7ed4",
   "ok": true,
-  "fecha": "2026-11-25T22:40:45.823Z"
+  "fecha": "2026-11-25T23:27:10.642Z"
  },
  "area:test/ciudad.test.mjs": {
   "huella": "5cbf5350981f6a49",
