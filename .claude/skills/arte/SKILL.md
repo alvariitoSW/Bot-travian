@@ -1,6 +1,6 @@
 ---
 name: arte
-description: Ministerio de Arte de AQVILA. Dueño de `tools/`, de las licencias y del presupuesto de peso y triángulos. Úsala en cualquier tarea que añada, convierta o cambie modelos, texturas, animaciones o iconos (carril E y afines). El sonido y la música son del Director de Sonido (skill `sonido`).
+description: Ministerio de Arte de AQVILA. Dueño de `tools/`, de las licencias y del presupuesto de peso y triángulos, y del Arte de soldados (modelos, telas, escudos, estandartes y pueblos de la batalla; uno de los seis departamentos de batalla). Úsala en cualquier tarea que añada, convierta o cambie modelos, texturas, animaciones o iconos (carril E y afines). El sonido y la música son del Director de Sonido (skill `sonido`).
 ---
 
 # Arte
@@ -13,11 +13,25 @@ description: Ministerio de Arte de AQVILA. Dueño de `tools/`, de las licencias 
 
 ## Taller común (ministerios por área, 23/11; `gobierno/MINISTERIOS.md`)
 - El taller guarda las reglas, las licencias, el presupuesto y las herramientas de **todo** el arte.
-- Cada área lleva el arte de lo suyo: **Batallas**, soldados y tropas (`assets/soldados/`, `units/`, `tools/blender/`); **Arte de Mapas** (skill `arte-mapas`, 25/11), el mapa de campaña (`assets/mapa/`, `assets/mapa-*/`, `tools/mapa-*`); el taller, **edificios y menús** (`assets/static/`, `fuentes/`, el resto de `tools/`).
+- Cada área lleva el arte de lo suyo: **Arte de Mapas** (skill `arte-mapas`, 25/11), el mapa de campaña (`assets/mapa/`, `assets/mapa-*/`, `tools/mapa-*`); el taller, **edificios y menús** (`assets/static/`, `fuentes/`, el resto de `tools/`).
 - **Sonido y música**: Taller de Sonido (skill `sonido`, 23/11): `assets/sonido/`, `assets/musica/`, `tools/sonido*`. Usa estas mismas reglas de licencia.
 - Una sesión del taller trabaja por encargo de un área (un pase) y cierra con `node gobierno/juez-area.mjs arte`
   y las capturas de la pieza junto a un soldado. Dueño de cada archivo: `node gobierno/juez-area.mjs --dueno <ruta>`.
 - Blender sin pantalla, Quaternius y MakeHuman: entorno «AQVILA Batallas taller» (`gobierno/entornos/batallas-taller.md`); sirve también al taller común.
+
+## Arte de soldados (uno de los seis departamentos de batalla, usuario 25/11; DB0)
+Dueño de **modelos, telas, escudos, estandartes y pueblos** de la batalla: cómo es cada soldado, jinete, elefante y
+barco, no cómo se mueve. Vino de Combate (que lo tuvo desde el 24/11). Ficha: `gobierno/areas.json` → `arte`.
+- **Suyos**: `assets/soldados/`, `assets/units/`, `tools/blender/` (salvo los guiones de movimiento: `pilum_tiro.py`,
+  `pilum_throw.glb`, `importa_ual.py`, `pil3_lanzar2_meshy.py` y `anim*`, de Animación), `tools/glb_a_static.mjs`,
+  `tools/build_units.mjs`, `tools/resolve_units.py`, las maquetas `gobierno/maquetas/soldado-*/` (salvo `soldado-pil3/` y
+  `soldado-rome2/construir/{anim,poses,probar_anim}.py`, de Animación) y el entorno «AQVILA Batallas taller»
+  (`gobierno/entornos/batallas-taller.*`).
+- **No es suyo**: cómo se mueven (Animación, skill `ministerio-animacion`: `js/gfx/soldado.js`, `units.js`, `models.js`),
+  cómo se ve la escena alrededor y el dibujo del estandarte en el campo (Gráficos, `ministerio-graficos`:
+  `js/gfx/estandartes.js`; tú das el diseño del paño y el emblema por pase), y el motor (Motor de guerra).
+- **Juez**: `node gobierno/juez-area.mjs arte` (`arte.mjs`, `fichas.mjs`): licencia limpia, peso medido, variedad (PLAN-2.0).
+  Cada pieza nueva se enseña junto a un soldado de hoy, a 390 px, y pasa el examen de otra sesión antes de enseñarla al usuario.
 
 ## Reglas
 1. **Licencia antes que píxeles.** Solo entra arte con licencia libre comprobada en su fuente. Hoy todo es de 0 A.D. (Wildfire Games, CC BY-SA 3.0). Otra fuente: decide el usuario. **Decidido el 16/11/2026**: se admite arte externo solo si una tarea lo pide, de Kenney y Quaternius (CC0, primero) y de OpenGameArt con licencia CC0, CC-BY, CC-BY-SA 3.0 u OGA-BY. Se descartan GPL, CC-BY-SA 4.0 y toda obra de licencia poco clara. Cada obra: ficha en `js/registro.js`, licencia y enlace de su página, y crédito. Textos de las licencias en `gobierno/repositorios.md`.

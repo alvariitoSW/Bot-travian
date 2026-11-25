@@ -474,9 +474,16 @@
           "AM1",
           "AM2",
           "AM3",
-          "CR20"
+          "CR20",
+          "DB0"
         ],
         "nota": "2.0 · M1 Empezar de cero (aprobada por el usuario el 25/11, en obra). Su lista propia llega con la 2.0."
+      },
+      {
+        "tareas": [
+          "SUP1"
+        ],
+        "nota": "Modo supervivencia: carril aparte (usuario 25/11), mesa de diseño en marcha."
       },
       {
         "tareas": [

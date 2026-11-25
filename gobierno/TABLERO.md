@@ -651,13 +651,18 @@ Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cereb
   - 🔶 J20a **Subidas en ≤15 min** (bots largos a la liga; sesión `session_01QiKC36FmnMDpekC2Gxmdv3`, rama `j20a-jueces-rapidos`).
   - ⬜ J20b **Liga de bots aparte** (desde partidas avanzadas, cifras al cuadro).
   - 🔶 ES20 **Solo estaciones por turnos** (cobro al empezar, hoja de estación, «Pasar estación»; sesión `session_01QiKC39GzHsFWu4YjWhKvHG`, rama `es20-estaciones`, de paso en comunes).
-  - 🔶 PN1 **Menú: Continuar · Partida nueva · Escaramuzas · Opciones** (campaña en pausa; sesión `session_01QiKC37abtmLWbLkiPoAure`, rama `pn1-menu`).
+  - ✅ PN1 **Menú: Continuar · Partida nueva · Escaramuzas · Opciones** — hecha el 25/11 (`b733466` + arreglo `ed5ab0b6`, unidas; juez Músculo APTO; 1,41 M; ficha de objetivo de 12 puntos, nota 8,5): sin partida, «Empieza tu historia»; «Partida nueva» abre un aviso provisional de Grecia (PN2) y la campaña Roma–Cartago «En pausa». Pase aplicado a `jueces.mjs`.
   - ⬜ PN2 **Ocho polis con su cultura** (Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto, Calcis; cultura reciclada y ficha).
   - ⬜ PN3 **Comarca aleatoria y arranque** (ágora, 5–8 casas, 100–200 personas; tras ES20).
   - ⬜ VI1 **Dos vistas** («Desde arriba» y la ciudad 3D por la que te mueves).
   - ⬜ VI2 **Ver construir y entrenar** (andamios, obreros, reclutas).
   - ✅ AM0 **Montar el Departamento de Arte de Mapas** — hecha el 25/11 ~12:25 (`aa7e095a`, unida): skill `arte-mapas`, área `mapas` en `areas.json`, `gobierno/juez-mapas.mjs` (APTO 59 s); 0,6 M. Pases: `jueces.mjs --area mapas`; `avisos.test` de Músculo ya fallaba (lección de 87 caracteres).
-  - 🔶 AM1 **Diseño y maqueta del mapa vivo** con capturas para elegir (**Fable**; sesión `session_01QiKC38S7hF4pGtWPkmm7Bx`, rama `am1-mapa-maqueta`).
-  - ⬜ AM2 **Mapa vivo construido**: Grecia con sus polis (**Fable**).
+  - ✅ AM1 **Diseño y maqueta del mapa vivo** — hecha el 25/11 (`91af098`, unida; Fable, 1,25 M; mapas APTO, historia APTO CON NOTAS): tres maquetas (A relieve natural, B carta antigua, C tablero). **El usuario elige A y B** (sin la C).
+  - 🔶 AM2 **Mapa vivo construido**: Grecia con sus polis, estilos A y B elegibles, mapa grande con zoom de dos dedos «casi como Google Maps» (**Fable**; en obra desde el 25/11; sesión `session_01QiKC3ACuzujJ2ZEsE5aUwr`, rama `am2-mapa-vivo`).
   - ⬜ AM3 **Recursos por zonas y lujo en algunas ciudades** (por comercio o conquista; tras AM2 y PN2).
   - ⬜ CR20 **Críticas a la 1.0** cuando el usuario juegue la v171 (las recoge la sesión de debate).
+  - ✅ DB0 **Montar los seis departamentos de batalla** — hecha el 25/11 (unida `83a9d8f1`; 1,1 M): skills `ministerio-animacion` y `ministerio-graficos`; Batallas = «Jugabilidad y mando» (con examen de jugabilidad), Combate = «Motor de guerra», Arte con «Arte de soldados»; áreas `animacion` y `graficos` en `areas.json` (0 archivos con dos dueños); `gobierno/juez-aspecto.mjs` y fichas `gobierno/aspecto/` (NO APTO bajo 8,5). Notas de partida: Animación 5,0, Gráficos 4,5. Jueces de área APTO.
+
+## Carril SUP · Modo supervivencia (carril aparte, fuera de las 5 metas; usuario 25/11 «Carril aparte», «Sí, ya»; diseño en `diseno-supervivencia`, `SUP0-modo-supervivencia.md`)
+  - 🔶 SUP1 **Mesa de diseño** con Batallas, Combate, Músculo, Arte, Sonido e Historia: tiempo, oleadas y campamento (otro juego); primero «Mantener la posición» con guarnición de hoplitas; ficha de objetivo y aspecto ≥ 8,5; no fija motor de batalla nuevo (rediseño en debate). Sesión `session_01QiKC36Sf8RZgvbyrwhY4GL`, rama `sup1-diseno`. **Diseño hecho** (`51d5480`, `SUP1-diseno.md`, 7 capturas, 2,4 M); esperan 7 preguntas al usuario en su chat.
+  - ⬜ SUP2–SUP5: según el reparto que apruebe el usuario tras SUP1.

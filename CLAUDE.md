@@ -92,4 +92,8 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   (`ministerio-batallas`, `ministerio-combate`, `ministerio-cerebro`, `ministerio-musculo`, `arte-mapas`, `arte`, `sonido`), toca solo sus archivos (`gobierno/areas.json`),
   cierra con `node gobierno/juez-area.mjs <área>` y deja pases, ideas y preguntas en su parte. Tablero y bitácora: solo el
   vigía. Jueces completos: una vez, en la sesión de subida. Gasto: sin tope fijo para los ministerios, pero medido.
+- **Seis departamentos de batalla** (usuario, 25/11, «Sí, los seis»; `MINISTERIOS.md` §4d): Jugabilidad y mando (`ministerio-batallas`),
+  Motor de guerra (`ministerio-combate`), Animación (`ministerio-animacion`), Gráficos (`ministerio-graficos`), Arte de soldados (`arte`)
+  y Sonido (`sonido`). Animación y Gráficos: juez de aspecto (`gobierno/juez-aspecto.mjs`, nota ≥ 8,5 y ficha de objetivo). Nada de batalla
+  se enseña al usuario sin **examen de jugabilidad** de una sesión que no lo construyó.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.
