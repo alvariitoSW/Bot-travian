@@ -599,6 +599,7 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Bien especial de las polis**: hoy el bien especial de tu polis es su lujo (Atenas plata, etc.); Corinto, Tebas, Mileto y Calcis no tienen lujo y se quedan sin bien. (A) Darles uno a cada una, con su fuente histórica [recomendado]; (B) dejarlas sin bien. Por qué: que elegir cualquiera de las 8 tenga algo propio.
 
 
 ## Propuestas por aprobar
