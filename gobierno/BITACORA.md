@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~21:40 (vigía 4): «Si a todo lo recomendado»: (1) v176 copiada a main (`8db92c60`); (2) quiere no tener que aprobar cada copia a main cuando los jueces den APTO entero (la protección automática de la sesión sigue pidiendo su «sí» en cada copia; se le pregunta en una línea); (3) la partida de polis entra en la revisión completa (JG3); (4) cada polis con su bien especial (PN3d).
 - 25/11 ~19:15 (vigía 4): «Sí, a lo recomendado»: (1) copiar la v175 a main (hecho, `992b09cf`); (2) el mapa de la partida de polis abre más lejos para ver las 8 polis (PN3c); (3) el juego se publica solo desde la versión revisada (`main`): el usuario cambia en GitHub → Settings → Pages la rama de origen a `main`; desde entonces lo que llega al móvil es lo que sube el vigía tras los jueces.
 - 25/11 ~18:00 (vigía 4, probando la v174): «no veo el mapa nuevo que hemos creado, sigue apareciendo las ciudades de roma en el mapamundi te dije de dejar de momento solo victoria por conquista. Sigue habiendo en la ciudad 2 texturas diferentes para los aldeanos, los gigantes sin cara esos que hay que quitar ya y usar todas las de meshy. Y luego no hemos creado un departamento para que se encargase de crear mapas nuevos? Es exactamente el mismo que el de roma». → AM4 (MAPA de polis = mapa vivo) y PN3b ampliada (victoria por armas, aldeanos de Meshy).
 - 25/11 ~17:45 (vigía 4): «Si a las 2 recomendaciones»: (1) mar en las polis de costa (PN3b, ≈2 M); (2) subir ya con la comarca a 7,5 → subida a main `8529d919` (v174).
@@ -599,7 +600,6 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
-- **Bien especial de las polis**: hoy el bien especial de tu polis es su lujo (Atenas plata, etc.); Corinto, Tebas, Mileto y Calcis no tienen lujo y se quedan sin bien. (A) Darles uno a cada una, con su fuente histórica [recomendado]; (B) dejarlas sin bien. Por qué: que elegir cualquiera de las 8 tenga algo propio.
 
 
 ## Propuestas por aprobar
