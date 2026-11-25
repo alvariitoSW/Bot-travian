@@ -27,7 +27,7 @@ const FORMA = {
   argos: { nR: 7, acroD: 0.72, acroR: 0.17, acroAng: 3.5, alto: 3 },
   tebas: { nR: 7, muralla: true, est: 1.25, ang: 1.2, acroD: 0.3, acroR: 0.12, alto: 1 },
   megara: { nR: 5, est: 1.5, ang: 0.3, acroD: 0.5, acroR: 0.14, alto: 2 },
-  mileto: { reticula: 0.35, est: 1.7, ang: 1.57, acroD: 0.5, acroR: 0.14, alto: 1 },   // trazado en retícula (Hipodamo, tras 479 a.C.)
+  mileto: { reticula: 0.35, est: 1.7, ang: 1.57, acroD: 0.42, acroR: 0.2, acroAng: 0.5, alto: 1.2 },   // trazado en retícula (Hipodamo, tras 479 a.C.)
   calcis: { nR: 6, est: 1.6, ang: 1.4, acroD: 0.4, acroR: 0.12, alto: 1.5 }
 };
 function mancha(color, borde) { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 2, 32, 32, 31);
@@ -56,7 +56,7 @@ export function trazar(p, alt, casasMax, radio, semilla, F) {
   /* casas a los dos lados de cada calle, más apretadas cerca del ágora */
   const pon = (x, z, ang, tam) => { if (!seco(x, z)) return false; const dA = Math.hypot(x - agora.x, z - agora.z), dT = Math.hypot(x - acro.x, z - acro.z); if (dA < agora.r * 1.25 || dT < acro.r * 1.1) return false;
     const k = clave(x, z); if (ocup.has(k)) return false; for (const o of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = ocup.get(Math.round(x / celda + o[0]) + ',' + Math.round(z / celda + o[1])); if (q && Math.hypot(q[0] - x, q[1] - z) < celda * 0.92) return false; }
-    ocup.set(k, [x, z]); casas.push({ x, z, ang, w: tam * (0.85 + rnd() * 0.5), d: tam * (0.7 + rnd() * 0.3), h: tam * (0.42 + rnd() * 0.22), t: rnd(), u: rnd() }); return true; };
+    ocup.set(k, [x, z]); casas.push({ x, z, ang, w: tam * (0.85 + rnd() * 0.5), d: tam * (0.7 + rnd() * 0.3), h: tam * (0.55 + rnd() * 0.3), t: rnd(), u: rnd() }); return true; };
   const tam = 0.0036;
   const tope = Math.round(casasMax * 1.3), enCalle = Math.round(casasMax * 0.62);
   for (let vuelta = 0; vuelta < 2 && casas.length < enCalle; vuelta++) for (const c of calles) { const P = c.p; for (let i = 0; i < P.length - 1 && casas.length < enCalle; i++) { const a = P[i], b = P[i + 1], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), ux = dx / L, uz = dz / L, ang = Math.atan2(ux, uz);
@@ -172,12 +172,12 @@ function geoCasa() {
 
 /* peña de la acrópolis, de bulto: roca en escalones irregulares, clara arriba y parda abajo, con la cima llana para el templo */
 function geoPena(r, h, sem) {
-  const rnd = azar(sem * 31 + 5), seg = 16, an = [[1.3, 0, 0.5], [1.12, 0.38, 0.62], [0.9, 0.8, 0.8], [0.8, 1, 1]], P = [], pos = [], col = [], c0 = new THREE.Color('#857a62'), c1 = new THREE.Color('#ddd0b2'), cc = new THREE.Color();
-  an.forEach((A, i) => { for (let s = 0; s < seg; s++) { const a = s / seg * 6.283, q = i === 3 ? 0.95 + 0.1 * rnd() : 0.84 + 0.32 * rnd(); P.push([Math.cos(a) * r * A[0] * q, h * A[1] * (i === 1 || i === 2 ? 0.8 + 0.3 * rnd() : 1), Math.sin(a) * r * A[0] * q, A[2] * (0.88 + 0.24 * rnd())]); } });
-  P.push([0, h, 0, 1]); const tri = (a, b, c) => { for (const i of [a, b, c]) { const p = P[i]; pos.push(p[0], p[1], p[2]); cc.copy(c0).lerp(c1, p[3]); col.push(cc.r, cc.g, cc.b); } };
-  for (let i = 0; i < 3; i++) for (let s = 0; s < seg; s++) { const a = i * seg + s, b = i * seg + (s + 1) % seg, c = a + seg, d = b + seg; tri(a, c, b); tri(b, c, d); }
-  for (let s = 0; s < seg; s++) tri(3 * seg + s, 4 * seg, 3 * seg + (s + 1) % seg);
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals(); return g;
+  const rnd = azar(sem * 31 + 5), seg = 22, an = [[1.42, 0, 0.0], [1.2, 0.3, 0.35], [1.02, 0.66, 0.7], [0.88, 0.93, 0.95], [0.78, 1, 1]], pos = [], col = [], idx = [], c0 = new THREE.Color('#a8a070'), c1 = new THREE.Color('#e6d8b4'), cc = new THREE.Color(), lob = [rnd() * 6, rnd() * 6, rnd() * 6];
+  an.forEach((A, i) => { for (let s = 0; s < seg; s++) { const a = s / seg * 6.283, q = 1 + (0.1 * Math.sin(a * 2 + lob[0]) + 0.07 * Math.sin(a * 3 + lob[1]) + 0.05 * Math.sin(a * 5 + lob[2])) * (i === 4 ? 0.5 : 1) + (rnd() - 0.5) * 0.06; pos.push(Math.cos(a) * r * A[0] * q, h * A[1] * (i > 0 && i < 3 ? 0.9 + 0.2 * rnd() : 1), Math.sin(a) * r * A[0] * q); cc.copy(c0).lerp(c1, A[2] * (0.9 + 0.2 * rnd())); col.push(cc.r, cc.g, cc.b); } });
+  pos.push(0, h, 0); col.push(c1.r, c1.g, c1.b);
+  for (let i = 0; i < 4; i++) for (let s = 0; s < seg; s++) { const a = i * seg + s, b = i * seg + (s + 1) % seg, c = a + seg, d = b + seg; idx.push(a, c, b, b, c, d); }
+  for (let s = 0; s < seg; s++) idx.push(4 * seg + s, 5 * seg, 4 * seg + (s + 1) % seg);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
 }
 
 export class Vida {
@@ -217,7 +217,7 @@ export class Vida {
     const nc = p.pri === 1 ? 6 : 4; for (let i = 0; i < nc; i++) { const a = i / nc * Math.PI * 2 + rnd() * 0.5, r = 25 + (i % 3) * 8 + rnd() * 4; P.piezas.push({ k: ['grie_casa', 'grie_casa_b', 'grie_casa_c'][i % 3], x: Math.cos(a) * r, z: Math.sin(a) * r, r: -a + Math.PI / 2 + (rnd() - 0.5) * 0.6, e: 0.95 }); }
     for (let i = 0; i < 4; i++) { const a = rnd() * 6.28, r = 40 + rnd() * 8; P.piezas.push({ k: i % 2 ? 'olivo' : 'cipres', x: Math.cos(a) * r, z: Math.sin(a) * r, r: rnd() * 6, e: i % 2 ? 0.9 : 1.4 }); }
     /* de lejos (B): la ciudad dibujada a tinta */
-    const sello = new THREE.Sprite(new THREE.SpriteMaterial({ map: iconoCiudad(p), transparent: true, depthWrite: false })); sello.center.set(0.5, 0.42); sello.renderOrder = 5; sello.position.set(P.x, 0, P.z); this.g.add(sello); P.sello = sello;
+    const sello = new THREE.Sprite(new THREE.SpriteMaterial({ map: iconoCiudad(p), transparent: true, depthWrite: false, depthTest: false })); sello.center.set(0.5, 0.42); sello.renderOrder = 5; sello.position.set(P.x, 0, P.z); this.g.add(sello); P.sello = sello;
     /* de cerca: plano de calles tendido sobre el relieve y casas una a una (la polis y, si tiene, su puerto) */
     const R = 0.05 + p.casas / 300 * 0.032, F = FORMA[p.id] || {}, sem = POLIS.indexOf(p) * 97 + 11; P.R = R;
     if (F.aldeas) { P.barrios = []; for (let i = 0; i < F.aldeas; i++) { const a = 0.6 + i / (F.aldeas - 1) * 6.283, d = i ? R * 1.05 : 0; P.barrios.push(this._barrio({ x: P.x + Math.cos(a) * d, z: P.z + Math.sin(a) * d, color: p.color }, alt, Math.round(p.casas / F.aldeas), R * 0.4, sem + i * 13, i === 0, { nR: 5, acroD: 0.5, acroR: 0.2, alto: 1 })); } }
@@ -244,7 +244,7 @@ export class Vida {
       muros.setColorAt(i, col.set(MUROS[(h.t * 5) | 0])); tej.setColorAt(i, col.set(TEJ[(h.u * 6) | 0])); });
     for (const im of [muros, tej]) { im.frustumCulled = false; im.visible = false; this.g.add(im); } B.muros = muros; B.tejados = tej;
     if (conTemplo) { const g = new THREE.Group(), y = Math.max(0, alt(T.acro.x, T.acro.z)) * KY_CERCA; g.position.set(T.acro.x, y, T.acro.z);
-      const hr = 0.0034 * T.acro.alto, roca = new THREE.Mesh(geoPena(T.acro.r, hr, semilla), new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true })); roca.position.y = -hr * 0.04; g.add(roca);
+      const hr = 0.0034 * T.acro.alto, roca = new THREE.Mesh(geoPena(T.acro.r, hr, semilla), new THREE.MeshLambertMaterial({ vertexColors: true })); roca.position.y = -hr * 0.04; g.add(roca);
       const tp = staticMesh('grie_templo', p.color); if (tp) { const et = Math.min(M * 3.4, T.acro.r * 1.5 / 22); tp.scale.setScalar(et); tp.position.y = hr * 0.96 + 5 * et; tp.rotation.y = 0.5; g.add(tp); }
       for (let i = 0; i < 5; i++) { const a = i * 1.3 + 0.4, c = staticMesh(i % 2 ? 'olivo' : 'cipres'); if (c) { c.scale.setScalar(M * (i % 2 ? 1.5 : 2)); c.position.set(Math.cos(a) * T.acro.r * 1.55, -0.0002, Math.sin(a) * T.acro.r * 1.55); g.add(c); } }
       g.visible = false; this.g.add(g); B.acro = g; }
@@ -271,20 +271,21 @@ export class Vida {
     const N = 2200, pino = new THREE.ConeGeometry(0.5, 1.7, 7, 1, true).translate(0, 0.95, 0), copa = new THREE.IcosahedronGeometry(0.7, 0), mat = new THREE.MeshLambertMaterial({ color: '#ffffff' });
     copa.setAttribute('normal', new THREE.BufferAttribute(Float32Array.from(copa.attributes.position.array, v => v / 0.7), 3)); copa.scale(1, 0.72, 1).translate(0, 0.55, 0);   // luz redonda: la copa no enseña sus caras
     const I = g => { const im = new THREE.InstancedMesh(g, mat, N); im.count = 0; im.frustumCulled = false; im.visible = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.g.add(im); return im; };
-    this.arb = { pinos: I(pino), copas: I(copa), N, clave: '', col: new THREE.Color() };
+    const som = new THREE.InstancedMesh(new THREE.CircleGeometry(0.62, 8).rotateX(-Math.PI / 2).translate(0.42, 0.03, 0.34), new THREE.MeshBasicMaterial({ color: '#1c2412', transparent: true, opacity: 0.26, depthWrite: false }), N * 2); som.count = 0; som.frustumCulled = false; som.visible = false; som.renderOrder = 3; som.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.g.add(som);
+    this.arb = { pinos: I(pino), copas: I(copa), som, N, clave: '', col: new THREE.Color() };
   }
   _plantar(w, h) {
-    const m = this.m, A = this.arb, upx = m.V.upx, ver = this.est === 'a' && m.ancho < 0.75; A.pinos.visible = A.copas.visible = ver; if (!ver) return;
+    const m = this.m, A = this.arb, upx = m.V.upx, ver = this.est === 'a' && m.ancho < 0.75; A.pinos.visible = A.copas.visible = A.som.visible = ver; if (!ver) return;
     const paso = Math.max(0.0034, upx * 9), rx = w * upx * 0.62, rz = h * upx * 0.95, cx = Math.round(m.V.x / (rx * 0.25)), cz = Math.round(m.V.z / (rz * 0.25)), clave = cx + ',' + cz + ',' + Math.round(Math.log2(upx) * 3); if (clave === A.clave) return; A.clave = clave;
     const alt = m.rel.altura, masc = m.masc, m4 = this._m4, q = this._q, s = this._s, v = new THREE.Vector3(), x0 = Math.floor((m.V.x - rx) / paso), x1 = Math.ceil((m.V.x + rx) / paso), z0 = Math.floor((m.V.z - rz * 1.25) / paso), z1 = Math.ceil((m.V.z + rz * 0.75) / paso); let np = 0, nc = 0;
     const dado = (i, j, k) => { let n = Math.imul(i, 374761393) + Math.imul(j, 668265263) + k * 974711; n = Math.imul(n ^ (n >>> 13), 1274126177); return ((n ^ (n >>> 16)) >>> 0) / 4294967296; };
-    const PINO = ['#55794a', '#628a50', '#4b6f40'], COPA = ['#64843f', '#75934c', '#587a3c', '#869a56'];
+    const PINO = ['#5f8450', '#6c9458', '#567a48'], COPA = ['#7f9a52', '#8ea65c', '#72904a', '#9aa866'];
     for (let j = z1; j >= z0; j--) for (let i = x0; i <= x1; i++) { const x = (i + dado(i, j, 1)) * paso, z = (j + dado(i, j, 2)) * paso, bos = masc(x, z, 1), cam = masc(x, z, 0), r = dado(i, j, 3);
       const dens = bos > 0.25 ? 0.5 + 0.4 * bos : cam > 0.4 ? 0.035 : 0.09; if (r > dens) continue; const a = alt(x, z); if (a < 3) continue;
       let enPueblo = false; for (const P of this.polis) for (const b of P.barrios) if (Math.hypot(x - b.T.cx, z - b.T.cz) < b.T.R * 1.05 && Math.hypot(x - b.T.agora.x, z - b.T.agora.z) < b.T.R) { enPueblo = dado(i, j, 5) > 0.12; break; } if (enPueblo) continue;
-      const e = 0.0021 + 0.0019 * dado(i, j, 4), esPino = bos > 0.25 ? dado(i, j, 6) < 0.7 : dado(i, j, 6) < 0.15; v.set(x, a * KY_CERCA, z); q.setFromAxisAngle(this._eje, r * 40); s.set(e, e * (esPino ? 1.25 : 1), e); m4.compose(v, q, s);
+      const e = 0.0021 + 0.0019 * dado(i, j, 4), esPino = bos > 0.25 ? dado(i, j, 6) < 0.7 : dado(i, j, 6) < 0.15; v.set(x, a * KY_CERCA, z); q.setFromAxisAngle(this._eje, r * 40); s.set(e, e * (esPino ? 1.25 : 1), e); m4.compose(v, q.identity(), s); if (np + nc < A.N * 2) A.som.setMatrixAt(np + nc, m4); m4.compose(v, q.setFromAxisAngle(this._eje, r * 40), s);
       if (esPino) { if (np < A.N) { A.pinos.setMatrixAt(np, m4); A.pinos.setColorAt(np++, A.col.set(PINO[(r * 300 | 0) % 3])); } } else if (nc < A.N) { A.copas.setMatrixAt(nc, m4); A.copas.setColorAt(nc++, A.col.set(COPA[(r * 400 | 0) % 4])); } }
-    A.pinos.count = np; A.copas.count = nc; A.pinos.instanceMatrix.needsUpdate = A.copas.instanceMatrix.needsUpdate = true; if (A.pinos.instanceColor) A.pinos.instanceColor.needsUpdate = true; if (A.copas.instanceColor) A.copas.instanceColor.needsUpdate = true;
+    A.pinos.count = np; A.copas.count = nc; A.som.count = np + nc; A.som.instanceMatrix.needsUpdate = true; A.pinos.instanceMatrix.needsUpdate = A.copas.instanceMatrix.needsUpdate = true; if (A.pinos.instanceColor) A.pinos.instanceColor.needsUpdate = true; if (A.copas.instanceColor) A.copas.instanceColor.needsUpdate = true;
   }
   /* ---------- rebaños ---------- */
   _rebanos() {
@@ -315,9 +316,9 @@ export class Vida {
     const m = this.m, upx = m.V.upx, a = m.ancho, ky = m.com.uKy.value, alt = m.rel.altura, B = this.est === 'b';
     /* el caserío de lejos mide siempre unos 21 px de radio (nunca menos que la polis real); por debajo de ~16 km de ancho deja paso al plano y a las casas */
     const fuera = paso(0.9, 1.3, a), cerca = a < 1.3, plano = a < A_PLANO, I = this.lejosInst; for (const k in I) I[k].n = 0;
-    const rLejos = mix(mix(44, 21, paso(3, 12, a)), 16, paso(30, 50, a)), pxSello = mix(86, mix(50, 42, paso(25, 45, a)), paso(3, 14, a));
+    const rLejos = mix(mix(52, 21, paso(3, 12, a)), 16, paso(30, 50, a)), pxSello = mix(86, mix(50, 42, paso(25, 45, a)), paso(3, 14, a));
     this._radioPx = cerca ? clamp(0.06 / upx, 12, 46) : B ? pxSello * 0.42 : rLejos;
-    for (const P of this.polis) { const y = Math.max(0, alt(P.x, P.z)) * ky, esc = clamp(Math.max(rLejos * upx, P.R * 0.9) / 0.95, 0.02, 2.6) * (0.6 + 0.4 * fuera), ee = E * esc;
+    for (const P of this.polis) { const y = Math.max(0, alt(P.x, P.z)) * ky, esc = clamp(Math.max(rLejos * upx, P.R * 0.9) / 0.95, 0.02, 2.6) * (0.6 + 0.4 * fuera) * (P.p.pri === 3 ? mix(1, 0.7, paso(25, 45, a)) : 1), ee = E * esc;
       const enVista = Math.abs(P.x - m.V.x) < w * upx * 0.75 + 3 * esc && Math.abs(P.z - m.V.z) < h * upx * 1.3 + 3 * esc;
       P.lejos.visible = !B && fuera > 0.02 && enVista; if (P.lejos.visible) { P.lejos.position.y = y + upx * 0.6; P.lejos.scale.setScalar(esc); P.lejos.material.opacity = 0.85 * fuera;
         for (const z of P.piezas) { const L = I[z.k]; if (!L || L.n >= 40) continue; this._m4.compose(this._v.set(P.x + z.x * ee, y + (z.k === 'grie_templo' ? 5 : 4.6) * ee * z.e, P.z + z.z * ee), this._q.setFromAxisAngle(this._eje, z.r), this._s.setScalar(ee * z.e)); for (const im of L.g.children) im.setMatrixAt(L.n, this._m4); L.n++; } }
