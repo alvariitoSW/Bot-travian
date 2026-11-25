@@ -305,6 +305,8 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
       <p class="nota">{{CAMINO_CUANDO}}</p>
       <ol class="pasos">{{CAMINO}}</ol>
       {{RIESGOS}}
+      <!-- CM6 (25/11): el % de la lista va aparte y con su nombre; no es el del camino -->
+      <p class="nota" id="pct-lista">Otra cuenta, aparte: <b>Objetivos de la lista: {{PCT_LISTA}} %</b> ({{PCT_LISTA_NOTA}}; sale del tablero). Es el % que ves en el menú del juego.</p>
     </section>
 
     <section class="ficha juzgar" aria-labelledby="t-juzgar">

@@ -6,6 +6,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { estadoLineas, secciones, vinetas, pctCamino } from './estado-lineas.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 /* Seguro: no generar el cuadro desde una copia atrasada (el 12/11 una sesión publicó un cuadro viejo y al usuario le salió lo ya contestado como pendiente). */
@@ -28,48 +29,18 @@ const corto = s => { const p = plano(s), m = p.slice(12).search(/[:.;(]/); retur
 const avisos = [];
 const avisa = t => { avisos.push(t); console.warn('AVISO: ' + t); };
 
-/* une las líneas de continuación (sangradas) a su viñeta; una sub-viñeta con marca de tarea (  - ⬜ GP2 …) es una tarea propia */
-function vinetas(lineas) {
-  const out = [];
-  for (const l of lineas) {
-    if (/^(-|\d+\.)\s/.test(l) || /^\s+-\s+(⬜|🔶|✅)/u.test(l)) out.push(l.trim().replace(/^(-|\d+\.)\s+/, ''));
-    else if (/^\s+\S/.test(l) && out.length) out[out.length - 1] += ' ' + l.trim();
-  }
-  return out;
-}
-function secciones(texto) {
-  const s = {}; let actual = null;
-  for (const l of texto.split('\n')) { const m = l.match(/^## (.+)/); if (m) { actual = m[1].trim(); s[actual] = []; } else if (actual) s[actual].push(l); }
-  return s;
-}
+/* CM6: el tablero y el estado de las líneas salen de gobierno/estado-lineas.mjs (la misma función que usa avance.mjs) */
 const seccion = (s, inicio) => s[Object.keys(s).find(k => k.startsWith(inicio))] || [];
 
-const tablero = secciones(await lee('TABLERO.md')), bitacora = secciones(await lee('BITACORA.md'));
+const bitacora = secciones(await lee('BITACORA.md'));
 const config = JSON.parse(await lee('cuadro.json'));
-const lista = JSON.parse(await lee('lista.json'));
+const EL = estadoLineas({ lista: JSON.parse(await lee('lista.json')), tablero: await lee('TABLERO.md') }), lista = EL.lista, tablero = EL.tablero;
 const ESTADO = { '⬜': ['pend', 'por hacer'], '🔶': ['medias', 'a medias'], '✅': ['hecho', 'hecho'] };
 
 /* ---------- el tablero (solo para el archivo y para cruzar con la lista) ---------- */
-let carriles = Object.keys(tablero).filter(k => /^Carril |^Gobierno/.test(k)).map(k => {
-  const m = k.match(/^Carril (\w+) — (.+)/), letra = m ? m[1] : 'G', nombre = m ? m[2] : 'Gobierno';
-  const tareas = vinetas(tablero[k]).flatMap(v => {
-    // los ids pueden llevar guion (GM-K6a)
-    const t = v.match(/^(⬜|🔶|✅)\s+(?:\((en pausa[^)]*)\)\s+)?([\w-]+)\s+(.*)$/u); if (!t) return [];
-    const fila = [{ est: t[1], id: t[3], texto: t[4], pausa: t[2] || '' }];
-    const q = t[1] === '✅' && t[4].match(/Queda ⬜ ([\w-]+):?\s*(.*)$/u);   // una hecha que deja una parte pendiente (p. ej. C2 → C2b)
-    if (q) fila.push({ est: '⬜', id: q[1], texto: q[2], pausa: '', queda: true });
-    return fila;
-  });
-  return { letra, nombre, corto: ({ A: 'Guerra', B: 'Ciudad', C: 'Mapa', D: 'Técnica', E: 'Arte', F: 'Modos', H: 'Historia', I: 'Gran diseño', J: 'Interfaz', K: 'Concurso', L: 'Interfaz guerra', N: 'Guerra nueva', O: 'Economía', V: 'Versión 1.0' })[letra] || nombre.replace(/\s*[\(—].*$/, ''), tareas };
-});
-// una parte «Queda ⬜ X» se olvida si X ya tiene su propia viñeta en el tablero
-const reales = new Set(carriles.flatMap(c => c.tareas.filter(t => !t.queda).map(t => t.id)));
-for (const c of carriles) c.tareas = c.tareas.filter(t => !t.queda || !reales.has(t.id));
-carriles.splice(0, carriles.length, ...carriles.filter(c => c.tareas.length));
+const carriles = EL.carriles, porId = EL.porId;
 const pendientes = c => c.tareas.filter(t => t.est !== '✅');
 carriles.sort((a, b) => (pendientes(b).length > 0) - (pendientes(a).length > 0));
-const porId = new Map();
-for (const c of carriles) for (const t of c.tareas) if (!porId.has(t.id) || t.est !== '✅') porId.set(t.id, t);
 const hecha = id => porId.get(id)?.est === '✅';
 const libre = id => { const t = porId.get(id); return t && t.est !== '✅' && !t.pausa; };
 
@@ -109,20 +80,21 @@ async function imagen(ruta, alt) {
   try { const b64 = (await readFile(join(RAIZ, ruta))).toString('base64'), ext = (ruta.split('.').pop() || '').toLowerCase();
     return '<img class="captura" loading="lazy" alt="' + esc(alt) + '" src="data:' + (MIME[ext] || 'image/jpeg') + ';base64,' + b64 + '">'; } catch (e) { avisa('falta la captura ' + ruta); return ''; }
 }
-const lineas = lista.lineas || [], organos = lista.organos || [];
+// CM6: el estado de cada línea sale del tablero (estado-lineas.mjs), no de lo escrito en lista.json
+const lineas = EL.lineas, organos = lista.organos || [];
 const enLinea = new Map();
 for (const l of lineas) {
   for (const id of l.tareas || []) { enLinea.set(id, l.id); if (!porId.has(id)) avisa(l.id + ': la tarea ' + id + ' no está en el tablero'); }
-  const ts = l.tareas || [];
-  if (ts.length && ts.every(hecha) && l.estado !== 'hecha') avisa(l.id + ': todas sus tareas están hechas en el tablero, pero la línea dice «' + l.estado + '»');
-  if (ts.length && l.estado === 'hecha' && !ts.every(hecha)) avisa(l.id + ': la línea dice «hecha», pero en el tablero quedan ' + ts.filter(id => !hecha(id)).join(', '));
+  if (l.estadoEscrito != null) avisa(l.id + ': lista.json escribe «estado» a mano («' + l.estadoEscrito + '»); se ignora, sale del tablero: bórralo');
+  if (!(l.tareas || []).length && l.estado !== 'hecha') avisa(l.id + ': sin tareas en el tablero y con algo que falta; dale sus tareas');
 }
 async function lineaHtml(l) {
   const id = esc(l.id), tit = esc(l.titulo), ts = l.tareas || [], prim = ts.find(libre);
   let dentro = '<p class="rotulo">Qué verás</p><p>' + md(l.veras || '') + '</p>';
   if (l.hecho) dentro += '<p class="rotulo">Qué se hizo</p><p>' + md(l.hecho) + '</p>' + await imagen(l.captura, l.titulo);
   if (l.falta) dentro += '<p class="rotulo">Qué falta</p><p>' + md(l.falta) + '</p>';
-  if (ts.length) dentro += '<p class="tareas-l">Tareas del tablero: ' + ts.map(t => esc(t) + (hecha(t) ? ' ✔' : porId.get(t)?.pausa ? ' (en pausa)' : '')).join(', ') + '</p>';
+  if (l.estado !== 'hecha' && l.activas.length) dentro += '<p class="rotulo">Por qué no está hecha (del tablero)</p><p>Sin terminar: ' + l.activas.map(t => '<b>' + esc(t) + '</b>' + (l.obra.includes(t) ? ' (a medias)' : '')).join(', ') + '.' + (l.aparte.length ? ' No cuentan, por ir en pausa o después de la 1.0: ' + l.aparte.map(esc).join(', ') + '.' : '') + '</p>';
+  if (ts.length) dentro += '<p class="tareas-l">Tareas del tablero: ' + ts.map(t => esc(t) + (hecha(t) ? ' ✔' : l.aparte.includes(t) ? ' (en pausa o después de la 1.0)' : '')).join(', ') + '</p>';
   dentro += '<div class="fila">' + (prim ? '<button class="boton lleno" data-pedir="abrir" data-ref="' + esc(prim) + '" data-linea="' + id + '" data-titulo="' + id + ' · ' + tit + '">Encárgala</button>' : '') +
     '<button class="boton" data-abrir="c-' + id + '">Pedir un cambio</button></div>' +
     '<div class="cambio" id="c-' + id + '" hidden><label class="quien" for="tx-' + id + '">Qué cambiarías en esta línea</label><textarea id="tx-' + id + '"></textarea>' +
@@ -378,7 +350,9 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
   if (horaMain) {
     const dia = hoyEs(horaMain) ? 'de hoy' : 'del ' + horaMain.toLocaleDateString('es-ES', { ...madrid, day: 'numeric', month: 'long' });
     const hora = horaMain.toLocaleTimeString('es-ES', { ...madrid, hour: '2-digit', minute: '2-digit' });
-    movilCab = 'Tu móvil tiene la versión <b>' + esc(vMain || '¿?') + '</b> ' + dia + ' a las <b>' + hora + '</b>; lo último terminado es <b>' + esc(vRama || '¿?') + '</b>.';
+    // CM6: «lo último terminado es v172» se leía como si v172 estuviera en el móvil; ahora dice dónde está cada versión
+    movilCab = 'Tu móvil tiene la versión <b>' + esc(vMain || '¿?') + '</b>, subida ' + dia + ' a las <b>' + hora + '</b>. ' +
+      (vRama && vRama !== vMain ? 'Ya está terminada la <b>' + esc(vRama) + '</b>, pero aún no está en tu móvil: llega con la próxima subida.' : 'Es la última terminada: no hay otra versión esperando.');
   } else movilCab = 'No se pudo leer qué versión tiene tu móvil.';
   const ls = [...llega.entries()]; llegaN = ls.length;
   movilLlega = ls.length ? ls.slice(0, 8).map(([id, l]) => '<li><b>' + esc(id) + '</b> ' + esc(tit(id)) + ' <span class="nota">· ' + esc(l.titulo) + '</span></li>').join('') + (ls.length > 8 ? '<li class="nota">y ' + (ls.length - 8) + ' más</li>' : '')
@@ -387,12 +361,15 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
 }
 
 /* ---------- CM5 · La 1.0 arriba del todo: camino (gobierno/camino.json), juzgarla (colección «juicio») y hacia la 2.0 ---------- */
-/* El % es el del menú del juego (bitácora 24/11): (hechas + ½ a medias) / total de lineas de lista.json. */
-const pct10 = lineas.length ? Math.round(100 * (lineas.filter(l => l.estado === 'hecha').length + lineas.filter(l => l.estado === 'medias').length / 2) / lineas.length) : 0;
+/* CM6: dos % distintos, cada uno con su nombre y nunca mezclados.
+   · Camino a la 1.0: sale de los pasos de camino.json (100 si todos hechos; si no, el «pct» del último paso hecho).
+   · Objetivos de la lista: el del menú del juego (bitácora 24/11), (hechas + ½ a medias) / total de líneas, con el estado sacado del tablero. */
+const pctLista = EL.pct;
 const ESPANA = { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' };
 const horaEs = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString('es-ES', ESPANA); };
 const EST_CAMINO = { hecho: ['si', '✔', 'hecho'], prueba: ['medias', '◐', 'en prueba'], esperando: ['falta', '○', 'esperando'] };
 let camino = { pasos: [], riesgos: [] }; try { camino = JSON.parse(await lee('camino.json')); } catch (e) { avisa('CM5: falta o no se lee gobierno/camino.json'); }
+const pct10 = pctCamino(camino);
 let htmlCamino = '', htmlMarcasCamino = '', caminoCuando = '';
 for (const [i, p] of (camino.pasos || []).entries()) {
   if (!EST_CAMINO[p.estado]) avisa('CM5: el paso ' + (i + 1) + ' de camino.json tiene un estado raro («' + p.estado + '»); vale hecho, prueba o esperando');
@@ -422,7 +399,7 @@ if (!lineas.length) avisa('CM5: no hay líneas que juzgar en lista.json');
 
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
-  PCT10: pct10, PCT10_QUEDA: 100 - pct10, CAMINO: htmlCamino, CAMINO_MARCAS: htmlMarcasCamino, CAMINO_CUANDO: caminoCuando, RIESGOS: htmlRiesgos, JUICIO: htmlJuicio,
+  PCT10: pct10, PCT10_QUEDA: 100 - pct10, PCT_LISTA: pctLista, PCT_LISTA_NOTA: lineas.filter(l => l.estado === 'hecha').length + ' hechas, ' + lineas.filter(l => l.estado === 'medias').length + ' a medias y ' + lineas.filter(l => l.estado === 'falta').length + ' por hacer, de ' + lineas.length + ' líneas', CAMINO: htmlCamino, CAMINO_MARCAS: htmlMarcasCamino, CAMINO_CUANDO: caminoCuando, RIESGOS: htmlRiesgos, JUICIO: htmlJuicio,
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(lista.frase || ''), VIGIA: esc(config.vigia || ''),
   ORGANOS: htmlOrganos, COMPROBACIONES: htmlComprob, TE_ESPERAN: htmlTeEsperan,
   N_LINEAS: lineas.length, LISTA_PROPUESTA: htmlPropuesta, LISTA: htmlLista, RESTO: htmlResto, RESTO_RESUMEN: esc(resumenResto), N_NEVERA: nevera.length, NEVERA: htmlNevera,

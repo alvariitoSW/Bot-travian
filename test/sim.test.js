@@ -258,13 +258,15 @@ for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in
   assert(carga(true) < carga(false) * 0.7, 'la carga pierde fuerza en el bosque');
 }
 
+const SIN_BOTS = !!process.env.SIM_SIN_BOTS, liga = n => console.log('LIGA: ' + n + ' va a la liga (node gobierno/jueces.mjs --liga)');   // J20a: la subida salta lo que juega campañas enteras del bot
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
 // JZ1: el bot vive en test/campana-bot.js; las campañas se reparten entre varios procesos (test/sim-paralelo.js) y aquí se recogen
 const campaign = require('./sim-paralelo.js').campana;
+const resumen = l => l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ');   // J20a: fuera del bloque, la usa también I6 Italia
+if (SIN_BOTS) liga('§5 campaña larga 20 partidas'); else {
 // 10 semillas del azar de la IA: el agresivo debe tomar Carthago antes del 146 a.C. en la mayoría; el pasivo, nunca
 const res = { pas: [], agr: [] }; let activo = null;
 for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = campaign(ag, sd); res[ag ? 'agr' : 'pas'].push(s); if (ag && sd === 1) activo = s; }
-const resumen = l => l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ');
 console.log('Bot pasivo   →', resumen(res.pas)); console.log('Bot agresivo →', resumen(res.agr));
 const ganaAgr = res.agr.filter(s => s.over.win).length, ganaPas = res.pas.filter(s => s.over.win).length;
 // CE3 (usuario, 19/11): HASTA CE12 la campaña larga no exige que el agresivo tome Cartago (antes 5 a 8 de 10; medido 7/10 con diez niveles).
@@ -285,8 +287,9 @@ const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
 // CI1b: cuenta las ciudades de la campaña agresiva de la semilla 1 (`activo`), no las de la última simulada (G.state es la semilla 10)
 assert(Object.values(active.cities).filter(c => c.owner === 'roma').length >= 3, 'un bot agresivo debe poder conquistar ciudades');
+}
 // I6: regiones. Italia es jugable (el agresivo gana alguna vez, el pasivo nunca) y se juega solo con sus ciudades
-{ const ri = { pas: [], agr: [] };
+if (SIN_BOTS) liga('I6 Italia 20 partidas'); else { const ri = { pas: [], agr: [] };
   for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = campaign(ag, sd, 'italia'); ri[ag ? 'agr' : 'pas'].push(s);
     assert.strictEqual(s.region, 'italia'); const dentro = new Set(D.regionCiudades('italia'));
     for (const id in s.cities) assert(dentro.has(id), 'ciudad fuera de Italia: ' + id);
@@ -302,7 +305,7 @@ assert(Object.values(active.cities).filter(c => c.owner === 'roma').length >= 3,
   try {
     assert.deepStrictEqual(D.regionCiudades('prueba'), ['roma', 'capua', 'tarentum', 'messana']); assert(D.regionEdges('prueba').every(e => D.regionCiudades('prueba').includes(e[0]) && D.regionCiudades('prueba').includes(e[1])));
     const s0 = G.newGame('P', 'prueba'); assert.strictEqual(G.regionId(), 'prueba'); assert.deepStrictEqual(Object.keys(s0.cities).sort(), ['capua', 'messana', 'roma', 'tarentum']); assert(!G.edge('roma', 'volsinii'));
-    for (const ag of [false, true]) for (let sd = 1; sd <= 3; sd++) { const s = campaign(ag, sd, 'prueba'); assert(s.over); assert(!ag ? !s.over.win : true); }
+    if (SIN_BOTS) liga('I6 región prueba (campañas)'); else for (const ag of [false, true]) for (let sd = 1; sd <= 3; sd++) { const s = campaign(ag, sd, 'prueba'); assert(s.over); assert(!ag ? !s.over.win : true); }
   } finally { delete D.REGIONES.prueba; } }
 // I6: una partida vieja (sin región) carga como Mediterráneo; una región desconocida también
 { const raw = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); assert(!JSON.parse(raw).region);
@@ -1751,6 +1754,7 @@ console.log('OK — todas las pruebas superadas');
     const c = G.newGame('Ed2', 'italia'); c.inv.edad = 3; assert(G.edadMax() === 4 && G.invEstado('E4').e !== 'edad', 'la campaña sigue llegando a la edad IV'); }
 
   // (a)+(b) el bot agresivo y el pasivo juegan la corta, en 10 semillas y en los dos inicios; se mide la duración
+  if (SIN_BOTS) liga('I8-a (a)+(b) partida corta con bots'); else {
   const horas = s => s.over.resumen.turnos * du.segPorTurno / 3600, tabla = [], todas = { agr: [], pas: [] };
   for (const ini of ['enPie', 'fundar']) for (const ag of [true, false]) {
     const l = []; for (let sd = 1; sd <= 10; sd++) {
@@ -1771,9 +1775,10 @@ console.log('OK — todas las pruebas superadas');
   }
   console.log('Partida corta (' + du.segPorTurno + ' s por turno):'); for (const f of tabla) console.log('  ' + f[0].padEnd(7) + f[1].padEnd(9) + 'gana ' + f[2].padEnd(6) + 'victorias ' + f[3].padEnd(15) + 'media ' + f[4] + '  ' + f[5]);
   assert(todas.agr.some(s => !s.over.win), 'el agresivo debe poder perder alguna'); assert(todas.agr.some(s => s.over.win && s.over.resumen.edad >= 1));
+  }
 
   // I8b: con un bot que investiga, la corta llega a la edad III (su tope) y no pasa de ahí
-  { const tE = [];
+  if (SIN_BOTS) liga('I8b bot que investiga'); else { const tE = [];
     for (const ini of ['enPie', 'fundar']) { const l = []; for (let sd = 1; sd <= 10; sd++) l.push(campaign(true, sd, null, { modo: 'corta', inicio: ini, investiga: true }));
       for (const s of l) assert(s.inv.edad <= 3 && s.inv.hechas.E4 === undefined && s.over.resumen.edad === s.inv.edad, 'la edad del resumen es la alcanzada y no pasa de III');
       const e3 = l.filter(s => s.inv.edad === 3), w = l.filter(s => s.over.win);
@@ -1843,9 +1848,11 @@ console.log('OK — todas las pruebas superadas');
   delete c2.fiesta; delete c2.rac; store['aqvila-save-v1'] = JSON.stringify(G.state); assert(G.load() && G.state.cities.roma.fiesta.juegos === -99 && G.state.cities.roma.rac === 'normal', 'partida vieja sin c.fiesta/c.rac migra');
   delete global.localStorage; G.usarCiudad(null); console.log('CN13a: arca, ofrenda, juegos, ración y granero OK');
 }
-{   // NB7: batalla nueva conectada con la campaña, tribunos-generales e interruptor (test/nb7.test.mjs)
+{   // NB7: batalla nueva conectada con la campaña, tribunos-generales e interruptor (test/nb7.test.mjs; lleva una campaña entera: con SIM_SIN_BOTS va a la liga)
+  if (SIN_BOTS) { liga('NB7 (nb7.test.mjs, campaña entera)'); } else {
   const r = require('child_process').spawnSync(process.execPath, [__dirname + '/nb7.test.mjs'], { encoding: 'utf8', timeout: 120000 });
   assert(r.status === 0, 'NB7: ' + String(r.stdout).split('\n').filter(l => /^MAL/.test(l)).join(' | ') + String(r.stderr).slice(0, 300)); console.log('NB7: batalla nueva, tribunos e interruptor OK');
+  }
 }
 { // CN13b: dique y techado de barrio por la API del juego, y guardar/cargar por G.load
   const CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);

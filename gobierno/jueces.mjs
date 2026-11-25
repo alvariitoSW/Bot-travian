@@ -4,10 +4,15 @@
          node gobierno/jueces.mjs --todo     (todo, aunque no haya cambiado nada: la subida final de la 1.0)
          node gobierno/jueces.mjs --rapido   (solo la lógica, sin navegador)
          node gobierno/jueces.mjs --seguido  (una prueba detrás de otra, como antes de JZ1; para medir o si la máquina va justa)
+         node gobierno/jueces.mjs --liga     (J20a: SOLO la liga, sin navegador ni guerra jugada: test/sim.test.js entero con sus bots de
+              partida entera, el bot investigador y el de ajustes por nivel. Va aparte de la subida, que corre sim.test.js con
+              SIM_SIN_BOTS=1 y se salta esos bloques; ninguna vara se relaja, solo cambia el comando. Con memoria JZ1; --todo la repite.
+              Informe en gobierno/capturas-liga/informe.json; no pisa gobierno/capturas/.)
+   J20a: las pruebas con reloj de pared (marcadas «solo») corren antes y en serie, sin nada compitiendo.
    JZ1: cada prueba guarda en gobierno/jueces-cache.json la huella de los archivos que lee al dar APTO; si no cambió ninguno, no
         se repite (gobierno/jueces-cache.mjs). La lógica corre a la vez que el navegador y test/sim.test.js reparte sus campañas
         entre los núcleos (test/sim-paralelo.js). Los criterios de aprobado no cambian.
-         node gobierno/jueces.mjs --area cerebro|musculo|batallas
+         node gobierno/jueces.mjs --area cerebro|musculo|batallas|mapas
               (MIN4: solo los pasos de navegador de esa área, más los que la preparan; capturas en
                gobierno/capturas-area/<área>/. Lo usa gobierno/juez-area.mjs. Sin lógica ni juez de la guerra.)
    Pasa test/sim.test.js, recorre el juego en un navegador a 390×844 y deja las capturas
@@ -25,13 +30,16 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RAPIDO = process.argv.includes('--rapido');
 /* JZ1: --todo repite todo aunque nada haya cambiado (subida final de la 1.0); --seguido, una prueba detrás de otra, como antes */
 const TODO = process.argv.includes('--todo'), SEGUIDO = process.argv.includes('--seguido');
+const LIGA = process.argv.includes('--liga');   // J20a: solo la liga (ver arriba)
+const RITMO_MS = process.env.RITMO_MS === undefined ? 2000 : +process.env.RITMO_MS;   // J20a: ver gobierno/ritmo-pruebas.js
 const HILOS_LOGICA = 2;   // pruebas de Node a la vez (sim.test.js ya reparte sus campañas en todos los núcleos)
 const MEMORIA = leeMemoria(), NUEVA = {}; let saltadas = 0;
 /* MIN4: cada paso del navegador dice de qué área es (de) y a qué otras áreas prepara (para): con --area solo corren los suyos,
    los comunes y los que preparan su estado. Sin --area corre todo, en el mismo orden de siempre (las mismas 43 comprobaciones). */
 const AREA = process.argv.includes('--area') ? process.argv[process.argv.indexOf('--area') + 1] : null;
-if (AREA !== null && !['batallas', 'cerebro', 'musculo'].includes(AREA)) { console.error('Áreas con pasos de navegador: batallas, cerebro, musculo.'); process.exit(2); }
-const CAPS = AREA ? join(RAIZ, 'gobierno', 'capturas-area', AREA) : join(RAIZ, 'gobierno', 'capturas');
+if (LIGA && AREA !== null) { console.error('--liga no se combina con --area.'); process.exit(2); }
+if (AREA !== null && !['batallas', 'cerebro', 'musculo', 'mapas'].includes(AREA)) { console.error('Áreas con pasos de navegador: batallas, cerebro, musculo, mapas (AM0).'); process.exit(2); }
+const CAPS = AREA ? join(RAIZ, 'gobierno', 'capturas-area', AREA) : join(RAIZ, 'gobierno', LIGA ? 'capturas-liga' : 'capturas');
 const CAPS_TAREA = AREA ? CAPS : join(RAIZ, 'gobierno', 'capturas-tarea');   // R3 y R4 dejan ahí sus capturas fijas
 const pasos = [];                       // { nombre, ok, detalle, captura }
 const errores = [];                     // errores de consola del navegador
@@ -50,39 +58,43 @@ const bienMal = (r, n) => { const lineas = (r.stdout || '').split('\n').filter(l
   return (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, n || 400); };
 const ultima = r => (((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '').slice(0, 200);
 const LOGICA = [
-  { id: 'sim', nombre: 'Pruebas de lógica', f: 'test/sim.test.js', t: 5400000, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
+  { id: 'sim', nombre: 'Pruebas de lógica (sin los bots de partida entera: van a la liga)', f: 'test/sim.test.js', t: 5400000, env: { SIM_SIN_BOTS: '1' }, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
+  { id: 'sim-liga', nombre: 'Liga · pruebas de lógica con los bots de partida entera', f: 'test/sim.test.js', t: 5400000, liga: true, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
+  // CM6: los % del cuadro y del menú del juego; también depende del tablero y de los .md que la memoria no sigue sola
+  { id: 'porcentajes', nombre: 'Porcentajes del cuadro y del menú (CM6)', f: 'test/cuadro-porcentajes.test.mjs', t: 180000, extra: ['gobierno/TABLERO.md', 'gobierno/BITACORA.md', 'gobierno/cuadro.mjs', 'gobierno/cuadro.json'], lee: bienMal },
   { id: 'pausas', nombre: 'Pausas del reloj con motivo', f: 'test/pausas.test.mjs', t: 120000, lee: bienMal },
   { id: 'encargos', nombre: 'Encargos del Senado e hitos', f: 'test/encargos.test.mjs', t: 60000, lee: bienMal },
   { id: 'movil', nombre: 'Copia de la partida, nota y parada', f: 'test/movil.test.mjs', t: 60000, lee: bienMal },
-  { id: 'ciudad', nombre: 'Reglas de la ciudad nueva', f: 'test/ciudad.test.mjs', t: 300000, lee: bienMal },
+  { id: 'ciudad', nombre: 'Reglas de la ciudad nueva', f: 'test/ciudad.test.mjs', t: 300000, solo: true, lee: bienMal },   // J20a: CN9a mide tiempos (< 2,5 s y < 1 s): a solas
   { id: 'senado', nombre: 'Senado nuevo (sala de votos)', f: 'test/senado.test.js', t: 120000, lee: bienMal },
   { id: 'campo', nombre: 'Toparse en el camino (campaña, sin pantalla)', f: 'test/campo.test.mjs', t: 180000, lee: bienMal },
   { id: 'guerra', nombre: 'Guerra nueva (motor sin pantalla)', f: 'test/guerra.test.mjs', t: 120000, lee: bienMal },
-  { id: 'simulador', nombre: 'Simulador de batallas (manípulos)', f: 'test/simulador.test.mjs', t: 120000, lee: bienMal },
+  { id: 'simulador', nombre: 'Simulador de batallas (manípulos)', f: 'test/simulador.test.mjs', t: 120000, solo: true, lee: bienMal },
   { id: 'guerra-juego', nombre: 'Guerra en el juego (bot y guardar a mitad)', f: 'test/guerra-juego.test.mjs', t: 120000, lee: r => bienMal(r, 300) },
   { id: 'fichas', nombre: 'Fichas de las piezas', f: 'gobierno/fichas.mjs', t: 60000, todo: true, lee: r => { const l = (r.stdout || '').trim().split('\n').filter(Boolean);
     return (r.status === 0 ? l.filter(x => /^Resumen/.test(x)).join('') : l.filter(x => /✘ /.test(x) && !/^  ✘ (edificio|tropa|ciudad|hecho|faccion|mejora) /.test(x)).slice(0, 3).join(' | ')).slice(0, 400); } },
   { id: 'mapa', nombre: 'Alturas reales del mapa', f: 'test/mapa.test.mjs', t: 60000, todo: true, lee: r => ((r.stdout || '').trim().split('\n').slice(-2).join(' | ') || (r.stderr || '').trim().split('\n').slice(-2).join(' | ')).slice(0, 400) },
   { id: 'saber', nombre: 'Reglas del Saber', f: 'test/saber.test.mjs', t: 120000, lee: ultima },
-  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1800000, lee: ultima, completo: true },   // ~13 min solo (campaña larga hasta el 150 desde CDe4); 30 min con --todo (usuario 25/11 «1A», SB7): solo en el recorrido completo
-  { id: 'ajustes', nombre: 'Ajustes y dificultades (bot por nivel)', f: 'test/ajustes.test.mjs', t: 1800000, lee: ultima },
+  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1800000, lee: ultima, liga: true },   // ~13 min solo (campaña larga hasta el 150 desde CDe4); J20a: va a la liga
+  { id: 'ajustes', nombre: 'Ajustes y dificultades (bot por nivel)', f: 'test/ajustes.test.mjs', t: 1800000, lee: ultima, liga: true },
   { id: 'diplomacia', nombre: 'Diplomacia (alianza, tributo, IA construye)', f: 'test/diplomacia.test.mjs', t: 60000, lee: bienMal },
   { id: 'sonido-ciudad', nombre: 'Sonido de la ciudad', f: 'test/sonido-ciudad.test.mjs', t: 60000, lee: ultima },
 ];
 /* lanza un proceso sin parar a los demás; devuelve lo mismo que spawnSync (status, stdout, stderr) */
-function corre(args, timeout) {
+function corre(args, timeout, env) {
   return new Promise(ok => {
-    const h = spawn(process.execPath, args, { cwd: RAIZ }); let out = '', err = '', fin = false;
+    const h = spawn(process.execPath, args, { cwd: RAIZ, env: env ? Object.assign({}, process.env, env) : process.env }); let out = '', err = '', fin = false;
     h.stdout.on('data', d => { out += d; }); h.stderr.on('data', d => { err += d; });
     const reloj = setTimeout(() => { if (!fin) h.kill('SIGKILL'); }, timeout);
     h.on('close', status => { fin = true; clearTimeout(reloj); ok({ status, stdout: out, stderr: err }); });
   });
 }
-async function logica() {
-  const filas = LOGICA.filter(p => !(p.completo && RAPIDO));
+/* J20a: la cola se prepara antes (memoria JZ1); las filas «solo» salen de ella y corren en aSolas(), ANTES que nada más */
+function preparaLogica() {
+  const filas = LOGICA.filter(p => !!p.liga === LIGA);   // J20a: la liga y la subida no se mezclan
   /* si la prueba abre un navegador o recorre carpetas (o se marca con todo), depende de todo lo que se sirve */
   const huellaDe = p => { const c = cierre([p.f]), todo = p.todo || c.some(x => /\.m?js$/.test(x) && /playwright|readdirSync|readdir\(/.test(readFileSync(join(RAIZ, x), 'utf8')));
-    return huella([...c, ...(todo ? servido() : []), 'gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs']); };
+    return huella([...c, ...(p.extra || []), ...(todo ? servido() : []), 'gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs']); };
   const cola = [];
   for (const p of filas) {
     p.huella = huellaDe(p); const m = MEMORIA[p.id];
@@ -90,14 +102,22 @@ async function logica() {
     cola.push(p);
   }
   if (cola.length) console.log('Juez 1 · lógica: ' + cola.map(p => p.f.replace(/^(test|gobierno)\//, '')).join(', ') + (cola.length < filas.length ? ' (las demás, sin cambios)' : ''));
+  return cola;
+}
+async function correFila(p, nota) {
+  const t = Date.now(), r = await corre([p.f], p.t, p.env), ok = r.status === 0;
+  apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s' + (nota || '') + ')');
+  if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() };
+}
+/* J20a: las pruebas «solo» miden tiempos con el reloj de pared: corren primero, en serie, sin lógica ni navegador compitiendo */
+async function aSolas(cola) {
+  const solas = cola.filter(p => p.solo); if (!solas.length) return;
+  console.log('Juez 0 · a solas (pruebas con reloj): ' + solas.map(p => p.f.replace(/^(test|gobierno)\//, '')).join(', '));
+  for (const p of solas) { cola.splice(cola.indexOf(p), 1); await correFila(p, ', a solas'); }
+}
+async function logica(cola) {
   const hilos = SEGUIDO ? 1 : Math.max(1, Math.min(cola.length, HILOS_LOGICA));
-  await Promise.all(Array.from({ length: hilos }, async () => {
-    for (let p; (p = cola.shift());) {
-      const t = Date.now(), r = await corre([p.f], p.t), ok = r.status === 0;
-      apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s)');
-      if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() };
-    }
-  }));
+  await Promise.all(Array.from({ length: hilos }, async () => { for (let p; (p = cola.shift());) await correFila(p); }));
 }
 
 /* ---------- 2. Navegador ---------- */
@@ -126,6 +146,8 @@ async function navegador() {
   const srv = await servidor(), url = 'http://127.0.0.1:' + srv.address().port + '/';
   const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true });
+  /* J20a: fotogramas espaciados (gobierno/ritmo-pruebas.js); RITMO_MS=0 lo quita */
+  if (RITMO_MS > 0) await ctx.addInitScript({ content: 'window.__ritmoMs=' + RITMO_MS + ';' + readFileSync(join(RAIZ, 'gobierno', 'ritmo-pruebas.js'), 'utf8') });
   const page = await ctx.newPage();
   let sinRed = false;
   page.on('console', m => { if (m.type() === 'error' && !(sinRed && /ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(m.text()))) errores.push(m.text().slice(0, 300)); });
@@ -165,7 +187,9 @@ async function navegador() {
       const cap = await foto('escaramuzas-testudo');
       if (m.h < 44 || m.d > 390 || !/Testudo a pie/.test(m.t) || !/\/gobierno\/maquetas\/a-pie\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
       await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
-      const titulo = await page.title(); await espera(1500);
+      const titulo = await page.title();
+      /* J20a: «Salir» se engancha al terminar de cargar la escena (gobierno/maquetas/bloque/escena.js pone __bloque.listo); se espera a eso, no a un plazo fijo */
+      await page.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 120000 }).catch(() => { }); await espera(1500);
       await page.click('#salir'); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
       const ok = /Testudo a pie/.test(titulo);
@@ -190,7 +214,8 @@ async function navegador() {
       const elegido = rivales.find(r => /rival=caballeria$/.test(r.url)) || rivales[0], antes = errores.length;
       await page.locator('#hoja a.esc-rv-b[href$="' + elegido.url.split('/').pop() + '"]').click();
       await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
-      const titulo = await page.title(), ruta = page.url(); await espera(4000);
+      const titulo = await page.title(), ruta = page.url();
+      await page.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 120000 }).catch(() => { }); await espera(4000);   // J20a: igual que en el testudo
       const capE = await foto('falange-escena'), fallosE = errores.slice(antes);
       await page.click('#salir'); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
@@ -381,7 +406,7 @@ async function navegador() {
     });
 
     let objetivo = '';
-    await paso('Atacar una ciudad vecina', { de: 'musculo', para: ['batallas'] }, async () => {
+    await paso('Atacar una ciudad vecina', { de: 'musculo', para: ['batallas', 'mapas'] }, async () => {
       objetivo = await estado(() => Game.neighbors('roma').filter(n => Game.state.cities[n].owner !== 'roma' && !Game.edge('roma', n)[2]).sort((a, b) => Game.power(Game.state.cities[a].units) - Game.power(Game.state.cities[b].units))[0] || '');
       if (!objetivo) return { ok: false, detalle: 'Roma no tiene vecina enemiga por tierra' };
       await page.evaluate(id => { UI.sel = id; UI.sheetKey = ''; }, objetivo);
@@ -462,9 +487,11 @@ async function navegador() {
       return { ok: ok && modelos, detalle: !ok ? 'la partida guardada no se recuperó' : modelos ? 'partida y modelos disponibles sin conexión' : 'la partida vuelve, pero los modelos 3D no cargan sin red', captura: await foto('sin-red') };
     });
 
-    await paso('Mapa por escalones: tocar Italia acerca y «← volver» devuelve', 'musculo', async () => {
+    await paso('Mapa por escalones: tocar Italia acerca y «← volver» devuelve', { de: 'musculo', para: ['mapas'] }, async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; UI.map.esc.anim = null; UI.map.esc.zona = null; UI.map.esc.pila = []; UI.map.c.x = 94; UI.map.c.z = 46; UI.map.c.dist = 330; UI.map.clamp(); });
       await espera(1500);
+      /* J20a: las etiquetas de zona se colocan al dibujar; se espera a que estén las ocho (no a un plazo fijo) antes de medir */
+      await page.waitForFunction(() => [...document.querySelectorAll('.mlabel.zona')].filter(e => e.style.display !== 'none').length === 8 && [...document.querySelectorAll('.mlabel.zona')].some(e => e.textContent === 'Italia'), null, { timeout: 30000 }).catch(() => { });
       const antes = await estado(() => ({ x: UI.map.c.x, z: UI.map.c.z, dist: UI.map.c.dist, zonas: [...document.querySelectorAll('.mlabel.zona')].filter(e => e.style.display !== 'none').length }));
       const fotoMare = await foto('escalon-mare');
       await page.evaluate(() => [...document.querySelectorAll('.mlabel.zona')].find(e => e.textContent === 'Italia').click());
@@ -479,7 +506,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'ocho zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
     });
 
-    await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', 'musculo', async () => {
+    await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', { de: 'musculo', para: ['mapas'] }, async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
       await espera(1500);
       const ves = () => estado(() => Object.fromEntries(['tira', 'turno', 'tabs3'].map(i => { const e = document.getElementById(i), r = e.getBoundingClientRect(), cs = getComputedStyle(e); return [i, !e.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.bottom > 0 && r.top < innerHeight]; })));
@@ -502,7 +529,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'en el mapa: tira, ☰, «Pasar estación» y la barra de seis (en horizontal, columna de ' + col.w + ' px a la izquierda); la ficha dice «' + ficha + '»; tocar Roma entra y la pestaña Mapa vuelve al mapa' : JSON.stringify({ v, vh, col, ficha, ciu, vuelta }) };
     });
 
-    await paso('Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)', 'musculo', async () => {
+    await paso('Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)', { de: 'musculo', para: ['mapas'] }, async () => {
       await estado(() => { Game.state.speed = 0; const m = document.getElementById('modal'); if (m) m.hidden = true; const x = document.querySelector('#hoja [data-act="hojax"]'); if (x && !document.getElementById('hoja').hidden) x.click(); }); await espera(400);
       const VISTA = { ciudad: 'city', senado: 'senado', saber: 'saber', tropas: 'army', mapa: 'map', imperio: 'imperio' }, fallos = [];
       const med = await estado(() => [...document.querySelectorAll('#tabs3 [data-act="barra"]')].map(b => { const r = b.getBoundingClientRect(), s = b.querySelector('span') || b, cs = getComputedStyle(b); return { v: b.dataset.v, t: s.textContent.trim(), vis: !b.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.top >= 0 && r.bottom <= innerHeight + 1, alto: Math.round(r.height), corta: b.scrollWidth > b.clientWidth || s.scrollWidth > s.clientWidth || s.getBoundingClientRect().width > b.clientWidth + .5 }; }));
@@ -564,7 +591,7 @@ async function navegador() {
       return { ok, detalle: ok ? '«' + m.txt + '» (' + m.n + ' caracteres, ' + Math.round(m.alto) + ' px de alto)' : JSON.stringify({ salio, m }), captura: f };
     });
 
-    await paso('Región de Italia: mapa con 7 ciudades', 'musculo', async () => {
+    await paso('Región de Italia: mapa con 7 ciudades', { de: 'musculo', para: ['mapas'] }, async () => {
       await page.evaluate(() => Game.save());
       await page.reload({ waitUntil: 'load' });
       await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
@@ -576,7 +603,7 @@ async function navegador() {
       return { ok, detalle: ok ? '7 ciudades visibles, ' + r.rutas + ' rutas' : 'región ' + r.reg + ', visibles ' + r.vis + ', fantasmas ' + r.fantasmas, captura: await foto('italia') };
     });
 
-    await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', 'musculo', async () => {
+    await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', { de: 'musculo', para: ['mapas'] }, async () => {
       const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
       await recarga();   // el menú vuelve a estar a la vista (la partida de Italia seguía abierta)
       const abreCorta = async () => { await page.evaluate(() => PORTADA.vista('nueva')); await page.click('#menu [data-act="hoja"][data-v="corta"]'); await espera(400); };
@@ -618,7 +645,7 @@ async function navegador() {
 /* ---------- 2b. Juez de la guerra jugada de verdad (GC2 y CG4b: gobierno/juez-guerra.mjs, ~23 min, hasta 40 en una máquina lenta; solo en el recorrido completo) ---------- */
 async function guerraJugada() {
   console.log('Juez 2 · Guerra jugada de verdad (gobierno/juez-guerra.mjs)');
-  const r = await corre(['gobierno/juez-guerra.mjs'], 2400000);   /* CG4b: la batalla de la campaña con el simulador, ~23 min aquí sin carga; con la máquina ocupada, más */
+  const r = await corre(['gobierno/juez-guerra.mjs', 'dpr=1'], 2400000);   /* J20a: escala 1, como el recorrido (las medidas son en px de pantalla, no cambian) */   /* CG4b: la batalla de la campaña con el simulador, ~23 min aquí sin carga; con la máquina ocupada, más */
   const lineas = (r.stdout || '').split('\n'), mal = lineas.filter(l => /MAL:|^prueba:|^consola:|^excepción:/.test(l)), avisos = lineas.filter(l => /AVISO/.test(l)).length, bien = lineas.filter(l => /^\s*bien:/.test(l)).length;
   apunta('Guerra jugada de verdad (entrar, salir, maniobra, primer toque, arte)', r.status === 0, r.status === 0 ? bien + ' comprobaciones bien' + (avisos ? ' · ' + avisos + ' aviso(s) de fallos conocidos del juego (ver salida de juez-guerra.mjs)' : '') : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
   return r.status === 0;
@@ -633,17 +660,21 @@ async function conMemoria(id, nombre, extra, fn) {
   if (pasos.slice(antes).every(p => p.ok)) NUEVA[id] = { huella: h, ok: true, fecha: new Date().toISOString() };
 }
 const visual = async () => {
-  await conMemoria('navegador' + (AREA ? '-' + AREA : ''), 'Recorrido en navegador' + (AREA ? ' · área ' + AREA : ''), ['gobierno/jueces.mjs'], navegador);
-  if (!AREA) await conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
+  /* J20a: el recorrido y la guerra jugada van a la vez, cada uno en su navegador (antes, uno detrás de otro: 19 + 26 min) */
+  const nav = () => conMemoria('navegador' + (AREA ? '-' + AREA : ''), 'Recorrido en navegador' + (AREA ? ' · área ' + AREA : ''), ['gobierno/jueces.mjs', 'gobierno/ritmo-pruebas.js'], navegador);
+  const gue = () => conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs', 'gobierno/ritmo-pruebas.js'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
+  if (AREA) await nav(); else if (SEGUIDO) { await nav(); await gue(); } else await Promise.all([nav(), gue()]);
 };
 /* la lógica (procesos aparte) y el navegador corren a la vez: el recorrido pasa mucho rato esperando a la página */
-const grupos = [...(AREA ? [] : [logica]), ...(RAPIDO ? [] : [visual])];
+const COLA = AREA ? [] : preparaLogica();
+await aSolas(COLA);
+const grupos = [...(AREA ? [] : [() => logica(COLA)]), ...(RAPIDO || LIGA ? [] : [visual])];
 if (SEGUIDO) for (const g of grupos) await g(); else await Promise.all(grupos.map(g => g()));
 { const m = leeMemoria(); Object.assign(m, NUEVA); if (Object.keys(NUEVA).length) guardaMemoria(m); }
 
 const fallos = pasos.filter(p => !p.ok);
-const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, area: AREA, todo: TODO, saltadas, pasos, errores };
+const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, liga: LIGA, area: AREA, todo: TODO, saltadas, pasos, errores };
 if (!RAPIDO) await mkdir(CAPS, { recursive: true });
 if (!RAPIDO) await writeFile(join(CAPS, 'informe.json'), JSON.stringify(informe, null, 1));
-console.log('\n' + (informe.ok ? 'VEREDICTO: APTO' : 'VEREDICTO: NO APTO (' + fallos.length + ' fallo' + (fallos.length > 1 ? 's' : '') + ')') + ' · ' + pasos.length + ' comprobaciones' + (saltadas ? ' (' + saltadas + ' sin cambios, de memoria)' : '') + ' · ' + informe.segundos + ' s' + (AREA ? ' · área ' + AREA : '') + (RAPIDO ? '' : ' · capturas en ' + CAPS.slice(RAIZ.length + 1) + '/'));
+console.log('\n' + (informe.ok ? 'VEREDICTO: APTO' : 'VEREDICTO: NO APTO (' + fallos.length + ' fallo' + (fallos.length > 1 ? 's' : '') + ')') + ' · ' + pasos.length + ' comprobaciones' + (saltadas ? ' (' + saltadas + ' sin cambios, de memoria)' : '') + ' · ' + informe.segundos + ' s' + (AREA ? ' · área ' + AREA : '') + (LIGA ? ' · liga' : '') + (RAPIDO ? '' : ' · capturas en ' + CAPS.slice(RAIZ.length + 1) + '/'));
 process.exit(informe.ok ? 0 : 1);
