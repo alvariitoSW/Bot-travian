@@ -206,7 +206,7 @@ agricultura, mercado, caminos de victoria y batallas a pie (falange, hoplitas).
 | **M2 · La polis crece** | Ciudad viva griega rehecha desde cero (la de Roma se siente artificial); la levantas tú o delegas en ministros; crece y pide por clases; edificios griegos con aspecto propio, ninguno repetido; militares (herrería, campo de entrenamiento, mercenarios); tres épocas que cambian el aspecto (barro y madera → mármol); bella (nota ≥ 7); texturas Poly Haven; descarga hasta ~80 MB; Meshy cuando haya créditos | Grande |
 | **M3 · Ejército y comercio desde la ciudad** | Las tropas salen de tus edificios; comercias con tus vecinos (mercado y agricultura de la 1.0, en griego) | Grande |
 | **M4 · Política y dominio** | Regímenes que cambian (aristocracia → tiranía → democracia u oligarquía), asamblea o consejo que vota; se gana solo por armas: todas las ciudades o el 90 % del territorio; sin plazo | Grande |
-| **M5 · Guerra** | Las batallas de la 1.0 enganchadas a la partida (hoplitas, falange), también en Escaramuzas, y un asedio corto | Medio |
+| **M5 · Guerra** | Batallas de la 1.0 con griegos (también en Escaramuzas); conquista con batalla y asedio corto; anexionar, saquear o tributo; barcos y ejércitos que embarcan; batallas navales simuladas | Grande |
 
 ### Estándar de M1 (borrador, 25/11)
 | Qué se mide | Quién lo mide | Aprueba si… |
@@ -331,6 +331,31 @@ Aplicado:
 | Victoria por armas | Liga de bots, desde partidas avanzadas | Con todas las ciudades o el 90 % del territorio, sale la pantalla de victoria; el bot lo logra desde una partida avanzada en ≤ 20 min de juez |
 | Se entiende | Juez de pantalla | Régimen, votación y avance hacia la victoria a la vista en ≤ 2 toques |
 | Aspecto | Juez de aspecto con ficha | Nota ≥ 8,5 (asamblea, ágora, retratos de época) |
+| Te gusta | El usuario | Su «Bien» |
+
+
+### M5 · Guerra: decisiones (25/11)
+- Conquista: **«Batalla y luego asedio (Recomendado)»**: primero batalla en campo; si se encierran, asedio corto
+  (rendir por hambre en varias estaciones o asaltar con testudo y escalas); en vivo, rápido o resuelto.
+- Ciudad conquistada: **«Tres opciones (Recomendado)»**: anexionar, saquear o aliada que paga tributo; cada una cambia
+  el ánimo de tus clases y de las otras polis.
+- Mar, literal: «Hay cosas que hacer en el mar pero de momento las batallas solo serán simuladas no se podrá jugar en
+  directo en principio y empezamos a poner tropas de barcos y permitir que se muevan las tropas en barco a otras islas
+  etc». → Barcos como tropa (trirremes y transportes), ejércitos que embarcan a otras islas y costas, batallas navales
+  **simuladas** (sin jugarlas en directo).
+
+### Estándar de M5 (borrador, 25/11)
+| Qué se mide | Quién lo mide | Aprueba si… |
+|---|---|---|
+| Batallas de la 1.0 con griegos | Juez de batallas | Hoplitas y falange en mando del bloque, bajar a pie y batalla rápida, en la partida y en Escaramuzas |
+| Asedio por hambre | Bot de reglas | Una ciudad rodeada sin comida se rinde en 2–6 estaciones según su granero |
+| Asalto a la muralla | Juez de batallas | Testudo hasta la puerta y escalas; se puede ganar y perder |
+| Tras conquistar | Bot de reglas | Anexionar, saquear o tributo; cada una cambia el ánimo de clases y polis de forma medible |
+| Barcos | Bot de reglas | Trirremes y transportes se construyen en el puerto; un ejército embarca y desembarca en otra isla o costa |
+| Batalla naval simulada | Bot de reglas | Resultado según barcos y mando; se ve el informe con bajas |
+| Equilibrio | Liga de bots | La guerra es la vía de victoria: el bot gana desde partida avanzada sin que salga regalado (ni en < 30 años de juego) |
+| Se entiende | Juez de pantalla | Atacar, asediar, embarcar: ≤ 3 toques cada uno |
+| Aspecto | Juez de aspecto con ficha | Nota ≥ 8,5 (batalla, muralla, barcos en el mapa) |
 | Te gusta | El usuario | Su «Bien» |
 
 
