@@ -1387,6 +1387,7 @@
   const firstMine = list => list.find(id => G.state.cities[id] && G.state.cities[id].owner === 'roma') || G.capital();
 
   const EV_VERSION = 2;   // sube cuando cambia el AÑO de un hecho (Pirro 277 → 280): las partidas viejas recalculan qué hechos ya pasaron
+  G.DESARME = 0.4;   // CG10: parte de la guarnición de referencia que le queda a Cartago tras el desarme de 149 a.C. (licencia de juego). CG4c: 0,4 (con la batalla jugada, 1/4 daba 10 de 10 caídas; 2/5, 4 de 10)
   const FX = {
     pirro: function (s) {
       if (!s.cities.tarentum || s.cities.tarentum.owner !== 'epiro') return;
@@ -1437,7 +1438,8 @@
     },
     escipion: function (s) { s.hero.pts++; },
     masinisa: function (s) { if (!s.cities.roma) return; const u = s.cities.roma.units; u.numidas = (u.numidas || 0) + 80; },
-    flex: function (s) { s.mods.flex = 1; }
+    flex: function (s) { s.mods.flex = 1; },
+    desarme: function (s) { const c = s.cities.carthago, base = D.CITIES.carthago.g; if (!c || c.owner !== 'cartago') return; for (const k in c.units) c.units[k] = Math.min(c.units[k], Math.floor((base[k] || 0) * G.DESARME)); }   // CG10: 149 a.C., Cartago entrega sus armas (Apiano, Líbica 80); su guarnición baja a G.DESARME de la de referencia; la muralla sigue
   };
 
   function checkEvents(year) {
@@ -2006,13 +2008,14 @@
   /* Los modificadores de la campaña (sides[b].atkMul, defMul y mor: héroe, forja, ciencia, murallas, dioses, copia del rival) pasan al simulador
      como cfg.mods (licencia de juego, ver kMod en js/simulador.js). Levas bisoñas (sides[b].bis, fracción 0–1): atk × (1 − 0,3 × bis), el mismo
      criterio que el poder de un bando en js/battle.js. bono0 (al delegar): atk del bando 0 × bono0. El tribuno de campaña manda el centro romano. */
-  const modsDe = (sd, bono0) => [0, 1].map(b => { const x = sd[b] || {}; return { atk: (x.atkMul || 1) * (1 - 0.3 * Math.max(0, Math.min(1, x.bis || 0))) * (b === 0 && bono0 > 0 ? bono0 : 1), def: x.defMul || 1, mor: x.mor || 0 }; });
+  /* CG4c: la muralla del que defiende multiplica su defensa por 1 + 0,1 × nivel, como en js/battle.js (licencia de juego; CG4b no la pasaba) */
+  const modsDe = (sd, bono0, cfg) => [0, 1].map(b => { const x = sd[b] || {}, muro = cfg && cfg.defender === b ? 1 + 0.1 * Math.max(0, cfg.wall || 0) : 1; return { atk: (x.atkMul || 1) * (1 - 0.3 * Math.max(0, Math.min(1, x.bis || 0))) * (b === 0 && bono0 > 0 ? bono0 : 1), def: (x.defMul || 1) * muro, mor: x.mor || 0 }; });
   G.cfgSim = function (info, ch, bono0) {
     const sd = info.cfg.sides, ej = [0, 1].map(b => { const u = Object.assign({}, ch && ch.sides && ch.sides[b] ? ch.sides[b].units : sd[b].units); for (const k in u) if (!(u[k] > 0)) delete u[k]; return u; });
     const fac = facRival(info), Bt = BAT();
     ej.pueblos = [G.puebloDe('roma'), G.puebloDe(fac)];
     const ter = info.campo ? (D.TERRENO_CAMPO[info.campo.rasgo] || 'llano') : (info.cfg.terreno || (Bt && Bt.terrenoDe ? Bt.terrenoDe(info.city, info.cfg.seed) : 'llano'));
-    const cfg = { semilla: (info.cfg.seed >>> 0) || 7, ejercitos: ej, campo: CAMPO_SIM[ter] || 'llano', col: (D.FACTIONS[fac] || {}).col || sd[1].col, tacticas: true, pueblo: 'roma', fac, mods: modsDe(sd, bono0) };
+    const cfg = { semilla: (info.cfg.seed >>> 0) || 7, ejercitos: ej, campo: CAMPO_SIM[ter] || 'llano', col: (D.FACTIONS[fac] || {}).col || sd[1].col, tacticas: true, pueblo: 'roma', fac, mods: modsDe(sd, bono0, info.cfg) };
     const tr = sd[0].tribuno, Z = SIM(); if (tr && tr.car && Z && Z.TRIBUNOS) { const t0 = Z.TRIBUNOS.map(x => Object.assign({}, x)); t0[1] = { n: tr.n || t0[1].n, car: tr.car }; cfg.tribunos = [t0, Z.JEFES.map(x => Object.assign({}, x))]; }
     return cfg;
   };

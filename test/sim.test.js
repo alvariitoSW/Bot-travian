@@ -472,7 +472,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   assert.strictEqual(s.cities.capua.owner, 'roma'); assert.strictEqual(s.cities.messana.owner, 'mamertinos');
   for (const id in s.cities) assert(D.FACTIONS[s.cities[id].owner], 'dueño inexistente en ' + id);
   s.t = (280 - 264) * 12 - 0.5; s.marches = []; G.tick(1);   // sin la marcha de Pirro, que llega antes y abriría una batalla
-  assert.strictEqual(s.cities.agrigentum.owner, 'cartago', 'en 264 Agrigentum pasa a Cartago'); assert.strictEqual(s.cities.agrigentum.units.libios, 140);
+  assert.strictEqual(s.cities.agrigentum.owner, 'cartago', 'en 264 Agrigentum pasa a Cartago'); assert.strictEqual(s.cities.agrigentum.units.libios, D.CITIES.agrigentum.post.cartago.libios);   // CG4c: 140 → 90 (precio por cabeza)
   assert.strictEqual(s.cities.corinthus.owner, 'macedonia');
   s.t = (280 - 243) * 12 - 0.5; s.pending = []; s.marches = []; G.tick(1);
   assert.strictEqual(s.cities.corinthus.owner, 'aquea', 'en 243 Arato libera Corinto'); assert.strictEqual(s.cities.corinthus.units.hoplitas, 300);
@@ -487,9 +487,9 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   assert.strictEqual(c0.owner, 'iberos', 'en 280 es poblado íbero'); assert(c0.units.iberos > 0 && !c0.units.libios && c0.b.muralla === 1);
   s.t = (280 - 228) * 12 - 0.5; s.pending = []; s.marches = []; G.tick(1);
   const c = s.cities.carthagonova;
-  assert.strictEqual(c.owner, 'cartago', 'hacia 228 pasa a Cartago'); assert.strictEqual(c.units.libios, 220); assert.strictEqual(c.b.muralla, 3); assert.strictEqual(c.w, 4);
+  assert.strictEqual(c.owner, 'cartago', 'hacia 228 pasa a Cartago'); assert.strictEqual(c.units.libios, D.CITIES.carthagonova.en228.g.libios);   // CG4c: 220 → 130 (precio por cabeza) assert.strictEqual(c.b.muralla, 3); assert.strictEqual(c.w, 4);
   const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, x) => { mem[k] = x; } };
-  G.save(); assert(G.load()); assert.strictEqual(G.state.cities.carthagonova.owner, 'cartago'); assert.strictEqual(G.state.cities.carthagonova.units.libios, 220);
+  G.save(); assert(G.load()); assert.strictEqual(G.state.cities.carthagonova.owner, 'cartago'); assert.strictEqual(G.state.cities.carthagonova.units.libios, D.CITIES.carthagonova.en228.g.libios);
   // si ya era romana, no cambia
   const r = G.newGame('H8b'); r.cities.carthagonova.owner = 'roma'; const u = JSON.stringify(r.cities.carthagonova.units);
   r.t = (280 - 228) * 12 - 0.5; r.pending = []; r.marches = []; G.tick(1);
