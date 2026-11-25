@@ -3,72 +3,15 @@ import { createRequire } from 'node:module';
 import { existsSync, statSync, readFileSync } from 'node:fs';
 const require = createRequire(import.meta.url);
 require('../js/data.js');
-const R = require('../js/guerra.js'), Sm = require('../js/simulador.js'), D = require('../js/dialogos.js'), Reg = require('../js/registro.js');
+const Sm = require('../js/simulador.js'), D = require('../js/dialogos.js'), Reg = require('../js/registro.js');
 const RAIZ = new URL('..', import.meta.url).pathname, fallos = [];
 const ok = (c, t) => { if (!c) fallos.push(t); console.log((c ? 'bien  ' : 'MAL   ') + t); };
 const cerca = (a, b, e) => Math.abs(a - b) <= e;
-const mult = (ej, k) => { const o = {}; for (const x in ej) o[x] = Math.round(ej[x] * k); return o; };
-const ROMA = { hastati: 360, principes: 360, triarii: 180, equites: 60 }, ENEM = { galos: 690, libios: 780, iberos: 690, numidas: 60 };
-const ENEM_ELE = Object.assign({}, ENEM, { elefantes: 6 });
-
-// el bot de pruebas de js/game.js (G.botGuerra), con un oficial opcional que contesta
-function bot(B) {
-  R.cubrirse(B); if (B.fase !== 'lucha') return;
-  for (let i = 0; i < 3; i++) {
-    const s = B.sect[i], c = s.c[0], e = s.c[1]; if (c.roto || e.roto) continue;
-    const fe = R.frente(e).fatiga, fr = R.frente(c).fatiga;
-    R.ordenar(B, i, (e.postura === 'aguantar' && fr < 0.75) || fe > 0.6 || e.flanqueado || e.golpe > 0 ? 'empujar' : 'aguantar');
-    const l = R.frente(c), sig = c.lineas[1];
-    if (sig && sig.fatiga < 0.4 && (fr > 0.7 || l.hombres < 0.45 * l.max) && sig.hombres / sig.max > l.hombres / l.max - 0.1) R.ordenar(B, i, 'relevo');
-  }
-  if (B.cab.estado === 'lista' && (B.num.estado === 'hostiga' || B.num.estado === 'llega')) R.ordenar(B, B.num.sect, 'caballeria');
-}
-function juega(ejercito, arenga, sem, contesta) {
-  const B = R.crear({ semilla: sem, ejercitos: [ejercito, ENEM_ELE] }); D.arengar(B, arenga); let prox = 0, pq = 0; const hechas = [];
-  while (B.fase !== 'fin' && B.t < 900) {
-    if (B.t >= prox) { bot(B); prox = B.t + 1.5; }
-    if (contesta && B.t >= pq) { pq = B.t + 1; const p = D.detectar(B); if (p) { D.mostrada(B, p); const r = contesta(p, B); hechas.push({ t: B.t, tipo: p.tipo, r }); } }
-    R.paso(B, 0.1);
-  }
-  B.hechas = hechas; return B;
-}
 
 // ---------- 1. Las arengas ----------
 ok(D.ARENGAS.length === 3 && D.ARENGAS.every(a => a.nombre && a.efecto && a.lat && a.es && a.pron && a.fuente), 'hay 3 arengas, cada una con nombre, efecto en una línea, latín, castellano, pronunciación y fuente');
 ok(new Set(D.ARENGAS.map(a => a.efecto)).size === 3, 'los tres efectos son distintos');
-{
-  const B0 = R.crear({ semilla: 5, ejercitos: [ROMA, ENEM] }), B = R.crear({ semilla: 5, ejercitos: [ROMA, ENEM] });
-  D.arengar(B, 'hogares');
-  ok(B.sect.every(s => cerca(s.c[0].moral, B0.sect[0].c[0].moral + 0.04, 1e-9) && cerca(s.c[0].tope, 1.04, 1e-9)), 'Por Roma y por vuestros hogares: la moral inicial sube exactamente +0,04 (4 %) en los tres cuerpos');
-  ok(B.sect.every(s => s.c[1].moral === 1 && !s.c[1].mod && !s.c[1].tope), '…y el enemigo no cambia');
-  ok(B.arenga === 'hogares', 'el estado recuerda qué arenga se dio (se guarda con la batalla)');
-  const C = R.cargar(R.guardar(B)); ok(C.arenga === 'hogares' && C.sect[0].c[0].tope === 1.04 && C.sect[0].c[0].mod, 'la arenga sobrevive a guardar y cargar la batalla a medias');
-  // el relevo no recorta la moral extra
-  const c = B.sect[1].c[0]; c.moral = 1.04; R.paso(B, 0.1); ok(c.moral <= 1.04 + 1e-9 && c.moral > 1, 'la moral extra no se recorta a 1 en el primer paso');
-  D.arengar(B0, 'ninguna'); ok(B0.arenga === 'ninguna' && !B0.sect[0].c[0].mod, '«Sin arenga» no toca nada');
-}
-// auspicios: pierden un 8 % menos de moral (misma batalla, 25 s de lucha)
-function perdida(arenga, seg) {
-  const B = R.crear({ semilla: 9, ejercitos: [ROMA, ENEM] }); D.arengar(B, arenga); let prox = 0;
-  while (B.fase !== 'fin' && B.t < seg) { if (B.t >= prox) { bot(B); prox = B.t + 1.5; } R.paso(B, 0.1); }
-  return B.sect.reduce((a, s) => a + (1 - s.c[0].moral), 0);
-}
-{
-  const a = perdida('ninguna', 70), b = perdida('auspicios', 70), razon = b / a;
-  ok(a > 0.2 && cerca(razon, 0.92, 0.05), `Los dioses están con nosotros: pierden ${(100 * (1 - razon)).toFixed(1)} % menos de moral (dicho: 8 %; pérdida sin arenga ${a.toFixed(2)})`);
-}
-// botín: más fuerza al empujar, más fatiga
-{
-  const mk = id => { const B = R.crear({ semilla: 4, ejercitos: [ROMA, ENEM] }); D.arengar(B, id); return B; };
-  const a = mk('ninguna'), b = mk('botin'); const fa = R.fuerza ? null : null; void fa;
-  const sa = a.sect[1].c[0], sb = b.sect[1].c[0];
-  ok(sb.mod.empuja === 1.04 && sb.mod.cansa === 1.12 && sb.mod.moral === 1 && !sb.tope, 'Por el botín y la gloria: empuja ×1,04 y se cansa ×1,12; la moral no cambia');
-  const F = (B) => { for (let i = 0; i < 3; i++) R.ordenar(B, i, 'avanzar'); let k = 0; while (B.sect[1].dist > 0 && k++ < 4000) R.paso(B, 0.1); for (let i = 0; i < 3; i++) R.ordenar(B, i, 'empujar'); for (let j = 0; j < 100; j++) R.paso(B, 0.1); return R.frente(B.sect[1].c[0]).fatiga; };
-  const fa2 = F(mk('ninguna')), fb2 = F(mk('botin'));
-  ok(fa2 > 0.1 && fb2 > fa2 * 1.05, `con la arenga del botín se cansan antes (fatiga a los 10 s de empujar: ${fa2.toFixed(3)} → ${fb2.toFixed(3)})`);
-  void sa;
-}
-// lo mismo en Escaramuzas
+// las arengas en el simulador (campaña y Escaramuzas desde CG4b; las pruebas de la batalla vieja, js/guerra.js, se retiraron con ella)
 {
   const mk = id => { const S = Sm.crear({ semilla: 3, ejercitos: [{ hastati: 600, principes: 600 }, { galos: 1200 }] }); D.arengar(S, id); return S; };
   const S0 = mk('ninguna'), S1 = mk('hogares'), S2 = mk('botin'), S3 = mk('auspicios');
@@ -78,92 +21,10 @@ function perdida(arenga, seg) {
   ok(S3.man.filter(x => x.lado === 0).every(x => x.mod.moral === 0.92) && S3.arenga === 'auspicios', 'Escaramuzas: auspicios, pérdida de moral ×0,92');
   const C = Sm.cargar(Sm.guardar(S1)); ok(C.arenga === 'hogares' && C.man[0].tope === 1.04, 'Escaramuzas: la arenga sobrevive a guardar y cargar');
 }
-// equilibrio: 200 batallas de prueba, de ejércitos desde muy flojos a muy fuertes (la victoria depende del tamaño); mismo bot y mismas semillas
-{
-  const N = 200, gana = id => { let g = 0; for (let s = 0; s < N; s++) { const k = 0.4 + 0.8 * s / N; if (juega(mult(ROMA, k), id, 1000 + s * 7919).resultado.como === 'victoria') g++; } return g; };
-  const base = gana('ninguna'), r = { ninguna: base };
-  for (const a of D.ARENGAS) { r[a.id] = gana(a.id); }
-  console.log('  victorias de ' + N + ' (ejército del 40 % al 120 %):', JSON.stringify(r));
-  for (const a of D.ARENGAS) { const d = 100 * (r[a.id] - base) / N; ok(d <= 8 && d >= 1, `equilibrio: «${a.nombre}» ${d >= 0 ? '+' : ''}${d.toFixed(1)} % de victorias frente a «Sin arenga» (debe quedar entre +1 y +8)`); }
-}
-
 // ---------- 2. Las preguntas ----------
 ok(D.PRIORIDAD.length === 6 && D.PRIORIDAD.every(t => D.PREGUNTAS[t] && D.PREGUNTAS[t].ops.length >= 2 && D.PREGUNTAS[t].ofi), 'seis tipos de pregunta, cada una con al menos 2 respuestas y un oficial');
 ok(D.PRIORIDAD.every(t => D.PREGUNTAS[t].ops.every(o => o.txt && o.sub && o.moral > 0 && o.moral <= 0.1 && o.orden)), 'cada respuesta tiene texto, efecto dicho y un cambio de moral pequeño (hasta +10 %)');
 ok(D.PRIORIDAD.every(t => D.PREGUNTAS[t].ops.filter(o => !o.req && !o.solo).length >= 2), 'cada pregunta se puede contestar siempre con 2 respuestas (sin depender de la caballería)');
-// la pausa y el tope
-{
-  const B = R.crear({ semilla: 2, ejercitos: [ROMA, ENEM_ELE] });
-  ok(D.detectar(B) === null, 'al empezar no hay preguntas');
-  let prox = 0, vistas = [];
-  while (B.fase !== 'fin') {
-    if (B.t >= prox) { bot(B); prox = B.t + 1.5; const p = D.detectar(B); if (p) { D.mostrada(B, p); vistas.push(p); } }
-    R.paso(B, 0.1);
-  }
-  ok(vistas.length >= 2 && vistas.length <= 4, `en una batalla con bot salen entre 2 y 4 preguntas (salieron ${vistas.length}: ${vistas.map(p => Math.round(p.t) + ' s ' + p.tipo).join(', ')})`);
-  ok(vistas.every((p, i) => i === 0 || p.t - vistas[i - 1].t >= 40 - 1e-9), 'nunca dos preguntas con menos de 40 s de batalla entre ellas');
-  ok(vistas.every((p, i) => i === 0 || p.tipo !== vistas[i - 1].tipo), 'nunca dos seguidas del mismo tipo');
-  ok(B.dlg && B.dlg.n === vistas.length && B.dlg.hist.length === vistas.length, 'la batalla guarda su cuenta de preguntas (B.dlg) y sobrevive a guardar/cargar: ' + (R.cargar(R.guardar(B)).dlg.n === vistas.length));
-}
-// forzando situaciones: cada pregunta sale cuando toca, y no otra
-{
-  const prepara = () => { const B = R.crear({ semilla: 6, ejercitos: [ROMA, ENEM] }); B.t = 60; for (const s of B.sect) { s.dist = 0; } B.fase = 'lucha'; return B; };
-  let B = prepara(); B.sect[0].c[0].moral = 0.3; let p = D.detectar(B);
-  ok(p && p.tipo === 'flanco' && p.sect === 0 && p.donde === 'por la izquierda' && p.ofi === 'tribuno' && p.opciones.length >= 2, 'un flanco con moral baja: el tribuno avisa del flanco izquierdo');
-  B = prepara(); B.sect[2].c[0].flanqueado = true; p = D.detectar(B); ok(p && p.tipo === 'flanco' && p.sect === 2, 'un flanco envuelto también lo dispara');
-  B = prepara(); B.sect[1].c[0].moral = 0.5; p = D.detectar(B); ok(p && p.tipo === 'triarios' && p.ofi === 'primipilo' && p.sect === 1, 'los triarios de reserva y moral media: el primipilo pregunta por los triarios');
-  B = prepara(); R.frente(B.sect[1].c[0]).fatiga = 0.8; p = D.detectar(B); ok(p && p.tipo === 'cansancio' && p.sect === 1, 'tropas cansadas: el primipilo lo dice');
-  B = prepara(); B.sect[0].c[1].moral = 0.2; p = D.detectar(B); ok(p && p.tipo === 'flaquea' && p.sect === 0, 'el enemigo que flaquea: el tribuno aprieta');
-  B = prepara(); B.eventos.push({ tipo: 'carga-enemiga', sect: 2, tropa: 'elefantes', t: 58 }); p = D.detectar(B); ok(p && p.tipo === 'elefantes' && p.sect === 2, 'carga de elefantes (la tiene prioridad sobre lo demás)');
-  B = prepara(); B.eventos.push({ tipo: 'numidas-aviso', sect: 0, t: 59 }); p = D.detectar(B); ok(p && p.tipo === 'caballeria' && p.sect === 0, 'jinetes enemigos al flanco: el primipilo avisa');
-  B = prepara(); B.eventos.push({ tipo: 'carga-enemiga', sect: 2, tropa: 'elefantes', t: 20 }); ok(D.detectar(B) === null, 'un aviso de hace 40 s ya no cuenta');
-  B = prepara(); B.sect[0].c[0].moral = 0.3; D.mostrada(B, D.detectar(B)); B.t += 20; ok(D.detectar(B) === null, 'a los 20 s de la anterior no se pregunta');
-  B.t += 25; ok(D.detectar(B) === null || D.detectar(B).tipo !== 'flanco', '…y a los 45 s no repite el mismo tipo seguido');
-  B = prepara(); B.dlg = { ult: -999, tipo: '', n: 4, hist: [] }; B.sect[0].c[0].moral = 0.3; ok(D.detectar(B) === null, 'a la cuarta pregunta ya no se pregunta más');
-}
-// las respuestas dan la orden de verdad y mueven la moral lo dicho
-{
-  const prepara = () => { const B = R.crear({ semilla: 6, ejercitos: [ROMA, ENEM] }); B.t = 60; for (const s of B.sect) s.dist = 0; B.fase = 'lucha'; return B; };
-  let B = prepara(); const c = B.sect[0].c[0]; c.moral = 0.3; const p = D.detectar(B);
-  const k = p.opciones.findIndex(o => o.orden === 'relevo'), antes = R.frente(c).tipo;
-  const r = D.responder(B, p, k);
-  ok(r.ok && c.relevo > 0 && cerca(c.moral, 0.3 + 0.1 + 0.04, 1e-9) && B.eventos.some(e => e.tipo === 'relevo'), `«Relevo» da la orden de relevo (la línea de ${antes} cambia) y la moral sube lo dicho: +0,10 del relevo +0,04 de la respuesta (${c.moral.toFixed(2)})`);
-  B = prepara(); const c2 = B.sect[0].c[0]; c2.moral = 0.3; c2.postura = 'empujar'; const p2 = D.detectar(B), k2 = p2.opciones.findIndex(o => o.orden === 'aguantar');
-  const r2 = D.responder(B, p2, k2);
-  ok(r2.ok && c2.postura === 'aguantar' && cerca(c2.moral, 0.36, 1e-9), `«Mantened la línea» pone a ese cuerpo a aguantar y sube la moral +0,06 (${c2.moral.toFixed(2)})`);
-  B = prepara(); const c3 = B.sect[0].c[0]; c3.moral = 0.3; c3.postura = 'aguantar'; const p3 = D.detectar(B), r3 = D.responder(B, p3, p3.opciones.findIndex(o => o.orden === 'aguantar'));
-  ok(r3.ok && cerca(c3.moral, 0.36, 1e-9), 'si ya aguantaban, la respuesta vale igual (sube la moral, la orden no cambia nada)');
-  B = prepara(); const c4 = B.sect[2].c[0]; c4.moral = 0.99; B.sect[2].c[0].flanqueado = true; const p4 = D.detectar(B); D.responder(B, p4, 1); ok(c4.moral <= 1 + 1e-9, 'la moral nunca pasa de su tope');
-  B = prepara(); B.sect[0].c[0].moral = 0.3; B.sect[0].c[0].postura = 'empujar'; const p5 = D.detectar(B), moral5 = B.sect[0].c[0].moral, r5 = D.porTiempo(B, p5);
-  ok(r5.porTiempo && r5.ok && r5.frase.lat === 'Tenebo aciem!' && B.sect[0].c[0].postura === 'aguantar' && B.sect[0].c[0].moral > moral5, 'si no contestas a tiempo, el oficial hace lo prudente (aguantar), dice «Tenebo aciem!» y la moral sube algo');
-  B = prepara(); B.cab.h = 0; B.sect[0].c[0].moral = 0.3; ok(D.detectar(B).opciones.every(o => o.orden !== 'caballeria'), 'sin caballería, esa respuesta no se ofrece');
-  B = prepara(); B.sect[0].c[0].moral = 0.3; ok(D.detectar(B).opciones.some(o => o.orden === 'caballeria'), 'con caballería lista, sí se ofrece');
-  // antes del choque las órdenes se traducen (aguantar = escudos, empujar = avanzar)
-  B = R.crear({ semilla: 6, ejercitos: [ROMA, ENEM_ELE] }); B.t = 60; B.eventos.push({ tipo: 'carga-enemiga', sect: 1, tropa: 'elefantes', t: 59 });
-  const pe = D.detectar(B); ok(pe && pe.tipo === 'elefantes' && B.sect[1].dist > 0, 'elefantes antes del choque: se pregunta aunque aún no luchen');
-  const re = D.responder(B, pe, pe.opciones.findIndex(o => o.orden === 'aguantar')); ok(re.ok && B.sect[1].c[0].postura === 'escudos', '…y «escudos juntos» se traduce en «escudos» (la orden de ese momento)');
-}
-// la batalla con bot sigue terminando, contestando al azar, a tiempo o sin contestar
-{
-  let n = 0, term = 0, mal = 0;
-  for (const modo of ['azar', 'tiempo', 'primera']) for (let s = 1; s <= 8; s++) {
-    let rr = s * 2654435761 >>> 0; const rnd = () => { rr = (Math.imul(rr, 1664525) + 1013904223) >>> 0; return rr / 4294967296; };
-    const B = juega(ROMA, ['ninguna', 'hogares', 'botin', 'auspicios'][s % 4], 300 + s * 31, (p, B) => modo === 'azar' ? D.responder(B, p, Math.floor(rnd() * p.opciones.length)) : modo === 'tiempo' ? D.porTiempo(B, p) : D.responder(B, p, 0));
-    n++; if (B.fase === 'fin' && B.resultado) term++;
-    if (B.hechas.length > 4 || B.hechas.some((h, i) => i && (h.t - B.hechas[i - 1].t < 39.9 || h.tipo === B.hechas[i - 1].tipo))) mal++;
-    if (B.hechas.some(h => !h.r.ok)) mal++;
-  }
-  ok(term === n, `las ${n} batallas con bot y oficiales terminan`);
-  ok(mal === 0, 'en todas: como mucho 4 preguntas, 40 s entre ellas, ninguna repetida seguida, y todas las órdenes se cumplen');
-}
-// una batalla guardada antes de la arenga sigue cargando (migración)
-{
-  const B = R.crear({ semilla: 1, ejercitos: [ROMA, ENEM] }); for (let i = 0; i < 400; i++) R.paso(B, 0.1);
-  const viejo = JSON.parse(R.guardar(B)); delete viejo.arenga; delete viejo.dlg; const C = R.cargar(JSON.stringify(viejo));
-  ok(C.arenga === 'ninguna' && D.detectar(C) !== undefined, 'una batalla guardada antes de SON9 carga sin arenga (se da por «Sin arenga») y las preguntas no fallan');
-  for (let i = 0; i < 3000 && C.fase !== 'fin'; i++) R.paso(C, 0.1); ok(C.fase === 'fin', '…y llega al final');
-}
-
 // ---------- 3. Escaramuzas ----------
 {
   const hechas = []; let n = 0;
@@ -264,9 +125,9 @@ ok(D.PRIORIDAD.every(t => D.PREGUNTAS[t].ops.filter(o => !o.req && !o.solo).leng
     D.ponPreguntas(true); ok(D.preguntasOn() === true && mem['aqvila-preguntas'] === '1', 'se vuelve a encender');
     globalThis.localStorage = { getItem() { throw new Error('bloqueado'); }, setItem() { throw new Error('bloqueado'); } }; ok(D.preguntasOn() === true && D.ponPreguntas(false) === false, 'si el almacenamiento falla, no se rompe y queda encendido');
     if (vieja === undefined) delete globalThis.localStorage; else globalThis.localStorage = vieja;
-    const ui = readFileSync(RAIZ + 'js/ui.js', 'utf8'), mn = readFileSync(RAIZ + 'js/ui-mando.js', 'utf8'), gu = readFileSync(RAIZ + 'js/ui-guerra.js', 'utf8');
+    const ui = readFileSync(RAIZ + 'js/ui.js', 'utf8'), mn = readFileSync(RAIZ + 'js/ui-mando.js', 'utf8');
     ok((ui.match(/data-act="preguntas"/g) || []).length >= 3 && /case 'preguntas'/.test(ui) && /Preguntas de oficiales: /.test(ui), 'el botón «Preguntas de oficiales: sí/no» está en Ajustes, en la hoja de ajustes y en la hoja de opciones del menú, y tiene su acción');
-    ok(/preguntasOn\(\)/.test(mn) && /preguntasOn\(\)/.test(gu), 'las dos batallas (campaña y Escaramuzas) respetan el ajuste; la arenga no depende de él');
+    ok(/preguntasOn\(\)/.test(mn) && !existsSync(RAIZ + 'js/ui-guerra.js'), 'la batalla (una sola desde CG4b: campaña y Escaramuzas) respeta el ajuste; la arenga no depende de él');
   }
 }
 

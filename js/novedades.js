@@ -4,6 +4,12 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 169, fecha: '25/11/2026', cosas: [
+      'La batalla de la campaña es ya la misma que la de Escaramuzas: jugar en vivo, batalla rápida o resolver.',
+      'Si cierras el juego a mitad de batalla, al volver la retomas donde la dejaste.',
+      'Tus heridos vuelven a filas mes a mes en la ciudad; los del vencido pasan a esclavos o se venden.',
+      'La cámara sigue sola al choque, el campo es más verde y los caballos ya no salen negros.',
+      'La falange a pie tiene su propia explicación al empezar.'] },
     { v: 168, fecha: '24/11/2026', cosas: [
       'Falange a pie nueva: baja las sarisas a tiempo, cierra los huecos y aguanta el empuje.',
       'Othismos: cuando las dos falanges chocan, empuja a compás y mira la barra para no ceder.',

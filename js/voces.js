@@ -253,25 +253,7 @@
     return f;
   }
 
-  /* qué situación es un evento de js/guerra.js (null si no habla nadie) */
-  function deEvento(e) {
-    if (!e) return null;
-    switch (e.tipo) {
-      case 'orden': return e.orden === 'empujar' || e.orden === 'avanzar' ? 'empujar' : e.orden === 'aguantar' || e.orden === 'escudos' || e.orden === 'testudo' ? 'aguantar' : null;
-      case 'pila': case 'lluvia': return 'pila';
-      case 'choque': case 'testudo-roto': return 'choque';
-      case 'carga-enemiga': return e.tropa === 'elefantes' ? 'elefantes' : e.tropa === 'equites' || e.tropa === 'numidas' ? 'caballeria' : 'carga-enemiga';
-      case 'elefantes-desbocados': return 'elefantes';
-      case 'caballeria': case 'numidas-aviso': return 'caballeria';
-      case 'envuelve': return e.lado === 1 ? 'flanco' : 'enemigo-cede';
-      case 'linea-deshecha': return 'flaquea';
-      case 'cansados': return 'cansancio';
-      case 'roto': return e.lado === 0 ? 'roto-propio' : 'roto-enemigo';
-      case 'enemigo-cede': case 'impacto': return 'enemigo-cede';
-      case 'relevo': return 'relevo';
-      default: return null;
-    }
-  }
+  /* (CG4b: aquí estaba deEvento, que traducía los eventos de la batalla vieja de la campaña; se retiró con ella. Ahora la campaña usa deSim) */
   /* SON2: gritos del enemigo cuando es griego (falange u hoplitas); grabados en assets/voces/griego<n>.mp3.
      alalá (ἀλαλά / ἀλαλαί): grito de guerra; eleleú (ἐλελεῦ): su variante; peán (ἰὴ παιάν): canto antes de cargar. Dictamen en gobierno/historia/SON1-voces.md */
   const GRIEGO = [
@@ -345,7 +327,7 @@
     n0 = n0 || {}; const hay = t => (n0[t] || 0) > 0;
     return (hay('falange') || hay('hoplitas')) && !CARTAGO.some(hay);
   }
-  const Voces = { GRIEGAS, GRITOS, FRASES_PUEBLO, NOMBRE_PUEBLO, nombreDe, GRIEGO, GRIEGO_PROPIO, griegoPropio, deAviso, deSim, griegoDe, esGriego, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
+  const Voces = { GRIEGAS, GRITOS, FRASES_PUEBLO, NOMBRE_PUEBLO, nombreDe, GRIEGO, GRIEGO_PROPIO, griegoPropio, deAviso, deSim, griegoDe, esGriego, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, rotulo, grupoDisponible, pausaMin };
   raiz.Voces = Voces;
   if (typeof module !== 'undefined' && module.exports) module.exports = Voces;
 })(typeof window !== 'undefined' ? window : globalThis);

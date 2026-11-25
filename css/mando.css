@@ -75,7 +75,7 @@
   #mn-cinta{max-width:calc(100% - 16px)}
 }
 
-/* velos: carga, retirarse, fin (como los de ui-guerra) */
+/* velos: carga, retirarse, fin (como los de la pantalla vieja de la campaña, retirada en CG4b) */
 #mn .velo{z-index:6;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;text-align:center;background:rgba(10,8,6,.74);pointer-events:auto}
 #mn .velo h1{margin:0;font:700 30px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--oro)}
 #mn .velo p{margin:0;max-width:340px;font-size:15px;line-height:1.4}
@@ -86,6 +86,8 @@
 #mn .gordo.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
 #mn .creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
 #mn-carga{background:#15130f!important}
+/* CG4b: mientras carga, «Retirarse» queda por encima del velo (se puede salir sin esperar a los modelos) */
+#mn-hud:has(#mn-carga:not([hidden])) #mn-retirar{position:relative;z-index:7}
 @media (max-height:420px){#mn .velo h1{font-size:26px}#mn .velo{gap:8px}#mn .creditos{position:static}}
 /* LP7: a pie, la capa del bloque (gobierno/maquetas/bloque/) ocupa toda la pantalla; debajo, la batalla grande espera en pausa */
 #mn-apie{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;border:0;z-index:60;background:#15130f;display:block}

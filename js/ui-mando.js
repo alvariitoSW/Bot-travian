@@ -1,12 +1,12 @@
 /* AQVILA — CG4 (A1): la pantalla de MANDO EN VIVO. Dibuja y dirige la batalla del simulador js/simulador.js (global Simulador).
-   De momento solo la usan las Escaramuzas; la campaña sigue con js/ui-guerra.js (se retira en el paso B).
+   La usan las Escaramuzas y, desde CG4b, la campaña (por la hoja de js/ui-batalla-rapida.js). cfg.guardar(S), si está, guarda a mitad.
    Uso: UIMando.abrir(cfg, alTerminar).
      cfg = { S } (un estado ya creado, p. ej. con manípulos a mano: CG5) o { semilla, ejercitos } (o { semilla, manipulos });
      cfg.campo: llano, colina, bosque o mixto (solo paisaje). cfg.pueblo (o cfg.ejercitos.pueblo): el pueblo de tu bando (roma, cartago, epiro, macedonia, galos, iberos); decide en qué lengua gritan los tuyos (SON5). alTerminar(r) recibe Simulador.resumen(S) (r.estado.resultado = {como, motivo, t, bajas, inicial}).
    Cómo se juega: arrastrar en vacío mueve la cámara; pellizcar acerca y aleja. Tocar un manípulo tuyo lo elige (con «Varios», cada toque
    suma o quita); tocar el suelo vacío suelta la elección. Arrastrar DESDE un elegido lo manda allí (mirando hacia donde arrastras;
    si arrastras hacia atrás, retroceden mirando al enemigo). Tocar un enemigo con tropa elegida: cargar contra él. Botones abajo.
-   Piezas que se copian de ui-guerra.js (sin refactorizar: aquella se retira): la escena three.js, la carga de los soldados nuevos
+   Piezas que vinieron de la pantalla vieja de la campaña (ui-guerra.js, retirada en CG4b): la escena three.js, la carga de los soldados nuevos
    (js/gfx/soldado.js y la tabla NUEVO), los niveles de detalle, el instanciado, los velos de carga y fin. La luz y el suelo están en
    js/gfx/campo-mando.js (un solo sitio: los cambia la pieza A2).
    Arte de 0 A.D. (Wildfire Games, CC BY-SA 3.0); soldados nuevos: MakeHuman y Quaternius (CC0 1.0), ver js/gfx/soldado.js. */
@@ -72,7 +72,7 @@
     const { M, U, Gr, St, C } = mods, Sim = root.Simulador;
     const { THREE } = M, { preload, getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, UNIT_SCALE } = U;
     const COLOR = ['#b3261e', '#5b3a8c'];
-    /* el soldado nuevo (js/gfx/soldado.js) para estas tropas, como en ui-guerra; las demás (a caballo, elefantes), con 0 A.D. */
+    /* el soldado nuevo (js/gfx/soldado.js) para estas tropas; las demás (a caballo, elefantes), con 0 A.D. */
     const NUEVO = { hastati: 'hastatus', principes: 'hastatus', vigiles: 'hastatus', galos: 'galo', libios: 'hastatus:libio', triarii: 'triario', velites: 'velite', milicia: 'velite:milicia', honderos: 'hondero', peltastas: 'peltasta', hoplitas: 'hoplita:griego', sagrada: 'hoplita:sagrada', falange: 'falangita', iberos: 'ibero' };
     const UMBRAL_N = [200, 90, 42];      /* alto en pantalla (px CSS) desde el que toca el nivel 0, 1 y 2; por debajo, el 3 */
     const TOPE_N = [40, 150];            /* como mucho, tantas figuras en el nivel 0 y en el 1 (las más cercanas): presupuesto de triángulos */
@@ -106,7 +106,7 @@
       arengando = true; pausa(true);
       DU.arenga(id => { root.Dialogos.arengar(S, id); arengando = false; pausa(false); pintarHud(true); const a = root.Dialogos.arenga(id, puebloD); if (a) aviso(a.efecto); });
     }
-    /* SON5: efectos de la batalla, los mismos que en la campaña (js/ui-guerra.js: suena y ambiente) desde los mismos momentos que traduce Voces.deSim.
+    /* SON5: efectos de la batalla, los que tenía la pantalla vieja de la campaña (suena y ambiente) desde los mismos momentos que traduce Voces.deSim.
        Todo sale por Sonido.maestro; Sonido ya sabe callarse (apagado, sin toque aún, app oculta). Cada cuerno agacha la música. */
     let primerChoque = false, tRuido = 0;
     const claseDe = t => (root.DATA && root.DATA.UNITS && root.DATA.UNITS[t] && root.DATA.UNITS[t].cls) || '';
@@ -206,6 +206,18 @@
       if (!NUEVO[u.tropa]) return Math.max(3, Math.min(16, Math.round(u.n0 / (porFig * 2.5))));   /* a caballo (0 A.D., sin niveles de detalle: 3 300 triángulos cada uno): menos figuras */
       return Math.max(3, Math.min(40, Math.round(u.n0 / porFig)));
     }
+    /* CG4b: la caballería de 0 A.D. salía negra. No era la luz: sus caballos son así en el arte (pelo negro, de media 31/255,
+       y castaño oscuro, 65/255), y desde arriba y de lejos se leían como manchas negras. Aquí solo, sin tocar el arte ni
+       js/gfx/units.js, se aclara la celda del caballo (la cuarta de arriba a la izquierda del atlas): un negro mate y un castaño. */
+    const ACLARA = { equites: 5.5, jinetes: 3.4, numidas: 3.4, tesalios: 3.4 }, matCab = new Map();
+    function materialDe(u, color) {
+      const base = unitMaterialReal(u, color), k = ACLARA[u.key]; if (!k) return base;
+      const id = u.key + color; if (matCab.has(id)) return matCab.get(id);
+      const m = base.clone(), antes = base.onBeforeCompile;
+      m.onBeforeCompile = (sh, r) => { antes(sh, r); sh.fragmentShader = sh.fragmentShader.replace('diffuseColor.rgb *= tx.rgb;', 'if (vMapUv.x < 0.5 && vMapUv.y < 0.5) tx.rgb *= ' + k.toFixed(2) + ';\n  diffuseColor.rgb *= tx.rgb;'); };
+      m.customProgramCacheKey = () => 'aqvila-real-caballo-' + k;
+      matCab.set(id, m); salidas.push(() => m.dispose()); return m;
+    }
     function preparar() {
       const total = S.man.reduce((s, u) => s + u.n0, 0); porFig = Math.max(3, total / MAXF);
       const cuenta = {};
@@ -225,7 +237,7 @@
         const key = id.slice(0, -1), lado = +id.slice(-1), u = getUnit(key), N = soldados.get(id);
         if (N) { mallas.set(id, { u, N, nv: N.niveles.map(s => { const t = SOLD.tropa(s, cuenta[id]); escena.add(t.malla); return t; }) }); continue; }
         if (!u) continue;
-        const g = instancedGeometry(u, cuenta[id]), malla = new THREE.InstancedMesh(g, unitMaterialReal(u, COLOR[lado]), cuenta[id]); malla.frustumCulled = false; escena.add(malla);
+        const g = instancedGeometry(u, cuenta[id]), malla = new THREE.InstancedMesh(g, materialDe(u, COLOR[lado]), cuenta[id]); malla.frustumCulled = false; escena.add(malla);
         mallas.set(id, { malla, fr: g.attributes.aFrame, u });
       }
       /* sombra de cada figura, alargada hacia donde la echa el sol bajo (sin mapa de sombras: no cuesta ni una llamada más) */
@@ -669,7 +681,14 @@
     lienzo.addEventListener('wheel', e => { e.preventDefault(); if (apie) return; if (cine) cine.libre(); cam.d *= Math.exp(e.deltaY * 0.0012); ponCamara(); }, { passive: false });
 
     /* ---------- arriba: pausa, velocidad, retirarse ---------- */
-    function pausa(v) { const p = v === undefined ? !S.pausa : !!v; if (p !== S.pausa && S.fase !== 'fin') Sim.ordenar(S, { tipo: 'pausa', valor: p }); $('pausa').textContent = S.pausa ? 'Seguir' : 'Pausa'; $('pausa').classList.toggle('on', S.pausa); $('enpausa').hidden = !S.pausa; }
+    /* CG4b: la campaña guarda la batalla a mitad (cfg.guardar) para retomarla si se recarga la página: cada ~5 s de batalla,
+       al pausar, al acabar y al ocultar la app. Un fallo al guardar no para la batalla. */
+    let tGuarda = 0;
+    function guarda() { if (!cfg.guardar || cerrado || !lista) return; try { cfg.guardar(S); } catch (e) { /* sin guardado: se sigue */ } tGuarda = 0; }
+    const alOcultar = () => { if (document.visibilityState === 'hidden') guarda(); };
+    window.addEventListener('pagehide', guarda); document.addEventListener('visibilitychange', alOcultar);
+    salidas.push(() => { window.removeEventListener('pagehide', guarda); document.removeEventListener('visibilitychange', alOcultar); });
+    function pausa(v) { const p = v === undefined ? !S.pausa : !!v; if (p !== S.pausa && S.fase !== 'fin') { Sim.ordenar(S, { tipo: 'pausa', valor: p }); if (p) guarda(); } $('pausa').textContent = S.pausa ? 'Seguir' : 'Pausa'; $('pausa').classList.toggle('on', S.pausa); $('enpausa').hidden = !S.pausa; }
     $('pausa').addEventListener('click', () => { if (lista) pausa(); });
     $('vel').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; vel = +b.dataset.v; for (const x of $('vel').children) x.classList.toggle('on', x === b); });
     let pausaAntes = false;
@@ -681,7 +700,7 @@
     /* ---------- fin ---------- */
     let finVisto = false, tFin = 0;
     function finYa() {
-      if (finVisto) return; finVisto = true; clearTimeout(tFin);
+      if (finVisto) return; finVisto = true; clearTimeout(tFin); guarda();
       const R = S.resultado || { como: 'retirada', motivo: '', t: S.t, bajas: [0, 0], inicial: [0, 0] }, mil = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
       $('fin-t').textContent = { victoria: 'Victoria', derrota: 'Derrota', retirada: 'Retirada' }[R.como] || 'Fin';
       $('fin-p').textContent = R.motivo || '';
@@ -699,6 +718,7 @@
       const dt = S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, dtReal) * vel;
       if (dt > 0) { acum += dt; let k = 0; while (acum >= PASO && k++ < 8) { acum -= PASO; pasoSim(); } if (acum > PASO) acum = PASO; }
       Tv += dt; colocar(dt, false); if (FF && dt > 0) FF.paso(figs, dt, leeFig);
+      if (cfg.guardar && dt > 0) { tGuarda += dt; if (tGuarda >= 5) guarda(); }
       if (S.fase === 'fin' && !finVisto && !tFin) tFin = setTimeout(finYa, 1500);
     }
     function pinta(dt) { nCuadros++; if (cine) cine.tick(); pintarSuelo(); pintarFiguras(); pintarEstandartes(); if (entorno) entorno.tick(dt || 0, S, Sim, camara, alto * dpr); renderer.render(escena, camara); pintarBarras(); }
@@ -756,6 +776,7 @@
       elegir: ids => { sel = (ids || []).filter(i => S.man[i] && S.man[i].lado === 0); verFormas = false; pintarHud(true); return sel.slice(); },
       ordenar: o => ordenar(o),
       pausa: v => pausa(v),
+      guarda: () => guarda(),   /* CG4b: guarda ya (pruebas del guardado a mitad) */
       salta: seg => { const hasta = S.t + seg; while (S.t < hasta - 1e-9 && S.fase !== 'fin' && !S.pausa) pasoSim(); acum = 0; previo = S.man.map(u => ({ x: u.x, y: u.y, a: u.a })); colocar(0, true); avisos(); pintarHud(true); if (S.fase === 'fin') finYa(); return S.t; },
       cuadro: dt => { if (apie) { const b = dentro(); if (b && b.C) for (let k = 0; k < Math.round((dt || 0) / 0.05); k++) b.C.paso(0.05); return; } avanza(dt || 0); pinta(S.pausa ? 0 : Math.min(0.1, dt || 0) * vel); avisos(); pintarHud(); },
       camara: o => { if (cine) cine.libre(); if (o) Object.assign(cam, o); else camaraInicial(); ponCamara(); return Object.assign({}, cam); },

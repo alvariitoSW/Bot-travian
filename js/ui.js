@@ -1876,8 +1876,8 @@ function endBattle(res) {
   UI.nueva = false;
   const info = UI.binfo, out = G.applyBattle(res), d = D.CITIES[info.city];
   const loss = side => Object.keys(res.lost[side]).filter(k => res.lost[side][k] > 0).map(k => '<div><span>' + D.UNITS[k].n + '</span><b>−' + res.lost[side][k] + '</b></div>').join('') || '<div><span>Sin bajas</span></div>';
-  modal('<div class="yr">' + (out.kind === 'campo' ? esc(out.campo.nombre.toUpperCase()) : (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase()) + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
-    '<div class="vs"><div class="side"><h4 style="color:#ff9c8c">Bajas romanas</h4>' + loss(0) + '</div><div class="side"><h4>Bajas enemigas</h4>' + loss(1) + '</div></div>' +
+  carta('<div class="yr">' + (out.kind === 'campo' ? esc(out.campo.nombre.toUpperCase()) : (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase()) + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
+    '<div class="vs"><div class="side"><h4 style="color:var(--minio)">Bajas romanas</h4>' + loss(0) + '</div><div class="side"><h4>Bajas enemigas</h4>' + loss(1) + '</div></div>' +
     (res.objetivo ? '<p><b>' + (res.objetivo.cumplido || res.objetivo.ok ? 'Objetivo cumplido' : 'Objetivo no cumplido') + ':</b> ' + esc(res.objetivo.texto || '') + '</p>' : '') + '<p>' + out.lines.map(esc).join('\n') + '</p><div class="acts"><button class="btn" data-act="bdone">Continuar</button></div>', true);
 }
 

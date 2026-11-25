@@ -547,6 +547,14 @@ async function arranca() {
     ps[1].innerHTML = 'Los tiradores galos lanzarán <b>dos salvas</b> mientras cruzas. Cuando se ilumine <b>«Testudo»</b>, tócalo: los escudos cierran un techo. Luego, tócalo otra vez para abrirlo.';
     ps[2].innerHTML = 'Después, los galos cargan: se lucha hasta que queda el 15 %.';
   }
+  if (FALANGE && !Q.get('lp7')) {   /* CG4b (pase de UN2): la tarjeta de entrada de la falange; antes salía la del manípulo */
+    const ps = document.querySelectorAll('#inicio p'), nomR = Q.get('rival') || 'manipulos', txtR = RIV_TXT[nomR];
+    const enfrente = txtR ? 'Enfrente, ' + txtR.los + '. ' + txtR.obj + '.' : 'Enfrente, los manípulos romanos. Baja las picas y rómpelos.';
+    $('inicio').querySelector('h1').textContent = 'Falange a pie';
+    ps[0].innerHTML = 'Mandas tu falange, no a un hombre. <b>Arrastra el dedo por el suelo</b>: ahí formará tu primera fila. Un muro de sarisas gira despacio: piensa antes de mover.';
+    ps[1].innerHTML = 'Abajo tienes cuatro órdenes: <b>«Bajar picas»</b> (las cinco primeras filas apuntan al frente), «Cerrar filas», «Avanzar» y «Alto». La que conviene <b>se ilumina</b>. Alzadas, las picas paran los proyectiles.';
+    ps[2].textContent = enfrente;
+  }
   nueva(nivel || 'normal');
   $('salir').addEventListener('click', salir); $('salir2').addEventListener('click', salir);
   $('otra').addEventListener('click', () => { $('fin').hidden = true; $('inicio').hidden = false; });

@@ -750,8 +750,8 @@ export function crearProyectiles(op = {}) {
 
 /* ===================== FI4: la física en las batallas grandes (figuras sueltas) =====================
    Une el motor de arriba (crearFisica: cuerpos que no se atraviesan, caídos que estorban, proyectiles de FI3) con pantallas
-   que mueven figuras a su aire: la batalla de campaña (js/ui-guerra.js) y, por pase, la de las escaramuzas (js/ui-mando.js).
-   Como en FI1, la física solo dice DÓNDE SE DIBUJA cada figura: las reglas (js/guerra.js, js/simulador.js) no la leen y las
+   que mueven figuras a su aire: la batalla de manípulos (js/ui-mando.js: campaña y Escaramuzas; la pantalla vieja de la
+   campaña, js/ui-guerra.js, se retiró en CG4b). Como en FI1, la física solo dice DÓNDE SE DIBUJA cada figura: las reglas (js/simulador.js) no la leen y las
    batallas salen idénticas con y sin ella. Corre en Node: prueba en test/fisica-batalla.test.mjs (FI4).
 
    CONTRATO

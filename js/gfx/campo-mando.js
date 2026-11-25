@@ -1,5 +1,5 @@
 /* AQVILA · CG4: el entorno de la pantalla de mando (js/ui-mando.js): luz, niebla, cielo, suelo, piedras, árboles y polvo.
-   A1 lo puso con la luz de ui-guerra; A2 (este archivo) trae la luz y el campo de la maqueta GM43e («testudo-luz-campo»,
+   A1 lo puso con la luz de la pantalla vieja de la campaña (ui-guerra, retirada en CG4b); A2 (este archivo) trae la luz y el campo de la maqueta GM43e («testudo-luz-campo»,
    aprobada por el usuario): sol bajo con sombras alargadas, gradación de color dentro del tonemapping, cielo con nubes
    teñido por el sol, bruma cálida, suelo de fotos con senda, calvas, manchas verdes y flores, piedras, árboles de 0 A.D.,
    lomas y montes con bruma, y polvo que levantan los pies. Adaptado a un campo de 1 200 × 700 m visto desde arriba.
@@ -151,7 +151,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
       vec3 seca = mix(texture2D(uSeca, p * 0.09).rgb, texture2D(uSeca, GIRO * p * 0.053 + 0.37).rgb, 0.5) * vec3(0.98, 1.06, 0.86);
       vec3 verde = mix(texture2D(uVerde, GIRO * p * 0.05).rgb, texture2D(uVerde, p * 0.029 + 0.6).rgb, 0.4) * vec3(1.12, 1.18, 0.92);
       vec3 tierra = mix(texture2D(uTierra, p * 0.11).rgb, texture2D(uTierra, GIRO * p * 0.037).rgb, 0.4);
-      vec3 c = mix(seca * vec3(0.9, 1.0, 0.78), verde, 0.45 + 0.5 * smoothstep(0.12, 0.5, n1 + (n2 - 0.5) * 0.5)) * vec3(0.9, 1.04, 0.84);   /* CG8a: más verde (el usuario: campo menos pardo) */
+      vec3 c = mix(seca * vec3(0.84, 1.0, 0.72), verde, 0.64 + 0.34 * smoothstep(0.12, 0.5, n1 + (n2 - 0.5) * 0.5)) * vec3(0.6, 1.12, 1.1);   /* CG8a y CG4b: más verde, de primavera templada (el usuario: campo menos pardo) */
       /* flores silvestres en corros: manzanilla y crisantemo (amarillo y blanco; el rojo de las amapolas se confundiría con Roma) */
       float fl = smoothstep(0.74, 0.86, texture2D(uRuido, p * 0.021 + 0.17).b) * smoothstep(0.35, 0.55, n1);
       c = mix(c, mix(vec3(0.8, 0.7, 0.28), vec3(0.62, 0.66, 0.3), n3), fl * 0.1);
@@ -159,8 +159,8 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
       /* tierra pisada donde se lucha, con manchas; y la senda */
       float pis = exp(-(p.y * p.y) / 14000.0) * exp(-(p.x * p.x) / 90000.0) * smoothstep(0.25, 0.65, n2 + 0.25);
       float ds = abs(p.y - sendaZ(p.x)) + (n3 - 0.5) * 6.0, senda = 1.0 - smoothstep(2.6, 4.6, ds), orilla = 1.0 - smoothstep(4.0, 10.0, ds);
-      c = mix(c, tierra, max(max(senda * 0.9, calva * 0.2), max(pis * 0.3, orilla * 0.3)));
-      c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.5);   /* laderas, más secas */
+      c = mix(c, tierra, max(max(senda * 0.9, calva * 0.12), max(pis * 0.22, orilla * 0.25)));
+      c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.35);   /* laderas, algo más secas */
       { float mq = texture2D(uRuido, p * 0.0047 + 0.71).g, lj = smoothstep(700.0, 950.0, max(abs(p.x), abs(p.y) * 1.6));
         c = mix(c, vec3(0.2, 0.25, 0.12), smoothstep(0.52, 0.68, mq) * 0.65 * lj); }   /* lejos, matorral mediterráneo por las lomas */
       c *= mix(0.88, 1.12, n1);
