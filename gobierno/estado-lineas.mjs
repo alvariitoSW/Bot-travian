@@ -102,3 +102,29 @@ export function estadoLineas(o = {}) {
   const lineas = (lista.lineas || []).map(l => ({ ...l, estadoEscrito: l.estado, ...estadoLinea(l, porId, despues) }));
   return { lista, lineas, porId, carriles, tablero, despues, pct: pctDe(lineas) };
 }
+
+/* CM6, fase dinámica (usuario 25/11: «se supone que terminamos ayer la 1.0 y estamos ahora por la 2.0 y todavía sigue como si
+   no hubiéramos terminado la 1.0»). La fase sale del TABLERO, sin números a mano:
+   · cada sección «## Carril <versión> · M<n> <nombre> (…)» es una meta; la meta en curso es la primera con tareas activas
+     (si ninguna tiene, la última); su % = (hechas + ½ a medias) / tareas que cuentan (las de pausa o después no cuentan);
+   · una sección con «carril aparte» en su título va al lado, como carril aparte;
+   · sin metas en el tablero, la fase es la 1.0 y manda el camino (camino.json). */
+export function faseActual(tablero, porId, camino) {
+  const metas = [], aparte = [];
+  const clase = id => claseTarea(id, porId, new Set());
+  for (const k of Object.keys(tablero)) {
+    const m = k.match(/^Carril (\d+(?:\.\d+)?) · (M\d+)\s+(.+?)(?:\s+\((.*)\))?$/), ap = /carril aparte/i.test(k) && k.match(/^Carril (\S+) · (.+?)(?:\s+\((.*)\))?$/);
+    if (!m && !ap) continue;
+    const ids = vinetas(tablero[k]).map(v => (v.match(/^(?:⬜|🔶|✅)\s+(?:\(en pausa[^)]*\)\s+)?([\w-]+)\s/u) || [])[1]).filter(Boolean);
+    const tareas = [...new Set(ids)].map(id => { const t = porId.get(id); return { id, clase: clase(id), titulo: t ? ((t.texto.match(/\*\*(.+?)\*\*/) || [])[1] || t.texto.slice(0, 60)) : id }; });
+    const cuentan = tareas.filter(t => t.clase !== 'aparte'), n = c => cuentan.filter(t => t.clase === c).length;
+    const r = { tareas, hechas: n('hecha'), obra: n('obra'), pendientes: n('pendiente'), total: cuentan.length,
+      pct: cuentan.length ? Math.round(100 * (n('hecha') + n('obra') / 2) / cuentan.length) : 0, plan: ((m ? m[4] : ap[3]) || '').match(/`([^`]+\.md)`/)?.[1] || '' };
+    if (m) metas.push({ version: m[1], meta: m[2], nombre: m[3], ...r });
+    else aparte.push({ id: ap[1], nombre: ap[2], ...r });
+  }
+  const v10 = { pct: pctCamino(camino), terminada: pctCamino(camino) === 100 };
+  if (!metas.length) return { version: '1.0', meta: null, metas, aparte, v10 };
+  const enCurso = metas.find(x => x.obra + x.pendientes > 0) || metas.at(-1);
+  return { version: enCurso.version, meta: enCurso, metas, aparte, v10 };
+}

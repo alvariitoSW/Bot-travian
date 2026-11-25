@@ -6,7 +6,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { estadoLineas, secciones, vinetas, pctCamino } from './estado-lineas.mjs';
+import { estadoLineas, secciones, vinetas, pctCamino, faseActual } from './estado-lineas.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 /* Seguro: no generar el cuadro desde una copia atrasada (el 12/11 una sesión publicó un cuadro viejo y al usuario le salió lo ya contestado como pendiente). */
@@ -299,7 +299,8 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
   // los commits que tocan algo fuera de gobierno/ (los apuntes del vigía nombran tareas que aún no están hechas)
   const SEP = '\u0001';
   const mensajes = rango => (git('log --no-merges --format=' + SEP + '%s%n%b ' + rango + ' -- . ":(exclude)gobierno"') || '').split(SEP).filter(Boolean);
-  const todasIds = [...new Set(lineas.flatMap(l => l.tareas || []))];
+  const F0 = faseActual(tablero, porId, {});
+  const todasIds = [...new Set([...lineas.flatMap(l => l.tareas || []), ...(F0.meta ? F0.meta.tareas.map(t => t.id) : [])])];
   // MN4b o MN4c cuentan como MN4, salvo que el tablero las tenga como tareas propias (CG6b no es CG6)
   const reId = new Map(todasIds.map(id => [id, new RegExp('(?<![\\w])' + id.replace(/[-]/g, '\\-') + '([a-z]{1,2})?(?![\\w]|-\\d)', 'g')]));
   const nombra = (m, id, re) => [...m.matchAll(re)].some(x => !x[1] || !porId.has(id + x[1]));
@@ -333,9 +334,14 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
     return s.sort((a, b) => ORDEN.indexOf(a.c) - ORDEN.indexOf(b.c));
   };
   const tit = id => { const t = porId.get(id); return t ? plano((t.texto.match(/\*\*(.+?)\*\*/) || [])[1] || corto(t.texto)).replace(/\s*\([^)]*\)/g, '').replace(/\s*\([^)]*$/, '').trim() : ''; };
-  for (const o of organos) {
+  // CM6: con una meta en curso (2.0 · M1…), sus tareas van primero; la 1.0 debajo, por órganos
+  const grupos = organos.map(o => ({ o, ls: lineas.filter(x => x.organo === o.id) }));
+  if (F0.meta) { const ts = F0.meta.tareas.filter(t => t.clase !== 'aparte').map(t => t.id);
+    grupos.unshift({ o: { id: 'meta', nombre: 'Ahora: ' + F0.version + ' · ' + F0.meta.meta + ' ' + F0.meta.nombre }, ls: [{ titulo: F0.meta.meta + ' · ' + F0.meta.nombre, tareas: ts, estado: F0.meta.obra + F0.meta.pendientes ? 'medias' : 'hecha' }] });
+    for (const g of grupos.slice(1)) g.o = { ...g.o, nombre: 'La 1.0 · ' + g.o.nombre }; }
+  for (const { o, ls: lsG } of grupos) {
     let filas = '';
-    for (const l of lineas.filter(x => x.organo === o.id)) {
+    for (const l of lsG) {
       const s = segsLinea(l), n = c => s.filter(x => x.c === c).length, pc = Math.round(100 * n('movil') / s.length);
       const resumen = ORDEN.filter(c => n(c)).map(c => n(c) + ' ' + MOVIL_EST[c]).join(', ');
       const detalle = (l.tareas || []).map(id => { const c = color(id); return '<li class="m-' + c + '" data-mid="' + esc(id) + '"><i aria-hidden="true"></i><b>' + esc(id) + '</b> <span>' + esc(tit(id)) + '</span> <em>' + esc(MOVIL_EST[c]) + (c === 'rama' ? ' (' + esc(otras.get(id).slice(0, 2).join(', ')) + ')' : '') + '</em></li>'; }).join('');
@@ -384,6 +390,28 @@ const ultimo = (camino.pasos || []).filter(p => p.hora).at(-1);
 if (ultimo) caminoCuando = 'Fin previsto: <b>~' + esc(horaEs(ultimo.hora)) + '</b> (hora de España).';
 if (camino.actualizado) { const d = new Date(camino.actualizado); caminoCuando += (caminoCuando ? ' ' : '') + 'Plan puesto al día ' + (isNaN(d) ? esc(camino.actualizado) : 'el ' + d.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long' }) + ' a las ' + horaEs(camino.actualizado)) + '.'; }
 else avisa('CM5: camino.json sin «actualizado»');
+/* CM6 · fase dinámica: en qué punto está el proyecto sale del tablero (faseActual), no de textos escritos a mano */
+const FASE = faseActual(tablero, porId, camino), METAc = { hecha: ['si', '✔', 'hecha'], obra: ['medias', '◐', 'en obra'], pendiente: ['falta', '○', 'falta'], aparte: ['falta', '‖', 'en pausa'] };
+const marcaT = c => { const [k, sim, t] = METAc[c]; return '<span class="marca ' + k + '"><i aria-hidden="true">' + sim + '</i>' + t + '</span>'; };
+let htmlFase = '', caminoTitulo = 'Camino a la 1.0', caminoAbre = '', caminoCierra = '', v10Abre = '', v10Cierra = '', organosTitulo = 'Cómo va el juego';
+let juzgarAviso = 'Se juzga cuando la barra llegue al 100 %. Puedes adelantarte: los botones ya guardan.', hacia2Titulo = 'Hacia la 2.0';
+if (FASE.meta) {
+  const M = FASE.meta, orden = ['obra', 'pendiente', 'hecha', 'aparte'];
+  const filas = [...M.tareas].sort((a, b) => orden.indexOf(a.clase) - orden.indexOf(b.clase)).map(t => '<li><b>' + esc(t.id) + '</b><span>' + md(t.titulo) + '</span>' + marcaT(t.clase) + '</li>').join('');
+  const otras = FASE.metas.filter(x => x !== M).map(x => esc(x.meta + ' ' + x.nombre + ': ' + x.pct + ' %')).join(' · ');
+  const ap = FASE.aparte.map(a => '<p class="nota">Carril aparte: <b>' + esc(a.nombre) + '</b>, ' + a.pct + ' % (' + a.tareas.map(t => esc(t.id) + ' ' + METAc[t.clase][2]).join(', ') + ').</p>').join('');
+  htmlFase = '<section class="ficha camino" aria-labelledby="t-fase"><h2 id="t-fase">Ahora: ' + esc(FASE.version) + ' · ' + esc(M.meta) + ' ' + esc(M.nombre) + '</h2>' +
+    '<div class="cpct"><b>' + M.pct + ' %</b><span>hecho · queda ' + (100 - M.pct) + ' %</span></div>' +
+    '<div class="cbarra" role="img" aria-label="' + M.pct + ' % hecho de ' + esc(M.meta) + '"><span style="width:' + M.pct + '%"></span></div>' +
+    '<p class="nota">De sus ' + M.total + ' tareas en el tablero: ' + M.hechas + ' hechas, ' + M.obra + ' en obra y ' + M.pendientes + ' sin empezar (las en obra cuentan la mitad).' + (M.plan ? ' Plan: <code>' + esc(M.plan) + '</code>.' : '') + (otras ? ' Otras metas: ' + otras + '.' : '') + '</p>' +
+    '<ul class="meta-t">' + filas + '</ul>' + ap + '</section>';
+  caminoTitulo = 'Cómo se llegó a la 1.0';
+  const v = FASE.v10.terminada ? 'terminada' : 'sin terminar (' + FASE.v10.pct + ' %)';
+  caminoAbre = '<details class="plegable v10"><summary>La 1.0: ' + v + '. Toca para ver su camino</summary>'; caminoCierra = '</details>';
+  v10Abre = '<details class="plegable v10"><summary>Cómo quedó la 1.0, por órganos</summary>'; v10Cierra = '</details>'; organosTitulo = 'Cómo quedó la 1.0';
+  juzgarAviso = FASE.v10.terminada ? 'La 1.0 ya está terminada: júzgala en tu móvil. Tus «Mal» van a CR20, las críticas a la 1.0.' : juzgarAviso;
+  hacia2Titulo = 'Ideas para la ' + esc(FASE.version);
+}
 const htmlRiesgos = (camino.riesgos || []).length ? '<p class="riesgos"><b>Riesgos:</b> ' + (camino.riesgos || []).map(md).join(' · ') + '</p>' : '';
 // juzgar: una prueba por línea de la lista, en el orden de los órganos
 const htmlJuicio = organos.map(o => {
@@ -399,6 +427,7 @@ if (!lineas.length) avisa('CM5: no hay líneas que juzgar en lista.json');
 
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
+  FASE: htmlFase, CAMINO_TITULO: caminoTitulo, CAMINO_ABRE: caminoAbre, CAMINO_CIERRA: caminoCierra, V10_ABRE: v10Abre, V10_CIERRA: v10Cierra, ORGANOS_TITULO: organosTitulo, JUZGAR_AVISO: juzgarAviso, HACIA2_TITULO: hacia2Titulo,
   PCT10: pct10, PCT10_QUEDA: 100 - pct10, PCT_LISTA: pctLista, PCT_LISTA_NOTA: lineas.filter(l => l.estado === 'hecha').length + ' hechas, ' + lineas.filter(l => l.estado === 'medias').length + ' a medias y ' + lineas.filter(l => l.estado === 'falta').length + ' por hacer, de ' + lineas.length + ' líneas', CAMINO: htmlCamino, CAMINO_MARCAS: htmlMarcasCamino, CAMINO_CUANDO: caminoCuando, RIESGOS: htmlRiesgos, JUICIO: htmlJuicio,
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(lista.frase || ''), VIGIA: esc(config.vigia || ''),
   ORGANOS: htmlOrganos, COMPROBACIONES: htmlComprob, TE_ESPERAN: htmlTeEsperan,
