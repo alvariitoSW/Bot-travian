@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11/2026 ~01:20 — **Subido a `main` (SB6)**: `feeb264f`, caché **v168**; jueces completos APTO 43/43. Lleva CG9 (datos de tropas), CE12 (caminos), falange FU3–FU3c (othismos), FU4 (rivales y elefantes), FU5 (muro y orden abierto) y TH1 (tácticas). Detrás: CG4b (campaña, rama `cg4b-campana`), FU6 y UN3 (combinada), subida final.
 - 24/11/2026 ~23:50 — **Orden de subir** (botón «Subir lo terminado a mi móvil»): abierta SB6, que espera a UN2 y sube con jueces completos.
 - 24/11/2026 ~23:45 — Dureza de los elefantes (FU4): **«A»**, como están (ganan 4 de 5 partidas, unas 60 bajas tuyas de 96, 26–39 picas rotas).
 - 24/11/2026 ~23:40 — (vía FU3c) Dureza del othismos: **(A) como está** (ganas tocando bien, pierdes sin tocar). Pregunta si la falange ya está en main: no; el vigía hace una **subida a main justo después de UN2** (SB6, jueces completos) para que la vea en el móvil sin esperar a CG4b.
