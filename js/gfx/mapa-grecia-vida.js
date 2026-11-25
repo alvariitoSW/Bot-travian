@@ -67,7 +67,7 @@ function pintarPlano(T, estilo, lado) {
     if (B) { g.fillStyle = h.t < 0.18 ? T.color : h.t < 0.6 ? '#c9a070' : '#e6d6ae'; g.strokeStyle = '#3a2416'; g.lineWidth = 1.6; g.fillRect(-w / 2, -d / 2, w, d); g.strokeRect(-w / 2, -d / 2, w, d); g.beginPath(); g.moveTo(-w / 2, 0); g.lineTo(w / 2, 0); g.stroke(); }
     else { g.rotate(h.ang); g.fillStyle = 'rgba(40,30,20,.34)'; g.translate(h.h * k * 0.75, h.h * k * 0.6); g.rotate(-h.ang); g.fillRect(-w / 2, -d / 2, w, d); }
     g.restore(); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.NoColorSpace; t.anisotropy = 4; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.NoColorSpace; t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; return t;
 }
 
 /* material que tiende un plano pintado sobre el relieve (lee la textura de alturas, como el suelo) */
@@ -88,7 +88,7 @@ function geoCasa() {
 export class Vida {
   constructor(mapa) { this.m = mapa; this.g = new THREE.Group(); mapa.escena.add(this.g); this.vivos = []; this.polis = []; this.est = 'a'; this.rnd = azar(7); this._esc = 1; }
   async iniciar() {
-    await preloadStatic(['grie_templo', 'grie_casa', 'grie_casa_b', 'grie_casa_c', 'grie_casa_d', 'grie_casa_e', 'grie_trirreme', 'barco', 'olivo', 'cipres']);
+    await preloadStatic(['grie_templo', 'grie_trirreme', 'barco', 'olivo', 'cipres']);
     this.tHumoA = mancha('rgba(235,228,214,1)'); this.tHumoB = mancha('rgba(90,70,54,1)'); this.tEstela = mancha('rgba(255,255,255,1)', 0.3);
     this.geo = geoCasa(); this.matMuro = new THREE.MeshLambertMaterial({ color: '#ffffff' }); this.matTejado = new THREE.MeshLambertMaterial({ color: '#ffffff' }); const alt = this.m.rel.altura;
     for (const p of POLIS) this.polis.push(this._polis(p, alt));
@@ -148,7 +148,7 @@ export class Vida {
     this.bCascos = I(casco, new THREE.MeshLambertMaterial({ color: '#7a5230' })); this.bVelas = I(vela, new THREE.MeshLambertMaterial({ color: '#ffffff', side: THREE.DoubleSide })); this.bEstelas = I(estela, new THREE.MeshBasicMaterial({ map: this.tEstela, transparent: true, opacity: 0.5, depthWrite: false })); this.bEstelas.renderOrder = 2;
     this.bDib = I(new THREE.PlaneGeometry(1.5, 1.5).translate(0, 0.45, 0), new THREE.MeshBasicMaterial({ map: iconoBarco(0), transparent: true, depthWrite: false })); this.bDib.renderOrder = 5;
     const col = new THREE.Color(); lista.forEach((b, i) => { this.bVelas.setColorAt(i, col.set(b.guerra ? '#c9553f' : i % 2 ? '#f2e6c8' : '#e2d2a8')); b.modelo = null; this.barcos.push(b); });
-    this._m4 = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._q2 = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._eje = new THREE.Vector3(0, 1, 0); this._cero = new THREE.Matrix4().makeScale(0, 0, 0);
+    this._m4 = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._q2 = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._v = new THREE.Vector3(); this._eje = new THREE.Vector3(0, 1, 0); this._cero = new THREE.Matrix4().makeScale(0, 0, 0);
   }
   /* ---------- árboles de cerca: pinos y encinas con volumen, solo alrededor de la cámara (se recolocan al moverse) ---------- */
   _arboles() {
@@ -158,11 +158,11 @@ export class Vida {
   }
   _plantar(w, h) {
     const m = this.m, A = this.arb, upx = m.V.upx, ver = this.est === 'a' && m.ancho < 0.75; A.pinos.visible = A.copas.visible = ver; if (!ver) return;
-    const paso = 0.0034, rx = w * upx * 0.62, rz = h * upx * 0.95, cx = Math.round(m.V.x / (rx * 0.25)), cz = Math.round(m.V.z / (rz * 0.25)), clave = cx + ',' + cz + ',' + Math.round(Math.log2(upx) * 3); if (clave === A.clave) return; A.clave = clave;
+    const paso = Math.max(0.0034, upx * 9), rx = w * upx * 0.62, rz = h * upx * 0.95, cx = Math.round(m.V.x / (rx * 0.25)), cz = Math.round(m.V.z / (rz * 0.25)), clave = cx + ',' + cz + ',' + Math.round(Math.log2(upx) * 3); if (clave === A.clave) return; A.clave = clave;
     const alt = m.rel.altura, masc = m.masc, m4 = this._m4, q = this._q, s = this._s, v = new THREE.Vector3(), x0 = Math.floor((m.V.x - rx) / paso), x1 = Math.ceil((m.V.x + rx) / paso), z0 = Math.floor((m.V.z - rz * 1.25) / paso), z1 = Math.ceil((m.V.z + rz * 0.75) / paso); let np = 0, nc = 0;
     const dado = (i, j, k) => { let n = Math.imul(i, 374761393) + Math.imul(j, 668265263) + k * 974711; n = Math.imul(n ^ (n >>> 13), 1274126177); return ((n ^ (n >>> 16)) >>> 0) / 4294967296; };
     const PINO = ['#4f7340', '#5a8048', '#456838'], COPA = ['#5a7a3c', '#6b8a46', '#4d6c36', '#7a8f4e'];
-    for (let j = z0; j <= z1; j++) for (let i = x0; i <= x1; i++) { const x = (i + dado(i, j, 1)) * paso, z = (j + dado(i, j, 2)) * paso, bos = masc(x, z, 1), cam = masc(x, z, 0), r = dado(i, j, 3);
+    for (let j = z1; j >= z0; j--) for (let i = x0; i <= x1; i++) { const x = (i + dado(i, j, 1)) * paso, z = (j + dado(i, j, 2)) * paso, bos = masc(x, z, 1), cam = masc(x, z, 0), r = dado(i, j, 3);
       const dens = bos > 0.25 ? 0.5 + 0.4 * bos : cam > 0.4 ? 0.035 : 0.09; if (r > dens) continue; const a = alt(x, z); if (a < 3) continue;
       let enPueblo = false; for (const P of this.polis) for (const b of P.barrios) if (Math.hypot(x - b.T.cx, z - b.T.cz) < b.T.R * 1.05 && Math.hypot(x - b.T.agora.x, z - b.T.agora.z) < b.T.R) { enPueblo = dado(i, j, 5) > 0.12; break; } if (enPueblo) continue;
       const e = 0.0016 + 0.0016 * dado(i, j, 4), esPino = bos > 0.25 ? dado(i, j, 6) < 0.7 : dado(i, j, 6) < 0.15; v.set(x, a * KY_CERCA, z); q.setFromAxisAngle(this._eje, r * 40); s.set(e, e * (esPino ? 1.25 : 1), e); m4.compose(v, q, s);
@@ -190,6 +190,7 @@ export class Vida {
     this.bCascos.visible = this.bVelas.visible = !B; this.bDib.visible = B; this.bEstelas.material.opacity = B ? 0.3 : 0.4; for (const b of this.barcos) if (b.modelo) b.modelo.visible = false;
     this.reb.im.material.color.set(B ? '#fbf4e2' : '#f4f0e6'); if (this.arb) this.arb.clave = '';
   }
+  texturas(tx) { for (const t of [this.tHumoA, this.tHumoB, this.tEstela]) if (t) tx.add(t); for (const P of this.polis) for (const b of P.barrios) for (const k in b.tex) tx.add(b.tex[k]); }
   alzaRotulo() { return 0; }
   radioPolisPx() { return this._radioPx || 16; }
 
@@ -203,8 +204,9 @@ export class Vida {
       P.sello.visible = P.sello.userData.on && a > A_PLANO * 0.55; if (P.sello.visible) { P.sello.position.y = y; const s = 34 * upx; P.sello.scale.set(s, s, 1); P.sello.material.opacity = paso(A_PLANO * 0.55, A_PLANO * 0.8, a); }
       for (const b of P.barrios) { const ver = plano && Math.abs(b.T.cx - m.V.x) < w * upx + b.lado && Math.abs(b.T.cz - m.V.z) < h * upx * 1.6 + b.lado; b.plano.visible = ver;
         if (ver) { const u = b.plano.material.uniforms; if (!b.tex[this.est]) b.tex[this.est] = pintarPlano(b.T, this.est, b.lado); u.tPlano.value = b.tex[this.est]; u.uOp.value = paso(A_PLANO, A_PLANO * 0.6, a); }
+        else if (!plano) for (const k in b.tex) { b.tex[k].dispose(); delete b.tex[k]; }   // al alejarse se suelta la memoria del plano
         const casas = ver && !B && a < A_CASAS; b.muros.visible = b.tejados.visible = casas; if (b.acro) b.acro.visible = casas;
-        if (casas) { const k = paso(A_CASAS, A_CASAS * 0.7, a); b.muros.scale.y = b.tejados.scale.y = Math.max(0.02, k); } }
+      }
       /* humo: sube y se deshace; su tamaño sigue al de la polis */
       const eh = Math.max(esc * E * (0.35 + 0.65 * fuera), cerca ? 0.00042 : 0), hx = cerca ? P.barrios[0].T.agora.x - P.x : 0, hz = cerca ? P.barrios[0].T.agora.z - P.z : 0; P.humo.position.y = y;
       for (const H of P.humos) { const q = (t * 0.11 + H.f) % 1, e = (5 + q * 15) * H.tam * eh; H.s.position.set(hx + (H.o[0] + q * q * 26 * H.vx * H.tam) * eh, (H.o[1] + q * 34 * H.tam) * eh, hz + (H.o[2] + Math.sin(H.f * 9) * 2 * H.tam) * eh); H.s.scale.set(e, e, 1); H.s.material.opacity = (B ? 0.5 : 0.8) * Math.sin(Math.PI * Math.min(1, q * 1.15)) * (1 - q * 0.5); }
@@ -213,7 +215,7 @@ export class Vida {
     const tb = clamp(16 * upx, 46 * M, 1.5), vb = clamp(10 * upx, 0.0003, 0.09) * dt / 1000, real = !B && a < 2.2, cam = m.cam, q = this._q, cx = m.V.x, cz = m.V.z, rx = w * upx * 0.8 + tb, rz = h * upx * 1.4 + tb;
     this.bCascos.visible = this.bVelas.visible = !B;
     for (let i = 0; i < this.barcos.length; i++) { const b = this.barcos[i]; b.s = (b.s + b.sentido * vb + b.total) % b.total; let k = 1; while (k < b.lon.length - 1 && b.lon[k] < b.s) k++;
-      const u = (b.s - b.lon[k - 1]) / (b.lon[k] - b.lon[k - 1] || 1), p0 = b.pts[k - 1], p1 = b.pts[k], v = this._s; v.lerpVectors(p0, p1, u); const x = v.x, z = v.z, y = tb * (0.02 + Math.sin(t * 1.7 + b.ri) * 0.006), rumbo = Math.atan2((p1.x - p0.x) * b.sentido, (p1.z - p0.z) * b.sentido);
+      const u = (b.s - b.lon[k - 1]) / (b.lon[k] - b.lon[k - 1] || 1), p0 = b.pts[k - 1], p1 = b.pts[k], v = this._v; v.lerpVectors(p0, p1, u); const x = v.x, z = v.z, y = tb * (0.02 + Math.sin(t * 1.7 + b.ri) * 0.006), rumbo = Math.atan2((p1.x - p0.x) * b.sentido, (p1.z - p0.z) * b.sentido);
       const cercaYo = real && Math.abs(x - cx) < rx && Math.abs(z - cz) < rz;
       if (cercaYo && !b.modelo) { const tipo = b.guerra ? 'grie_trirreme' : 'barco', c = staticMesh(tipo, POLIS[b.ri % POLIS.length].color); if (c) { c.scale.setScalar(1 / (b.guerra ? 46 : 28)); b.modelo = new THREE.Group(); b.modelo.add(c); this.g.add(b.modelo); } }
       if (b.modelo) { b.modelo.visible = !!cercaYo; if (cercaYo) { b.modelo.position.set(x, y, z); b.modelo.rotation.set(0, rumbo, Math.sin(t * 1.3 + b.ri * 2) * 0.05); b.modelo.scale.setScalar(tb); } }

@@ -17,7 +17,7 @@ export const UPX_MIN = 0.12 / 390;          // lo más cerca: 1,2 km de ancho en
 const FOV = 30, EL_CERCA = 0.86, EL_LEJOS = 1.2;
 
 const CSS = `
-.mg-caja{overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;background:#1b2530}
+.mg-caja{overflow:clip;touch-action:none;user-select:none;-webkit-user-select:none;background:#1b2530}
 .mg-caja canvas.mg-gl{position:absolute;inset:0;width:100%;height:100%;display:block}
 .mg-rot{position:absolute;inset:0;overflow:clip;pointer-events:none;font-family:Georgia,'Times New Roman',serif;color:#2a2119}
 .mg-e{position:absolute;left:0;top:0;display:flex;align-items:center;gap:4px;white-space:nowrap;will-change:transform}
@@ -75,11 +75,16 @@ export class MapaGrecia {
     this._ro = new ResizeObserver(() => { for (const e of this.etq) e.w = 0; }); this._ro.observe(this.host);
     this._raf = requestAnimationFrame(this._cuadro); return this;
   }
-  destruir() { cancelAnimationFrame(this._raf); this._raf = 0; if (this._ro) this._ro.disconnect(); this.r.dispose(); this.cv.remove(); this.rot.remove(); this.listo = false; }
+  /* suelta todo lo que ocupa memoria de vídeo (se puede abrir y cerrar el mapa muchas veces desde el menú) */
+  destruir() { cancelAnimationFrame(this._raf); this._raf = 0; this.listo = false; if (this._ro) this._ro.disconnect();
+    const tx = new Set(), mat = m => { for (const k in m) if (m[k] && m[k].isTexture) tx.add(m[k]); if (m.uniforms) for (const k in m.uniforms) { const v = m.uniforms[k].value; if (v && v.isTexture) tx.add(v); } m.dispose(); };
+    this.escena.traverse(o => { if (o.geometry) o.geometry.dispose(); [].concat(o.material || []).forEach(mat); });
+    if (this.suelo) for (const k in this.suelo.tex) for (const t of this.suelo.tex[k]) tx.add(t); if (this.vida) this.vida.texturas(tx);
+    for (const t of tx) t.dispose(); this.r.dispose(); try { this.r.forceContextLoss(); } catch (e) {} this.cv.remove(); this.rot.remove(); }
   pausa(si) { if (si && this._raf) { cancelAnimationFrame(this._raf); this._raf = 0; } else if (!si && !this._raf && this.listo) this._raf = requestAnimationFrame(this._cuadro); }
 
   /* ---------- lo que se pide desde fuera ---------- */
-  async estilo(k) { if (k !== 'a' && k !== 'b') k = this.est === 'a' ? 'b' : 'a'; this.est = k; await this.suelo.estilo(k); this.r.setClearColor(ESTILOS[k].niebla); this._estiloLineas(); this.vida.estilo(k); this.host.classList.toggle('mg-b', k === 'b'); for (const e of this.etq) e.w = 0; return k; }
+  async estilo(k) { if (k !== 'a' && k !== 'b') k = this.est === 'a' ? 'b' : 'a'; await this.suelo.estilo(k); this.est = k; this.r.setClearColor(ESTILOS[k].niebla); this._estiloLineas(); this.vida.estilo(k); this.host.classList.toggle('mg-b', k === 'b'); for (const e of this.etq) e.w = 0; return k; }
   recursos(si) { this.recursosOn = si === undefined ? !this.recursosOn : !!si; this.host.classList.toggle('mg-rec', this.recursosOn); this.com.uRec.value = this.recursosOn ? 1 : 0; this.cercos.visible = this.recursosOn; for (const e of this.etq) e.w = 0; return this.recursosOn; }
   get ancho() { return this.V.upx * 390; }   // ancho que se vería en un móvil de 390 px, en decenas de km (la «altura» del zoom)
   vista(n, ms) { const v = typeof n === 'string' ? (VISTAS[n] || POLIS.find(p => p.id === n) || VISTAS.corazon) : n; this.irA(X(v.lon), Z(v.lat), (v.a || 0.5) / 390, ms || 0); }
@@ -119,7 +124,7 @@ export class MapaGrecia {
       let ver = a >= e.rango[0] && a <= e.rango[1] && (!e.zona || this.recursosOn);
       if (ver) { v3.set(e.x, Math.max(0, this.rel.altura(e.x, e.z)) * ky + (e.polis ? alzaPolis : 0), e.z).project(this.cam); if (v3.z > 1) ver = false; }
       if (ver) { const x = (v3.x * 0.5 + 0.5) * w, y = (-v3.y * 0.5 + 0.5) * h; let an = e.ancla;
-        if (!e.w) { e.d.style.display = ''; e.w = e.d.offsetWidth; e.h = e.d.offsetHeight; e.visto = true; }
+        if (!e.w) { e.d.classList.remove('compacta'); e.d.style.display = ''; e.w = e.d.offsetWidth; e.h = e.d.offsetHeight; e.visto = true; }
         const compacta = e.zona && a > e.zona.r * 0.9, bw = compacta ? 24 : e.w, sep = e.polis ? clamp(this.vida.radioPolisPx(), 10, 46) : 0;
         if (an === 'izq' && x - sep - bw < 4) an = 'der'; else if (an === 'der' && x + sep + bw > w - 4) an = 'izq';
         const c = an === 'izq' ? [x - sep - bw, y - e.h / 2, x - sep, y + e.h / 2] : an === 'der' ? [x + sep, y - e.h / 2, x + sep + bw, y + e.h / 2] : an === 'abajo' ? [x - bw / 2, y + sep * 0.6 + 4, x + bw / 2, y + sep * 0.6 + 4 + e.h] : an === 'arriba' ? [x - bw / 2, y - sep * 0.6 - e.h, x + bw / 2, y - sep * 0.6] : [x - bw / 2, y - e.h / 2, x + bw / 2, y + e.h / 2];
@@ -127,25 +132,25 @@ export class MapaGrecia {
         if (c[2] < m[3] || c[0] > w - m[1] || c[1] < m[0] || c[3] > h - m[2]) ver = false;
         else if (!e.polis && (c[0] < 2 || c[2] > w - 2)) ver = false;
         else { for (const o of cajas) if (c[0] < o[2] + 3 && c[2] > o[0] - 3 && c[1] < o[3] + 2 && c[3] > o[1] - 2) { ver = false; break; } }
-        if (ver) { cajas.push(c); if (e.zona) e.d.classList.toggle('compacta', !!compacta); e.d.style.transform = 'translate(' + Math.round(c[0]) + 'px,' + Math.round(c[1]) + 'px)'; } }
+        if (ver) { cajas.push(c); if (e.zona) e.d.classList.toggle('compacta', !!compacta); const tr = 'translate(' + Math.round(c[0]) + 'px,' + Math.round(c[1]) + 'px)'; if (e.tr !== tr) { e.tr = tr; e.d.style.transform = tr; } } }
       if (ver !== e.visto) { e.visto = ver; e.d.style.display = ver ? '' : 'none'; }
     }
   }
 
   /* ---------- dedos: arrastrar, pellizcar (anclado bajo los dedos), inercia, doble toque y rueda ---------- */
   _dedos() {
-    const cv = this.cv, D = new Map(); let pell = 0, ultimo = 0, ux = 0, uy = 0, movido = 0, tPrev = 0;
+    const cv = this.cv, D = new Map(); let pell = 0, ultimo = 0, ux = 0, uy = 0, movido = 0, tPrev = 0, tx0 = 0, ty0 = 0;
     const sinEl = () => Math.sin(this._el || 1), punto = (cx, cy) => { const r = cv.getBoundingClientRect(); return [cx - r.left - r.width / 2, cy - r.top - r.height / 2]; };
     const zoom = (f, cx, cy) => { const [ox, oy] = punto(cx, cy), u0 = this.V.upx, u1 = clamp(u0 * f, UPX_MIN, this._upxMax || 0.2); this.V.x += ox * (u0 - u1); this.V.z += oy * (u0 - u1) / sinEl(); this.V.upx = u1; };
     cv.addEventListener('pointerdown', e => { D.set(e.pointerId, [e.clientX, e.clientY]); try { cv.setPointerCapture(e.pointerId); } catch (x) {} pell = 0; movido = 0; this.anim = null; this.vel.x = this.vel.z = 0; tPrev = performance.now(); });
     cv.addEventListener('pointermove', e => { const a = D.get(e.pointerId); if (!a) return; const dx = e.clientX - a[0], dy = e.clientY - a[1]; D.set(e.pointerId, [e.clientX, e.clientY]); movido += Math.abs(dx) + Math.abs(dy);
       if (D.size === 1) { const k = this.V.upx, mx = -dx * k, mz = -dy * k / sinEl(), ahora = performance.now(), dt = Math.max(8, ahora - tPrev); tPrev = ahora; this.V.x += mx; this.V.z += mz; this.vel.x = mix(this.vel.x, mx / dt, 0.5); this.vel.z = mix(this.vel.z, mz / dt, 0.5); }
       else if (D.size === 2) { const q = [...D.values()], d = Math.hypot(q[0][0] - q[1][0], q[0][1] - q[1][1]), cx = (q[0][0] + q[1][0]) / 2, cy = (q[0][1] + q[1][1]) / 2;
-        if (pell) { zoom(pell / d, cx, cy); this.V.x -= (cx - ux) * this.V.upx; this.V.z -= (cy - uy) * this.V.upx / sinEl(); } pell = d; ux = cx; uy = cy; this.vel.x = this.vel.z = 0; } });
+        if (pell && d > 1) { zoom(pell / d, cx, cy); this.V.x -= (cx - ux) * this.V.upx; this.V.z -= (cy - uy) * this.V.upx / sinEl(); } pell = d; ux = cx; uy = cy; this.vel.x = this.vel.z = 0; } });
     const suelta = e => { if (!D.has(e.pointerId)) return; D.delete(e.pointerId); pell = 0; const ahora = performance.now();
-      if (D.size === 0 && movido < 8) { this.vel.x = this.vel.z = 0; if (ahora - ultimo < 320) { const [ox, oy] = punto(e.clientX, e.clientY), u1 = clamp(this.V.upx / 2.2, UPX_MIN, 1); this.irA(this.V.x + ox * (this.V.upx - u1), this.V.z + oy * (this.V.upx - u1) / sinEl(), u1, 320); ultimo = 0; } else { ultimo = ahora; if (this.o.onToque) this.o.onToque(); } }
+      if (D.size === 0 && movido < 8) { this.vel.x = this.vel.z = 0; if (ahora - ultimo < 320 && Math.hypot(e.clientX - tx0, e.clientY - ty0) < 40) { const [ox, oy] = punto(e.clientX, e.clientY), u1 = clamp(this.V.upx / 2.2, UPX_MIN, 1); this.irA(this.V.x + ox * (this.V.upx - u1), this.V.z + oy * (this.V.upx - u1) / sinEl(), u1, 320); ultimo = 0; } else { ultimo = ahora; tx0 = e.clientX; ty0 = e.clientY; if (this.o.onToque) this.o.onToque(); } }
       else if (D.size === 0 && ahora - tPrev > 90) this.vel.x = this.vel.z = 0; };
-    cv.addEventListener('pointerup', suelta); cv.addEventListener('pointercancel', suelta);
+    cv.addEventListener('pointerup', suelta); cv.addEventListener('pointercancel', e => { D.delete(e.pointerId); pell = 0; this.vel.x = this.vel.z = 0; });
     cv.addEventListener('wheel', e => { e.preventDefault(); this.anim = null; zoom(Math.exp(clamp(e.deltaY, -120, 120) * 0.0022), e.clientX, e.clientY); }, { passive: false });
   }
 

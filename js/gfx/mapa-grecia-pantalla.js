@@ -59,11 +59,11 @@ export async function montarMapaGrecia(caja, opts) {
     '<div class="mgp-carga">Desplegando el mapa de Grecia…</div>';
   const $ = s => raiz.querySelector(s), hoja = $('.mgp-ficha'), regla = $('.mgp-regla'), bEst = $('[data-a="estilo"]'), lema = $('[data-r="lema"]');
   let kmPrev = 0, estVisto = '';
-  const mapa = new MapaGrecia($('.mgp-mapa'), Object.assign({}, opts, { estilo, onPolis: p => ficha(p), onToque: () => ficha(null), onCambio: m => {
+  let mapa; try { mapa = new MapaGrecia($('.mgp-mapa'), Object.assign({}, opts, { estilo, onPolis: p => ficha(p), onToque: () => ficha(null), onCambio: m => {
     if (m.est !== estVisto) pintaEstilo(); const km100 = m.kmPor100px(); if (Math.abs(km100 - kmPrev) / km100 < 0.02) return; kmPrev = km100;
     const pasos = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]; let k = pasos[0]; for (const q of pasos) if (q <= km100 * 0.9) k = q;
     regla.firstChild.textContent = k < 1 ? (k * 1000) + ' m' : k + ' km'; regla.lastChild.style.width = Math.round(k / km100 * 100) + 'px';
-    lema.textContent = m.ancho > 30 ? 'Las polis y sus mares' : m.ancho > 4 ? 'Comarcas, caminos y puertos' : 'La polis, de cerca'; } }));
+    lema.textContent = m.ancho > 30 ? 'Las polis y sus mares' : m.ancho > 4 ? 'Comarcas, caminos y puertos' : 'La polis, de cerca'; } })); } catch (e) { raiz.remove(); throw e; }
   function pintaEstilo() { estVisto = mapa.est; bEst.textContent = 'Estilo: ' + NOMBRE[mapa.est]; raiz.classList.toggle('mgp-b', mapa.est === 'b'); }
   function ficha(p) {
     if (!p) { hoja.hidden = true; return; }
@@ -81,16 +81,18 @@ export async function montarMapaGrecia(caja, opts) {
     else if (b.dataset.ir) { const p = POLIS.find(q => q.id === b.dataset.ir); ficha(null); mapa.vista({ lon: p.lon, lat: p.lat, a: 0.42 }, 1600); }
     else if (b.classList.contains('cerrar')) ficha(null);
     else if (a === 'recursos') { const on = mapa.recursos(); b.setAttribute('aria-pressed', on); $('.mgp-leyenda').hidden = !on; }
-    else if (a === 'estilo') { b.disabled = true; mapa.estilo().then(k => { try { localStorage.setItem('aqvila-mapa-estilo', k); } catch (x) {} pintaEstilo(); b.disabled = false; }); }
+    else if (a === 'estilo') { b.disabled = true; mapa.estilo().then(k => { try { localStorage.setItem('aqvila-mapa-estilo', k); } catch (x) {} pintaEstilo(); }).catch(err => console.warn('No se pudo cambiar el estilo del mapa', err)).then(() => { b.disabled = false; }); }
     else if (a === 'mas') mapa.irA(mapa.V.x, mapa.V.z, mapa.V.upx / 2, 350); else if (a === 'menos') mapa.irA(mapa.V.x, mapa.V.z, mapa.V.upx * 2, 350);
     else if (a === 'volver' && opts.onVolver) opts.onVolver(); });
-  await mapa.iniciar(); pintaEstilo(); $('.mgp-carga').hidden = true;
+  try { await mapa.iniciar(); } catch (e) { try { mapa.destruir(); } catch (x) {} raiz.remove(); throw e; }
+  pintaEstilo(); $('.mgp-carga').hidden = true;
   return { mapa, raiz, ficha, cerrar() { mapa.destruir(); raiz.remove(); } };
 }
 
 /* a pantalla completa, por encima del juego, con «Volver» */
 export async function abrirMapaGrecia(opts) {
   const caja = document.createElement('div'); caja.className = 'mgp-pantalla'; document.body.appendChild(caja); let p;
-  const cerrar = () => { if (p) p.cerrar(); caja.remove(); if (opts && opts.alCerrar) opts.alCerrar(); };
-  p = await montarMapaGrecia(caja, Object.assign({ onVolver: cerrar }, opts)); return p;
+  let cerrado = false; const cerrar = () => { if (cerrado) return; cerrado = true; if (p) p.cerrar(); caja.remove(); if (opts && opts.alCerrar) opts.alCerrar(); };
+  try { p = await montarMapaGrecia(caja, Object.assign({ onVolver: cerrar }, opts)); } catch (e) { caja.remove(); throw e; }   // si no carga (sin WebGL, sin red), no se deja el menú tapado
+  return p;
 }
