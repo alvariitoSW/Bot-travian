@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~17:45 (vigía 4): «Si a las 2 recomendaciones»: (1) mar en las polis de costa (PN3b, ≈2 M); (2) subir ya con la comarca a 7,5 → subida a main `8529d919` (v174).
 - 25/11 (chat de EB1): «1. ¿Qué plan seguimos? (A) Plan A, tres pasos (recomendado) · (B) Plan B, cinco tandas · (C) Plan C, Ásculo de muestra y copiar» → «1A». Y, con captura: «Aquí se ve con el atraviesan las picas que no se cuántas veces habré repetido que no quiero que pase eso....» (F0, en BT1). BT1 abierta. Pendiente en EB1: «¿Paramos todo lo nuevo de batallas hasta terminar el plan?».
 - 25/11 ~17:05 (vigía 4): subida de la tanda de M1 «Pues lo recomendado entonces» (A): se sube a main cuando cierre PN3, todo junto (menú, estaciones, 8 polis, comarca y arranque en el 800 a.C., mapa vivo).
 - 25/11 ~16:45 (vigía 4): «1A 2 a»: (1) se aplica el cuadro nuevo simplificado de CM6 (4 pestañas, un botón por acción); (2) las partidas de polis empiezan en el 800 a.C. (lo aplica PN3).
@@ -596,7 +597,6 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
-- **Mar en las polis de costa**: hoy Atenas, Corinto y Mileto se ven junto a un río. (A) Poner costa con el mar en su ciudad, en PN3b, unos 2 M [recomendado]; (B) dejar el río y que la costa se vea solo en el mapa vivo. Por qué: Atenas, Corinto y Mileto eran puertos.
 
 
 ## Propuestas por aprobar
