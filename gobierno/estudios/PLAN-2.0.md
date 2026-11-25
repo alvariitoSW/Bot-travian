@@ -384,6 +384,18 @@ literales del usuario. Aquí decidió: **«Carril aparte (Recomendado)»** (fuer
 y **«Sí, ya (Recomendado)»** a abrir **SUP1**: mesa de diseño (sin construir) con Batallas, Combate, Músculo, Arte,
 Sonido e Historia que cierre tiempo, pelea en oleadas y campamento, con ficha de objetivo (aspecto ≥ 8,5).
 
+### Departamentos de batalla (25/11, usuario: «Sí, los seis (Recomendado)» y «Ya, antes de M5 y de las oleadas (Recomendado)»)
+| Departamento | Dueño de | Su juez mide |
+|---|---|---|
+| Jugabilidad y mando (hoy Batallas) | Qué haces y cómo lo mandas; ritmo; enemigo que piensa; equilibrio | Se entiende en 390 px; se gana y se pierde jugando bien |
+| Motor de guerra (hoy Combate) | Lucha, física, proyectiles; unir motores más adelante | Resultado con sentido; fluido con 1.000–2.000 por bando |
+| Animación (nuevo) | Movimientos de soldados, jinetes, elefantes y barcos | Sin atravesar escudos ni movimientos robóticos; aspecto ≥ 8,5 |
+| Gráficos (nuevo) | Luz, cielo, campo, polvo, sangre, cámara de cine, fluidez de la escena | Aspecto ≥ 8,5 frente a referencias; sin tirones en su móvil |
+| Arte de soldados (taller de Arte) | Modelos, telas, escudos, estandartes, pueblos | Licencia limpia, peso medido, variedad |
+| Sonido | Gritos, golpes, voces, música de batalla | Se oye la batalla y sube la tensión |
+Más un **examen de jugabilidad** (sesión que no construyó, capturas contra referencias y críticas) antes de enseñarle nada.
+Se montan **ya** (guía, archivos en areas.json, juez; sin tocar el juego), antes de SUP1 y de M5.
+
 ## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
 Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
 ayudar fable a hacerlo». Modelo: Opus en todo (regla del 23/11), salvo lo que el usuario decida para el mapa vivo.
