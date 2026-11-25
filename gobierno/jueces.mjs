@@ -86,7 +86,8 @@ function corre(args, timeout, env) {
     h.on('close', status => { fin = true; clearTimeout(reloj); ok({ status, stdout: out, stderr: err }); });
   });
 }
-async function logica() {
+/* J20a: la cola se prepara antes (memoria JZ1); las filas «solo» salen de ella y corren en aSolas(), ANTES que nada más */
+function preparaLogica() {
   const filas = LOGICA.filter(p => !!p.liga === LIGA);   // J20a: la liga y la subida no se mezclan
   /* si la prueba abre un navegador o recorre carpetas (o se marca con todo), depende de todo lo que se sirve */
   const huellaDe = p => { const c = cierre([p.f]), todo = p.todo || c.some(x => /\.m?js$/.test(x) && /playwright|readdirSync|readdir\(/.test(readFileSync(join(RAIZ, x), 'utf8')));
@@ -98,19 +99,22 @@ async function logica() {
     cola.push(p);
   }
   if (cola.length) console.log('Juez 1 · lógica: ' + cola.map(p => p.f.replace(/^(test|gobierno)\//, '')).join(', ') + (cola.length < filas.length ? ' (las demás, sin cambios)' : ''));
-  /* J20a: las pruebas «solo» (reloj de pared) corren antes y en serie, sin lógica ni navegador compitiendo */
-  for (const p of cola.filter(x => x.solo)) { cola.splice(cola.indexOf(p), 1);
-    const t = Date.now(), r = await corre([p.f], p.t, p.env), ok = r.status === 0;
-    apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s, a solas)');
-    if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() }; }
+  return cola;
+}
+async function correFila(p, nota) {
+  const t = Date.now(), r = await corre([p.f], p.t, p.env), ok = r.status === 0;
+  apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s' + (nota || '') + ')');
+  if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() };
+}
+/* J20a: las pruebas «solo» miden tiempos con el reloj de pared: corren primero, en serie, sin lógica ni navegador compitiendo */
+async function aSolas(cola) {
+  const solas = cola.filter(p => p.solo); if (!solas.length) return;
+  console.log('Juez 0 · a solas (pruebas con reloj): ' + solas.map(p => p.f.replace(/^(test|gobierno)\//, '')).join(', '));
+  for (const p of solas) { cola.splice(cola.indexOf(p), 1); await correFila(p, ', a solas'); }
+}
+async function logica(cola) {
   const hilos = SEGUIDO ? 1 : Math.max(1, Math.min(cola.length, HILOS_LOGICA));
-  await Promise.all(Array.from({ length: hilos }, async () => {
-    for (let p; (p = cola.shift());) {
-      const t = Date.now(), r = await corre([p.f], p.t, p.env), ok = r.status === 0;
-      apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s)');
-      if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() };
-    }
-  }));
+  await Promise.all(Array.from({ length: hilos }, async () => { for (let p; (p = cola.shift());) await correFila(p); }));
 }
 
 /* ---------- 2. Navegador ---------- */
@@ -661,7 +665,7 @@ async function navegador() {
 /* ---------- 2b. Juez de la guerra jugada de verdad (GC2 y CG4b: gobierno/juez-guerra.mjs, ~23 min, hasta 40 en una máquina lenta; solo en el recorrido completo) ---------- */
 async function guerraJugada() {
   console.log('Juez 2 · Guerra jugada de verdad (gobierno/juez-guerra.mjs)');
-  const r = await corre(['gobierno/juez-guerra.mjs'], 2400000);   /* CG4b: la batalla de la campaña con el simulador, ~23 min aquí sin carga; con la máquina ocupada, más */
+  const r = await corre(['gobierno/juez-guerra.mjs', 'dpr=1'], 2400000);   /* J20a: escala 1, como el recorrido (las medidas son en px de pantalla, no cambian) */   /* CG4b: la batalla de la campaña con el simulador, ~23 min aquí sin carga; con la máquina ocupada, más */
   const lineas = (r.stdout || '').split('\n'), mal = lineas.filter(l => /MAL:|^prueba:|^consola:|^excepción:/.test(l)), avisos = lineas.filter(l => /AVISO/.test(l)).length, bien = lineas.filter(l => /^\s*bien:/.test(l)).length;
   apunta('Guerra jugada de verdad (entrar, salir, maniobra, primer toque, arte)', r.status === 0, r.status === 0 ? bien + ' comprobaciones bien' + (avisos ? ' · ' + avisos + ' aviso(s) de fallos conocidos del juego (ver salida de juez-guerra.mjs)' : '') : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
   return r.status === 0;
@@ -676,11 +680,15 @@ async function conMemoria(id, nombre, extra, fn) {
   if (pasos.slice(antes).every(p => p.ok)) NUEVA[id] = { huella: h, ok: true, fecha: new Date().toISOString() };
 }
 const visual = async () => {
-  await conMemoria('navegador' + (AREA ? '-' + AREA : ''), 'Recorrido en navegador' + (AREA ? ' · área ' + AREA : ''), ['gobierno/jueces.mjs'], navegador);
-  if (!AREA) await conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
+  /* J20a: el recorrido y la guerra jugada van a la vez, cada uno en su navegador (antes, uno detrás de otro: 19 + 26 min) */
+  const nav = () => conMemoria('navegador' + (AREA ? '-' + AREA : ''), 'Recorrido en navegador' + (AREA ? ' · área ' + AREA : ''), ['gobierno/jueces.mjs'], navegador);
+  const gue = () => conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
+  if (AREA) await nav(); else if (SEGUIDO) { await nav(); await gue(); } else await Promise.all([nav(), gue()]);
 };
 /* la lógica (procesos aparte) y el navegador corren a la vez: el recorrido pasa mucho rato esperando a la página */
-const grupos = [...(AREA ? [] : [logica]), ...(RAPIDO || LIGA ? [] : [visual])];
+const COLA = AREA ? [] : preparaLogica();
+await aSolas(COLA);
+const grupos = [...(AREA ? [] : [() => logica(COLA)]), ...(RAPIDO || LIGA ? [] : [visual])];
 if (SEGUIDO) for (const g of grupos) await g(); else await Promise.all(grupos.map(g => g()));
 { const m = leeMemoria(); Object.assign(m, NUEVA); if (Object.keys(NUEVA).length) guardaMemoria(m); }
 
