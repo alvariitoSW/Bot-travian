@@ -83,13 +83,11 @@
         "js/gfx/dialogos-ui.js",
         "test/dialogos.test.mjs",
         "js/maniobra.js",
-        "js/ui-guerra.js",
         "js/ui-mando.js",
         "js/ui-maniobra.js",
         "js/ui-escaramuza.js",
         "js/gfx/campo-mando.js",
         "js/gfx/sonido.js",
-        "css/guerra.css",
         "css/mando.css",
         "css/maniobra.css",
         "test/guerra.test.mjs",
@@ -134,7 +132,8 @@
         "test/tropas-sim.test.mjs",
         "test/tropas-precios.test.mjs",
         "test/es3-combinada.test.mjs",
-        "test/es4-asculo.test.mjs"
+        "test/es4-asculo.test.mjs",
+        "test/registro-lleva.test.mjs"
       ],
       "taller": [],
       "juez": {
@@ -163,7 +162,8 @@
           "test/es2-mando.test.mjs",
           "test/es3-tiro.test.mjs",
           "test/es3-combinada.test.mjs",
-          "test/es4-asculo.test.mjs"
+          "test/es4-asculo.test.mjs",
+          "test/registro-lleva.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",

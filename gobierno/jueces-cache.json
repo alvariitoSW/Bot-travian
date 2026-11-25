@@ -125,9 +125,9 @@
   "fecha": "2026-11-25T02:59:51.510Z"
  },
  "area:test/falange.test.mjs": {
-  "huella": "34e123175523762e",
+  "huella": "9417151d052bc418",
   "ok": true,
-  "fecha": "2026-11-25T03:01:45.277Z"
+  "fecha": "2026-11-25T03:55:02.523Z"
  },
  "area:test/falange-rivales.test.mjs": {
   "huella": "b5d6c7f62a0cb55b",
@@ -140,14 +140,14 @@
   "fecha": "2026-11-24T22:50:36.401Z"
  },
  "area:test/bloque-ia.test.mjs": {
-  "huella": "95a3d746b980c14a",
+  "huella": "b1dac633126e7e9f",
   "ok": true,
-  "fecha": "2026-11-25T03:02:03.002Z"
+  "fecha": "2026-11-25T03:55:20.977Z"
  },
  "area:test/fisica-batalla.test.mjs": {
-  "huella": "1be4b6c0ff87f83a",
+  "huella": "123d33a287456873",
   "ok": true,
-  "fecha": "2026-11-25T03:03:42.025Z"
+  "fecha": "2026-11-25T03:56:58.377Z"
  },
  "area:test/batalla-rapida.test.mjs": {
   "huella": "f5bda0867752a22d",
@@ -155,9 +155,9 @@
   "fecha": "2026-11-25T01:09:15.261Z"
  },
  "area:test/dialogos.test.mjs": {
-  "huella": "83129d3347bccd70",
+  "huella": "7f090aedb52b9825",
   "ok": true,
-  "fecha": "2026-11-25T03:03:43.591Z"
+  "fecha": "2026-11-25T03:56:59.939Z"
  },
  "navegador-batallas": {
   "huella": "dd76c728866cc795",
@@ -180,9 +180,9 @@
   "fecha": "2026-11-24T22:52:31.296Z"
  },
  "area:test/fu3b-falange.test.mjs": {
-  "huella": "d085fcbd09a7e47b",
+  "huella": "4eb15e83f878d590",
   "ok": true,
-  "fecha": "2026-11-25T03:03:47.158Z"
+  "fecha": "2026-11-25T03:57:03.679Z"
  },
  "area:test/fu3c-falange.test.mjs": {
   "huella": "ff941a823335cde5",
@@ -190,9 +190,9 @@
   "fecha": "2026-11-24T22:52:38.155Z"
  },
  "area:test/fu5-formaciones.test.mjs": {
-  "huella": "f24a51c00a56f44d",
+  "huella": "756d772309d38a25",
   "ok": true,
-  "fecha": "2026-11-25T03:03:47.970Z"
+  "fecha": "2026-11-25T03:57:04.415Z"
  },
  "area:test/tacticas.test.mjs": {
   "huella": "320d18b36db9a577",
@@ -215,23 +215,28 @@
   "fecha": "2026-11-25T01:09:18.955Z"
  },
  "area:test/es2-mando.test.mjs": {
-  "huella": "de3a4c0f895fb57e",
+  "huella": "bff3c034e744069e",
   "ok": true,
-  "fecha": "2026-11-25T03:03:48.588Z"
+  "fecha": "2026-11-25T03:57:05.075Z"
  },
  "area:test/es3-tiro.test.mjs": {
-  "huella": "9f771be55d0ec02e",
+  "huella": "744f89a7343f5467",
   "ok": true,
-  "fecha": "2026-11-25T03:03:48.655Z"
+  "fecha": "2026-11-25T03:57:05.141Z"
  },
  "area:test/es3-combinada.test.mjs": {
-  "huella": "4205e3f29dc214cb",
+  "huella": "8a73005e62971380",
   "ok": true,
-  "fecha": "2026-11-25T03:03:49.107Z"
+  "fecha": "2026-11-25T03:57:05.519Z"
  },
  "area:test/es4-asculo.test.mjs": {
-  "huella": "4cdf012dbd670f72",
+  "huella": "7602f0d2a1c6aa63",
   "ok": true,
-  "fecha": "2026-11-25T03:03:49.390Z"
+  "fecha": "2026-11-25T03:57:05.844Z"
+ },
+ "area:test/registro-lleva.test.mjs": {
+  "huella": "efd8718a4a03ad4c",
+  "ok": true,
+  "fecha": "2026-11-25T03:57:05.895Z"
  }
 }
