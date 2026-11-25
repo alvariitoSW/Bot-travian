@@ -2,6 +2,7 @@
 (function (root) {
   const D = {};
   D.START_YEAR = 280; // a.C.
+  D.ANIO_POLIS = 800; // a.C. PN3: año en que empieza la partida de polis (licencia de juego; si el usuario dice otro, se cambia solo esta línea)
   D.TURNO_MESES = 3; // una estación = un turno
   /* CE3-A1: el tiempo se cuenta en estaciones (3 meses). Una obra dura 1 estación si sube a nivel 1-2 y 2 si sube a 3-5 (índice = nivel de destino).
      Un lote de reclutas dura 1 estación, sea del tamaño que sea. Los bonos que antes acortaban obras e instrucción ahora las abaratan. Licencia de juego. */
@@ -446,13 +447,18 @@
       tropa: { id: 'jinetes', n: 'Hipóbotas', d: 'Los grandes terratenientes de Calcis, a caballo.' },
       heroe: 'Polemarco de Calcis', leva: { hoplitas: 30, jinetes: 10, peltastas: 10 } }
   };
+  /* PN3: almacén al empezar una partida de polis (unas materias básicas; licencia de juego) */
+  D.POLIS_RES = { grano: 400, denarios: 250, materiales: 400, hierro: 150 };
   D.POLIS_ORDEN = ['atenas', 'esparta', 'corinto', 'argos', 'tebas', 'megara', 'mileto', 'calcis'];
   /* Con polis elegida (D.polis = id; lo fijan G.newGame y G.load) la ciudad y el bando del jugador llevan su nombre. Sin polis, «Roma» como siempre. */
   D.polis = null;
   { const pn = (f, p) => D.polis && D.POLIS[D.polis] ? D.POLIS[D.polis][p] : f;
     Object.defineProperty(D.CITIES.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
     Object.defineProperty(D.FACTIONS.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
-    Object.defineProperty(D.FACTIONS.roma, 'col', { enumerable: true, configurable: true, get() { return pn('#b3261e', 'color'); } }); }
+    Object.defineProperty(D.FACTIONS.roma, 'col', { enumerable: true, configurable: true, get() { return pn('#b3261e', 'color'); } });
+    /* PN3: en partida de polis el foro se llama «Ágora» (mismo edificio, mismas reglas) */
+    Object.defineProperty(D.BUILD.foro, 'n', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? 'Ágora' : 'Foro'; } });
+    Object.defineProperty(D.LEVA_FICHAS.campo_marte, 'n', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? 'Campo de armas' : 'Campo de Marte'; } }); }
 
   // [a, b, marítima]
   D.EDGES = [

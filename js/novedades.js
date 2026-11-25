@@ -4,6 +4,10 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 174, fecha: '25/11/2026', cosas: [
+      'Tu polis empieza pequeña: el ágora, unas pocas casas y entre 100 y 200 personas, en el año 800 a.C.',
+      'Cada partida nueva sale una comarca distinta: el terreno, el sitio del ágora y los bosques cambian.',
+      'En la ficha del ágora ves tu comarca: su agua, su puerto y los recursos que tienes cerca.'] },
     { v: 173, fecha: '25/11/2026', cosas: [
       'En Partida nueva eliges entre 8 polis griegas: Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto y Calcis.',
       'Cada una tiene su rasgo, su edificio propio, su tropa y su lujo; la ciudad y el bando llevan su nombre.',
