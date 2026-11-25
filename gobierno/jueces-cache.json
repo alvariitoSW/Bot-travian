@@ -120,14 +120,14 @@
   "fecha": "2026-11-25T22:14:24.392Z"
  },
  "area:test/nb7.test.mjs": {
-  "huella": "11297310738c14e2",
+  "huella": "1d828766486b87db",
   "ok": true,
-  "fecha": "2026-11-25T19:34:08.579Z"
+  "fecha": "2026-11-25T22:15:15.543Z"
  },
  "area:test/falange.test.mjs": {
-  "huella": "472bb9ba406669c9",
+  "huella": "70e9abea59ff0e1d",
   "ok": true,
-  "fecha": "2026-11-25T19:37:20.916Z"
+  "fecha": "2026-11-25T22:17:17.662Z"
  },
  "area:test/falange-rivales.test.mjs": {
   "huella": "bffe87ce8c97a8b3",
