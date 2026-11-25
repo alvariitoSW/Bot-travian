@@ -1829,7 +1829,7 @@
     const s = G.state, c = cid && s.cities[cid] && s.cities[cid].owner === 'roma' ? s.cities[cid] : null, T = G.CAUTIVOS.tercio; let k = 0;
     if (c) { const cl = G.clases(c); k = Math.max(0, Math.min(n, Math.floor((T * cl.pop - cl.esc) / (1 - T)))); if (k > 0) { c.pop = (c.pop || 0) + k; c.esc = (c.esc || 0) + k; } }
     const v = n - k, oro = v * G.CAUTIVOS.precio; if (oro > 0) s.res.denarios += oro;
-    if (out) out.lines.push('⛓️ ' + n + ' cautivos: ' + (k > 0 ? k + ' pasan a esclavos de ' + D.CITIES[cid].n : 'ninguno cabe como esclavo') + (v > 0 ? ' y ' + v + ' se venden (+' + oro + ' denarios).' : '.'));
+    if (out) out.lines.push('⛓️ ' + n + (n === 1 ? ' cautivo: ' : ' cautivos: ') + (k > 0 ? k + (k === 1 ? ' pasa a esclavo de ' : ' pasan a esclavos de ') + D.CITIES[cid].n : 'ninguno cabe como esclavo') + (v > 0 ? ' y ' + v + (v === 1 ? ' se vende (+' : ' se venden (+') + oro + ' denarios).' : '.'));
     return { esc: k, venta: v };
   }
   // cada mes, en cada ciudad tuya: parte de los heridos vuelve a filas (más despacio cuantos más heridos hay frente a los sanos)
