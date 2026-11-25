@@ -1,97 +1,207 @@
 {
  "pausas": {
-  "huella": "b9dc458138cad132",
+  "huella": "56dad182ca30837d",
   "ok": true,
-  "fecha": "2026-11-24T20:30:16.702Z"
+  "fecha": "2026-11-24T23:26:31.705Z"
  },
  "encargos": {
-  "huella": "d576b8bf43cb5e1c",
+  "huella": "a8cb8357008eb53c",
   "ok": true,
-  "fecha": "2026-11-24T20:30:20.554Z"
+  "fecha": "2026-11-24T23:26:36.026Z"
  },
  "movil": {
-  "huella": "570a92822f92a669",
+  "huella": "5ac80dc190e47733",
   "ok": true,
-  "fecha": "2026-11-24T20:30:25.968Z"
+  "fecha": "2026-11-24T23:26:41.987Z"
  },
  "ciudad": {
-  "huella": "4cb4cf265daf56e2",
+  "huella": "4437e354af5aa62c",
   "ok": true,
-  "fecha": "2026-11-24T20:31:22.914Z"
+  "fecha": "2026-11-24T23:27:48.681Z"
  },
  "senado": {
-  "huella": "f65a3c1a3ceb35a5",
+  "huella": "fc5ca5a702647ad3",
   "ok": true,
-  "fecha": "2026-11-24T20:31:32.558Z"
+  "fecha": "2026-11-24T23:27:59.170Z"
  },
  "campo": {
-  "huella": "48e45187d91e152b",
+  "huella": "b8219fc34920e68f",
   "ok": true,
-  "fecha": "2026-11-24T21:19:04.464Z"
+  "fecha": "2026-11-24T23:28:04.329Z"
  },
  "guerra": {
-  "huella": "894f5f75cc384786",
+  "huella": "f2bbcb776fb87e8c",
   "ok": true,
-  "fecha": "2026-11-24T20:31:38.433Z"
+  "fecha": "2026-11-24T23:28:05.594Z"
  },
  "simulador": {
-  "huella": "e4c1d27a41ea9d90",
+  "huella": "a5cc69f7d70872e1",
   "ok": true,
-  "fecha": "2026-11-24T20:31:45.526Z"
+  "fecha": "2026-11-24T23:28:13.328Z"
  },
  "guerra-juego": {
-  "huella": "d1ed14f6c7ac656b",
+  "huella": "3bba5b0bdc87332a",
   "ok": true,
-  "fecha": "2026-11-24T20:31:48.595Z"
+  "fecha": "2026-11-24T23:28:17.044Z"
  },
  "fichas": {
-  "huella": "b85b09a2ba45c2f1",
+  "huella": "25ca1010e0c8707b",
   "ok": true,
-  "fecha": "2026-11-24T21:19:04.608Z"
+  "fecha": "2026-11-24T23:28:17.104Z"
  },
  "mapa": {
-  "huella": "5549af0a984197da",
+  "huella": "06caa6fd30e9e2f6",
   "ok": true,
-  "fecha": "2026-11-24T21:19:04.773Z"
+  "fecha": "2026-11-24T23:28:17.156Z"
  },
  "saber": {
-  "huella": "c27a586a89c5a197",
+  "huella": "f8d5b4cd623924c4",
   "ok": true,
-  "fecha": "2026-11-24T20:32:05.002Z"
+  "fecha": "2026-11-24T23:28:35.505Z"
  },
  "sim": {
-  "huella": "ee9e45b18935a757",
+  "huella": "8088829059dc7068",
   "ok": true,
-  "fecha": "2026-11-24T21:25:03.268Z"
+  "fecha": "2026-11-24T23:26:23.180Z"
  },
  "investigador": {
-  "huella": "85179682b3f7f424",
+  "huella": "02a337f0b4874454",
   "ok": true,
-  "fecha": "2026-11-24T20:40:48.000Z"
+  "fecha": "2026-11-24T23:39:16.509Z"
  },
  "diplomacia": {
-  "huella": "e04744a96b495550",
+  "huella": "f64ae1a7738ed3cb",
   "ok": true,
-  "fecha": "2026-11-24T20:51:26.109Z"
+  "fecha": "2026-11-24T23:52:54.946Z"
  },
  "sonido-ciudad": {
   "huella": "547d19c50ddb9c94",
   "ok": true,
-  "fecha": "2026-11-24T20:51:26.151Z"
+  "fecha": "2026-11-24T23:52:55.009Z"
  },
  "ajustes": {
-  "huella": "ea96e578f3395a63",
+  "huella": "d0b55d85e9283c59",
   "ok": true,
-  "fecha": "2026-11-24T20:51:21.514Z"
+  "fecha": "2026-11-24T23:52:49.188Z"
  },
  "guerra-jugada": {
-  "huella": "72355020c0fee8ae",
+  "huella": "25ca1010e0c8707b",
   "ok": true,
-  "fecha": "2026-11-24T21:18:02.078Z"
+  "fecha": "2026-11-25T00:20:52.961Z"
  },
  "navegador": {
-  "huella": "32522177a4dc0d41",
+  "huella": "1d29cab5f56970a1",
   "ok": true,
-  "fecha": "2026-11-24T21:03:39.163Z"
+  "fecha": "2026-11-25T00:06:20.260Z"
+ },
+ "area:test/guerra.test.mjs": {
+  "huella": "0a653f3f13ba048a",
+  "ok": true,
+  "fecha": "2026-11-24T22:47:39.138Z"
+ },
+ "area:test/guerra-juego.test.mjs": {
+  "huella": "344dbdd0660a0007",
+  "ok": true,
+  "fecha": "2026-11-24T22:47:42.109Z"
+ },
+ "area:test/simulador.test.mjs": {
+  "huella": "0995304d43446517",
+  "ok": true,
+  "fecha": "2026-11-24T22:47:48.766Z"
+ },
+ "area:test/maniobra.test.mjs": {
+  "huella": "d8d573f04517c9e4",
+  "ok": true,
+  "fecha": "2026-11-24T22:47:48.851Z"
+ },
+ "area:test/campo.test.mjs": {
+  "huella": "6fe24afbe9df094f",
+  "ok": true,
+  "fecha": "2026-11-24T22:47:52.938Z"
+ },
+ "area:test/nb7.test.mjs": {
+  "huella": "824dac3340fccecb",
+  "ok": true,
+  "fecha": "2026-11-24T22:48:32.558Z"
+ },
+ "area:test/falange.test.mjs": {
+  "huella": "e90c967b758dc644",
+  "ok": true,
+  "fecha": "2026-11-24T22:50:06.261Z"
+ },
+ "area:test/falange-rivales.test.mjs": {
+  "huella": "b5d6c7f62a0cb55b",
+  "ok": true,
+  "fecha": "2026-11-24T22:50:35.617Z"
+ },
+ "area:test/bloque.test.mjs": {
+  "huella": "07c2b640e1c780a3",
+  "ok": true,
+  "fecha": "2026-11-24T22:50:36.401Z"
+ },
+ "area:test/bloque-ia.test.mjs": {
+  "huella": "e93dc63c44031f50",
+  "ok": true,
+  "fecha": "2026-11-24T22:50:50.953Z"
+ },
+ "area:test/fisica-batalla.test.mjs": {
+  "huella": "744433263fd106d8",
+  "ok": true,
+  "fecha": "2026-11-24T22:52:09.514Z"
+ },
+ "area:test/batalla-rapida.test.mjs": {
+  "huella": "9560086207c10244",
+  "ok": true,
+  "fecha": "2026-11-24T22:52:10.480Z"
+ },
+ "area:test/dialogos.test.mjs": {
+  "huella": "ea53e77411001932",
+  "ok": true,
+  "fecha": "2026-11-24T22:52:14.933Z"
+ },
+ "navegador-batallas": {
+  "huella": "22a473b82782eabf",
+  "ok": true,
+  "fecha": "2026-11-24T22:57:32.048Z"
+ },
+ "area:gobierno/jueces.mjs --area batallas": {
+  "huella": "6e04a1e64496b533",
+  "ok": true,
+  "fecha": "2026-11-24T22:57:32.058Z"
+ },
+ "area:gobierno/juez-guerra.mjs": {
+  "huella": "012260707fb0b513",
+  "ok": true,
+  "fecha": "2026-11-24T23:10:24.066Z"
+ },
+ "area:test/fu3-falange.test.mjs": {
+  "huella": "8a76adac61c1b454",
+  "ok": true,
+  "fecha": "2026-11-24T22:52:31.296Z"
+ },
+ "area:test/fu3b-falange.test.mjs": {
+  "huella": "a8fbb569687483dd",
+  "ok": true,
+  "fecha": "2026-11-24T22:52:34.057Z"
+ },
+ "area:test/fu3c-falange.test.mjs": {
+  "huella": "ff941a823335cde5",
+  "ok": true,
+  "fecha": "2026-11-24T22:52:38.155Z"
+ },
+ "area:test/fu5-formaciones.test.mjs": {
+  "huella": "f573a75f14552175",
+  "ok": true,
+  "fecha": "2026-11-24T22:52:38.800Z"
+ },
+ "area:test/tacticas.test.mjs": {
+  "huella": "61a400ab0402341e",
+  "ok": true,
+  "fecha": "2026-11-24T22:52:39.037Z"
+ },
+ "area:test/fu4-rivales.test.mjs": {
+  "huella": "3312c11de5d59eb8",
+  "ok": true,
+  "fecha": "2026-11-24T22:53:04.792Z"
  }
 }

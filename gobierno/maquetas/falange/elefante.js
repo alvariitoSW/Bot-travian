@@ -76,7 +76,7 @@ export async function montaRival(ctx) {
             if (h.fuera) { ele.oculta(i); sombras.oculta(i); continue; }
             const alzado = h.est === 'desbocada' && T - d.t0 < ALZA * 0.6;   /* se alza y luego gira */
             const clavada = h.est === 'ensartada' || (!h.vivo && d.est === 'ensartada');
-            if (h.vivo) sigue(d, h, dt, V_ELEFANTE, G_ELEFANTE, { rumbo: h.est === 'carga' || h.est === 'desbocada' || h.est === 'huye', umbral: 1.5, yaw: alzado ? d.yaw0 : h.est === 'lucha' || clavada ? -g : undefined });
+            if (h.vivo) sigue(d, h, dt, V_ELEFANTE, G_ELEFANTE, { rumbo: h.est === 'carga' || h.est === 'desbocada' || h.est === 'huye', umbral: 1.5, yaw: alzado ? d.yaw0 : S.vivo ? h.yaw : h.est === 'lucha' || clavada ? -g : undefined });   /* FU4: en vivo, su propio rumbo (h.yaw), no el de tu muro */
             const y = H(d.x, d.z); let fr, pitch = 0;
             let roll = 0, alzaY = 0;   /* FE3: alzaY, lo que sube el cuerpo (solo al alzarse) */
             if (!h.vivo) {

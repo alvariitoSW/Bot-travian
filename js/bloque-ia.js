@@ -20,7 +20,16 @@
                      cruzas (se quedan quietos); el resto de los galos espera. Cuando la segunda ha caído, el centro galo CARGA (aviso
                      'escenario' { fase: 'carga' }) y se lucha como siempre (pasa fin: FIN_LUCHA para luchar hasta el 15 %).
                      S.escenario = { meta, fase 'cruza'|'carga', tCarga } }
-   C = { S, paso(dt), orden(n), frente({ x, z, ang }), dibujaFrente(a, b), ordenUtil(), bot(modo), resumen(), trabado() }
+   C = { S, paso(dt), orden(n), forma(f), formaUtil(), frente({ x, z, ang }), dibujaFrente(a, b), ordenUtil(), bot(modo), resumen(), trabado() }
+
+   FU5 LA FORMA (aparte de la orden): S.tuyo.forma = 'cerrada' (de serie) | 'muro' | 'abierto'. C.forma(f) la cambia (false si no existe, si ya la tienes,
+     si hay ganador o estás roto o retirándote; si estás en testudo, lo abre). 'testudo' y 'cargar' la devuelven a 'cerrada'. FORMAS (abajo)
+     da las cifras: muro = escudos solapados (anda a medio paso, pega 0,75, de frente recibe 0,55, la carga de frente pega 0,35 y quita 4 de cohesión
+     en vez de 18, las salvas 0,6); abierto = hombres separados (anda 1,45, las salvas 0,35, pero recibe 1,9, la carga pega 1,4 y quita 30).
+     C.formaUtil() → la forma que conviene ahora o null (para el abanico del estandarte: 'muro' si te cargan de frente, 'abierto' si hay
+     una salva en el aire, 'cerrada' si pasó el peligro). Con LP1, B.dx/B.dz se escalan por la forma: los hombres se abren o se cierran solos.
+     Historia: el muro de escudos y el orden abierto de los vélites son del manípulo (Polibio 6.21–23; Livio 8.8): las cifras y que sea un
+     abanico del estandarte, licencia de juego.
 
    EJES (los de js/falange.js): metros; ang = 0 mira a −z; frente = (sen ang, −cos ang); derecha = (cos ang, sen ang);
    ang positivo = ha girado a su derecha. (x, z) de un bloque = el centro de su PRIMERA FILA (el pivote).
@@ -110,6 +119,13 @@ import { azarSemilla, crearUnidad } from './falange.js';
 
 export const NIVELES = ['facil', 'normal', 'dificil'];
 export const ORDENES = ['cargar', 'alto', 'testudo', 'relevo', 'retirada'];
+/* FU5 · las formas (licencia de juego: todas las cifras). vel = paso de marcha · salva = muertos de una salva · recibe = daño de los golpes · ataque = lo que pegas
+   carga = cohesión que pierdes al recibir una carga · impacto = peso del golpe de carga que recibes · dx, dz = huecos entre hombres */
+export const FORMAS = {
+  cerrada: { vel: 1,    salva: 1,    recibe: 1,    ataque: 1,    carga: 18, impacto: 1,    dx: 1,    dz: 1 },
+  muro:    { vel: 0.5,  salva: 0.6,  recibe: 0.55, ataque: 0.75, carga: 4,  impacto: 0.35, dx: 0.78, dz: 0.9 },
+  abierto: { vel: 1.45, salva: 0.35, recibe: 1.9,  ataque: 0.7,  carga: 30, impacto: 1.4,  dx: 1.6,  dz: 1.8 },
+};
 export const BOTS = ['bueno', 'quieto', 'sinOrdenes', 'sinTestudo', 'sinRelevo', 'sinCargar', 'retira'];
 export const GRADO = Math.PI / 180;
 export const DT = 0.1, T_MAX = 300;                                  /* paso de las pruebas y tope de partida (s) */
@@ -212,7 +228,7 @@ export function crearCombate(m = {}) {
   const DEUDA = 6;
   const LUCHA = m.lucha === 'motor';
   const azar = azarSemilla(semilla * 7919 + NIVELES.indexOf(nivel) * 31 + 3);
-  const S = { T: 0, nivel, ganador: null, causa: null, bloques: [], salva: null, flanco: null, cuenta: { flanqueado: 0, salvas: 0, salvasTestudo: 0, pilum: 0, relevos: 0, cargas: 0, fintas: 0, retiradas: 0, muertosSuelta: 0, rotaRetira: 0, retiradasGalas: 0 } };
+  const S = { T: 0, nivel, ganador: null, causa: null, bloques: [], salva: null, flanco: null, cuenta: { flanqueado: 0, salvas: 0, salvasTestudo: 0, pilum: 0, relevos: 0, cargas: 0, fintas: 0, retiradas: 0, muertosSuelta: 0, rotaRetira: 0, retiradasGalas: 0, tMuro: 0, tAbierto: 0 } };
   let id = 0, kIlumina = null, tBot = -9, tGiro = -9;
   /* LP7: fuerzas reales, distancia y final al 15 % (ver el contrato). F(k, i) = hombres pedidos o null (el de serie) */
   const ESC = m.escenario === 'testudo';   /* FU1: cruzar bajo las salvas */
@@ -223,7 +239,7 @@ export function crearCombate(m = {}) {
   function crea(tipo, papel, bando, x, z, ang, n) {
     const T = TIPOS[tipo], hombres = n || T.hombres;
     const b = { id: id++, tipo, papel, bando, x, z, ang, ancho: T.ancho, fondo: T.fondo, T, U: crearUnidad({ hombres, nombre: papel, fin: FIN, miedo: FIN == null }),
-      coh: 100, fila: 0, relevos: T.relevos, orden: null, tOrden: 0, tRelevo: -1, tImpacto: -9, cargaAl: false, pilum: bando === 'r' ? 1 : 0,
+      coh: 100, fila: 0, forma: 'cerrada', relevos: T.relevos, orden: null, tOrden: 0, tRelevo: -1, tImpacto: -9, cargaAl: false, pilum: bando === 'r' ? 1 : 0,
       estado: 'forma', obj: null, v: 0, contactos: [], tContacto: -9, retiradas: tipo === 'manipulo' ? RETIRADAS : 0, reformas: bando === 'g' ? P.reformas : 0, tReforma: -1, golpes: 0, cedido: false, agotada: false };
     S.bloques.push(b); return b;
   }
@@ -253,6 +269,7 @@ export function crearCombate(m = {}) {
   const MO = m.motor || null, B = MO ? (m.bloque || creaB(MO, tuyo)) : null;
   if (B) { const p = poseDe(B); tuyo.x = p.x; tuyo.z = p.z; tuyo.ang = p.ang; medidasDe(B, tuyo); }
   S.B = B;
+  if (B) { B.dx0 = B.dx; B.dz0 = B.dz; }   /* FU5: los huecos de base; la forma los escala cada paso */
 
   const enemigos = b => S.bloques.filter(o => o.bando !== b.bando && o.estado !== 'fuera');
   const delanteDe = (b, rango, cono = 50 * GRADO) => {
@@ -279,6 +296,7 @@ export function crearCombate(m = {}) {
     if (n === 'retirada') return retirada(tuyo, D_RETIRA);
     if (tuyo.estado === 'retira') { avisa('retirandose', { de: tuyo }); return false; }   /* mientras retrocede, no se le puede mandar otra cosa */
     if (tuyo.estado === 'reforma') tuyo.estado = enChoque(tuyo) ? 'choque' : 'forma';   /* otra orden corta el rehacerse (sin su premio) */
+    if (n === 'testudo' || n === 'cargar') tuyo.forma = 'cerrada';   /* FU5: se carga y se hace testudo desde filas cerradas */
     if (n === 'testudo' && tuyo.orden === 'testudo') { tuyo.orden = 'alto'; tuyo.tOrden = S.T; tuyo.obj = null; if (B) MO.dibujaFrente(B, B.frente.p0, B.frente.p1, { sentido: 'dibujo' }); avisa('orden', { n: 'alto', texto: TEXTO.abre }); return true; }   /* tocar Testudo otra vez lo quita */
     if (n === 'relevo') {
       if (tuyo.relevos <= 0 || tuyo.tRelevo > S.T) return false;
@@ -288,6 +306,13 @@ export function crearCombate(m = {}) {
     if (n === 'cargar') { if (tuyo.orden !== 'cargar') { S.cuenta.cargas++; tuyo.cargaAl = true; } tuyo.obj = null; }
     if (n === 'alto') { tuyo.obj = null; if (B) MO.dibujaFrente(B, B.frente.p0, B.frente.p1, { sentido: 'dibujo' }); }
     tuyo.orden = n; tuyo.tOrden = S.T; avisa('orden', { n, texto: TEXTO[n] }); return true;
+  }
+  /* FU5: cambiar de forma (muro / abierto / cerrada). false si no se puede */
+  const TEXTO_FORMA = { muro: '¡Muro de escudos!', abierto: '¡Abrid filas!', cerrada: '¡Cerrad filas!' };
+  function forma(f) {
+    if (!FORMAS[f] || f === tuyo.forma || S.ganador || tuyo.U.roto || retirando(tuyo)) return false;
+    if (tuyo.orden === 'testudo') orden('testudo');   /* el testudo se abre primero */
+    tuyo.forma = f; avisa('forma', { f, texto: TEXTO_FORMA[f] }); return true;
   }
   function frente(o) {
     if (S.ganador || tuyo.U.roto || !o) return;
@@ -386,7 +411,7 @@ export function crearCombate(m = {}) {
     if (b.orden === 'testudo') return V_TESTUDO;
     if (b.orden === 'cargar') return V_CARGA;
     if (b.papel === 'reserva' && S.ia.fase === 'rodea') return V_RODEA;
-    return V_MARCHA;
+    return V_MARCHA * (FORMAS[b.forma] || FORMAS.cerrada).vel;   /* FU5 */
   }
   function mueve(b, dt) {
     const o = b.obj; let v = 0;
@@ -431,6 +456,7 @@ export function crearCombate(m = {}) {
       }
       if (tuyo.obj) mandaFrente(MO, B, tuyo.obj);
       /* LP1 marcha hacia atrás a la mitad de paso: la retirada le pide el doble para ir a V_RETIRA */
+      { const F = FORMAS[tuyo.forma] || FORMAS.cerrada; B.dx = B.dx0 * F.dx; B.dz = B.dz0 * F.dz; }   /* FU5: los huecos de la forma */
       pasoBloque(MO, B, dt, ret ? V_RETIRA / 0.5 : velocidad(tuyo), trabado(tuyo) && !ret, tuyo.orden);   /* trabado: sin parpadeos del roce */
       const p = poseDe(B); tuyo.v = dist(p, tuyo) / dt; tuyo.x = p.x; tuyo.z = p.z; tuyo.ang = p.ang; medidasDe(B, tuyo);
       if (!B.meta && tuyo.obj && tuyo.orden !== 'cargar') tuyo.obj = null;
@@ -471,7 +497,7 @@ export function crearCombate(m = {}) {
       if (b === tuyo && zona !== 'frente') S.cuenta.flanqueado++;
       const cargaO = (o.orden === 'cargar' || o.cargaAl) && o.v > 1.5 && S.T - o.tImpacto > 6;   /* un golpe de carga, no uno por roce */
       if (cargaO) { o.tImpacto = S.T; o.cargaAl = false; const mismo = b.orden === 'cargar' && b.v > 1.5;
-        if (!mismo) b.coh = Math.max(0, b.coh - (b.orden === 'testudo' ? 6 : 18)); avisa('carga', { de: o, a: b }); }
+        if (!mismo) b.coh = Math.max(0, b.coh - (b.orden === 'testudo' ? 6 : b.forma === 'muro' && zona !== 'frente' ? 18 : (FORMAS[b.forma] || FORMAS.cerrada).carga));   /* FU5 */ avisa('carga', { de: o, a: b }); }
       if (b.tipo === 'tiradores' && b.estado !== 'huye') { b.U.anima(-0.3); }
     }
   }
@@ -479,6 +505,7 @@ export function crearCombate(m = {}) {
     if (a.estado === 'huye' || a.estado === 'fuera') return 0;
     let k = K_GOLPE * a.T.atk * a.atkNivel * Math.sqrt(a.U.enPie / a.U.hombres) * (1 - 0.55 * a.fila) * (0.45 + 0.55 * a.coh / 100);
     if (a.orden === 'testudo') k *= 0.35;
+    k *= (FORMAS[a.forma] || FORMAS.cerrada).ataque;   /* FU5 */
     if (a.tRelevo > S.T) k *= 0.4;
     if (S.T - a.tImpacto < T_IMPACTO) k *= 2.0;
     if (a.tipo === 'galos' || a.tipo === 'nobles') k *= 1 + 0.3 * Math.max(0, 1 - (S.T - (a.tPrimer ?? S.T)) / 20); /* el ímpetu galo, que se gasta */
@@ -487,8 +514,10 @@ export function crearCombate(m = {}) {
     if (a.estado === 'retira') k *= 0.5;   /* retrocediendo se para más de lo que se pega */
     return k;
   }
-  function recibe(b) {
-    let r = b.T.rec; if (b.orden === 'testudo') r *= 0.6; if (b.tRelevo > S.T) r *= 1.3; return r;
+  function recibe(b, peso = 1) {
+    let r = b.T.rec; if (b.orden === 'testudo') r *= 0.6; if (b.tRelevo > S.T) r *= 1.3;
+    if (b.forma === 'abierto') r *= FORMAS.abierto.recibe; else if (b.forma === 'muro' && peso < 1.5) r *= FORMAS.muro.recibe;   /* FU5: el muro solo de frente */
+    return r;
   }
   function golpes(dt) {
     const daño = new Map();
@@ -501,7 +530,9 @@ export function crearCombate(m = {}) {
         const z = b.estado === 'huye' || (retirando(b) && b.coh < COH_ORDEN) ? ZONA.espalda : enB.peso;
         /* un frente solo cabe a tantos: si dos te atacan de frente a la vez, entre los dos pegan como 1,3 */
         const nF = b.contactos.filter(x => x.peso < 1.5).length, cabe = enB.peso < 1.5 && nF > 1 ? 1.3 / nF : 1;
-        const d = k * z * cabe * recibe(b) * dt; daño.set(b, (daño.get(b) || 0) + d); a.golpes += d;
+        let d = k * z * cabe * recibe(b, enB.peso) * dt;
+        if (S.T - a.tImpacto < T_IMPACTO && b.forma !== 'cerrada') { const F = FORMAS[b.forma]; if (b.forma === 'abierto' || enB.peso < 1.5) d *= F.impacto; }   /* FU5: el golpe de carga pesa según tu forma */
+        daño.set(b, (daño.get(b) || 0) + d); a.golpes += d;
         b.coh = Math.max(0, b.coh - d * 0.5 * (1 + 2 * (enB.peso - 1) / (ZONA.flanco - 1)));
       }
     }
@@ -545,6 +576,7 @@ export function crearCombate(m = {}) {
       if (S.T >= S.salva.t) {
         const b = S.salva.blanco, test = b.orden === 'testudo', ch = enChoque(b);
         let k = SALVA_MUERTOS * (test ? 0.12 : b.orden === 'cargar' ? 1.3 : 1) * (ch ? 0.7 : 1) * Math.sqrt(t.U.enPie / t.U.hombres) * (0.85 + azar() * 0.3);
+        if (!test) k *= (FORMAS[b.forma] || FORMAS.cerrada).salva;   /* FU5 */
         k = Math.min(b.U.enPie, Math.round(k)); b.U.baja(k); causa(t, k); b.coh = Math.max(0, b.coh - (test ? 1 : 10));
         S.cuenta.salvas++; if (test) S.cuenta.salvasTestudo++; avisa('jabalinas', { muertos: k, testudo: test, blanco: b }); S.salva = null;
       }
@@ -695,6 +727,7 @@ export function crearCombate(m = {}) {
       estado(b, dt);
     }
     tiradores(dt); if (B) bajasB(MO, B, tuyo.U.enPie);
+    if (tuyo.forma === 'muro') S.cuenta.tMuro += dt; else if (tuyo.forma === 'abierto') S.cuenta.tAbierto += dt;   /* FU5 */
     if (S.flanco && (!vivo(S.flanco.de) || enChoque(S.flanco.de))) S.flanco = null;
     const u = ordenUtil(); if (u !== kIlumina) { kIlumina = u; if (u) avisa('ilumina', { n: u }); }
     fin();
@@ -756,6 +789,22 @@ export function crearCombate(m = {}) {
     a = tuyo.ang + lim(angDif(a, tuyo.ang), -50 * GRADO, 50 * GRADO);
     return { x: tuyo.x, z: tuyo.z, ang: angDif(a, 0), de: J };
   }
+  /* FU5: la forma que conviene ahora (la que late en el abanico del estandarte), o null */
+  function formaUtil() {
+    if (S.ganador || tuyo.U.roto || retirando(tuyo)) return null;
+    const c = centro(tuyo), ch = enChoque(tuyo), test = tuyo.orden === 'testudo';
+    let cerca = false;
+    for (const o of enemigos(tuyo)) {
+      if (o.U.roto) continue; const co = centro(o), d = dist(co, c) - o.fondo / 2 - tuyo.fondo / 2;
+      if (o.orden === 'cargar' && o.estado !== 'huye' && !retirando(o) && d < D_CARGA && Math.abs(angDif(angHacia(co.x - c.x, co.z - c.z), tuyo.ang)) < 50 * GRADO
+        && tuyo.orden !== 'cargar' && !test && tuyo.forma !== 'muro' && !ch) return 'muro';
+      if (d < 40) cerca = true;
+    }
+    const salva = S.salva && S.salva.blanco === tuyo;
+    if (salva && !test && tuyo.forma !== 'abierto' && ordenUtil() !== 'testudo') return 'abierto';
+    if (tuyo.forma !== 'cerrada' && !ch && !cerca && !salva) return 'cerrada';
+    return null;
+  }
   function resumen() {
     const muertosG = S.bloques.filter(b => b.bando === 'g').reduce((s, b) => s + b.U.hombres - b.U.enPie, 0);
     return { ganador: S.ganador, causa: S.causa, T: +S.T.toFixed(1), nivel, perdidos: tuyo.U.hombres - tuyo.U.enPie, enPie: tuyo.U.enPie,
@@ -770,7 +819,7 @@ export function crearCombate(m = {}) {
     return k;
   }
   S.lucha = LUCHA ? 'motor' : 'reglas';
-  return { S, paso, orden, baja, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
+  return { S, paso, orden, forma, formaUtil, baja, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
 }
 
 /* una partida entera con un bot (para las pruebas y el juez) */

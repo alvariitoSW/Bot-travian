@@ -24,7 +24,7 @@ function escucha(page) {
 const cuadro = page => page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
 async function abre(q, w, h) {
   const ctx = await br.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page);
-  await page.goto(URL0 + q); await page.waitForFunction("window.__tp && window.__tp.lista === true", null, { timeout: 300000 }); await page.waitForTimeout(1500); return { ctx, page };
+  await page.goto(URL0 + q + (q.includes('?') ? '&' : '?') + 'antiguo=1'); await page.waitForFunction("window.__tp && window.__tp.lista === true", null, { timeout: 300000 }); await page.waitForTimeout(1500); return { ctx, page };
 }
 const solo = op.solo ? op.solo.split(",") : null;
 const TS = +(op.tsalva || 19.2), TT = +(op.tsuelo || 20.6), Q0 = 'semilla=20261123';

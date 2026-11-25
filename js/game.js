@@ -244,6 +244,7 @@
     for (const k in m) { b[k] = (b[k] || 0) + m[k]; s.bienesGan = (s.bienesGan || 0) + m[k]; }
     let pide = G.lujoPide(); for (const k of D.LUJO) { if (pide <= 0) break; const de = Math.min(pide, b[k] || 0); b[k] = (b[k] || 0) - de; pide -= de; }
     s.lujoFalta = pide > 1e-9 && G.lujoPide() > 0;
+    s.lujoServido = !s.lujoFalta && G.lujoPide() > 0;   // CE12: los ricos tuvieron su lujo este mes aunque se gastara: el servicio «lujo» del barrio sigue
     for (const k in b) { const ag = D.BIENES_AGRO && D.BIENES_AGRO[k]; if (!D.BIENES[k] && !ag) { delete b[k]; continue; } if (b[k] > D.BIEN_TOPE) { const x = b[k] - D.BIEN_TOPE; b[k] = D.BIEN_TOPE; s.bienesPerdidos = (s.bienesPerdidos || 0) + x; per.push(Math.round(x) + ' de ' + (ag ? ag.n : D.ESPECIAL[k].n).toLowerCase()); } }
     return per;
   }
@@ -297,7 +298,7 @@
     }
     for (const m of s.marches) if (m.owner === 'roma') for (const k in m.units) up += m.units[k] * D.UNITS[k].up;
     p.grano -= up; p.pc = pc; p.upkeep = up; p.comida = comPop + up; p.det = det;
-    p.rutas = 0; if (!merc()) for (const r of G.rutasAbiertas()) p.rutas += G.rutaRenta(r);   // CDe3-F2a: con el mercado nuevo las rutas pagan en el cierre de mes (MERCADO.mes), no aquí
+    p.rutas = 0; if (!merc()) for (const r of G.rutasAbiertas()) if (!r.parada) p.rutas += G.rutaRenta(r);   // CDe3-F2a: con el mercado nuevo las rutas pagan en el cierre de mes (MERCADO.mes), no aquí
     p.denarios += p.rutas; det.rutas = p.rutas;
     p.mant = G.mantenimiento(); p.denarios -= p.mant.total;
     p.sabios = G.pagaSabios(gOk);   // solo dato: se cobra al cerrar el mes (G.cierreMes), no entra en p.denarios
@@ -352,7 +353,7 @@
     if (merc()) return 'Las rutas comerciales van ahora por el mercado';
     const s = G.state, ca = s.cities[a], cb = s.cities[b], e = G.edge(a, b);
     if (!ca || !cb || ca.owner !== 'roma' || !e || a === b) return 'No hay camino';
-    if (G.rutaDe(a, b)) return 'Ya existe';
+    if (G.rutaDe(a, b)) return G.rutaDe(a, b).parada && G.hayGuerraCon(cb.owner) ? 'En guerra con ' + D.FACTIONS[cb.owner].n + ': la ruta está parada' : 'Ya existe';   // CE12
     if (!(ca.b.mercado > 0)) return 'Hace falta un mercado';
     if (e[2] && !(ca.b.puerto > 0)) return 'Hace falta un puerto';
     if (G.rutasDeCiudad(a) >= G.rutaMax(ca)) return 'Sin hueco: mejora el mercado';
@@ -386,11 +387,12 @@
       const ca = s.cities[r.a], cb = s.cities[r.b];
       if (ca.owner !== 'roma') { G.rutaCerrar(r.a, r.b, D.CITIES[r.a].n + ' ya no es tuya'); continue; }
       if (cb.owner !== r.f) { if (cb.owner === 'roma') { r.f = 'roma'; G.log('⚖️ ' + D.CITIES[r.b].n + ' ya es tuya: la ruta pasa a ser interior.'); } else { G.rutaCerrar(r.a, r.b, D.CITIES[r.b].n + ' cambió de dueño'); } continue; }
-      if (r.f !== 'roma' && G.hayGuerraCon(r.f)) G.rutaCerrar(r.a, r.b, 'guerra con ' + D.FACTIONS[r.f].n);
+      if (r.f !== 'roma' && G.hayGuerraCon(r.f)) { if (!r.parada) { r.parada = true; G.log('⚖️ Ruta parada por la guerra con ' + D.FACTIONS[r.f].n + ': ' + D.CITIES[r.a].n + ' ↔ ' + D.CITIES[r.b].n + '.', 'bad'); } }   // CE12: se para, no se cierra; no paga hasta la paz
+      else if (r.parada) r.parada = false;
     }
   };
   // el bien especial de una ciudad ajena con tratado llega a Roma
-  G.fuentesExtra.push(function (k) { const l = []; for (const r of G.rutasAbiertas()) if (r.f !== 'roma' && D.CITIES[r.b].esp === k && G.state.cities[r.b].owner === r.f) l.push(r.b); return l; });
+  G.fuentesExtra.push(function (k) { const l = []; for (const r of G.rutasAbiertas()) if (!r.parada && r.f !== 'roma' && D.CITIES[r.b].esp === k && G.state.cities[r.b].owner === r.f) l.push(r.b); return l; });
   /* ---------- felicidad e impuestos ---------- */
   G.impMult = c => (D.IMPUESTOS[c.imp] || D.IMPUESTOS.normal).mult;
   G.felicidadBase = function (c) {
@@ -609,7 +611,7 @@
     // con ciudad nueva, agua, templo y mercado cuentan si cubren al menos la mitad de las casas (o si hay el edificio heredado). Sin el módulo de ciudad nueva (ciudad.js) el agua se da por cubierta: CN10 retiró el acueducto, que era su única fuente
     const E = ELBAR(c); let cv = null;
     if (E) { let ag = 0, te = 0, me = 0, n = 0; nbs(E).forEach(q => { ag += q.ag; te += q.te; me += q.me; n += q.casas; }); if (n > 0) cv = { ag: ag / n >= 0.5, te: te / n >= 0.5, me: me / n >= 0.5 }; }
-    return { grano: granoOk, templo: (c.b.templo || 0) >= 1 || !!(cv && cv.te), agua: !CI || !!(cv && cv.ag), mercado: (c.b.mercado || 0) >= 1 || !!(cv && cv.me), lujo: !G.state.lujoFalta && D.LUJO.some(k => (G.bienes()[k] || 0) >= 1) };   // CE2: el lujo se guarda; sin bienes de lujo, los ricos no lo tienen
+    return { grano: granoOk, templo: (c.b.templo || 0) >= 1 || !!(cv && cv.te), agua: !CI || !!(cv && cv.ag), mercado: (c.b.mercado || 0) >= 1 || !!(cv && cv.me), lujo: !G.state.lujoFalta && (D.LUJO.some(k => (G.bienes()[k] || 0) >= 1) || !!G.state.lujoServido) };   // CE2: el lujo se guarda; sin bienes de lujo, los ricos no lo tienen
   };
   // ánimo 0-100 por clase. granoOk: si se omite, sale de la producción de grano (G.prod lo pasa para no dar vueltas)
   G.animoClases = function (c, granoOk) {
@@ -2969,11 +2971,12 @@
       x.texto = PIDE_TXT[id] + (x.n ? x.n + (id === 'guarnicion' ? ' hombres' : '') : ''); q.pide[b] = x;
     }
   }
+  const rutasVivas = s => ((s.mercado && Array.isArray(s.mercado.rutas) ? s.mercado.rutas.length : 0) + (Array.isArray(s.rutas) ? s.rutas.filter(r => r && !r.parada).length : 0));   // CE12: rutas activas (mercado nuevo o viejas no paradas)
   const cumplePide = function (s, q, x) {
     const a = q.actos || {}, n = k => a[k] || 0;
     switch (x.id) {
-      case 'sinLeva': return !n('leva'); case 'granja': return n('granja') > 0; case 'rutaMercado': return n('ruta') + n('mercado') > 0;
-      case 'denarios': return s.res.denarios + s.alm.denarios >= x.n; case 'leva': return n('leva') > 0; case 'victoria': return n('victoria') > 0;
+      case 'sinLeva': return !n('leva'); case 'granja': return n('granja') > 0; case 'rutaMercado': return n('ruta') + n('mercado') > 0 || rutasVivas(s) > 0;
+      case 'denarios': return s.res.denarios + s.alm.denarios >= x.n || rutasVivas(s) >= 2; case 'leva': return n('leva') > 0; case 'victoria': return n('victoria') > 0;
       case 'templo': return n('templo') > 0; case 'paz': return !n('ataque'); case 'sinLevaItalia': return !n('levaItalia'); case 'ciudadania': return n('ciudadania') > 0;
       case 'victoriaFuera': return n('victoriaFuera') > 0; case 'guarnicion': return tropasTotal(s) >= x.n; case 'grano': return !n('hambre'); case 'juegos': return n('juegos') > 0;
     }

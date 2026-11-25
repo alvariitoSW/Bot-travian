@@ -174,8 +174,10 @@ ok(D.PRIORIDAD.every(t => D.PREGUNTAS[t].ops.filter(o => !o.req && !o.solo).leng
       Sm.avanzar(S, 0.2);
       if (S.t >= prox) { prox = S.t + 1; const p = D.detectar(S); if (p) {
         D.mostrada(S, p); const u = S.man[p.uid], m0 = u.moral, k = sem % 2 ? 0 : p.opciones.length - 1, op = p.opciones[k];
+        /* CG9 (autorizado por el vigía, 24/11): «retirar» trabado en lucha cuesta 0,05 de moral en el simulador (despegarse del enemigo, js/simulador.js) */
+        const despega = op.o && op.o.tipo === 'retirar' && !!(S.cont && S.cont[u.id] && S.cont[u.id].length) ? 0.05 : 0;
         const r = D.responder(S, p, k); qs.push({ t: S.t, tipo: p.tipo }); if (!r.ok) hechas.push('rechazada ' + op.orden + ': ' + r.no);
-        else { if (!cerca(u.moral, Math.min(u.tope || 1, m0 + op.moral), 1e-9)) hechas.push('moral mal'); if (op.orden !== 'caballeria' && u.mando !== 'jugador') hechas.push('la orden no pasó al jugador'); }
+        else { if (!cerca(u.moral, Math.min(u.tope || 1, Math.max(0, m0 - despega + op.moral)), 1e-9)) hechas.push('moral mal'); if (op.orden !== 'caballeria' && u.mando !== 'jugador') hechas.push('la orden no pasó al jugador'); }
       } }
     }
     n += qs.length; if (S.fase !== 'fin') hechas.push('no terminó ' + sem);

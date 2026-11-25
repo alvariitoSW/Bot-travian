@@ -19,29 +19,42 @@
    choque sin congelar. Gancho: __bloque.oficial y __bloque.pide(gesto, datos).
    Gancho para pruebas: window.__bloque = { listo, C, S, dibuja(p0, p1), orden(n), estado() }. */
 import { THREE } from '../../../js/gfx/models.js';
-import { cargarSoldado, tropa } from '../../../js/gfx/soldado.js';
+import { cargarSoldado, tropa, PUEBLOS, gama } from '../../../js/gfx/soldado.js';
 import { crearCampo } from '../falange/campo.js';
 import * as Son from '../a-pie/sonido.js';
 import * as BL from '../../../js/bloque.js';
 import { crearCombate, centro, NIVELES, SALVA_VUELO } from '../../../js/bloque-ia.js';
 import { crearTropas } from './tropas.js';
 import { crearLucha } from '../../../js/combate-tropas.js';   /* CB3: el motor de lucha decide los golpes y los caídos */
+import { crearFisica } from '../../../js/fisica-batalla.js';   /* FU4: con la falange, los cuerpos de verdad (hombres, jinetes, elefantes) no se atraviesan */
 import { crearFisicaBloque } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
 import { crearHud } from './hud.js';
+import { crearAbanico } from './abanico.js';   /* FU5 */
+import { crearMuro } from './formaciones/muro.js';   /* FU5 */
+import { crearAbierto } from './formaciones/abierto.js';   /* FU5 */
 import { crearDedos } from './dedos.js';
 import { crearCamara } from './camara.js';
 import { separaEstandartes } from './rotulos.js';
-import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas, ponBandos } from './soldados.js';
+import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas, paraFalange, ponBandos } from './soldados.js';
 import { FIN_LUCHA } from '../../../js/falange.js';
 import { crear as formacionManipulo } from './formaciones/manipulo.js';
 import { crear as formacionTestudo } from './formaciones/testudo.js';
 import { crearOficial, GOLPE } from './oficial.js';   /* FU2: tú en la fila: el duelo del oficial (solo reglas) */
-import { crearDueloHud } from './duelo-hud.js';
+import { crearDueloHud, crearFalangitaHud } from './duelo-hud.js';
+import { crearFalangita } from './falangita.js';   /* FU3b: el gesto de la falange (bajar sarisas, cerrar el hueco) */
+import { crear as formacionFalange } from './formaciones/falange.js';   /* FU3: la falange del motor (sus reglas, con el control del bloque) */
+import { acercaRival, resultadoLP7 as resultadoLP7F } from '../falange/acciones.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => document.getElementById(id);
 const TESTUDO = Q.get('formacion') === 'testudo' && !Q.get('lp7');   /* FU1: la formación de la escena (cada una, su archivo en formaciones/) */
-const FORM = TESTUDO ? formacionTestudo() : formacionManipulo();
+const FALANGE = Q.get('formacion') === 'falange';   /* FU3: también con ?lp7= (bajar a pie con una falange) */
+const MU = crearMuro(), ABI = crearAbierto(); let AB = null;   /* FU5: muro de escudos, orden abierto y su abanico */
+const FORM = FALANGE ? formacionFalange() : TESTUDO ? formacionTestudo() : formacionManipulo();
 if (TESTUDO) document.title = 'AQVILA · Testudo a pie';
+if (FALANGE) {   /* tus falangitas de FA2 (azules, su oficial con penacho) contra los hastati de siempre (rojos) */
+  document.title = 'AQVILA · Falange a pie'; const pal = gama('#3a64a8', PUEBLOS.falangita);
+  ponBandos({ modelo: 'falangita', oficial: 'oficial-falange', paleta: pal, palOficial: Object.assign({}, pal, { escudos: PUEBLOS.falangita.escudos }) }, { modelo: 'hastatus' });
+}
 /* CB3: ?lucha=reglas vuelve a las bajas por reglas de bloque; por defecto deciden el motor de lucha (js/combate.js) */
 const LUCHA = Q.get('lucha') === 'reglas' ? 'reglas' : 'motor'; let LU = null, acumL = 0;
 let LP7 = null; try { LP7 = Q.get('lp7') ? JSON.parse(Q.get('lp7')) : null; } catch (e) { console.warn('lp7 mal escrito', e); }
@@ -135,7 +148,7 @@ function suelo(px, py) { V2.set(px / innerWidth * 2 - 1, -(py / innerHeight) * 2
 
 /* ---------- soldados: tres niveles de detalle por bando, elegidos por distancia (y fuera de cámara no se pintan) ---------- */
 /* AL11: los galos no usan el nivel cercano (con siete modelos serían siete llamadas más por una docena de hombres) */
-const NIV = [1, 2, 3], TOPE = { r: [22, 150, 900], g: [0, 142, 1300] }, DMAX = [26, 70];
+const NIV = [1, 2, 3], TOPE = { r: [30, 150, 900], g: [0, 142, 1300] }, DMAX = [26, 70];   /* FU3c: hasta 30 hombres con manos y dedos (antes 22): las llamadas de dibujo no cambian, son instancias */
 const T = { r: {}, g: {} }, A = { r: {}, g: {} };   /* AL11: T[bando][modelo] = 3 tropas (una por nivel); A[bando][quien presta] = sus armas */
 let oficial = null;
 const M4 = new THREE.Matrix4(), QT = new THREE.Quaternion(), P3 = new THREE.Vector3(), E3 = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0);
@@ -149,6 +162,16 @@ function creaSombras() {
   const geo = new THREE.PlaneGeometry(1.2, 1.2); geo.rotateX(-Math.PI / 2);
   sombras = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, color: 0x1a1208, opacity: 0.55, polygonOffset: true, polygonOffsetFactor: -2 }), 2400);
   sombras.frustumCulled = false; sombras.count = 0; sombras.renderOrder = 1; escena.add(sombras);
+}
+/* FU3b: la túnica del falangita es de lino blanco en la textura y la máscara de equipo solo cubre el escudo: no se tiñe con la paleta.
+   Aquí se tiñe de azul lo claro y poco saturado (lino) del soldado; la piel, el bronce y el cuero (saturados) y lo oscuro se quedan */
+function azulea(mat) {
+  const antes = mat.onBeforeCompile, azul = { value: new THREE.Color('#2456c8') };
+  mat.onBeforeCompile = sh => {
+    antes(sh); sh.uniforms.uAzul = azul;
+    sh.fragmentShader = 'uniform vec3 uAzul;\n' + sh.fragmentShader.replace('{ float alto = vObj.y;', '{ float lm = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11)), sa = max(diffuseColor.r, max(diffuseColor.g, diffuseColor.b)) - min(diffuseColor.r, min(diffuseColor.g, diffuseColor.b)); float piel = smoothstep(0.14, 0.24, diffuseColor.r - diffuseColor.b) * step(diffuseColor.b, diffuseColor.g + 0.01); float kl = smoothstep(0.12, 0.35, lm) * (1.0 - smoothstep(0.16, 0.4, sa)) * (1.0 - piel) * (1.0 - smoothstep(1.4, 1.48, vObj.y)); diffuseColor.rgb = mix(diffuseColor.rgb, uAzul * (0.5 + 1.2 * lm), kl);\n float alto = vObj.y;');
+  };
+  mat.customProgramCacheKey = () => 'fu4-soldado-azul'; mat.needsUpdate = true;
 }
 function pintaSoldados() {
   PM.multiplyMatrices(camara.projectionMatrix, camara.matrixWorldInverse); frustum.setFromProjectionMatrix(PM);
@@ -165,7 +188,7 @@ function pintaSoldados() {
       const d = Math.sqrt(f.d2); let n = d < DMAX[0] && usados[0] < TOPE[b][0] ? 0 : d < DMAX[1] && usados[1] < TOPE[b][1] ? 1 : 2;
       if (usados[n] >= TOPE[b][n]) continue; let mo = tr[modeloDe(f, oficial)] ? f.modelo : hay[0]; if (n >= 1 && tr[FONDO[mo]]) mo = FONDO[mo];   /* LP7: también a media distancia (≤ 30 llamadas con el campo lleno) */ const t = tr[mo][n], i = t.sig(); if (i < 0) continue; usados[n]++;
       const y = H(f.x, f.z); P3.set(f.x, y, f.z); QT.setFromAxisAngle(Y, f.yaw); E3.set(f.talla, f.talla, f.talla); M4.compose(P3, QT, E3);
-      const v4 = var4(f.semilla), mu = t.muestra(f.clip, f.t); t.matriz(i, M4.elements); t.vars(i, v4); t.pose(i, f.clip, f.t, mu);
+      const v4 = var4(f.semilla), mu = t.muestra(f.clip, f.t); t.matriz(i, M4.elements); t.vars(i, v4); t.pose(i, f.clip, f.t, mu); if (f.gesto) f.gesto(t, i, n);   /* FU3c: la formación (falange) cambia las filas de huesos de los hombres de cerca: sarisa bajada con las manos en el asta */
       const pa = ar[ARMAS[mo]]; if (pa) { const ta = pa[n], ia = ta.sig(); if (ia >= 0) { ta.matriz(ia, M4.elements); ta.vars(ia, v4); ta.pose(ia, f.clip, f.t, ta.muestra(f.clip, f.t)); } }
       if (sombras && ns < 2400 && f.clip !== 'morir') { P3.y = y + 0.04; E3.set(1, 1, 1); QT.identity(); M4.compose(P3, QT, E3); sombras.setMatrixAt(ns++, M4); }
     }
@@ -242,26 +265,80 @@ let oyente = null;
 function avisa(tipo, d) {
   if (oyente) oyente(tipo, d);
   try { if (BANDA && window.Voces) { const sit = tipo === 'pilum' ? 'pila' : tipo === 'rompe' ? (d && d.de && d.de.bando === 'r' ? 'roto-propio' : 'roto-enemigo') : window.Voces.deAviso(tipo, d); if (sit) BANDA.dice(sit); if (tipo === 'fin') BANDA.fin(d.ganador === 'tuyo' ? 'victoria' : d.ganador === 'enemigo' ? 'derrota' : null); } } catch (e) { /* sin banda */ }   /* SON7: las voces y la música, como en Testudo y Falange */
-  if (hud) hud.aviso(tipo, d);
+  if (hud) try { hud.aviso(tipo, d); } catch (e) { if (!FORM.combate) throw e; }   /* FU3: los avisos de la falange no son todos los del bloque */
   try { FORM.alAviso(tipo, d); } catch (e) { console.warn('formación', e); }
+  if (tipo === 'forma') try { ABI.alAviso(tipo, d); } catch (e) { /* FU5 */ }
+  if (RIVD) try { RIVD.aviso(tipo, d); } catch (e) { console.warn('FU4: rival', e); }   /* FU4: el dibujo del rival se entera de los choques y las muertes */
   try {
     switch (tipo) {
+      case 'forma': Son.voz && Son.voz(d.texto); if (d.f === 'muro') Son.clac && Son.clac(10); break;   /* FU5 */
       case 'orden': Son.voz && Son.voz(d.texto); if (d.n === 'testudo') Son.clac && Son.clac(6); break;
       case 'salva': if (C) { const t = C.S.ene.tiradores; if (t && d.blanco) { lanzaFisica(t, d.blanco, 34, SALVA_VUELO, 'jabalina'); TR && TR.lanzan(t, C.S.T); } } Son.salva && Son.salva(SALVA_VUELO); break;
       case 'jabalinas': Son.clac && Son.clac(d.testudo ? 12 : 5); break;
       case 'pilum': if (C && d.blanco) { lanzaFisica(C.S.tuyo, d.blanco, 26, 1.1, 'pilum'); TR && TR.lanzan(C.S.tuyo, C.S.T); } Son.lanza && Son.lanza(); break;
       case 'choque': Son.choque && Son.choque(); break;
       case 'rompe': Son.cuerno && Son.cuerno(2); break;
+      /* FU3: los de la falange (mismos sonidos que ya hay) */
+      case 'estocada': Son.hierro && Son.hierro(0, 0, 1.3); break;
+      case 'ha': Son.esfuerzo && Son.esfuerzo(0, 1); break;
+      case 'cae': Son.herido && Son.herido(0); break;
+      case 'clava': case 'picaRota': Son.madera && Son.madera(tipo === 'clava' ? 0.8 : 1, 0); break;
+      case 'flanco': Son.cuerno && Son.cuerno(1); break;
     }
   } catch (e) { /* sin sonido */ }
 }
 function nueva(n) {
-  nivel = n; C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa, lucha: LUCHA }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}));
+  nivel = n; if (FORM.combate) { LU = null; return nuevaFormacion(); }
+  C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa, lucha: LUCHA }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}));
   if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
   LU = LUCHA === 'motor' ? crearLucha({ C, TR, semilla }) : null;
   FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
+  { const cx = { THREE, escena, H, C, S: C.S, TR, Son }; MU.monta(cx); ABI.monta(cx); AB.pon(C); }   /* FU5 */
   OF = crearOficial({ S: C.S, alAviso: alOficial }); rivF = null; sacude = 0;
   window.__bloque.C = C; window.__bloque.LU = LU; window.__bloque.S = C.S; window.__bloque.oficial = OF;
+}
+/* FU3b: los avisos del gesto de la falange: solo suenan (sonidos que ya hay); el eco lo pinta su HUD */
+function alFalangita(tipo, d) {
+  try {
+    if (tipo === 'golpe') { if (d.res === 'ensarta') { Son.hierro && Son.hierro(0, 0, 1.3); Son.herido && Son.herido(0); } else { Son.herido && Son.herido(0); Son.cuerno && Son.cuerno(1); sacude = Math.max(sacude, 0.3); } }
+    else if (tipo === 'cierra') Son.madera && Son.madera(0.9, 0);
+    else if (tipo === 'brecha') { Son.cuerno && Son.cuerno(2); sacude = Math.max(sacude, 0.4); }
+    else if (tipo === 'empuja') Son.esfuerzo && Son.esfuerzo(0, 1);   /* FU3c: empuje y othismos con los sonidos que hay */
+    else if (tipo === 'compas') Son.madera && Son.madera(0.8, 0);
+    else if (tipo === 'golpe-oth') { if (d && d.bien) { Son.esfuerzo && Son.esfuerzo(0, 1); Son.toque && Son.toque(); } }
+    else if (tipo === 'othismos-fin') { if (d && d.res === 'gana') { Son.choque ? Son.choque() : Son.cuerno && Son.cuerno(1); } else if (d && d.res === 'pierde') { Son.cuerno && Son.cuerno(2); sacude = Math.max(sacude, 0.4); } }
+  } catch (e) { /* sin sonido */ }
+}
+/* FU3: la partida de una formación con su propio combate (la falange): sus reglas, sus hombres de verdad, sin física del bloque
+   (el motor de la falange ya los separa y sus pila son suyos) y sin el duelo de dedos del oficial (el pellizco a su vista sí) */
+let P0F = null;
+/* FU4: con la falange, la física de cuerpos (?fisica=0 la apaga) y el dibujo del rival que no es manípulo (rivales/index.js) */
+let FI = null, RIVD = null, nRiv = 0; const FISICA = Q.get('fisica') !== '0';
+const RIV_TXT = { elefantes: { los: 'los elefantes', Los: 'Elefantes', obj: 'Aguanta la carga de los elefantes' }, caballeria: { los: 'los jinetes', Los: 'Jinetes', obj: 'Aguanta la carga de los jinetes' },
+  falange: { los: 'la falange rival', Los: 'Falange rival', obj: 'Empuja y rompe la falange rival' }, hoplitas: { los: 'los hoplitas', Los: 'Hoplitas', obj: 'Rompe el muro de los hoplitas' } };
+function montaRivalBloque(nom) {   /* FU4: carga su arte aparte; si la partida se rehízo entretanto, se quita */
+  const yo = ++nRiv; if (!RIV_TXT[nom]) return;
+  import('./rivales/index.js').then(m => m.montaRivalDe(nom, { escena, estado: () => C.S.fal, H })).then(r => {
+    if (!r) return; if (yo !== nRiv) { r.quita(); return; } RIVD = r; window.__bloque.rival = r; for (let i = 0; i < 60; i++) r.paso(0.05);   /* llega a su sitio (tras saltar de fase) */
+  }).catch(e => console.warn('FU4: sin dibujo del rival', e));
+}
+function nuevaFormacion() {
+  const nomR = Q.get('rival') || 'manipulos', txtR = RIV_TXT[nomR];   /* FU4 */
+  /* FU3b: el rival de las reglas es el de ?rival= (manípulos si no); el nombre que se lee es el de LP7.rival si viene (no lo pisan «los manípulos») */
+  const rotulo = LP7 && LP7.rival ? Object.assign({}, LP7.rival, { los: LP7.rival.los || (LP7.rival.Los || '').toLowerCase(), Los: LP7.rival.Los || (LP7.rival.los || '').replace(/^./, c => c.toUpperCase()) }) : txtR ? { los: txtR.los, Los: txtR.Los } : null;
+  C = FORM.combate({ semilla, rival: nomR, rotulo, avisa, H, vestir: true, vivo: true });   /* FU4: vivo, los rivales con IA propia (si combate() no la tiene aún, se ignora) */
+  FL = crearFalangita({ S: C.S, motor: C.motor, alAviso: alFalangita }); window.__bloque.falangita = FL; FUI = { bajar: false, anillo: null, sostener: false, empuje: false, othismos: false };
+  const F = C.S.fal; if (LP7 && LP7.lejos) { acercaRival(F, LP7.lejos); C.paso(0); } P0F = { x: F.xF, z: F.zF, giro: F.giro };
+  TR = crearTropas({ S: C.S, muroDelante: false, reales: [{ b: C.S.ene.centro, hombres: txtR ? [] : F.ene }] });   /* FU4: a los demás rivales los pinta entero rival.js */
+  FS = crearFisicaBloque({ S: C.S, TR, H, activa: false, semilla, guardia: FORM.guardia });
+  FI = FISICA ? crearFisica({ H }) : null; if (RIVD) { try { RIVD.quita(); } catch (e) { /* ya no estaba */ } RIVD = null; window.__bloque.rival = null; } montaRivalBloque(nomR);   /* FU4 */
+  OF = { yo: () => { const h = F.fal[F.yo.i]; return h && h.vivo ? h : null; }, pide() {}, paso() {}, rival: null,
+    estado: () => ({ duelo: false, yo: null, rival: null, heridas: 0, aliento: 1, parando: false, pilum: 0, carga: 0, eco: {}, caidas: 0, muertes: 0 }) };
+  oficial = TR.figs.find(f => f.h === OF.yo()) || null; hud.pon(C); if (FORM.hud) hud.ordenes(FORM.ordenes, FORM.hud);
+  FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, texto: t => { $('objetivo').textContent = t; },
+    FI, ocultaYo: () => (cam1 && cam1.t() > 0.3 ? F.fal[F.yo.i] : null) }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);   /* FU4: la física para las sarisas; en la vista del oficial su propia sarisa no se dibuja */
+  rivF = null; sacude = 0; if (FORM.objetivo && !(LP7 && LP7.objetivo)) $('objetivo').textContent = txtR ? txtR.obj : FORM.objetivo;
+  window.__bloque.C = C; window.__bloque.S = C.S; window.__bloque.oficial = OF;
 }
 /* lo que prevé LP1 al dibujar: mira hacia el lado de la raya más cerca de donde mira ahora */
 function haciaDonde(p0, p1) {
@@ -276,20 +353,31 @@ function haciaDonde(p0, p1) {
   return Math.atan2(Math.sin(a), Math.cos(a));
 }
 /* soltar la raya: la primera fila irá sobre ella, mirando a haciaDonde. El ancho del bloque no cambia (más fácil de leer) */
-function frenteDesdeRaya(p0, p1) { C.frente({ x: (p0.x + p1.x) / 2, z: (p0.z + p1.z) / 2, ang: haciaDonde(p0, p1) }); }
+function frenteDesdeRaya(p0, p1) { if (FORM.combate) return C.dibujaFrente(p0, p1);   /* FU3: la raya va tal cual al mando de la falange */
+  C.frente({ x: (p0.x + p1.x) / 2, z: (p0.z + p1.z) / 2, ang: haciaDonde(p0, p1) }); }
 
 /* saltar a un momento (capturas), con el jugador automático de LP2 */
 function salta(fase) {
   const S = C.S, tu = S.tuyo; let salva = false, choqueT = -1, n = 0;
   oyente = (t, d) => { if (t === 'salva' && d.blanco === tu) salva = true; };
-  const paso = () => { C.paso(0.1); TR.paso(0.1, S.T); FS.paso(0.1); LU && LU.paso(0.1); OF && OF.paso(0.1); n++; };
+  const paso = () => { C.paso(0.1); FI && FI.paso(C.S.fal, 0.1); RIVD && RIVD.paso(0.1); TR.paso(0.1, S.T); FS.paso(0.1); LU && LU.paso(0.1); OF && OF.paso(0.1); n++; };
   if (S.escenario && fase !== 'dibuja' && fase !== 'gira') { const m = S.escenario.meta; C.frente({ x: m.x, z: m.z, ang: 0 }); }   /* FU1: cruzas hacia la colina */
   const hasta = (cond, conBot = true) => { while (!cond() && !S.ganador && S.T < 280) { if (conBot) C.bot('bueno'); paso(); } };
   if (fase === 'dibuja') { for (let i = 0; i < 20; i++) paso(); frenteDesdeRaya({ x: -4, z: -14 }, { x: 16, z: -24 }); for (let i = 0; i < 40; i++) paso(); }
   else if (fase === 'gira') { for (let i = 0; i < 20; i++) paso(); frenteDesdeRaya({ x: -16, z: 4 }, { x: -16, z: -14 }); for (let i = 0; i < 80; i++) paso(); }
   else if (fase === 'salva' || fase === 'testudo') { hasta(() => salva); if (fase === 'testudo') { C.orden('testudo'); for (let i = 0; i < 14; i++) paso(); } }
   else if (fase === 'carga') hasta(() => C.ordenUtil() === 'cargar');
+  else if (fase === 'muro') {   /* FU5: avanza (el bot sin cargar) hasta que te vienen cargando; muro; sigue con el bot hasta 3 s tras el choque */
+    while (!S.ganador && S.T < 280 && C.formaUtil() !== 'muro') { C.bot('sinOrdenes'); paso(); }
+    C.forma('muro'); while (!S.ganador && S.T < 280 && !(choqueT > 0 && S.T - choqueT > 3)) { C.bot('sinOrdenes'); paso(); if (tu.contactos.length && choqueT < 0) choqueT = S.T; }
+  }
+  else if (fase === 'abierto') { hasta(() => salva); C.forma('abierto'); for (let i = 0; i < 14; i++) paso(); }   /* FU5: salva hacia ti, abres filas */
+  else if (FORM.combate && RIV_TXT[Q.get('rival')] && (fase === 'choque' || fase === 'lucha')) {   /* FU4: elefantes, jinetes… no dan contactos de bloque: hasta que el primero llega a 4 m de la 1.ª fila */
+    const F = S.fal, llega = () => F.ene.some(e => e.vivo && F.fal.some(h => h.vivo && h.r === 0 && Math.hypot(e.x - h.x, e.z - h.z) < 4)); let t0 = -1;
+    hasta(() => { if (t0 < 0 && llega()) t0 = S.T; return t0 >= 0 && S.T - t0 > (fase === 'lucha' ? 1.5 : 0.3); });
+  }
   else if (fase === 'choque' || fase === 'datos' || fase === 'lucha' || fase === 'duelo') { const dura = fase === 'lucha' ? 30 : fase === 'duelo' ? 1 : 4; hasta(() => { if (tu.contactos.length && choqueT < 0) choqueT = S.T; return choqueT > 0 && S.T - choqueT > dura; }); }   /* lucha (LP5a): 30 s de choque, con caídos */
+  else if (fase === 'picas') hasta(() => !!S.fal && S.fal.fal.some(h => h.r === 0 && h.vivo && h.kB > 0.95));   /* FU3: la falange con las picas bajadas, antes del choque */
   else if (fase === 'flanco') hasta(() => !!S.flanco && !!S.flanco.de && Math.hypot(S.flanco.de.x - tu.x, S.flanco.de.z - tu.z) < 45);
   else if (fase === 'relevo') hasta(() => C.ordenUtil() === 'relevo');
   else if (fase === 'trabado' || fase === 'retirada') {   /* LP4b: trabado y perdiendo (fila agotada, sin relevos); luego «Retirada» */
@@ -301,7 +389,7 @@ function salta(fase) {
     while (!S.ganador && !(tu.vueltas && C.giroUtil()) && S.T < 280) { C.bot('retira'); paso(); }
   }
   else if (fase === 'fin') hasta(() => false);
-  oyente = null; TR.asienta(); for (let i = 0; i < 60; i++) { TR.paso(0.05, S.T); FS.paso(0.05); }
+  oyente = null; TR.asienta(); for (let i = 0; i < 60; i++) { TR.paso(0.05, S.T); FS.paso(0.05); RIVD && RIVD.paso(0.05); }
   if (fase !== 'testudo') $('grito').classList.remove('ve');
   if (fase === 'datos') $('datosB').click();
   if ((fase === 'dibuja' || fase === 'gira') && S.B && S.B.meta) dedos.muestra(S.B.meta.p0, S.B.meta.p1, S.B.meta.rumbo, false);
@@ -309,7 +397,7 @@ function salta(fase) {
 }
 
 /* ---------- FU2: el oficial (tú en la fila) ---------- */
-let OF = null, DH = null, rivF = null, sacude = 0;
+let OF = null, DH = null, rivF = null, sacude = 0, FL = null, FH = null, FUI = null;   /* FU3b: FL las reglas del gesto, FH su HUD, FUI lo que lee dedos.js (bajar, anillo) */
 const figDe = h => h ? TR.figs.find(f => f.h === h) || null : null;
 /* el rival que se ve: la figura enemiga viva más cerca delante de tu hombre, a menos de 3,5 m; se guarda mientras viva */
 function buscaRival(fy) {
@@ -373,7 +461,7 @@ function bucle(ahora) {
   const dt = Math.min(0.1, (ahora - tPrev) / 1000); tPrev = ahora;
   if (C) {
     if (!congelado && nivel) {
-      acum += dt; let k = 0; while (acum >= 0.05 && k < 4) { C.paso(0.05); acum -= 0.05; k++; } if (k === 4) acum = 0;
+      acum += dt; let k = 0; while (acum >= 0.05 && k < 4) { C.paso(0.05); FI && FI.paso(C.S.fal, 0.05); FL && FL.paso(0.05); acum -= 0.05; k++; } if (k === 4) acum = 0;
       OF.paso(dt); TR.paso(dt, C.S.T); FS.paso(dt);
       if (LU) { acumL += dt; while (acumL >= 0.05) { LU.paso(0.05); acumL -= 0.05; } }   /* CB3: el motor de lucha a paso fijo */
       lineaDeChoque(dt);
@@ -381,15 +469,24 @@ function bucle(ahora) {
       const B = C.S.B; if (!dedos.activo()) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
       try { sonBloque(dt); } catch (e) { /* sin sonido */ }
     }
+    if (RIVD) RIVD.paso(dt);   /* FU4: también congelado: las reglas no avanzan y el dibujo del rival llega a su sitio */
     FORM.paso(congelado ? 5 : dt);   /* FU1: el techo, tras mover a los hombres */
+    if (!FORM.combate) { MU.paso(congelado ? 5 : dt); ABI.paso(congelado ? 0 : dt); }   /* FU5 */
     oficialPinta();
     camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt);
     if (sacude > 0) { sacude = Math.max(0, sacude - dt); const a = 0.25 * sacude; camara.position.x += (azarV() - 0.5) * a; camara.position.y += (azarV() - 0.5) * a; }
     camara.updateMatrixWorld();
-    DH.pinta({ ve: !!(nivel && cam1 && cam1.t() > 0.5), est: OF.estado(), aro: rivF ? proyecta(rivF.x, 1.45, rivF.z) : null, dedo: dedos.dedoEn(), modo: pelea(), dt: congelado ? 0 : dt });
+    if (FL) {   /* FU3b */
+      const e = FL.estado(); FORM.vis && (FORM.vis.bajadas = e.bajadas);
+      const fr0 = C.S.tuyo, pf = proyecta(fr0.x, 3.2, fr0.z), hh = e.hueco && FL.hueco ? (FL.hueco.h || null) : null, ph = e.hueco ? proyecta(hh ? hh.x : fr0.x, 0.1, hh ? hh.z : fr0.z) : null;
+      FH.pinta({ ve: !!nivel, est: e, frente: pf, hueco: ph, dt: congelado ? 0 : dt }); FUI.bajar = !!(e.rival && e.rival.fase === 'acomete'); FUI.anillo = FH.anillo();
+      FUI.empuje = !!(e.empuje && e.empuje.fase === 'empuja'); FUI.othismos = !!(e.othismos && e.othismos.fase === 'empuja'); FUI.sostener = !!(FUI.empuje || FUI.othismos || e.lucha);   /* FU3c */
+    }
+    DH.pinta({ ve: !!(FORM.duelo !== false && nivel && cam1 && cam1.t() > 0.5), est: OF.estado(), aro: rivF ? proyecta(rivF.x, 1.45, rivF.z) : null, dedo: dedos.dedoEn(), modo: pelea(), dt: congelado ? 0 : dt });
     mPolvo.material.opacity = cam1 ? 1 - 0.75 * cam1.t() : 1;   /* LP7: abajo, el polvo no tapa media pantalla */
     avanza(polvo, POLVO_N, mPolvo, congelado ? 0 : dt, -0.1); avanza(chispa, CHISPA_N, mChispa, congelado ? 0 : dt, 6); pintaVuelos(congelado ? 0 : dt);
-    pintaSoldados(); hud.tick(dt); separaEstandartes($('ests')); campo && campo.tick(ahora / 1000);
+    pintaSoldados(); hud.tick(dt); AB && AB.paso(dt); separaEstandartes($('ests'));   /* FU5 */
+     campo && campo.tick(ahora / 1000);
   }
   renderer.render(escena, camara);
   requestAnimationFrame(bucle);
@@ -401,7 +498,8 @@ let campo = null;
 let BANDA = null, tPasoB = 0;
 function sonBloque(dt) {
   const S = C.S, tu = S.tuyo, ene = S.bloques.filter(b => b.bando === 'g'), n = tu.contactos.length;
-  Son.pulso && Son.pulso(dt, { lucha: n ? Math.min(1, 0.55 + 0.25 * n) : 0, moral: tu.U.animo, caen: tu.U.sufrio, caenR: ene.reduce((a, b) => a + (b.U.sufrio || 0), 0) });
+  const fe = FL ? FL.estado() : null, emp = fe && ((fe.empuje && fe.empuje.fase === 'empuja') || (fe.othismos && fe.othismos.fase === 'empuja')), cede = emp && ((fe.empuje && !fe.empuje.sujeta) || (fe.othismos && fe.othismos.fuerza < 0));   /* FU3c: el fragor del empuje */
+  Son.pulso && Son.pulso(dt, { lucha: emp ? 1 : n ? Math.min(1, 0.55 + 0.25 * n) : 0, moral: cede ? Math.min(0.3, tu.U.animo) : tu.U.animo, caen: tu.U.sufrio, caenR: ene.reduce((a, b) => a + (b.U.sufrio || 0), 0), marcha: Math.min(1, Math.abs(tu.v || 0) / 3) /* FU5 */ });
   const v = Math.abs(tu.v || 0); tPasoB -= dt;
   if (v > 0.3 && !n && tPasoB <= 0) { tPasoB = v > 2.5 ? 0.38 : 0.55; Son.paso && Son.paso(v > 2.5 ? 1.2 : 0.8, tu.orden === 'testudo' ? 1 : 0); }
   if (BANDA) BANDA.tic(dt, () => ({ fase: S.ganador ? 'fin' : n ? 'lucha' : 'lejos', moral: [tu.U.animo, ene.length ? Math.min(...ene.filter(b => b.estado !== 'fuera').map(b => b.U.animo)) : 1],
@@ -409,30 +507,36 @@ function sonBloque(dt) {
 }
 /* LP7: lo que vuelve a la batalla grande. k: tuyo, centro, amigas0/1, alas0/1, reserva, tiradores */
 function resultadoLP7() {
+  if (C && FORM.combate) return resultadoLP7F(C.S.fal, P0F || undefined);   /* FU3: el contrato de la falange (acciones.js) */
   if (!C) return null; const S = C.S, E = S.ene, todos = { tuyo: S.tuyo, amigas0: S.amigas[0], amigas1: S.amigas[1], centro: E.centro, alas0: E.alas[0], alas1: E.alas[1], reserva: E.reserva, tiradores: E.tiradores }, bl = {};
   for (const k in todos) { const b = todos[k]; if (b.estado === 'fuera' && !S.bloques.includes(b)) continue; bl[k] = { hombres: b.U.hombres, enPie: b.U.enPie, roto: b.U.roto }; }
   const tu = S.tuyo; return { ganador: S.ganador, causa: S.causa, T: +S.T.toFixed(1), bloques: bl, pose: { x: tu.x, z: tu.z, ang: tu.ang } };
 }
 let enviado = false;
 function vuelveLP7() { if (enviado) return; enviado = true; try { parent.postMessage({ aqvila: 'lp7', r: resultadoLP7() }, location.origin); } catch (e) { console.warn(e); } }
-window.__bloque = { listo: false, lp7: () => resultadoLP7(), vuelve: () => vuelveLP7(), salta: f => salta(f), dibuja: (a, b) => C && frenteDesdeRaya(a, b), orden: n => C && C.orden(n), muestraFin: () => hud && hud.muestraFin(),
+window.__bloque = { listo: false, congela: b => { congelado = !!b; }, lp7: () => resultadoLP7(), vuelve: () => vuelveLP7(), salta: f => salta(f), dibuja: (a, b) => C && frenteDesdeRaya(a, b), orden: n => C && C.orden(n), muestraFin: () => hud && hud.muestraFin(),
   estado: () => ({ T: C && C.S.T, nivel, ganador: C && C.S.ganador, util: C && C.ordenUtil(), orden: C && C.S.tuyo.orden, llamadas: renderer.info.render.calls, triangulos: renderer.info.render.triangles, figs: TR && TR.figs.length, caidos: TR && TR.caidos.length }), fisica: () => FS && FS.medir() };
 
 async function arranca() {
   hud = crearHud({ $, proyecta, ladoEnPantalla, Son });
+  AB = crearAbanico({ $, padre: $('hud'), Son }); window.__bloque.abanico = AB; window.__bloque.forma = f => C && C.forma && C.forma(f);   /* FU5 */
   dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H, libre: () => !cam1 || cam1.libre(), escala: () => cam1 ? 1 - 0.6 * cam1.t() : 1,
-    pelea, alGesto: (g, d) => { if (C && nivel && !congelado && OF && cam1 && cam1.cerca()) OF.pide(g, d); } });
+    pelea, fal: () => (FUI && C && nivel && !congelado ? FUI : null), alGesto: (g, d) => { if (g === 'bajar' || g === 'cerrar' || g === 'sostener' || g === 'golpe') { if (FL && C && nivel && !congelado) FL.pide(g, g === 'cerrar' ? (FL.hueco ? { col: FL.hueco.col } : {}) : g === 'sostener' ? { on: !!(d && d.on) } : undefined); return; } if (C && nivel && !congelado && OF && cam1 && cam1.cerca()) OF.pide(g, d); } });
   cam1 = crearCamara({ camara, lienzo, H, estado: () => C && C.S, hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba',
     yo: () => OF && OF.yo(), modo: () => { const e = OF && OF.estado(); return { duelo: !!(e && e.duelo && rivF), techo: !!(FORM.cerrado && FORM.cerrado()), rival: rivF ? { x: rivF.x, z: rivF.z } : null }; } }); window.__bloque.vista = cam1;
-  DH = crearDueloHud({ padre: $('hud') }); window.__bloque.pide = (g, d) => OF && OF.pide(g, d);
+  /* FU4: medida de la física con la falange: picas dibujadas (ya retiradas) y cuerpos (Fi.medir); y el peso del dibujo del rival */
+  window.__bloque.fisica = () => { if (!C || !C.S.fal) return null; const v = FORM.vis || {}; v.mide = true; const pz = v.picas || [], m = FI ? FI.medir(C.S.fal, pz) : {}; return { activa: !!FI, picas: pz.length, distMin: m.distMin, puntasDentro: m.puntasDentro, pisados: m.pisados, rival: RIVD ? RIVD.peso() : null }; };
+  DH = crearDueloHud({ padre: $('hud') }); if (FALANGE) FH = crearFalangitaHud({ padre: $('hud') }); window.__bloque.pide = (g, d) => OF && OF.pide(g, d);
   escena.add(dedos.raya);
   creaSombras(); creaEfectos();
-  $('carga-t').textContent = 'Formando el manípulo…';
+  $('carga-t').textContent = FALANGE ? 'Formando la falange…' : 'Formando el manípulo…';
   /* AL11: cada bando carga sus modelos y los que les prestan armas (soldados.js); una tropa por modelo y nivel */
   const pide = [], nombres = new Set(); for (const b of ['r', 'g']) for (const n of [...modelos(b), ...prestan(b)]) nombres.add(b + ':' + n);   /* LP7: por bando (mismo modelo, otros colores) */
   const cargados = {}; for (const k of nombres) { const [b, n] = k.split(':'); pide.push(cargarSoldado(n, paleta(n, b)).then(s => { cargados[k] = s; })); }
   const [cs] = await Promise.all([crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color }).catch(e => { console.warn('Sin campo', e); return null; }), ...pide]);
   campo = cs;
+  if (FALANGE) for (const k of ['r:falangita', 'r:oficial-falange']) if (cargados[k]) for (const nv of cargados[k].niveles) if (nv && nv.mat) azulea(nv.mat);   /* FU3b */
+  if (FALANGE) for (const k of ['r:falangita', 'r:oficial-falange']) if (cargados[k]) cargados[k].niveles = cargados[k].niveles.map(nv => nv ? paraFalange(nv) : nv);   /* FU3c: una sola arma por hombre (sin la lanza del modelo, queda la sarisa de formaciones/falange.js) y el escudo al pecho (soldados.js) */
   for (const b of ['r', 'g']) {
     for (const n of modelos(b)) { const s = cargados[b + ':' + n]; if (s) T[b][n] = NIV.map((nv, k) => { const t = tropa(s.niveles[nv], TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Falta soldado', n); }
     for (const n of prestan(b)) { const s = cargados[b + ':' + n]; if (s) A[b][n] = NIV.map((nv, k) => { const t = tropa(soloArmas(s.niveles[nv]), TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Faltan armas de', n); }
@@ -451,6 +555,7 @@ async function arranca() {
   try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'romano', rival: { esGriego: false, galos: true }, semilla: 43, abajo: '120px' }); Son.alSonar(() => BANDA.inicia()); window.__bloque.banda = BANDA; } catch (e) { console.log('[SON7] sin banda: ' + e.message); }   /* SON7 */
   if (FASE) { nivel = nivel || 'normal'; nueva(nivel); salta(FASE); congelado = FASE !== 'duelo';   /* FU2: ?fase=duelo deja la partida viva en el choque */ if (FASE === 'fin') hud.muestraFin(); }
   else if (!Q.get('nivel') && !LP7) { nivel = null; $('inicio').hidden = false; }
+  if (FALANGE) { const cr = document.querySelector('#fin .creditos'); if (cr) cr.textContent = 'FU4 · Falange a pie (Polibio 18.29–32; elefantes: Polibio 11.1, Plutarco, Pirro 25). Falangitas: Meshy (CC BY 4.0) adaptado en AQVILA · Elefantes, jinetes y rivales: 0 A.D. (Wildfire Games, CC BY-SA 3.0) · Movimientos: Quaternius (CC0) · Cielo y suelos de Poly Haven (CC0) · Sonido CC0'; }   /* FU4: los créditos de la falange, no los del manípulo */
   if (LP7) { $('otra').hidden = true; $('salir2').textContent = 'Volver a la batalla'; if (LP7.objetivo) $('objetivo').textContent = LP7.objetivo;
     const cr = document.querySelector('#fin .creditos'); if (cr) cr.textContent = cr.textContent.replace(/^LP3 · [^)]*\)\. /, ''); }   /* el crédito, sin «contra galos» */
   $('carga').hidden = true;

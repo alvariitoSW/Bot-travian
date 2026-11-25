@@ -36,7 +36,7 @@ export const FRENA = 0.88;       /* el que va contra alguien (k = 1) afloja su p
 
 /* FU1: la guardia de cada hombre tuyo según la orden: en testudo, la 1.ª fila en muro y las demás con el escudo arriba.
    Una formación (bloque/formaciones/) puede dar la suya con crearFisicaBloque({ guardia: (h, S) => ... }); null = escudo de siempre */
-export const guardiaDeSerie = (h, S) => S.tuyo.orden === 'testudo' ? (h.fila === 0 ? 'muro' : 'alto') : null;
+export const guardiaDeSerie = (h, S) => S.tuyo.orden === 'testudo' ? (h.fila === 0 ? 'muro' : 'alto') : S.tuyo.forma === 'muro' && h.fila === 0 ? 'muro' : null;   /* FU5: el muro de escudos tambien guarda en 'muro' */
 
 export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla = 1, guardia = guardiaDeSerie }) {
   const Fi = crearFisica({ H, caidoFijo: true, parMax: D_RIVAL, semilla, parMin: (a, b) => a.bando !== b.bando ? D_RIVAL : undefined });

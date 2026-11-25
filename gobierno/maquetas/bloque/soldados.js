@@ -37,9 +37,10 @@ export const paleta = (nombre, bando) => PAL[bando + ':' + nombre] !== undefined
    paleta: objeto de PUEBLOS/gama o null (la suya). Si el modelo es 'hastatus' se queda el centurión de oficial */
 const SERIE = { r: SOLDADOS.r, g: SOLDADOS.g };
 export function ponBandos(r, g) {
-  SOLDADOS.r = r && r.modelo ? { tropa: [r.modelo], oficial: r.modelo === 'hastatus' ? 'centurion' : r.modelo } : SERIE.r;
+  SOLDADOS.r = r && r.modelo ? { tropa: [r.modelo], oficial: r.oficial || (r.modelo === 'hastatus' ? 'centurion' : r.modelo) } : SERIE.r;   /* FU3: r.oficial (el de la falange) */
   SOLDADOS.g = g && g.modelo ? { galos: [g.modelo], nobles: [g.modelo], jefe: g.modelo, tiradores: [g.modelo] } : SERIE.g;
   for (const [b, x] of [['r', r], ['g', g]]) if (x && x.modelo) { PAL[b + ':' + x.modelo] = x.paleta || null; if (!(x.modelo in ARMAS)) ARMAS[x.modelo] = null; }
+  if (r && r.oficial) { PAL['r:' + r.oficial] = r.palOficial || r.paleta || null; if (!(r.oficial in ARMAS)) ARMAS[r.oficial] = null; }
 }
 
 /* todos los modelos de un bando, sin repetir */
@@ -76,5 +77,35 @@ export function soloArmas(nv) {
   for (const [nom, n] of Object.entries(piezas)) { if (ES_ARMA.test(nom)) for (let k = t * 3; k < (t + n) * 3; k++) nuevos.push(idx[k]); t += n; }
   const g = new THREE.BufferGeometry(); for (const k in nv.geo.attributes) g.setAttribute(k, nv.geo.attributes[k]);
   g.setIndex(new THREE.BufferAttribute(new Uint32Array(nuevos), 1));
+  return Object.assign({}, nv, { geo: g });
+}
+
+/* FU3c: el nivel del falangita listo para la falange: (1) SIN las piezas de lanza (lanza_*: la sarisa se pinta aparte en formaciones/falange.js y cada hombre
+   lleva una sola arma) y (2) con el escudo colgado del hombro izquierdo, delante del pecho y apartado del asta: en el modelo es un disco pegado al antebrazo
+   (hueso lowerarm01.L) que, con la sarisa bajada, quedaba a la altura de la cadera. Aquí sus vértices pasan al hueso del tronco (spine01) y se colocan una vez:
+   disco de ≈ 56 cm, de frente y algo vuelto hacia fuera, centro en (0,26, 1,27, 0,12) del modelo (izquierda +x, frente +z). El asta va por x = −0,18: no la toca. */
+const ESC_C = [0.495, 1.105, 0.02], ESC_A = [0.26, 1.27, 0.12], ESC_FI = -Math.PI * 0.3;
+export function paraFalange(nv) {
+  const piezas = nv.j.piezas || {}, G = nv.geo, idx = G.index.array, nuevos = [], vEsc = new Set(), bone = nv.j.huesos.indexOf('spine01'); let t = 0;
+  for (const [nom, n] of Object.entries(piezas)) {
+    if (/^escudo/.test(nom)) for (let k = t * 3; k < (t + n) * 3; k++) vEsc.add(idx[k]);
+    if (!/^lanza/.test(nom)) for (let k = t * 3; k < (t + n) * 3; k++) nuevos.push(idx[k]);
+    t += n;
+  }
+  const g = new THREE.BufferGeometry(); for (const k in G.attributes) g.setAttribute(k, G.attributes[k]);
+  g.setIndex(new THREE.BufferAttribute(new Uint32Array(nuevos), 1));
+  if (bone >= 0 && vEsc.size) {
+    const P = G.attributes.position, N = G.attributes.normal, SI = G.attributes.aSkinI, SW = G.attributes.aSkinW;
+    const P2 = new THREE.BufferAttribute(new Float32Array(P.array), 3), N2 = new THREE.BufferAttribute(new Int8Array(N.array), 3, true);
+    const SI2 = new THREE.BufferAttribute(new Uint8Array(SI.array), 4), SW2 = new THREE.BufferAttribute(new Uint8Array(SW.array), 4, true);
+    const c = Math.cos(ESC_FI), s = Math.sin(ESC_FI);
+    for (const v of vEsc) {
+      const x = P.getX(v) - ESC_C[0], y = P.getY(v) - ESC_C[1], z = P.getZ(v) - ESC_C[2];
+      P2.setXYZ(v, ESC_A[0] + x * c + z * s, ESC_A[1] + y, ESC_A[2] - x * s + z * c);
+      const nx = N.getX(v), nz = N.getZ(v); N2.setXYZ(v, nx * c + nz * s, N.getY(v), -nx * s + nz * c);
+      SI2.setXYZW(v, bone, 0, 0, 0); SW2.setXYZW(v, 1, 0, 0, 0);
+    }
+    g.setAttribute('position', P2); g.setAttribute('normal', N2); g.setAttribute('aSkinI', SI2); g.setAttribute('aSkinW', SW2);
+  }
   return Object.assign({}, nv, { geo: g });
 }

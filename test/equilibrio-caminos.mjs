@@ -15,6 +15,8 @@ const CAM = require('../js/caminos.js');
 const GOB = require('../js/gobernador.js');
 const MIN = require('../js/ministros.js');
 const CI = require('../js/ciudad.js');
+const MER = require('../js/mercado.js');
+const NEC = require('../js/necesidades.js'), AGRO = await import('../js/agricultura.js');   // el juego enganchado como en ui.js: ciudad nueva, necesidades y agricultura
 const DIP = require('../js/diplomacia.js');
 const PL = require('../js/plan-senado.js');
 const botMercado = require('./bot-mercado.js');
@@ -57,13 +59,21 @@ function gobierno(s) {
   return { ayuda, hacer };
 }
 
+// reserva de denarios del bot de comercio: 1500, pero nunca más de la mitad del techo de denarios (G.cap): con techo bajo, una reserva fija lo dejaba sin comprar hierro ni entrenar (Roma cayó 5/5 con 74–86 hombres)
+const reservaComercio = () => Math.min(1500, Math.floor(0.5 * G.cap()));
+// guarnición del bot de comercio: 300 desde el 265 a.C.; desde el 230 a.C., un hombre por cada 2 denarios de renta anual y al menos 600 (Aníbal, los galos)
+function guarnicionComercio(s) {
+  const y = G.yearOf(s.t); if (y > 265) return 0;
+  if (y > 230) return 300;
+  return Math.max(600, Math.floor(CAM.foto(s, G).renta / 2));
+}
 // ---- una partida con un bot ----
 function partida(bot, modo, seed) {
   const rndOrig = Math.random; Math.random = mulberry32(seed);
   try { return jugar(bot, modo); } finally { Math.random = rndOrig; }
 }
 function jugar(bot, modo) {
-  restaurarCiudades(); G.usarCiudad(CI);
+  restaurarCiudades(); G.usarCiudad(CI); G.usarNecesidades(NEC); G.usarAgricultura(AGRO);
   const s = G.newGame('T', modo.region, modo.opc); G.onEvent = null;
   const meta = G.capitalRival(), aggressive = bot === 'armas';
   const GOBCADA = GOBCADA_ARG || (bot === 'armas' ? 6 : 2);   // armas conquista muchas ciudades: el gobernador solo vigila la capital cada estación
@@ -71,47 +81,47 @@ function jugar(bot, modo) {
   if (G.fundando()) { const sitio = G.modo().inicio.fundar.sitio; let pt = G.notaFundar(sitio, 172, -196).vale ? [172, -196] : null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z]; if (!pt || !G.fundarColonia(sitio, pt[0], pt[1]).ok) throw new Error('no se pudo fundar'); }
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   const { ayuda, hacer } = gobierno(s);
-  GOB.migrar(s); for (const id of G.myCities()) GOB.poner(s, id, true);
+  GOB.migrar(s);
+  const ponGob = () => { if (!usaGob) return; for (const id of G.myCities()) if (!GOB.activo(s, id) && (id === G.capital() || bot !== 'armas')) GOB.poner(s, id, true); };   // el juego llama al gobernador cada estación en las ciudades activadas (game.js, cierreCD)
+  ponGob();
   const R = { variante, cartagoExiste: !!s.cities.carthago, capRival: meta, capRivalMes: null, max: {}, logro: {}, perdidas: {}, victoria: null, cartagoMes: null, mesFinal: 0, derrota: false, fotoFin: null, evFin: null, maxPlazas: 0 };
-  BOTS.forEach(k => { R.logro[k] = null; R.perdidas[k] = 0; });
+  R.vistoLogrado = {}; BOTS.forEach(k => { R.logro[k] = null; R.perdidas[k] = 0; });
   let mesVisto = -1, guard = 0;
   const mesDe = t => Math.floor(t + 1e-9);
   const medir = () => {   // una vez por mes entero: el motor de caminos, como lo hará game.js
     const mes = mesDe(s.t); if (mes === mesVisto) return; mesVisto = mes;
-    const f = CAM.foto(s, G), o = CAM.paso(s, f, mes);
-    o.logra.forEach(k => { if (R.logro[k] === null) R.logro[k] = mes; });
-    o.pierde.forEach(k => { R.perdidas[k]++; });
-    if (o.gana && R.victoria === null) R.victoria = mes;
+    const f = CAM.foto(s, G), ca = s.caminos && s.caminos.estado;   // el juego ya llama a CAM.paso cada mes: aquí solo se lee s.caminos
+    if (ca) BOTS.forEach(k => { const e = ca[k]; if (!e) return; if (e.logrado && R.logro[k] === null) R.logro[k] = e.desde; if (R.vistoLogrado[k] && !e.logrado) R.perdidas[k]++; R.vistoLogrado[k] = !!e.logrado; });
+    if (s.caminos && s.caminos.victoria && R.victoria === null) R.victoria = s.caminos.victoria.mes;
     if (f.cartago && R.cartagoMes === null) R.cartagoMes = mes;
     if (s.cities[meta] && s.cities[meta].owner === 'roma' && R.capRivalMes === null) R.capRivalMes = mes;
     CAM.evaluar(f).caminos.forEach(c => c.hitos.forEach(h => { const k = c.id + '.' + h.id; R.max[k] = Math.max(R.max[k] === undefined ? -1 : R.max[k], h.v); }));
     R.maxPlazas = Math.max(R.maxPlazas, f.plazas);
-    if (usaGob && mes % D.TURNO_MESES === 0) {   // una vez por estación y ciudad propia (la capital siempre; las demás cada GOBCADA estaciones: mejorSitio de ciudad.js cuesta ~20 ms por obra)
-      const est = Math.floor(mes / D.TURNO_MESES);
-      for (const id of G.myCities()) {
-        if (id !== G.capital() && est % GOBCADA !== 0) continue;
-        if (!GOB.activo(s, id)) GOB.poner(s, id, true);
-        GOB.estacion(s, id, mes, ayuda, hacer);
-      }
-    }
+    if (mes % 12 === 0) (R.casas = R.casas || []).push([mes, f.casasUrbe, f.casasTotal, f.ciudades, f.planesBien]);   // para calibrar casasMin
+    if (mes % 12 === 0) (R.rentas = R.rentas || []).push([mes, Math.round(f.renta), f.ciudades]);   // renta neta del año anterior (para calibrar rentaPorCiudad)
+    if (process.env.ROMA && mes % 12 === 0) { const c = s.cities[G.capital()]; console.error(G.yearOf(s.t), 'hombres', G.men(c.units), 'total', G.myCities().reduce((a, id) => a + G.men(s.cities[id].units), 0), 'den', Math.round(G.disponible('denarios')), 'deuda', Math.round(s.deudaPaga || 0), 'grano', Math.round(G.disponible('grano')), 'ciu', G.myCities().length, 'hierro', Math.round(G.disponible('hierro')), 'cola', c.train.length, 'pop', Math.round(c.pop), 'unidades', JSON.stringify(c.units), 'tasa', G.tradeRate(), 'ok', ['triarii','principes','equites','hastati'].filter(k => G.unitOk(c, k)).join('/') + ' max' + G.maxTrain('hastati'), 'marchas', s.marches.filter(m => m.owner !== 'roma').map(m => m.owner + '>' + m.to + ':' + G.men(m.units || {})).join(',')); }
+    ponGob();
   };
-  while (!s.over && guard++ < 200000) {
+  while (!G.finDePrueba() && guard++ < 200000) {   // finDePrueba: s.over, o en la larga el año de cierre (tomar Cartago ya no acaba la partida)
     G.tick(0.25);
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); G.applyBattle(b.result()); }
     medir();
-    if (G.fraccionMes() >= 0.7) { if (bot === 'comercio') mercadoConReserva(1500); else if (bot === 'politica') mercadoConReserva(1100);  else botMercado(G, D); }   // política: el bando mercader pide más de 1000 denarios
+    if (G.fraccionMes() >= 0.7) { if (bot === 'comercio') mercadoConReserva(reservaComercio()); else if (bot === 'politica') mercadoConReserva(1100);  else botMercado(G, D); }   // política: el bando mercader pide más de 1000 denarios
     if (guard % 8) continue;
     // Senado: vota Favorable
     if (D.SENADO.sala && s.senado && s.senado.votacion) G.votar(G.tratos(s.senado.votacion.id).filter(t => t.etiqueta === 'Favorable'));
     // plan del Senado: en la larga todos como el bot de sim; en la corta solo el político (a los demás les resta obras)
     if (!s.modo || bot === 'politica') { if (!s.planSenado || !s.planSenado.plan) { if (!s.planSenado || !s.planSenado.borrador) PL.sugerir(s, 4, 'crecer', G.planAyuda()); G.planVotar([]); } }
     if (bot === 'politica') accionesPolitica(s, hacer);
-    if (bot === 'comercio') accionesComercio(s);
-    if (bot === 'ciudad') accionesCiudad(s, hacer);
+    if (bot === 'comercio') { accionesComercio(s); conVino(s); }
+    if (bot === 'ciudad') { accionesCiudad(s, hacer); conVino(s); }
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (G.enRevuelta && G.enRevuelta(c) && (bot !== 'ciudad' || !usaGob)) c.nec.mem.forEach((m, i) => { if (m && m.revuelta) for (const r of ['grano', 'juegos', 'tropas']) if (G.calmarRevuelta(id, i, r).ok) break; });   // entre estaciones, como el bot viejo
-      if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
+      const guarn = bot === 'comercio' && id === G.capital() && G.men(c.units) < guarnicionComercio(s);   // comercio: guarnición proporcional a su renta
+      const libreTropas = bot !== 'comercio' || guarn || G.disponible('denarios') > reservaComercio() + 150;   // y no gasta en tropas por debajo de la reserva
+      if (guarn && G.tradeRate() && G.disponible('denarios') > 200) G.trade('denarios', 'hierro', Math.min(400, Math.floor(G.disponible('denarios') - 100)));   // sin hierro no hay leva (Roma no tiene veta)
+      if (libreTropas && c.train.length < 4 && (G.prod().grano > 8 || guarn)) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= (guarn ? 3 : 10)) { G.train(id, k, n); break; } } }
       if (usaViejo) for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }   // el bucle de obras de sim.test.js
       G.levantarMuralla(id);
       if (!aggressive) continue;
@@ -125,22 +135,46 @@ function jugar(bot, modo) {
       }
     }
   }
-  if (!s.over) throw new Error('la partida no terminó');
+  if (!G.finDePrueba()) throw new Error('la partida no terminó');
   medir();
   const f = CAM.foto(s, G);
-  R.mesFinal = mesDe(s.t); R.derrota = !s.over.win; R.fotoFin = f; R.evFin = CAM.evaluar(f);
+  R.mesFinal = mesDe(s.t); R.derrota = !!(s.over && !s.over.win); R.fotoFin = f; R.evFin = CAM.evaluar(f);
   R.logradosFin = BOTS.filter(k => s.caminos.estado[k].logrado);
-  R.diag = { prueba: (() => { const cap = G.capital(), o = {}; for (const b of ['almacen', 'templo', 'mercado']) { o[b] = [s.cities[cap].b[b], !!G.upgrade(cap, b), G.ultimoMotivo, (s.cities[cap].obras || []).length]; } return o; })(), pide: s.senado && s.senado.pide, actos: s.senado && s.senado.actos, planSeq: s.planSenado && s.planSenado.seq, historial: s.planSenado && s.planSenado.historial, humor: s.senado && s.senado.humor, favor: s.favor && s.favor.senado, plan: s.planSenado && s.planSenado.plan ? { e0: s.planSenado.plan.e0, n: s.planSenado.plan.obras.length, hechas: s.planSenado.plan.obras.filter(o => o.hecha).length, obras: s.planSenado.plan.obras.map(o => o.b + ' n' + o.nivel + ' c' + (s.cities[o.ciudad] && s.cities[o.ciudad].b[o.b]) + ' e' + o.est), avisos: s.planSenado.avisos.map(a => a.texto).slice(0, 4), foro: s.cities[G.capital()].b.foro, perdidas: s.planSenado.plan.obras.filter(o => o.perdida).length } : null, ciudades: G.myCities().length };
-  R.anioFin = G.yearOf(s.t); R.porQue = String(s.over.why || "").slice(0, 60);
+  R.diag = { serv: G.servicios(s.cities[G.capital()], true), bienes: s.bienes, lujoFalta: s.lujoFalta, servido: s.lujoServido, pideLujo: G.lujoPide(), bi: (() => { const b = G.barrioInfo(s.cities[G.capital()]); return { nivel: b.nivel, obj: b.objetivo, falta: b.falta, bar: b.barrios.map(x => [x.nivel, x.objetivo, x.falta]) }; })(), compra: G.mercadoComprar(G.capital(), 'vino', 10), puede: G.mercadoPuede(G.capital()), den: G.disponible('denarios'), prueba: (() => { const cap = G.capital(), o = {}; for (const b of ['almacen', 'templo', 'mercado']) { o[b] = [s.cities[cap].b[b], !!G.upgrade(cap, b), G.ultimoMotivo, (s.cities[cap].obras || []).length]; } return o; })(), pide: s.senado && s.senado.pide, actos: s.senado && s.senado.actos, planSeq: s.planSenado && s.planSenado.seq, historial: s.planSenado && s.planSenado.historial, humor: s.senado && s.senado.humor, favor: s.favor && s.favor.senado, plan: s.planSenado && s.planSenado.plan ? { e0: s.planSenado.plan.e0, n: s.planSenado.plan.obras.length, hechas: s.planSenado.plan.obras.filter(o => o.hecha).length, obras: s.planSenado.plan.obras.map(o => o.b + ' n' + o.nivel + ' c' + (s.cities[o.ciudad] && s.cities[o.ciudad].b[o.b]) + ' e' + o.est), avisos: s.planSenado.avisos.map(a => a.texto).slice(0, 4), foro: s.cities[G.capital()].b.foro, perdidas: s.planSenado.plan.obras.filter(o => o.perdida).length } : null, ciudades: G.myCities().length };
+  R.anioFin = G.yearOf(s.t); R.porQue = s.over ? String(s.over.why || '').slice(0, 60) : (s.caminos && s.caminos.victoria ? 'victoria por caminos' : 'fin de la prueba (146 a.C.)');
   return R;
 }
 
 // ---- lo que añade cada bot a la base ----
+// rutas del mercado nuevo (G.rutaCrear): hacia cada vecino, el producto que más gana según MER.rutaCuenta, hasta 8 en total
+function rutasMercado(s, id) {
+  if (!G.hayMercado() || G.mercadoPuede(id) || G.rutasMercado().length >= 8) return;
+  const ay = G.mercadoAyuda();
+  for (const n of G.neighbors(id)) {
+    let mejor = null;
+    for (const prod of MER.ORDEN) {
+      if (G.rutasMercado().some(r => r.a === id && r.b === n && r.prod === prod)) continue;
+      const tope = MER.rutaTope(s, id, n, ay); if (tope < 1) continue;
+      const cargas = Math.min(tope, 2), cu = MER.rutaCuenta(s, { a: id, b: n, prod, cargas }, ay);
+      if (cu.neto > 0 && (!mejor || cu.neto > mejor.neto)) mejor = { prod, cargas, neto: cu.neto };
+    }
+    if (mejor && G.disponible('denarios') > 300) G.rutaCrear(id, n, mejor.prod, mejor.cargas);
+  }
+}
+// lujo: el vino (cosecha propia o comprado en el mercado) entra en s.bienes.vino y da el servicio «lujo» del barrio
+function conVino(s) {
+  const cap = G.capital(); if (!G.hayMercado() || G.mercadoPuede(cap)) return;
+  if (G.hayAgricultura() && G.agroAbierto('vina').ok && !(s.agro && s.agro.parcelas.some(p => p.ciudad === cap && p.campo === 'vina'))) {
+    for (const suelo of Object.keys(AGRO.SUELOS)) if (AGRO.encaje('vina', suelo, []).nota === 'bien') { if (G.plantarCampo(cap, 'vina', suelo).ok) break; }
+  }
+  const pide = Math.ceil(G.lujoPide());   // lo que los ricos beben al mes: se compra el doble para que no falte
+  if ((s.bienes.vino || 0) < 2 * pide + 2 && G.disponible('denarios') > 100) G.mercadoComprar(cap, 'vino', Math.max(1, Math.min(2 * pide + 4, 50, Math.floor((G.disponible('denarios') - 60) / 10))));
+}
 function accionesComercio(s) {
   for (const id of G.myCities()) {   // más mercados y puertos (G.rutaMax); almacén solo si el techo de denarios (G.cap) frena
     const c = s.cities[id];
     for (const b of ['mercado', 'puerto']) if ((c.b[b] || 0) < D.MAX_LVL && (b === 'mercado' || c.b.puerto > 0 || G.neighbors(id).some(n => { const e = G.edge(id, n); return e && e[2]; }))) G.upgrade(id, b);
-    for (const n of G.neighbors(id)) { if (G.rutaPuede(id, n) === null) G.rutaAbrir(id, n); }   // rutas hasta donde deje G.rutaMax
+    rutasMercado(s, id);
   }
   if (G.cap() < CAM.CIFRAS.comercio.denarios * 1.1 && G.disponible('denarios') > 0.8 * G.cap()) for (const id of G.myCities()) if (G.upgrade(id, 'almacen')) break;
   for (const f of Object.keys(D.FACTIONS)) {   // acuerdos: alianza (foedus) o tributo
@@ -154,14 +188,15 @@ function accionesPolitica(s, hacer) {
   const cap = G.capital(), q = s.senado || {}, hum = q.humor || {}, pide = q.pide || {}, c = s.cities[cap];
   const sube = (t) => { if (G.disponible('denarios') < 100 || (c.obras || []).length >= 2) return;
  const x = hacer.obra(cap, t); void x; };
+  if (typeof hum.mil === 'number' && hum.mil < 60 && c.pop > 60) { G.leva(cap, 15); sube('cuartel'); }   // acto 'leva' y 'cuartel': contentan a los militares aunque su petición sea «victoria»
   for (const b in pide) {
     if (typeof hum[b] !== 'number') continue; const x = pide[b]; if (!x) continue;
     switch (x.id) {
       case 'leva': if (c.pop > 60) G.leva(cap, 15); break;   // (ter pide 'sinLeva': se nota el choque con los militares)
-      case 'rutaMercado': { let ok = false; for (const n of G.neighbors(cap)) if (G.rutaPuede(cap, n) === null) { ok = G.rutaAbrir(cap, n); break; } if (!ok) sube('mercado'); break; }
+      case 'rutaMercado': case 'denarios': rutasMercado(s, cap); sube('mercado'); break;   // rutas del mercado nuevo: contentan a los mercaderes
       case 'granja': sube('granja'); break;
       case 'templo': sube('templo'); break;
-      case 'juegos': if (G.disponible('denarios') > 200) G.juegos(); break;
+      case 'juegos': if (G.disponible('denarios') > 200 && !(typeof hum.mil === 'number' && hum.mil < 50)) G.juegos(); break;   // el pueblo es rival de los militares
     }
   }
   const plan = s.planSenado && s.planSenado.plan;   // ayuda a los ministros: sube ella misma las obras del plan que ya tocan (hace falta el 80 % para 'bien', P.JUICIO)
