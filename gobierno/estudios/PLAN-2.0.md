@@ -106,7 +106,31 @@ pie; ciudad desde arriba, pantalla mínima, agricultura y mercado; construir has
 tiritas; solo Opus; ministerios «A»; cadenas sin supervisión y subidas con jueces APTO; descarga hasta ~56 MB.
 
 ## 3. Metas de la 2.0
-(en debate)
+Propuesta del director (25/11), en debate. Cada idea de la nevera, colgada de una meta o fuera.
+
+**M1 · La 1.0, pulida** (todas las áreas; medio). *Terminada cuando* lo que el usuario critique de la v171 está
+arreglado y lo da por bueno en su móvil. Dentro: sus críticas; textos cortados («Pirro», «Tu manípulo», avisos);
+hoplitas y Batallón Sagrado bajan a pie; regla del 15 % en todas las tropas; física de escaramuza bajo 1 ms; guía de juego al día.
+
+**M2 · Ganar sin guerra** (Cerebro: Política y Ciudades; grande). *Terminada cuando* se puede ganar por política, por
+ciudad y por ciencia, y los bots lo logran 4–7 de 10 cada uno. Dentro: calibrar caminos (CE12); vuelve la ciencia
+(CE11); Senado vivo: votaciones, cónsules con nombre, dictador, triunfos (SN3–SN5, MR1-4); imagen de época en sucesos
+(P158); Aníbal revisado; dificultad que cambia al enemigo; bot que pone servicios. Decide antes: «una sola política».
+
+**M3 · Una ciudad que da gusto** (Cerebro: Ciudades + Arte; grande). *Terminada cuando* hay edificios nuevos y la
+ciudad se ve bella. Dentro: edificios (ED0: herrería, campo de entrenamiento, mercenarios; Meshy); embellecer (CD6) y
+pulido (CI1c); texturas Poly Haven; galo realista (AR1). Choca con: descarga llena (55,6/56 MB) y créditos de Meshy.
+
+**M4 · Guerra completa** (Corazón; grande). *Terminada cuando* se puede asediar y asaltar una ciudad y jugar batallas
+históricas. Dentro: asalto a la muralla, versión corta primero (BG1, L10); Heraclea, Cannas y Zama con retos (ES0);
+jinete propio; arqueros contra falange; brazos que no atraviesan; elefante que dobla filas; mando como Rome II (P163); pellizco.
+
+**M5 · Un mundo más ancho** (Músculo + Corazón; grande). *Terminada cuando* el mapa tiene ~45 ciudades y se puede
+jugar con otro pueblo. Dentro: P183; Cartago jugable (P160); más tropas (P159). Choca con: peso de la descarga.
+
+**Fuera de la 2.0 (propuesto)**: Roma 3D (RM1–7); mapa libre (C14, GM25); Grecia, Egeo y mitología (P173–P175, MG1,
+CI2); Nova Roma (P164); batalla dentro de la ciudad (P161); tarjetas de tinta (P162); vídeos con piezas de museo
+(P165); luz y hora del día (CR4). Gobierno (skills, gasto, auditoría): no es meta del juego; lo hace el vigía si sobra.
 
 ## 4. Orden
 (en debate)
