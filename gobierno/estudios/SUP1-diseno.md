@@ -5,7 +5,8 @@ Base: `SUP0-modo-supervivencia.md` (decisiones literales del usuario, no se reab
 supervivencia», §3 Estándar, «M2: respuesta del usuario al estándar»). Aprobado abrir SUP1 el 25/11: «Carril aparte»,
 «Sí, ya». Sirve a OBJETIVOS → Corazón (guerras) y Músculo (entretenimiento).
 
-Mesa: Corazón (Batallas + Combate), Músculo (con Arte de Mapas), Arte, Sonido e Historia, cada uno con su guía.
+Mesa: Corazón (Batallas + Combate), Músculo (con Arte de Mapas), Arte, Sonido e Historia, cada uno con su guía; y,
+por aviso del vigía, los dos departamentos de batalla nuevos: Animación y Gráficos (§2b).
 Todos leyeron y opinaron; ninguno tocó código. Lo que sigue es la síntesis del director; las discrepancias van a §9.
 
 ## 0. En una frase
@@ -74,6 +75,41 @@ debate 2.0): animaciones (golpe, caída, subir a la torre, hachazo a madera), c�
 puerta), enemigos sueltos que piensen (hoy la IA piensa por bloques), la lanza hoplita (dory) en la tabla de armas y
 hacha contra madera.
 
+## 2b. Los seis departamentos de batalla (vigía, 25/11)
+El usuario aprobó seis departamentos de batalla («Sí, los seis»): Jugabilidad y mando (hoy Batallas), Motor de guerra
+(hoy Combate), **Animación** (nuevo), **Gráficos** (nuevo), Arte de soldados y Sonido. Se montan en la sesión DB0. Los
+seis han opinado en esta mesa. **Lo que es de su terreno no se fija aquí**: queda como dependencia o pregunta para ellos.
+
+**Animación** (dueño de los movimientos):
+- Hoy los soldados solo tienen movimientos de pelea: quieto, andar, correr, guardia, lanzar, golpear, cubrirse,
+  encajar y morir (`assets/soldados/*.json`). `tools/resolve_units.py` convierte solo seis de 0 A.D. (l. 40).
+- **No existen**: talar, cavar, clavar, acarrear, sentarse, dormir, subir a la torre, hachazo a la madera ni perro.
+  El trabajo de la ciudad se finge balanceando la figura entera (`js/gfx/trajin.js:190`), y eso suspende el juez de lo «robótico».
+- Fallo de fondo: el paso de un movimiento a otro es de golpe (`js/gfx/units.js:74`). Lo arregla el rediseño.
+- **Se puede ya** (SUP3/SUP4): movimientos de trabajo de 0 A.D. solo para el modo, sin tocar los de pelea. Perro y
+  mula de 0 A.D., por comprobar y si cabe el peso.
+
+**Gráficos** (dueño de luz, cielo, cámara y fluidez):
+- La receta de día y noche ya existe en la ciudad, apagada (`js/gfx/city3d.js:233`, `DIA_NOCHE=false`): sol y
+  hemisférica, niebla por estación, antorchas instanciadas sin luz real (l. 637), humo (`js/gfx/vida.js:27`), cielo
+  (`js/gfx/ground.js:141`). En el campamento: **una sola luz real** (sol → luna), círculos de luz pintados en el suelo,
+  sombra recalculada solo al cambiar la hora y ninguna de noche.
+- Cámaras: la maqueta del bloque (`gobierno/maquetas/bloque/camara.js`) ya pasa de arriba al oficial en 1,4 s. Falta
+  encuadrar el campamento entero, no meterse en la empalizada y probarlo a 390 px con el panel abierto.
+- Presupuesto propuesto, sin fijar: ≤ 120 llamadas de dibujo, ≤ 600 000 triángulos, densidad de píxeles ≤ 1,5. Las
+  cifras de aquí son de render por software: la prueba de verdad es su móvil.
+- **Se puede ya** (SUP2, en `js/gfx/superv3d.js`): reloj de luz de cuatro tramos, antorchas con su círculo, humo,
+  cielo de noche y la cámara de arriba. La del oficial se copia de la maqueta, **provisional**.
+
+**Preguntas para la mesa de batallas** (no al usuario; las responde DB0 o el debate de batallas):
+1. ¿La cámara del oficial de SUP3 será la de la maqueta del bloque o la del rediseño? ¿Quién es su dueño?
+2. ¿El rediseño trae su propio tono de luz, cielo y color? Si es así, el campamento los usa.
+3. ¿Las figuras del campamento (trabajadores, guarnición) cuentan dentro del tope de 200 o aparte?
+4. ¿El paso suave entre movimientos es para todas las figuras o solo para el grupo del oficial?
+5. ¿Los movimientos de trabajo son de Animación o del taller de soldados? ¿Perro y mula, de Animación o de Arte?
+6. ¿La torre se sube con escala o el hombre aparece arriba? ¿El hachazo a la madera es un golpe nuevo?
+7. ¿Quién reactiva la receta de día y noche: Cerebro (ciudad) o un módulo común nuevo?
+
 ## 3. El campamento (cerrado por la mesa)
 «Otro juego, nada que ver con la ciudad». Lo que lo hace distinto:
 1. **Tus hombres son el recurso.** No hay oro ni colas. Cada hombre talando no vigila ni descansa; el que no descansa
@@ -128,16 +164,16 @@ script de capturas de cada tanda) a 390×844 o 844×390.
 | # | Se tiene que ver | Captura | Tanda |
 |---|---|---|---|
 | 1 | Cinco etapas del campamento con el mismo encuadre; cada una con al menos una pieza nueva | 5 desde arriba, mediodía | SUP4 |
-| 2 | ≥ 3 hombres a la vez con herramienta en la mano y en postura de trabajo (talar, cavar, clavar); no quietos | arriba, mañana | SUP4 |
+| 2 | ≥ 3 hombres a la vez con la herramienta en la mano (no flotando), en postura de trabajo (talar, cavar, clavar), con ≥ 2 posturas distintas; no quietos | arriba, mañana | SUP4 |
 | 3 | Un hombre acarreando un tronco o un saco entre el bosque y el campamento | arriba, mañana | SUP4 |
 | 4 | Foso: franja más oscura que el suelo, con borde de tierra; a medias se ve el tramo sin cavar | arriba, etapa 3 | SUP4 |
 | 5 | Empalizada que rodea con un hueco de puerta reconocible | arriba, etapa 4 | SUP4 |
 | 6 | ≥ 2 hogueras con humo que sube de día | arriba, mediodía | SUP2 |
-| 7 | Noche: cielo más oscuro que el campamento; ≥ 4 antorchas con su círculo de luz en el suelo | arriba y a pie, noche | SUP2 |
-| 8 | El oficial de espaldas con penacho y su grupo, en columna de dos y en línea (dos capturas) | a pie, tarde | SUP3 |
+| 7 | Noche: cielo más oscuro que el campamento; ≥ 4 antorchas con su círculo de luz en el suelo; a pie, el oficial se distingue del fondo | arriba y a pie, noche | SUP2 |
+| 8 | El oficial de espaldas con penacho y su grupo, en columna de dos y en línea (dos capturas): cabezas y escudos de los 12 a la misma altura; el perro a < 3 m, sin flotar ni hundirse | a pie, tarde | SUP3 |
 | 9 | ≥ 10 escudos de la guarnición con el mismo emblema, de color distinto al enemigo | a pie | SUP3 |
 | 10 | Oleada con antorchas a < 20 m de la empalizada, saliendo del bosque | arriba, noche | SUP5 |
-| 11 | La fila de 12 tapando la puerta o una brecha, con enemigos amontonados en el hueco | a pie, noche | SUP5 |
+| 11 | La fila de 12 tapando la puerta o una brecha, con enemigos amontonados en el hueco; ningún escudo dentro de otro ni de un cuerpo, los bordes se solapan | a pie, noche | SUP5 |
 | 12 | Después de la noche: caídos fuera del foso y un tramo roto por reparar. En **todas**: ni piedra labrada, ni tejas, ni edificios de la ciudad | arriba, alba | SUP5 |
 
 **Cómo puntúa el juez de aspecto** (un agente que solo mira las capturas, sin leer el código):
@@ -192,7 +228,7 @@ M = millones de tokens (`gasto.mjs`). Gasto medido en esta sesión: 1,6 M (direc
 Orden: SUP2 → SUP3 → SUP4, con **SUP5a en paralelo** desde SUP2 (solo reglas). SUP5b, cuando el rediseño de la
 batalla haya fijado animaciones y cámara. Total: **12 M declarados, 19–24 M esperables** (esperable = declarado × 1,5–2, como en PLAN-2.0 §4).
 
-Estándar del carril (de SUP0, se mantiene): aspecto ≥ 8,5 con la ficha de §7; se entiende (≤ 2 toques entrar, 1 toque
+Estándar del carril (de SUP0, se mantiene; Gráficos añade **fluidez**: con 200 figuras de noche, ningún tramo de 10 s baja de 30 img/s en su móvil, medido con `js/gfx/fluidez.js`): aspecto ≥ 8,5 con la ficha de §7; se entiende (≤ 2 toques entrar, 1 toque
 cambiar de vista, ≤ 2 toques cada orden, a 390 px y en horizontal); bot de reglas 8/10 y 10/10; sin errores ni red;
 fichas de Historia; el «Bien» del usuario en su móvil.
 
