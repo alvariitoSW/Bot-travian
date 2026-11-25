@@ -79,16 +79,21 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
 - **Gasto**: sin tope ni corte (usuario 24/11: las sesiones siguen hasta acabar), pero medido con `node gobierno/gasto.mjs` y apuntado en el parte. El director no construye.
-  **Sin Fable** (usuario, 18/11: «hay que dejar de usar Fable 5.2»): dirige, diseña y construye **Opus**. La skill
+  **Sin Fable** (usuario, 18/11: «hay que dejar de usar Fable 5.2»): dirige, diseña y construye **Opus**. Excepción (usuario, 25/11, «Fable diseña y construye»): AM1 y AM2 del mapa vivo, con gasto medido. La skill
   `ahorro` revisa los partes y propone recortes.
 - **Objetivos finales** (usuario, 18/11): `gobierno/OBJETIVOS.md` manda sobre el tablero. Léela al empezar y di a qué línea
   sirve tu tarea; si no sirve a ninguna, no se hace. Lo empezado se termina; nada entra sin sacar otra.
 - **Meta: la 1.0** (usuario, 17/11). Solo se trabaja en el Carril V del tablero, en orden. Nada nuevo entra; lo nuevo
   va a «Después de la 1.0» en la bitácora, o entra sacando otra. Sin concursos ni estudios hasta la 1.0.
 - **Ministerios por área** (usuario, 23/11: mapa «A» y reglas para todas las sesiones; `gobierno/MINISTERIOS.md`): Cerebro
-  (ramas Ciudades y Política), Corazón (Batallas y **Combate**: motor de lucha, físicas y soldados, usuario 24/11), Músculo, taller de Arte y **taller de Sonido** (director de sonido para todo
+  (ramas Ciudades y Política), Corazón (Batallas y **Combate**: motor de lucha, físicas y soldados, usuario 24/11), Músculo
+  (con el **Departamento de Arte de Mapas**: mapa vivo, Grecia y sus polis, recursos en el mapa, usuario 25/11), taller de Arte y **taller de Sonido** (director de sonido para todo
   el juego, usuario 23/11). Cada sesión carga la guía de su área
-  (`ministerio-batallas`, `ministerio-combate`, `ministerio-cerebro`, `ministerio-musculo`, `arte`, `sonido`), toca solo sus archivos (`gobierno/areas.json`),
+  (`ministerio-batallas`, `ministerio-combate`, `ministerio-cerebro`, `ministerio-musculo`, `arte-mapas`, `arte`, `sonido`), toca solo sus archivos (`gobierno/areas.json`),
   cierra con `node gobierno/juez-area.mjs <área>` y deja pases, ideas y preguntas en su parte. Tablero y bitácora: solo el
   vigía. Jueces completos: una vez, en la sesión de subida. Gasto: sin tope fijo para los ministerios, pero medido.
+- **Seis departamentos de batalla** (usuario, 25/11, «Sí, los seis»; `MINISTERIOS.md` §4d): Jugabilidad y mando (`ministerio-batallas`),
+  Motor de guerra (`ministerio-combate`), Animación (`ministerio-animacion`), Gráficos (`ministerio-graficos`), Arte de soldados (`arte`)
+  y Sonido (`sonido`). Animación y Gráficos: juez de aspecto (`gobierno/juez-aspecto.mjs`, nota ≥ 8,5 y ficha de objetivo). Nada de batalla
+  se enseña al usuario sin **examen de jugabilidad** de una sesión que no lo construyó.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.

@@ -1,0 +1,18 @@
+AQVILA · mapa vivo de Grecia (AM2) — de dónde sale cada archivo
+
+alturas.png: relieve, fondo marino y distancia a la costa de Grecia y el Egeo (lon 19,3..28,3; lat 34,7..41,0; 2160x1920 celdas de ~0,4 km).
+  Remuestreado (media por área) de las Terrain Tiles (formato Terrarium, nivel 10) de Mapzen/Tilezen, alojadas en AWS Open Data
+  (https://registry.opendata.aws/terrain-tiles/; atribución: https://github.com/tilezen/joerd/blob/master/docs/attribution.md).
+  Fuentes que declaran las cabeceras x-amz-meta-x-imagery-sources de las teselas usadas (y solo estas):
+  - SRTM (NASA Shuttle Radar Topography Mission, NASA/JPL y USGS). Dominio público; se pide citar la fuente.
+  - GMTED2010 (U.S. Geological Survey y National Geospatial-Intelligence Agency). Dominio público; se pide citar la fuente.
+  - ETOPO1 (NOAA National Centers for Environmental Information; Amante y Eakins, 2009). Dominio público; se pide citar la fuente.
+  - EU-DEM (Copernicus Land Monitoring Service, Agencia Europea de Medio Ambiente). Datos de uso libre y gratuito, con cita de la fuente:
+    «Producido con datos de Copernicus / EU-DEM, © Unión Europea, Copernicus Land Monitoring Service, Agencia Europea de Medio Ambiente».
+  Retoques propios (documentados en el script): canal del Euripo en Calcis, istmo de Corinto y llanura del Meandro bajo Mileto.
+  Se genera con tools/mapa-grecia-generar-alturas.py (la caché de teselas queda fuera del repositorio).
+rutas.js: rutas de barcos calculadas por nosotros sobre ese relieve (tools/mapa-grecia-generar-rutas.py). Propio.
+Modelos de ciudades, barcos y árboles que se pongan sobre este mapa: los de 0 A.D. (Wildfire Games, CC BY-SA 3.0,
+  https://creativecommons.org/licenses/by-sa/3.0/), ver el LICENSE.txt de gobierno/maquetas/mapa-comun/ y de assets/static/.
+Nada procede de juegos comerciales.
+rios.js: ríos de Grecia calculados por nosotros sobre ese mismo relieve (acumulación de flujo sobre alturas.png; tools/mapa-grecia-generar-rios.py). Derivado propio de datos de dominio público y de EU-DEM (misma cita de arriba). No procede de Natural Earth ni de ningún otro mapa de ríos.

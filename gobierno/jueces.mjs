@@ -12,7 +12,7 @@
    JZ1: cada prueba guarda en gobierno/jueces-cache.json la huella de los archivos que lee al dar APTO; si no cambió ninguno, no
         se repite (gobierno/jueces-cache.mjs). La lógica corre a la vez que el navegador y test/sim.test.js reparte sus campañas
         entre los núcleos (test/sim-paralelo.js). Los criterios de aprobado no cambian.
-         node gobierno/jueces.mjs --area cerebro|musculo|batallas
+         node gobierno/jueces.mjs --area cerebro|musculo|batallas|mapas
               (MIN4: solo los pasos de navegador de esa área, más los que la preparan; capturas en
                gobierno/capturas-area/<área>/. Lo usa gobierno/juez-area.mjs. Sin lógica ni juez de la guerra.)
    Pasa test/sim.test.js, recorre el juego en un navegador a 390×844 y deja las capturas
@@ -38,7 +38,7 @@ const MEMORIA = leeMemoria(), NUEVA = {}; let saltadas = 0;
    los comunes y los que preparan su estado. Sin --area corre todo, en el mismo orden de siempre (las mismas 43 comprobaciones). */
 const AREA = process.argv.includes('--area') ? process.argv[process.argv.indexOf('--area') + 1] : null;
 if (LIGA && AREA !== null) { console.error('--liga no se combina con --area.'); process.exit(2); }
-if (AREA !== null && !['batallas', 'cerebro', 'musculo'].includes(AREA)) { console.error('Áreas con pasos de navegador: batallas, cerebro, musculo.'); process.exit(2); }
+if (AREA !== null && !['batallas', 'cerebro', 'musculo', 'mapas'].includes(AREA)) { console.error('Áreas con pasos de navegador: batallas, cerebro, musculo, mapas (AM0).'); process.exit(2); }
 const CAPS = AREA ? join(RAIZ, 'gobierno', 'capturas-area', AREA) : join(RAIZ, 'gobierno', LIGA ? 'capturas-liga' : 'capturas');
 const CAPS_TAREA = AREA ? CAPS : join(RAIZ, 'gobierno', 'capturas-tarea');   // R3 y R4 dejan ahí sus capturas fijas
 const pasos = [];                       // { nombre, ok, detalle, captura }
@@ -168,7 +168,7 @@ async function navegador() {
   try {
     await paso('El juego carga y aparecen los modelos', 'comun', async () => {
       await page.goto(url, { waitUntil: 'load' });
-      await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+      await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
       const t = Date.now();
       const modelos = await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).then(() => true, () => false);
       await espera(1500);
@@ -188,7 +188,7 @@ async function navegador() {
       const titulo = await page.title();
       /* J20a: «Salir» se engancha al terminar de cargar la escena (gobierno/maquetas/bloque/escena.js pone __bloque.listo); se espera a eso, no a un plazo fijo */
       await page.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 120000 }).catch(() => { }); await espera(1500);
-      await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+      await page.click('#salir'); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
       const ok = /Testudo a pie/.test(titulo);
       return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
@@ -215,7 +215,7 @@ async function navegador() {
       const titulo = await page.title(), ruta = page.url();
       await page.waitForFunction(() => window.__bloque && window.__bloque.listo, null, { timeout: 120000 }).catch(() => { }); await espera(4000);   // J20a: igual que en el testudo
       const capE = await foto('falange-escena'), fallosE = errores.slice(antes);
-      await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+      await page.click('#salir'); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
       const ok = /Falange a pie/.test(titulo) && /\?rival=/.test(ruta) && !fallosE.length;
       return { ok, detalle: 'botón de ' + m.h + ' px; 4 rivales; abre «' + titulo + '» con ' + ruta.split('/').pop() + (fallosE.length ? '; ' + fallosE.length + ' error(es): ' + fallosE[0] : '; sin errores') + '; «Salir» vuelve al menú', captura: ok ? capE : cap };
@@ -292,7 +292,7 @@ async function navegador() {
     }
 
     await paso('Nueva partida: se ve el mapa', 'comun', async () => {
-      await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
+      await page.click('#menu [data-pn="nueva"]:visible'); await page.click('#menu [data-pn="campana"], #menu [data-pncamp]'); await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
       const ok = await estado(() => !!Game.state && !UI.menu && Game.myCities().includes('roma'));
       return { ok, detalle: ok ? await estado(() => Game.dateStr(Game.state.t)) : 'no hay partida', captura: await foto('ciudad-inicio') };
@@ -404,7 +404,7 @@ async function navegador() {
     });
 
     let objetivo = '';
-    await paso('Atacar una ciudad vecina', { de: 'musculo', para: ['batallas'] }, async () => {
+    await paso('Atacar una ciudad vecina', { de: 'musculo', para: ['batallas', 'mapas'] }, async () => {
       objetivo = await estado(() => Game.neighbors('roma').filter(n => Game.state.cities[n].owner !== 'roma' && !Game.edge('roma', n)[2]).sort((a, b) => Game.power(Game.state.cities[a].units) - Game.power(Game.state.cities[b].units))[0] || '');
       if (!objetivo) return { ok: false, detalle: 'Roma no tiene vecina enemiga por tierra' };
       await page.evaluate(id => { UI.sel = id; UI.sheetKey = ''; }, objetivo);
@@ -485,7 +485,7 @@ async function navegador() {
       return { ok: ok && modelos, detalle: !ok ? 'la partida guardada no se recuperó' : modelos ? 'partida y modelos disponibles sin conexión' : 'la partida vuelve, pero los modelos 3D no cargan sin red', captura: await foto('sin-red') };
     });
 
-    await paso('Mapa por escalones: tocar Italia acerca y «← volver» devuelve', 'musculo', async () => {
+    await paso('Mapa por escalones: tocar Italia acerca y «← volver» devuelve', { de: 'musculo', para: ['mapas'] }, async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; UI.map.esc.anim = null; UI.map.esc.zona = null; UI.map.esc.pila = []; UI.map.c.x = 94; UI.map.c.z = 46; UI.map.c.dist = 330; UI.map.clamp(); });
       await espera(1500);
       /* J20a: las etiquetas de zona se colocan al dibujar; se espera a que estén las ocho (no a un plazo fijo) antes de medir */
@@ -504,7 +504,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'ocho zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
     });
 
-    await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', 'musculo', async () => {
+    await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', { de: 'musculo', para: ['mapas'] }, async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
       await espera(1500);
       const ves = () => estado(() => Object.fromEntries(['tira', 'speed', 'turno', 'tabs3'].map(i => { const e = document.getElementById(i), r = e.getBoundingClientRect(), cs = getComputedStyle(e); return [i, !e.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.bottom > 0 && r.top < innerHeight]; })));
@@ -527,7 +527,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'en el mapa: tira, ☰, «Pasar turno» y la barra de seis (en horizontal, columna de ' + col.w + ' px a la izquierda); la ficha dice «' + ficha + '»; tocar Roma entra y la pestaña Mapa vuelve al mapa' : JSON.stringify({ v, vh, col, ficha, ciu, vuelta }) };
     });
 
-    await paso('Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)', 'musculo', async () => {
+    await paso('Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)', { de: 'musculo', para: ['mapas'] }, async () => {
       await estado(() => { Game.state.speed = 0; const m = document.getElementById('modal'); if (m) m.hidden = true; const x = document.querySelector('#hoja [data-act="hojax"]'); if (x && !document.getElementById('hoja').hidden) x.click(); }); await espera(400);
       const VISTA = { ciudad: 'city', senado: 'senado', saber: 'saber', tropas: 'army', mapa: 'map', imperio: 'imperio' }, fallos = [];
       const med = await estado(() => [...document.querySelectorAll('#tabs3 [data-act="barra"]')].map(b => { const r = b.getBoundingClientRect(), s = b.querySelector('span') || b, cs = getComputedStyle(b); return { v: b.dataset.v, t: s.textContent.trim(), vis: !b.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.top >= 0 && r.bottom <= innerHeight + 1, alto: Math.round(r.height), corta: b.scrollWidth > b.clientWidth || s.scrollWidth > s.clientWidth || s.getBoundingClientRect().width > b.clientWidth + .5 }; }));
@@ -616,22 +616,22 @@ async function navegador() {
       return { ok, detalle: ok ? '«' + m.txt + '» (' + m.n + ' caracteres, ' + Math.round(m.alto) + ' px de alto)' : JSON.stringify({ salio, m }), captura: f };
     });
 
-    await paso('Región de Italia: mapa con 7 ciudades', 'musculo', async () => {
+    await paso('Región de Italia: mapa con 7 ciudades', { de: 'musculo', para: ['mapas'] }, async () => {
       await page.evaluate(() => Game.save());
       await page.reload({ waitUntil: 'load' });
-      await page.waitForSelector('#menu [data-act="newregion"]', { timeout: 30000 });
+      await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.map, null, { timeout: 60000 }).catch(() => { });
-      await page.click('#menu [data-act="newregion"]'); await espera(3500); await cierraAvisos();
+      await page.click('#menu [data-pn="nueva"]:visible'); await page.click('#menu [data-act="newregion"]'); await espera(3500); await cierraAvisos();
       await page.evaluate(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); }); await espera(2500);
       const r = await estado(() => ({ reg: Game.regionId(), vis: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && Game.state.cities[i]).length : -1, fantasmas: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && !Game.state.cities[i]).length : 0, rutas: UI.map ? UI.map.aristas.filter(e => e.line.visible).length : -1 }));
       const ok = r.reg === 'italia' && r.vis === 7 && r.fantasmas === 0;
       return { ok, detalle: ok ? '7 ciudades visibles, ' + r.rutas + ' rutas' : 'región ' + r.reg + ', visibles ' + r.vis + ', fantasmas ' + r.fantasmas, captura: await foto('italia') };
     });
 
-    await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', 'musculo', async () => {
-      const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-act="hoja"][data-v="corta"]', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
+    await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', { de: 'musculo', para: ['mapas'] }, async () => {
+      const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
       await recarga();   // el menú vuelve a estar a la vista (la partida de Italia seguía abierta)
-      const abreCorta = async () => { await page.click('#menu [data-act="hoja"][data-v="corta"]'); await espera(400); };
+      const abreCorta = async () => { await page.evaluate(() => PORTADA.vista('nueva')); await page.click('#menu [data-act="hoja"][data-v="corta"]'); await espera(400); };
       await abreCorta();   // K12a-B: «Partida corta» vive en una hoja inferior (#hoja), no en #menu
       const menu = await estado(() => { const m = document.getElementById('menu'), h = document.getElementById('hoja'), b = [...h.querySelectorAll('[data-act="cortaen"],[data-act="cortafun"]')]; return { n: b.length, fuera: b.some(e => e.getBoundingClientRect().right > 390 || e.getBoundingClientRect().left < 0), sw: Math.max(m.scrollWidth, h.scrollWidth) }; });
       const fm = await foto('i8-menu');

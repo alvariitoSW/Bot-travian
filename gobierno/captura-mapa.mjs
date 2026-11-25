@@ -1,6 +1,6 @@
 /* Capturas propias del MAPA de campaña a 390×844 (C2b: relieve real y espuma).
    Uso: node gobierno/captura-mapa.mjs <prefijo> [vistas=italia,alpes,sicilia,grecia,costa,baja] [dpr=2]
-   Deja gobierno/capturas-tarea/<prefijo>-<vista>.jpg y escribe triángulos, llamadas, tiempo de arranque del mapa
+   Deja gobierno/capturas-tarea/<prefijo>-<vista>.jpg (o en dir=<carpeta>, AM0: el juez de mapas usa gobierno/capturas-area/mapas) y escribe triángulos, llamadas, tiempo de arranque del mapa
    y la altura bajo cada ciudad. Vistas: italia (entera), alpes (Mediolanum), sicilia (Etna), grecia (Olimpo),
    costa (de cerca, dist 14, Roma), baja (cámara baja, pitch 0,62, Alpes). */
 import { createRequire } from 'node:module';
@@ -19,7 +19,7 @@ const VISTAS = { italia: { c: 'roma', dist: 120 }, alpes: { c: 'mediolanum', dis
   /* C18: hoja «Guerra» con «Ver minimapa», minimapa abierto (Mare Nostrum) y tocar Sicilia en el minimapa (toques de verdad) */ hojaGuerra: { c: 'roma', dist: 200, acc: 'hoja' }, mini: { c: 'roma', dist: 200, acc: 'mini' }, miniSicilia: { acc: 'toque', lon: 14.2, lat: 37.5 }, miniEtruria: { acc: 'toque', lon: 11.6, lat: 43.0 },
   /* C12: calzadas y puertos */ apia: { lon: 13.4, lat: 41.5, dist: 30 }, flaminia: { lon: 12.4, lat: 43.2, dist: 60 }, egeo: { lon: 26.0, lat: 35.5, dist: 110 }, ostia: { lon: 12.6, lat: 41.6, dist: 22 } };
 const vistas = (op.vistas || 'italia,alpes,sicilia,grecia,costa,baja').split(',');
-const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
+const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
 const srv = createServer(async (q, r) => { try { let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html'; if (p.includes('..')) throw 0; const d = await readFile(join(RAIZ, p)); r.writeHead(200, { 'content-type': TIPOS[extname(p)] || 'application/octet-stream', 'cache-control': 'no-store' }); r.end(d); } catch (e) { r.writeHead(404); r.end(); } });
 await new Promise(ok => srv.listen(0, '127.0.0.1', ok));
 const { chromium } = createRequire(import.meta.url)('playwright');
@@ -29,7 +29,7 @@ const errores = [];
 page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|GPU stall|GL Driver/.test(m.text())) errores.push(m.text().slice(0, 300)); });
 page.on('pageerror', e => errores.push('EXCEPCIÓN: ' + String(e.message).slice(0, 300)));
 await page.goto('http://127.0.0.1:' + srv.address().port + '/', { waitUntil: 'load' });
-await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+await page.evaluate(() => window.PORTADA && PORTADA.vista('campana'));   /* PN1: «Empezar la campaña» vive ahora en Partida nueva → Campaña */ await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
 await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 120000 });
 await page.click('#menu [data-act="new"]'); await page.waitForTimeout(2500);
 const cierra = () => page.evaluate(() => { const m = document.getElementById('modal'); if (m) m.hidden = true; });
@@ -48,7 +48,8 @@ if (op.marchas) await page.evaluate(() => {   // C17: un ejército romano grande
   s.marches.push({ id: 9002, owner: 'cartago', from: 'lilybaeum', to: 'panormus', units: { libios: 300, iberos: 200 }, t0: s.t - T, t1: s.t + T });
   s.marches.push({ id: 9003, owner: 'roma', from: 'roma', to: 'carales', units: { hastati: 600, principes: 400 }, t0: s.t - T, t1: s.t + T });
 });
-await mkdir(join(RAIZ, 'gobierno/capturas-tarea'), { recursive: true });
+const DIR = op.dir || 'gobierno/capturas-tarea';   // AM0
+await mkdir(join(RAIZ, DIR), { recursive: true });
 const medir = () => page.evaluate(() => { const i = UI.map.r.info.render; return i.triangles + ' triángulos, ' + i.calls + ' llamadas'; });
 for (const v of vistas) {
   if (VISTAS[v].acc === 'hoja') await page.click('#bmarchas');
@@ -64,7 +65,7 @@ for (const v of vistas) {
   await page.waitForTimeout(3500);
   if (VISTAS[v].drag) for (let i = 0; i < 3; i++) { const sx = 195 - VISTAS[v].drag * 140; await page.mouse.move(sx, 480); await page.mouse.down(); for (let k = 1; k <= 10; k++) await page.mouse.move(sx + VISTAS[v].drag * 28 * k, 480 + (k % 2)); await page.mouse.up(); await page.waitForTimeout(800); }
   if (VISTAS[v].drag) { await page.waitForTimeout(2000); console.log(v + ': c.x ' + (await page.evaluate(() => UI.map.c.x)).toFixed(1)); }
-  const f = join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + v + '.jpg');
+  const f = join(RAIZ, DIR, pref + '-' + v + '.jpg');
   for (let i = 0; ; i++) { try { await page.screenshot({ path: f, type: 'jpeg', quality: 84, timeout: 180000 }); break; } catch (e) { if (i >= 2) throw e; } }
   console.log(f + ' · ' + await medir() + ' · pitch ' + (await page.evaluate(() => UI.map.c.pitch)).toFixed(2));
 }

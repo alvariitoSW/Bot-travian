@@ -15,7 +15,7 @@ try {
   const page = await nav.newPage({ viewport: { width: 390, height: 844 } });
   page.on('console', m => { if (m.type() === 'error') errores.push(m.text()); }); page.on('pageerror', e => errores.push(String(e)));
   await page.goto('http://localhost:8792/', { waitUntil: 'load' });
-  await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+  await page.evaluate(() => window.PORTADA && PORTADA.vista('campana'));   /* PN1: «Empezar la campaña» vive ahora en Partida nueva → Campaña */ await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
   await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => {});
   await espera(1500);
   const foto = async n => { await espera(500); await page.screenshot({ path: join(SAL, PRE + '-' + n + '.jpg'), type: 'jpeg', quality: 70, timeout: 120000 }); console.log('foto', n); };

@@ -16,7 +16,7 @@ const errores = [];
 page.on('console', m => { if (m.type() === 'error') errores.push(m.text().slice(0, 200)); });
 page.on('pageerror', e => errores.push('EXCEPCIÓN: ' + String(e.message).slice(0, 200)));
 await page.goto('http://127.0.0.1:' + srv.address().port + '/'); await page.waitForTimeout(1500);
-await page.setViewportSize({ width: 390, height: 844 }); await page.click('#menu [data-act="new"]'); await page.waitForTimeout(2500);
+await page.setViewportSize({ width: 390, height: 844 }); await page.evaluate(() => window.PORTADA && PORTADA.vista('campana')); await page.click('#menu [data-act="new"]'); await page.waitForTimeout(2500);
 await page.evaluate(() => { const m = document.getElementById('modal'); if (m) m.hidden = true; }); await page.setViewportSize({ width: 844, height: 390 });
 await page.evaluate((arg) => {
   const lado = (units, n, col, gen) => ({ units, name: n, col, gen: gen ? { n: gen } : null, atkMul: 1, defMul: 1, mor: 0 });
