@@ -95,34 +95,34 @@
   "fecha": "2026-11-25T00:06:20.260Z"
  },
  "area:test/guerra.test.mjs": {
-  "huella": "57327d369be891ca",
+  "huella": "a8a8eda253e2b80e",
   "ok": true,
-  "fecha": "2026-11-25T01:05:38.967Z"
+  "fecha": "2026-11-25T03:24:11.331Z"
  },
  "area:test/guerra-juego.test.mjs": {
-  "huella": "584bb0b761fc4065",
+  "huella": "f4e2ebb8c8d861ab",
   "ok": true,
-  "fecha": "2026-11-25T01:05:44.483Z"
+  "fecha": "2026-11-25T03:24:17.079Z"
  },
  "area:test/simulador.test.mjs": {
-  "huella": "561a60bf4865a326",
+  "huella": "9098e883552fa6e5",
   "ok": true,
-  "fecha": "2026-11-25T01:05:50.937Z"
+  "fecha": "2026-11-25T03:24:24.096Z"
  },
  "area:test/maniobra.test.mjs": {
-  "huella": "d8d573f04517c9e4",
+  "huella": "7fc94536c6a78724",
   "ok": true,
-  "fecha": "2026-11-24T22:47:48.851Z"
+  "fecha": "2026-11-25T03:24:24.171Z"
  },
  "area:test/campo.test.mjs": {
-  "huella": "28763794e42caab4",
+  "huella": "f3f17b84895f2791",
   "ok": true,
-  "fecha": "2026-11-25T01:05:55.083Z"
+  "fecha": "2026-11-25T03:24:28.709Z"
  },
  "area:test/nb7.test.mjs": {
-  "huella": "964d83fa340bcf74",
+  "huella": "ddd7a46be42ce939",
   "ok": true,
-  "fecha": "2026-11-25T01:06:04.322Z"
+  "fecha": "2026-11-25T03:25:18.556Z"
  },
  "area:test/falange.test.mjs": {
   "huella": "838d8fb539f210c3",
@@ -150,29 +150,29 @@
   "fecha": "2026-11-25T01:09:14.330Z"
  },
  "area:test/batalla-rapida.test.mjs": {
-  "huella": "f5bda0867752a22d",
+  "huella": "0e1c5998e1abd3f7",
   "ok": true,
-  "fecha": "2026-11-25T01:09:15.261Z"
+  "fecha": "2026-11-25T03:25:19.561Z"
  },
  "area:test/dialogos.test.mjs": {
-  "huella": "f2287f3dc2b3157c",
+  "huella": "afd15949c9d7bb2c",
   "ok": true,
-  "fecha": "2026-11-25T01:56:05.389Z"
+  "fecha": "2026-11-25T03:25:21.338Z"
  },
  "navegador-batallas": {
-  "huella": "8ec9e66413d50c62",
+  "huella": "f52c41b5fbb7ef8d",
   "ok": true,
-  "fecha": "2026-11-25T02:00:30.015Z"
+  "fecha": "2026-11-25T03:30:03.839Z"
  },
  "area:gobierno/jueces.mjs --area batallas": {
-  "huella": "b4d6fbdc00919a11",
+  "huella": "df3c3277c81021ee",
   "ok": true,
-  "fecha": "2026-11-25T02:00:30.023Z"
+  "fecha": "2026-11-25T03:30:03.848Z"
  },
  "area:gobierno/juez-guerra.mjs": {
-  "huella": "c1b833a9630023b7",
+  "huella": "02a8f139bf8525f2",
   "ok": true,
-  "fecha": "2026-11-25T02:22:17.038Z"
+  "fecha": "2026-11-25T03:54:06.371Z"
  },
  "area:test/fu3-falange.test.mjs": {
   "huella": "8a76adac61c1b454",
@@ -195,9 +195,9 @@
   "fecha": "2026-11-25T01:09:17.367Z"
  },
  "area:test/tacticas.test.mjs": {
-  "huella": "320d18b36db9a577",
+  "huella": "d919b4c49beac119",
   "ok": true,
-  "fecha": "2026-11-25T01:09:17.599Z"
+  "fecha": "2026-11-25T03:25:21.581Z"
  },
  "area:test/fu4-rivales.test.mjs": {
   "huella": "3312c11de5d59eb8",
@@ -210,8 +210,13 @@
   "fecha": "2026-11-25T01:09:17.649Z"
  },
  "area:test/tropas-sim.test.mjs": {
-  "huella": "75767251de5c6c29",
+  "huella": "ecb349a293fbc055",
   "ok": true,
-  "fecha": "2026-11-25T01:09:18.955Z"
+  "fecha": "2026-11-25T03:25:22.871Z"
+ },
+ "area:test/registro-lleva.test.mjs": {
+  "huella": "b479d2484ba86252",
+  "ok": true,
+  "fecha": "2026-11-25T03:25:22.929Z"
  }
 }
