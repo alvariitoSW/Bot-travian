@@ -195,9 +195,9 @@
   // sin veta de hierro la mina no da nada: de partida, un aldeano en ella y el resto en materiales y grano (licencia de juego)
   G.repartoBase = cid => cid && !G.vetaHierro(cid) ? { aserradero: 7, cantera: 6, mina: 1, granja: 6 } : { aserradero: 5, cantera: 5, mina: 5, granja: 5 };
   /* ---------- CE2: hierro, hombres y bienes ---------- */
-  G.vetaHierro = cid => D.VETAS_HIERRO.indexOf(cid) >= 0;
+  G.vetaHierro = cid => D.hayVeta ? D.hayVeta(cid) : D.VETAS_HIERRO.indexOf(cid) >= 0;   // PN3e: con polis, también Calcis
   // por qué no se puede abrir o subir la mina en esta ciudad (null = se puede)
-  G.minaMotivo = cid => G.vetaHierro(cid) ? null : 'Aquí no hay vetas de hierro: la mina solo se abre en Etruria o en Hispania. Compra el hierro en el mercado.';
+  G.minaMotivo = cid => G.vetaHierro(cid) ? null : D.polis && D.POLIS[D.polis] ? 'Aquí no hay vetas de hierro: en Grecia solo en Calcis (Eubea). Compra el hierro en el mercado.' : 'Aquí no hay vetas de hierro: la mina solo se abre en Etruria o en Hispania. Compra el hierro en el mercado.';   // PN3e
   // rendimiento de la mina: entero con veta; una mina vieja fuera de las vetas, al VETA_POBRE («vetas pobres»)
   G.minaMul = cid => G.vetaHierro(cid) ? 1 : D.VETA_POBRE;
   // hombres: no se guardan; son los reclutas libres de tus ciudades
@@ -1990,7 +1990,7 @@
         soltarCiudad(c); c.owner = m.owner; c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.obras.length = 0; c.train = []; c.puertas = false; c.vetB = 0;
         out.lines.push('🔥 ' + d.n + ' ha caído en manos de ' + D.FACTIONS[m.owner].n + '.');
         G.log('🔥 ' + d.n + ' ha caído ante ' + D.FACTIONS[m.owner].n + '.', 'bad');
-        if (cid === G.capital()) terminar(false, G.modo() ? textoFinal('pierde', { anio: G.yearOf(s.t), rival: D.FACTIONS[m.owner].n }) : 'Roma ha caído en ' + G.yearOf(s.t) + ' a.C. ante ' + D.FACTIONS[m.owner].n + '. Vae victis.');
+        if (cid === G.capital()) terminar(false, G.modo() ? textoFinal('pierde', { anio: G.yearOf(s.t), rival: D.FACTIONS[m.owner].n }) : D.CITIES[cid].n + ' ha caído en ' + G.yearOf(s.t) + ' a.C. ante ' + D.FACTIONS[m.owner].n + '.' + (G.polis() ? '' : ' Vae victis.'));   // PN3e: el nombre de tu polis, no «Roma»
         else if (h.city === cid) h.city = G.capital();
         // las marchas propias hacia la ciudad perdida se convierten en ataques al llegar (ya lo gestiona tick)
       }

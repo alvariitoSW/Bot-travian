@@ -621,6 +621,10 @@
     clusium: vH(H_ETR, 'ciudad etrusca: el hierro etrusco salía sobre todo de Elba y Populonia'), rusellae: vH(H_ETR, 'ciudad etrusca de la costa, cerca de Populonia y Elba'),
     emporion: vH(H_HIS, 'Hispania'), saguntum: vH(H_HIS, 'Hispania'), carthagonova: vH(H_HIS, 'Hispania; Carthago Nova es más famosa por sus minas de plata (Polibio 34.9, por cotejar)'), tarraco: vH(H_HIS, 'Hispania'), gades: vH(H_HIS, 'Hispania')
   };
+  /* PN3e: veta de hierro de Calcis en la partida de polis (D.VETAS_HIERRO_GR) */
+  const vetaGr = {
+    calcis: f(SIN_R, h('Estrabón 10.1.9 (en Calcis había una mina de cobre y de hierro, ya agotada en su tiempo); Alceo, fr. 357 (las espadas calcídicas)', 'probable', 'Estrabón describe las minas de Calcis, pero dice que en su época (h. 20 a.C.) ya no daban metal; que siguieran abiertas en 280-146 a.C. es reconstrucción. Pasajes citados de memoria, por cotejar en Perseus. Que solo Calcis tenga veta en Grecia: licencia de juego'))
+  };
   const BIEN_LIC = h('', 'licencia de juego', 'guardar el bien en almacén, su tope, su precio fijo y que los ricos lo consuman cada mes es regla del juego; de dónde salía cada bien está en su ficha de bien especial');
   const BIEN_AGRO = h('Catón, De agri cultura 1.7 y 144-147 (olivar, huerto y ganado; aceite, hortalizas y lana como productos de la finca)', 'historico', 'el aceite, la verdura y la lana eran productos de la villa de la época; guardarlos en almacén, el precio fijo y su tope son reglas del juego');
   const bienAgro = {}; for (const k of ['aceite', 'verdura', 'lana']) bienAgro[k] = f(SIN_R, BIEN_AGRO);
@@ -693,7 +697,7 @@
     calcis: f(SIN_POLIS, h('Estrabón 10.1.9; Heródoto 5.77', 'probable', 'Calcis, «la de bronce», con minas de cobre y hierro en Eubea y los Hipóbotas («criadores de caballos») (Estrabón 10.1.9; Heródoto 5.77); pasaje exacto, por cotejar.' + LJP, 'Calcis, en la isla de Eubea, trabajaba el bronce y el hierro de sus minas. Su clase dirigente de terratenientes se llamaba los Hipóbotas, los criadores de caballos.'))
   };
 
-  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, especialGr, recurso, veta, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia, polis };
+  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, especialGr, recurso, veta, vetaGr, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia, polis };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -738,6 +742,7 @@
     polis: { tabla: 'POLIS', numericos: [], textos: ['n', 'color', 'sello', 'lema', 'lujo', 'lujoDe'] },   // PN2
     recurso: { tabla: 'RES_NOM', numericos: [], textos: [] },   // CE2
     veta: { tabla: 'VETAS_HIERRO', numericos: [], textos: [] },   // CE2: lista de ids de ciudad
+    vetaGr: { tabla: 'VETAS_HIERRO_GR', numericos: [], textos: [] },   // PN3e: Calcis, en partida de polis
     bien: { tabla: 'BIENES', numericos: ['precio'], textos: [] },
     bienAgro: { tabla: 'BIENES_AGRO', numericos: ['precio'], textos: ['n', 'i'] }   // CDe4: aceite, verdura y lana de la agricultura
   };

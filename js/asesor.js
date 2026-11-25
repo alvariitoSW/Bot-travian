@@ -3,6 +3,7 @@
 (function (root) {
   'use strict';
   const LECCIONES = [
+    { id: 'hierro', texto: 'Hoplitas y peltastas piden hierro: levanta un mercado y cómpralo allí.', cuando: c => !!c.hierroPolis },   // PN3e: en la polis sin veta, la primera lección
     { id: 'cifra', texto: 'La cifra grande dice cuánto mejora tu ciudad si colocas ahí: busca la mayor.', cuando: c => !!c.cifra },
     { id: 'cuotas', texto: 'Obras y tropas se pagan enteras al ordenarlas: si no alcanza, no se puede.', cuando: c => !!c.cuotas },
     { id: 'riesgo', texto: 'Un riesgo se apaga al construir lo que lo remedia: Construir lo resalta.', cuando: c => !!c.riesgo },

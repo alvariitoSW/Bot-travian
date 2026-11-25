@@ -44,6 +44,10 @@
      Escipión en 205 a.C.); Estrabón 3.2.8-10 (minas de Hispania). Qué ciudad tiene veta: licencia de juego. */
   D.VETAS_HIERRO = ['volsinii', 'perusia', 'clusium', 'rusellae', 'emporion', 'saguntum', 'carthagonova', 'tarraco', 'gades'];
   D.VETA_POBRE = 0.25;
+  /* PN3e: en la partida de polis, Calcis tiene veta de hierro (sus «Minas de Eubea» producen). Vale para tu polis si es Calcis (ciudad 'roma')
+     y para la Calcis rival (que se puede conquistar). Fuente: Estrabón 10.1.9 (cobre y hierro de Calcis, en Eubea). Que solo Calcis la tenga: licencia de juego. */
+  D.VETAS_HIERRO_GR = ['calcis'];
+  D.hayVeta = cid => D.VETAS_HIERRO.indexOf(cid) >= 0 || (!!D.polis && !!D.POLIS && !!D.POLIS[D.polis] && D.VETAS_HIERRO_GR.indexOf(cid === 'roma' ? D.polis : cid) >= 0 && (cid === 'roma' || !!(D.CITIES[cid] && D.CITIES[cid].griega)));
   /* CE2: bienes por región. Cada ciudad tuya con bien (D.CITIES[id].esp) guarda BIEN_MES unidades al mes en s.bienes[esp], hasta BIEN_TOPE.
      Los ciudadanos ricos consumen LUJO_POR_CIU bienes de lujo (D.LUJO) al mes cada uno. Se venden por denarios a precio fijo (CE4 traerá precios
      por ciudad); lo que sobra, a BIEN_SOBRA del precio. El hierro de calidad no se guarda como bien: sus ciudades ya tienen veta. Cifras: licencia de juego. */
