@@ -4,6 +4,10 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 175, fecha: '25/11/2026', cosas: [
+      'Las polis de costa tienen mar: al norte del río se extiende el agua hasta el horizonte.',
+      'El ágora de tu polis es ahora el bouleuterion griego, no el foro romano.',
+      'El arranque se ve más claro: la cámara se acerca a la aldea y la lección ya no tapa las casas.'] },
     { v: 174, fecha: '25/11/2026', cosas: [
       'Tu polis empieza pequeña: el ágora, unas pocas casas y entre 100 y 200 personas, en el año 800 a.C.',
       'Cada partida nueva sale una comarca distinta: el terreno, el sitio del ágora y los bosques cambian.',

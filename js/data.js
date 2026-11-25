@@ -448,7 +448,7 @@
       heroe: 'Polemarco de Calcis', leva: { hoplitas: 30, jinetes: 10, peltastas: 10 } }
   };
   /* PN3: almacén al empezar una partida de polis (unas materias básicas; licencia de juego) */
-  D.POLIS_RES = { grano: 400, denarios: 250, materiales: 400, hierro: 150 };
+  D.POLIS_RES = { grano: 340, denarios: 250, materiales: 400, hierro: 150 };   // PN3b: 340 (antes 400) para que el trigo del primer invierno quepa en el almacén y la barra no salga en rojo
   D.POLIS_ORDEN = ['atenas', 'esparta', 'corinto', 'argos', 'tebas', 'megara', 'mileto', 'calcis'];
   /* Con polis elegida (D.polis = id; lo fijan G.newGame y G.load) la ciudad y el bando del jugador llevan su nombre. Sin polis, «Roma» como siempre. */
   D.polis = null;

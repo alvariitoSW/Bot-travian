@@ -965,7 +965,7 @@ export class CityView3D {
         let k = 0, dm = 1e9; p.forEach((q, i) => { const dd = Math.hypot(q[0] - sx, q[1] - sz); if (dd < dm) { dm = dd; k = i; } }); const i0 = Math.max(0, k - 2), i1 = Math.min(p.length - 1, k + 2), a = p[i0], b = p[k]; cam.tx = b[0]; cam.tz = b[1]; cam.az = Math.atan2(-(p[i1][0] - a[0]), -(p[i1][1] - a[1])); } else { cam.tx = f ? f.x : 0; cam.tz = f ? f.z + 20 : 0; cam.az = 0.25; }
       cam.d = 70; cam.elF = 0.3; }
     else if (name === 'ejercito') { const g = this.guarn || (f ? { x: f.x, z: f.z + 46 } : { x: 0, z: 0 }); cam.tx = g.x; cam.tz = g.z; cam.d = 90; cam.az = 0.35; cam.elF = 0.3; }
-    else if (this.aldea()) { const A = this.aldea(); cam.tx = A.cx; cam.tz = A.cz; cam.az = 0; cam.d = Math.max(150, A.r * (vert ? 5 : 3.6)); }      // PN3: la aldea de cerca, en el centro
+    else if (this.aldea()) { const A = this.aldea(); cam.tx = A.cx; cam.tz = A.cz; cam.az = 0; cam.d = Math.max(110, A.r * (vert ? 3.6 : 2.7)); }      // PN3b: la aldea de cerca, más cerca que antes (se cuentan las casas)
     else { let cx = f ? f.x : 0, cz = f ? f.z - 10 : -20, r = 120; if (E && E.surco && E.surco.length) { cx = cz = 0; for (const p of E.surco) { cx += p[0]; cz += p[1]; } cx /= E.surco.length; cz /= E.surco.length; r = 0; for (const p of E.surco) r = Math.max(r, Math.hypot(p[0] - cx, p[1] - cz)); r = Math.max(r, 120); } cam.tx = cx; cam.tz = cz; cam.az = 0; cam.d = Math.max(260, r * (vert ? 3.6 : 2.8)); }
     ponerCamara();
   }
