@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 (vigía 4): notas de partida del juez de aspecto de batallas (DB0: Animación 5,0, Gráficos 4,5): «A», se dejan así; puede corregirlas cuando quiera.
 - 25/11 (vía debate 2.0): departamentos de batalla «¿Te vale este reparto…?» → «Sí, los seis (Recomendado)»; «¿Cuándo se montan?» → «Ya, antes de M5 y de las oleadas (Recomendado)». Jugabilidad y mando, Motor de guerra, Animación, Gráficos, Arte de soldados, Sonido + examen de jugabilidad. DB0 abierta; SUP1 avisada.
 - 25/11 (vía debate 2.0): «¿Cómo encaja el modo supervivencia en el plan?» → «Carril aparte (Recomendado)»; «¿Abrimos ya la mesa de diseño del modo supervivencia (SUP1)?» → «Sí, ya (Recomendado)». SUP1 abierta (diseño, no construye).
 - 25/11 ~13:10 (vigía 4): maqueta del mapa vivo (AM1). Pregunta «¿tener las 3?»; propuesta C primero y luego A y B. Respuesta: «Vale pues hacemos solo la a y la b», y al aclarar (A = maquetas A y B, sin la C; B = las tres empezando por la C): «A». **El mapa vivo tendrá dos estilos: A «Relieve natural» y B «Carta antigua viva»; la C (tablero) se descarta.** AM2 con Fable.
