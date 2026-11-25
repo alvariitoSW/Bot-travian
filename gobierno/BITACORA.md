@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~16:02 (cuadro, botones): Tropas de élite «A · 2 estaciones» (triarios y équites tardan 2 estaciones; aplica PN2, de paso en comunes); Mapa vivo: estilo al abrir «A · Relieve natural»; Mapa vivo en vertical «A · No, empieza algo más cerca y llena la pantalla» (aplica AM2b).
 - 25/11 (vigía 4): notas de partida del juez de aspecto de batallas (DB0: Animación 5,0, Gráficos 4,5): «A», se dejan así; puede corregirlas cuando quiera.
 - 25/11 (vía debate 2.0): departamentos de batalla «¿Te vale este reparto…?» → «Sí, los seis (Recomendado)»; «¿Cuándo se montan?» → «Ya, antes de M5 y de las oleadas (Recomendado)». Jugabilidad y mando, Motor de guerra, Animación, Gráficos, Arte de soldados, Sonido + examen de jugabilidad. DB0 abierta; SUP1 avisada.
 - 25/11 (vía debate 2.0): «¿Cómo encaja el modo supervivencia en el plan?» → «Carril aparte (Recomendado)»; «¿Abrimos ya la mesa de diseño del modo supervivencia (SUP1)?» → «Sí, ya (Recomendado)». SUP1 abierta (diseño, no construye).
@@ -588,9 +589,6 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
-- **Tropas de élite**: con el tiempo por estaciones, ¿cuánto tardan en entrenarse triarios y équites? (A) 2 estaciones [recomendado]; (B) 1, como las demás. Por qué: da peso a la élite sin frenar el arranque.
-- **Mapa vivo: estilo al abrir**: cuando abras el mapa de Grecia, ¿qué estilo sale primero? (A) Relieve natural [recomendado]; (B) Carta antigua. Por qué: el relieve sacó mejor nota en las tres alturas.
-- **Mapa vivo en vertical**: ¿Grecia entera cabe al abrir aunque sobre margen arriba y abajo? (A) No, empieza algo más cerca y llena la pantalla [recomendado]; (B) Sí, entera con margen. Por qué: en el móvil de pie se ve más grande y se lee mejor.
 - **Modo supervivencia (SUP1)**: el diseño está hecho (rama `sup1-diseno`, `gobierno/estudios/SUP1-diseno.md`, 7 capturas). Te esperan 7 preguntas en el chat de SUP1 (`session_01QiKC36Sf8RZgvbyrwhY4GL`): el tiempo, la duración, la fecha (700–650 a.C.), Tasos, la pelea, el tope de 60 MB y el reparto SUP2–SUP5. Contéstalas allí.
 
 
