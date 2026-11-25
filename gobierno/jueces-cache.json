@@ -255,14 +255,14 @@
   "fecha": "2026-11-25T04:45:55.093Z"
  },
  "area:test/mapa.test.mjs": {
-  "huella": "474cd55f483de6b7",
+  "huella": "babd0005c4693203",
   "ok": true,
-  "fecha": "2026-11-25T17:15:35.812Z"
+  "fecha": "2026-11-25T17:38:00.735Z"
  },
  "area:gobierno/juez-mapas.mjs": {
-  "huella": "27fe34ad9c8304eb",
+  "huella": "fc640ac470eda4a6",
   "ok": true,
-  "fecha": "2026-11-25T17:17:40.783Z"
+  "fecha": "2026-11-25T17:40:06.558Z"
  },
  "area:test/movil.test.mjs": {
   "huella": "54120b721142ab68",

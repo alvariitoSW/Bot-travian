@@ -115,16 +115,19 @@ class Grecia {
   update(state, sel) {
     this.state = state; this.ultUpdate = performance.now();
     if (sel !== this.sel) { this.sel = sel; for (const e of (this.mapa ? this.mapa.etq : [])) if (e.polis) e.d.classList.toggle('sel', !!sel && this._idDe(e.polis) === sel); }
+    if (this.caja.hidden) this.caja.hidden = false;
     if (this.mapa && !this.mapa._raf && !this.muerto) { this._medir(); this.mapa.pausa(false); }   // vuelve a la pestaña MAPA
   }
   /* cada cuadro del mapa de Grecia: si el juego dejó de pedir el mapa (otra pestaña), se para; si no, marchas y rutas */
   _cuadro(m) {
-    if (performance.now() - this.ultUpdate > 700) { m.pausa(true); return; }
+    if (performance.now() - this.ultUpdate > 700) { m.pausa(true); this.caja.hidden = true; return; }   // otra pestaña: ni se pinta ni se ven sus botones
     const st = this.state; if (!st || !this.svg) return;
     const w = m.host.clientWidth, h = m.host.clientHeight, v = m._v3, ky = m.com.uKy.value;
     const aPx = q => { v.set(q[0], Math.max(0, m.rel.altura(q[0], q[1])) * ky, q[1]).project(m.cam); return v.z > 1 ? null : [(v.x * 0.5 + 0.5) * w, (-v.y * 0.5 + 0.5) * h]; };
     const fuera = [X(PONIENTE.lon), Z(PONIENTE.lat)], D = globalThis.DATA, G = globalThis.Game; let d = '';
-    const trazos = [], vistas = new Set();
+    const trazos = [], vistas = new Set(), r0 = m.host.getBoundingClientRect(), ocupado = [];
+    for (const e of m.etq) if (e.polis && e.visto) { const r = e.d.getBoundingClientRect(); ocupado.push([r.left - r0.left, r.top - r0.top, r.right - r0.left, r.bottom - r0.top]); }   // las píldoras de las marchas no tapan los nombres de las polis
+    const libre = (x, y, an, al) => { for (let i = 0; i < 14; i++) { const yy = y + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (al + 3), c = [x, yy, x + an, yy + al]; if (yy > this.margen[0] && yy + al < h - this.margen[2] && !ocupado.some(o => c[0] < o[2] && c[2] > o[0] && c[1] < o[3] && c[3] > o[1])) { ocupado.push(c); return yy; } } ocupado.push([x, y, x + an, y + al]); return y; };
     for (const r of (st.rutas || [])) {   // rutas de comercio: línea dorada
       const a = this._lugar(r.a) || fuera, b = this._lugar(r.b) || fuera; if (a === fuera && b === fuera) continue;
       const pa = aPx(a), pb = aPx(b); if (pa && pb) trazos.push(['#e3b341', pa, pb]);
@@ -137,10 +140,12 @@ class Grecia {
       const pa = aPx(a), pb = aPx(b), pq = aPx(q); if (pa && pb) trazos.push([mio ? '#f6ecd0' : '#d24a3a', pa, pb]);
       vistas.add(mc.id); let el = this.marcas.get(mc.id);
       if (!el) { el = document.createElement('div'); el.className = 'mpg-ej ' + (mio ? 'mine' : 'foe'); el.style.setProperty('--c', col); this.mapa.rot.appendChild(el); this.marcas.set(mc.id, el); }
-      const hombres = G && G.men ? G.men(mc.units || {}) : 0, txt = (mio ? '' : (b === fuera ? 'Hacia poniente · ' : a === fuera ? 'De poniente · ' : '')) + (hombres ? hombres.toLocaleString('es-ES') : '') + (mio && b === fuera ? ' · hacia poniente' : '');
-      if (el.dataset.t !== txt) { el.dataset.t = txt; el.innerHTML = '<b>⚔</b>' + txt; }
+      const hombres = G && G.men ? G.men(mc.units || {}) : 0, n = hombres ? hombres.toLocaleString('es-ES') : '', txt = mio ? (b === fuera ? n + ' → poniente' : n) : (a === fuera ? 'De poniente · ' : b === fuera ? 'Hacia poniente · ' : '') + n;
+      if (el.dataset.t !== txt) { el.dataset.t = txt; el.innerHTML = '<b>⚔</b>' + txt; el._w = 0; }
       if (!pq || pq[0] < -40 || pq[0] > w + 40 || pq[1] < -40 || pq[1] > h + 40) el.style.display = 'none';
-      else { el.style.display = ''; el.style.transform = 'translate(' + Math.round(pq[0] + 6) + 'px,' + Math.round(pq[1] + (mio ? 4 : -26)) + 'px)'; }   // las enemigas encima de su camino, las tuyas debajo: no se tapan
+      else { el.style.display = ''; if (!el._w) { el._w = el.offsetWidth; el._h = el.offsetHeight; }
+        const x = Math.max(this.margen[3], Math.min(w - el._w - 8, pq[0] - el._w / 2)), y = libre(x, Math.max(this.margen[0], Math.min(h - this.margen[2] - el._h, pq[1] - el._h - 6)), el._w, el._h);   // dentro de la pantalla y sin pisar nada
+        el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)'; }
     }
     for (const [id, el] of this.marcas) if (!vistas.has(id)) { el.remove(); this.marcas.delete(id); }
     for (const [c, a, b] of trazos) d += '<path stroke="' + c + '" d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + 'L' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '"/>';

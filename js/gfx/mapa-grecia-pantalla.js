@@ -59,7 +59,7 @@ export async function montarMapaGrecia(caja, opts) {
   const raiz = document.createElement('div'); raiz.className = 'mgp' + (opts.enPartida ? ' mgp-partida' : ''); caja.appendChild(raiz);   // AM4: dentro de la partida, sin título ni zoom propios (los pone el juego)
   raiz.innerHTML = '<div class="mgp-mapa"></div>' +
     '<div class="mgp-arriba">' + (opts.onVolver ? '<button data-a="volver">Volver</button>' : '') + '<div class="mgp-titulo"><b>Grecia</b><span data-r="lema"></span></div><button data-a="estilo" aria-label="Cambiar el estilo del mapa"></button></div>' +
-    '<div class="mgp-leyenda" hidden><span class="f">' + Object.keys(BASICOS).map(k => rec(k, BASICOS[k])).join('') + '<span class="rec lujo"><i style="--c:#cfd6dd">' + ICONOS.plata + '</i>Lujo (solo en esa polis)</span></span></div>' +
+    '<div class="mgp-leyenda" hidden><span class="f">' + Object.keys(BASICOS).map(k => rec(k, BASICOS[k])).join('') + '<span class="rec lujo"><i style="--c:#cfd6dd">' + ICONOS.plata + '</i>Lujo: solo en una polis</span></span></div>' +
     '<div class="mgp-zoom"><button data-a="mas" aria-label="Acercar">+</button><button data-a="menos" aria-label="Alejar">−</button></div>' +
     '<div class="mgp-ficha" hidden></div>' +
     '<div class="mgp-abajo"><div class="mgp-regla"><span></span><i></i></div><div class="mgp-fila"><button data-a="recursos" aria-pressed="false">Recursos</button><button data-v="entera">Grecia entera</button><button data-v="corazon">Las polis</button></div></div>' +
@@ -75,7 +75,7 @@ export async function montarMapaGrecia(caja, opts) {
     const pasos = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]; let k = pasos[0]; for (const q of pasos) if (q <= km100 * 0.9) k = q;
     regla.firstChild.textContent = k < 1 ? (k * 1000) + ' m' : k + ' km'; regla.lastChild.style.width = Math.round(k / km100 * 100) + 'px';
     lema.textContent = m.ancho > 30 ? 'Las polis y sus mares' : m.ancho > 1.4 ? 'Comarcas, caminos y puertos' : 'La polis, de cerca'; } })); } catch (e) { raiz.remove(); throw e; }
-  function pintaEstilo() { estVisto = mapa.est; bEst.textContent = 'Estilo: ' + NOMBRE[mapa.est]; raiz.classList.toggle('mgp-b', mapa.est === 'b'); }
+  function pintaEstilo() { estVisto = mapa.est; bEst.textContent = opts.enPartida ? (mapa.est === 'a' ? 'Ver carta antigua' : 'Ver relieve') : 'Estilo: ' + NOMBRE[mapa.est]; raiz.classList.toggle('mgp-b', mapa.est === 'b'); }
   function ficha(p) {
     if (!p) { hoja.hidden = true; return; }
     const c = comarca(p), ic = k => rec(k, BASICOS[k] || LUJOS[k], !!LUJOS[k]);

@@ -38,7 +38,7 @@ const lee = page => page.evaluate(() => {
 });
 async function sesion(ancho, alto, f) {
   const ctx = await br.newContext({ viewport: { width: ancho, height: alto }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, serviceWorkers: 'block' }), page = await ctx.newPage();
-  page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|GPU stall|GL Driver/.test(m.text())) errores.push(m.text().slice(0, 300)); });
+  page.on('console', m => { if (/^AM4/.test(m.text())) console.log(m.text()); if (m.type() === 'error' && !/Failed to load resource|GPU stall|GL Driver/.test(m.text())) errores.push(m.text().slice(0, 300)); });
   page.on('pageerror', e => errores.push('EXCEPCIÓN: ' + String(e.stack || e.message).slice(0, 500)));
   page.on('dialog', d => d.accept());
   await page.goto('http://127.0.0.1:' + srv.address().port + '/', { waitUntil: 'load' });
@@ -92,7 +92,7 @@ for (const [w, h, s] of [[390, 844, 'v'], [844, 390, 'h']]) await sesion(w, h, a
   await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'tab'; b.dataset.v = 'map'; document.body.appendChild(b); b.click(); b.remove(); }); await page.waitForTimeout(3000); await cierra(page);
   L = await lee(page); medidas.volver = L; await foto(page, 'volver-v'); ok(L.grecia && L.miaVista, 'al volver, el mapa de Grecia con tu polis');
   /* la pestaña Ciudad para el mapa (no gasta) */
-  await accion(page, 'tab', 'city'); await page.waitForTimeout(1500); const parado = await page.evaluate(() => !UI.map.gr.mapa._raf); ok(parado, 'fuera de la pestaña MAPA el mapa de Grecia se para');
+  await accion(page, 'tab', 'city'); await page.waitForTimeout(4000); const parado = await page.evaluate(() => { const g = UI.map.gr; console.log('AM4 parado', UI.tab, g.mapa._raf, g.caja.hidden, Math.round(performance.now() - g.ultUpdate)); return !g.mapa._raf && g.caja.hidden; }); ok(parado, 'fuera de la pestaña MAPA el mapa de Grecia se para');
 });
 
 for (const [w, h, s] of [[390, 844, 'v'], [844, 390, 'h']]) await sesion(w, h, async page => {
