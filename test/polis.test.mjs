@@ -68,9 +68,20 @@ t('PN3c: rivales griegas en la partida de polis; Roma, sin ellas', () => {
   assert.deepStrictEqual(ids.sort(), ['argos', 'atenas', 'calcis', 'corinto', 'esparta', 'mileto', 'roma', 'tebas']);
   assert.strictEqual(D.CITIES.roma.lon, D.POLIS_GR.megara.lon); assert.deepStrictEqual(G.neighbors('roma').sort(), ['atenas', 'corinto', 'tebas']);
   for (const id of ids) if (id !== 'roma') { assert.strictEqual(s.cities[id].owner, id); assert.ok(D.FACTIONS[id] && G.men(s.cities[id].units) > 0, id); }
-  assert.strictEqual(D.CITIES.roma.esp, 'sal'); nueva('corinto'); assert.strictEqual(D.CITIES.roma.esp, undefined, 'la cerámica no es un bien del juego');
+  assert.strictEqual(D.CITIES.roma.esp, 'sal'); nueva('corinto'); assert.strictEqual(D.CITIES.roma.esp, 'ceramica', 'PN3d: la cerámica es el bien de Corinto');
   const r = nueva(null); assert.ok(!D.CITIES.atenas && !D.FACTIONS.atenas && !r.cities.atenas, 'Roma no ve las polis'); assert.strictEqual(D.CITIES.roma.lon, 12.5); assert.strictEqual(D.CITIES.roma.esp, 'sal');
   assert.ok(D.EDGES.every(e => D.CITIES[e[0]] && D.CITIES[e[1]]), 'ningún camino a una polis quitada');
+});
+t('PN3d: las 8 polis tienen su bien especial, con ficha, y la campaña de Roma no ve los griegos', () => {
+  const GR = ['ceramica', 'anguilas', 'lanafina', 'bronce'];
+  for (const id of IDS) { nueva(id); const k = D.bienPolis(id), e = D.ESPECIAL[k];
+    assert.ok(e && e.n && e.i && e.d && Object.keys(e.bono).length === 1, id + ': bien ' + k); assert.strictEqual(D.CITIES.roma.esp, k);
+    assert.ok(G.especiales()[k], id + ': tiene su bien al empezar');
+    const c = Object.keys(e.bono)[0], v = e.bono[c]; assert.ok(c === 'fel' ? v > 0 && v <= 5 : Math.abs(v - 1) > 0.04 && Math.abs(v - 1) <= 0.1001, id + ': efecto pequeño');
+    for (const o of IDS) if (o !== id) assert.strictEqual(D.CITIES[o].esp, D.bienPolis(o), id + ': la rival ' + o + ' tiene el suyo'); }
+  for (const k of GR) { const f = R.fichas.especialGr[k]; assert.ok(f && f.historia && f.historia.fuente.length > 5 && /licencia de juego/.test(f.historia.nota), k + ' ficha'); }
+  nueva('tebas'); const fel0 = G.bonoSum('fel'); nueva(null); for (const k of GR) assert.ok(!D.ESPECIAL[k], 'Roma no ve ' + k);
+  assert.ok(fel0 >= 3, 'las anguilas suman felicidad'); assert.strictEqual(D.CITIES.roma.esp, 'sal');
 });
 t('la partida corta no cambia aunque se pida polis', () => {
   const s = G.newGame('T', null, { modo: 'corta', polis: 'atenas' }); assert.strictEqual(s.polis, null); assert.strictEqual(D.CITIES.roma.n, 'Roma');
@@ -85,5 +96,25 @@ t('una partida vieja sin polis carga como Roma', () => {
 t('élite 2 estaciones; las griegas siguen la misma regla', () => {
   nueva(null); const L = { triarii: 2, equites: 2, hastati: 1, hoplitas: 1, peltastas: 1, jinetes: 2 };
   for (const k in L) assert.strictEqual(G.loteEstaciones(k), L[k], k);
+});
+t('PN3e: Calcis tiene veta de hierro (tuya o rival); las otras polis y Roma, no; sus Minas de Eubea producen', () => {
+  let s = nueva('calcis'); assert.ok(G.vetaHierro('roma'), 'tu Calcis'); assert.strictEqual(G.minaMotivo('roma'), null);
+  s.cities.roma.b.mina = 1; const h0 = G.prod().hierro; assert.ok(h0 > 0, 'la mina produce: ' + h0);
+  nueva('atenas'); assert.ok(!G.vetaHierro('roma'), 'Atenas no'); assert.ok(G.vetaHierro('calcis'), 'la Calcis rival sí'); assert.ok(/Calcis/.test(G.minaMotivo('roma')), 'el motivo dice dónde hay');
+  nueva(null); assert.ok(!G.vetaHierro('roma') && !G.vetaHierro('calcis') && G.vetaHierro('volsinii'), 'Roma: las vetas de siempre');
+  assert.ok(R.fichas.vetaGr.calcis.historia.fuente.indexOf('Estrabón 10.1.9') >= 0, 'ficha con Estrabón 10.1.9');
+});
+t('PN3e: si cae tu polis, el final dice su nombre y no «Roma»', () => {
+  const s = nueva('megara'); const c = s.cities.roma; c.units = {}; c.pop = 60;
+  const rival = s.cities.corinto; rival.units = { hoplitas: 400 };
+  assert.ok(G.send('corinto', 'roma', { hoplitas: 400 }, false) || (s.marches.push({ owner: 'corinto', from: 'corinto', to: 'roma', units: { hoplitas: 400 }, t0: s.t, t1: s.t, hero: false }), true));
+  for (let i = 0; i < 12 && !s.over; i++) { G.pasarEstacion(); while (s.pending.length && !s.over) G.resolverPendiente(); }
+  assert.ok(s.over && !s.over.win, 'cae');
+  const txt = JSON.stringify(s.over); assert.ok(/Mégara ha caído/.test(txt) && !/Roma ha caído/.test(txt), txt);
+});
+t('PN3e: en la polis, la crónica habla de la Asamblea y los hoplitas; en Roma, del Senado y las legiones', () => {
+  nueva('atenas'); G.log('🏛️ Peticiones del Senado: cumples con los optimates.', 'good'); G.log('🏛️ Tributo de guerra: faltan 5 denarios para pagar a las legiones.', 'bad');
+  assert.strictEqual(G.state.log[1].x, '🏛️ Peticiones de la Asamblea: cumples con los optimates.'); assert.strictEqual(G.state.log[0].x, '🏛️ Tributo de guerra: faltan 5 denarios para pagar a los hoplitas.');
+  nueva(null); G.log('🏛️ Peticiones del Senado: x.', ''); assert.strictEqual(G.state.log[0].x, '🏛️ Peticiones del Senado: x.');
 });
 console.log(mal ? '\n' + mal + ' fallos de ' + (n + mal) : '\nPOLIS: APTO (' + n + ' pruebas)'); process.exit(mal ? 1 : 0);

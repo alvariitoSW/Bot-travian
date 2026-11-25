@@ -57,16 +57,17 @@
     var D = window.DATA, p = D && D.POLIS[polisSel]; if (!p) { vista = 'nueva'; return cartaPropia(hay); }
     var R = window.REGISTRO, fi = R && R.fichas && R.fichas.polis && R.fichas.polis[polisSel], hi = fi && fi.historia, E = D.BUILD[p.edificio.id], T = D.UNITS[p.tropa.id];
     var lam = window.LAMINAS && window.LAMINAS.edif(p.edificio.id), retr = window.PORTADA_RETRATO ? window.PORTADA_RETRATO(p.tropa.id) : '';
-    var lic = '<span class="pn-lic">licencia de juego</span>';
+    var lic = '<span class="pn-lic">licencia de juego</span>', bk = D.bienPolis ? D.bienPolis(polisSel) : p.lujo, B = (D.ESPECIAL_GR && D.ESPECIAL_GR[bk]) || (D.ESPECIAL && D.ESPECIAL[bk]);   // PN3e (pase de PN3d): en la portada D.polis aún no está fijada; se lee D.ESPECIAL_GR
+    var veta = D.VETAS_HIERRO_GR && D.VETAS_HIERRO_GR.indexOf(polisSel) >= 0;   // PN3e: Calcis tiene veta de hierro
     return '<div class="mct"><p class="ro-rubrica">Tu polis</p><button class="mvolver" data-pn="nueva">Volver</button></div>' +
       '<div class="pn-cab">' + sello(p) + '<div><p class="pn-nom">' + esc(p.n) + '</p><p class="pn-lema">' + esc(p.lema) + '</p></div></div>' +
       '<div class="pn-imgs">' + (lam ? '<figure class="pn-fig"><img src="' + lam + '" alt="" loading="lazy"><figcaption>' + esc(p.edificio.n) + ' · Render de 0 A.D. · CC BY-SA 3.0</figcaption></figure>' : '') +
       (retr ? '<figure class="pn-ret"><img src="' + retr + '" alt=""><figcaption>' + esc(p.tropa.n) + '</figcaption></figure>' : '') + '</div>' +
       '<dl class="pn-ds">' +
       '<dt>Rasgo ' + lic + '</dt><dd><b>' + esc(p.rasgo.n) + '.</b> ' + esc(p.rasgo.d) + '</dd>' +
-      '<dt>Edificio propio ' + lic + '</dt><dd><b>' + esc(p.edificio.n) + '.</b> ' + esc(p.edificio.d) + ' Empieza un nivel más alto (' + esc(E ? E.n : p.edificio.id) + ').</dd>' +
+      '<dt>Edificio propio ' + lic + '</dt><dd><b>' + esc(p.edificio.n) + '.</b> ' + esc(p.edificio.d) + ' Empieza un nivel más alto (' + esc(E ? E.n : p.edificio.id) + ').' + (veta ? ' Tu polis tiene veta de hierro: sus minas lo producen.' : '') + '</dd>' +
       '<dt>Tropa propia ' + lic + '</dt><dd><b>' + esc(p.tropa.n) + '.</b> ' + esc(p.tropa.d) + (T ? ' Es un tipo de ' + esc(T.n.toLowerCase()) + '.' : '') + ' Empiezas con ' + Object.keys(p.leva).map(function (k) { return p.leva[k] + ' ' + (D.UNITS[k] ? D.UNITS[k].n.toLowerCase() : k); }).join(' y ') + '.</dd>' +
-      '<dt>Lujo</dt><dd>' + punto(p) + '<b>' + esc(p.lujoN) + '</b>, de ' + esc(p.lujoDe) + '.</dd>' +
+      '<dt>Lujo</dt><dd>' + punto(p) + '<b>' + esc(p.lujoN) + '</b>, de ' + esc(p.lujoDe) + '.' + (B ? ' Bien especial ' + lic + ': ' + esc(B.d) : '') + '</dd>' +
       (hi && hi.texto ? '<dt>Historia</dt><dd>' + esc(hi.texto) + '</dd>' : '') + '</dl>' +
       '<p class="pn-aviso">Tu comarca en Grecia llega en la próxima versión; de momento tu polis se juega sobre el mapa de Italia.</p>' +
       (hay ? '<p class="pn-aviso pn-aviso2">Ya tienes una partida guardada: empezar otra la reemplaza.</p>' : '') +

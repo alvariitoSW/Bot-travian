@@ -254,6 +254,15 @@
     pieles: f(SIN_T, h("Estrabón 5.1.8; Estrabón 5.1.12", "licencia de juego", "Estrabón cuenta que en Aquileya se comerciaban esclavos, ganado y pieles (5.1.8) y que la llanura del Po era rica en ganado (5.1.12). No nombra pieles de Mediolanum ni de Ambracia" + MEC))
   };
 
+  /* PN3d: bienes especiales de las polis (D.ESPECIAL_GR). Solo en partida de polis. Los efectos (+10 %, +3) son licencia de juego. */
+  const LJB = ' · el efecto en el juego (cuánto y sobre qué) es licencia de juego';
+  const especialGr = {
+    ceramica: f(SIN_T, h('Tucídides 1.13.2-5; Estrabón 8.6.20 y 8.6.23; Plinio, NH 35.151-152', 'probable', 'Corinto, rica por el comercio del istmo (Tucídides 1.13; Estrabón 8.6.20). Su cerámica pintada dominó la exportación en época arcaica (Amyx, Corinthian Vase-Painting of the Archaic Period, 1988); en 280-146 a.C. ya no era la primera. Plinio atribuye a la tradición corintia el modelado en arcilla; las tejas de barro más antiguas de Grecia son del templo de Apolo de Corinto, s. VII a.C. (N. A. Winter, Greek Architectural Terracottas, 1993). Que acelere las obras: licencia de juego. Pasajes de memoria, por cotejar' + LJB, 'Los alfareros de Corinto pintaron vasos que se vendían por todo el Mediterráneo. También hacían tejas de barro cocido: las más antiguas de Grecia cubrían un templo de Corinto.')),
+    anguilas: f(SIN_T, h('Aristófanes, Acarnienses 880-894; Ateneo 7.297c-300d', 'historico', 'En Acarnienses (425 a.C.) un beocio trae a Atenas anguilas del lago Copais, el manjar más deseado; Ateneo reúne citas sobre su fama. Es fama de época clásica; seguía en tiempos de Ateneo (s. II d.C.). Pasajes de memoria, por cotejar' + LJB, 'Las anguilas del lago Copais, en Beocia, eran el manjar más caro de Grecia. En una comedia de Aristófanes, un beocio las vende en Atenas como un tesoro.')),
+    lanafina: f(SIN_T, h('Aristófanes, Lisístrata 729-730; Estrabón 12.8.16; Ateneo 12.519b', 'historico', 'La lana de Mileto era la más fina: Aristófanes la menciona como lana de valor; Estrabón dice que las ovejas de Laodicea la superaban «incluso a la milesia» en suavidad. En el juego su lujo es «lana»; el bien se llama lanafina para no confundirse con la lana de la agricultura. Pasajes de memoria, por cotejar' + LJB, 'Mileto criaba ovejas de lana muy suave y teñía sus tejidos para venderlos lejos. La «lana milesia» era sinónimo de lujo en toda Grecia.')),
+    bronce: f(SIN_T, h('Estrabón 10.1.9; Alceo, fr. 357 (Lobel-Page)', 'probable', 'Estrabón cuenta que junto a Calcis hubo minas de cobre y hierro, ya agotadas en su tiempo; Alceo alaba las espadas calcídicas. Si seguían en uso en 280-146 a.C. no se sabe: los talleres de bronce en esta época son reconstrucción. Que acelere la instrucción: licencia de juego. Pasajes de memoria, por cotejar' + LJB, 'Calcis, en Eubea, tuvo minas de cobre y hierro y sus herreros eran famosos por las espadas. Su mismo nombre recuerda al bronce: «chalkós» en griego.'))
+  };
+
   // ---- Regiones (D.REGIONES, I6). Se casan por id. Qué ciudades entran y el corte de fechas son licencia de juego. ----
   const SIN_REG = { sin: 'una región es una ficha de datos; no tiene modelo 3D' };
   const region = {
@@ -612,6 +621,10 @@
     clusium: vH(H_ETR, 'ciudad etrusca: el hierro etrusco salía sobre todo de Elba y Populonia'), rusellae: vH(H_ETR, 'ciudad etrusca de la costa, cerca de Populonia y Elba'),
     emporion: vH(H_HIS, 'Hispania'), saguntum: vH(H_HIS, 'Hispania'), carthagonova: vH(H_HIS, 'Hispania; Carthago Nova es más famosa por sus minas de plata (Polibio 34.9, por cotejar)'), tarraco: vH(H_HIS, 'Hispania'), gades: vH(H_HIS, 'Hispania')
   };
+  /* PN3e: veta de hierro de Calcis en la partida de polis (D.VETAS_HIERRO_GR) */
+  const vetaGr = {
+    calcis: f(SIN_R, h('Estrabón 10.1.9 (en Calcis había una mina de cobre y de hierro, ya agotada en su tiempo); Alceo, fr. 357 (las espadas calcídicas)', 'probable', 'Estrabón describe las minas de Calcis, pero dice que en su época (h. 20 a.C.) ya no daban metal; que siguieran abiertas en 280-146 a.C. es reconstrucción. Pasajes citados de memoria, por cotejar en Perseus. Que solo Calcis tenga veta en Grecia: licencia de juego'))
+  };
   const BIEN_LIC = h('', 'licencia de juego', 'guardar el bien en almacén, su tope, su precio fijo y que los ricos lo consuman cada mes es regla del juego; de dónde salía cada bien está en su ficha de bien especial');
   const BIEN_AGRO = h('Catón, De agri cultura 1.7 y 144-147 (olivar, huerto y ganado; aceite, hortalizas y lana como productos de la finca)', 'historico', 'el aceite, la verdura y la lana eran productos de la villa de la época; guardarlos en almacén, el precio fijo y su tope son reglas del juego');
   const bienAgro = {}; for (const k of ['aceite', 'verdura', 'lana']) bienAgro[k] = f(SIN_R, BIEN_AGRO);
@@ -684,7 +697,7 @@
     calcis: f(SIN_POLIS, h('Estrabón 10.1.9; Heródoto 5.77', 'probable', 'Calcis, «la de bronce», con minas de cobre y hierro en Eubea y los Hipóbotas («criadores de caballos») (Estrabón 10.1.9; Heródoto 5.77); pasaje exacto, por cotejar.' + LJP, 'Calcis, en la isla de Eubea, trabajaba el bronce y el hierro de sus minas. Su clase dirigente de terratenientes se llamaba los Hipóbotas, los criadores de caballos.'))
   };
 
-  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia, polis };
+  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, especialGr, recurso, veta, vetaGr, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia, polis };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -712,6 +725,7 @@
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] },
+    especialGr: { tabla: 'ESPECIAL_GR', numericos: [], textos: ['n', 'i', 'd'] },   // PN3d
     pueblo: { tabla: 'PUEBLO_TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
     edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },
@@ -728,6 +742,7 @@
     polis: { tabla: 'POLIS', numericos: [], textos: ['n', 'color', 'sello', 'lema', 'lujo', 'lujoDe'] },   // PN2
     recurso: { tabla: 'RES_NOM', numericos: [], textos: [] },   // CE2
     veta: { tabla: 'VETAS_HIERRO', numericos: [], textos: [] },   // CE2: lista de ids de ciudad
+    vetaGr: { tabla: 'VETAS_HIERRO_GR', numericos: [], textos: [] },   // PN3e: Calcis, en partida de polis
     bien: { tabla: 'BIENES', numericos: ['precio'], textos: [] },
     bienAgro: { tabla: 'BIENES_AGRO', numericos: ['precio'], textos: ['n', 'i'] }   // CDe4: aceite, verdura y lana de la agricultura
   };
