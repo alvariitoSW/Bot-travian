@@ -666,5 +666,9 @@ Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cereb
   - 🔶 CM6 **Porcentajes del cuadro de una sola fuente** (usuario 25/11: «quiero que se arregle esa parte de los porcentajes que siempre me aparecen mal»): estado de las líneas calculado del tablero, barra del camino desde sus pasos, prueba que falla si no casan; **ampliada**: el cuadro sigue la fase del proyecto (2.0/M1), menos información inútil, lo útil junto, menos botones (maqueta con capturas para su «sí»). Sesión `session_01QiKC39jo6DnfRzjBA8JuuA`, rama `cm6-porcentajes`.
 
 ## Carril SUP · Modo supervivencia (carril aparte, fuera de las 5 metas; usuario 25/11 «Carril aparte», «Sí, ya»; diseño en `diseno-supervivencia`, `SUP0-modo-supervivencia.md`)
-  - 🔶 SUP1 **Mesa de diseño** con Batallas, Combate, Músculo, Arte, Sonido e Historia: tiempo, oleadas y campamento (otro juego); primero «Mantener la posición» con guarnición de hoplitas; ficha de objetivo y aspecto ≥ 8,5; no fija motor de batalla nuevo (rediseño en debate). Sesión `session_01QiKC36Sf8RZgvbyrwhY4GL`, rama `sup1-diseno`. **Diseño hecho** (`51d5480`, `SUP1-diseno.md`, 7 capturas, 2,4 M); esperan 7 preguntas al usuario en su chat.
-  - ⬜ SUP2–SUP5: según el reparto que apruebe el usuario tras SUP1.
+  - ✅ SUP1 **Mesa de diseño** con Batallas, Combate, Músculo, Arte, Sonido e Historia: tiempo, oleadas y campamento (otro juego); primero «Mantener la posición» con guarnición de hoplitas; ficha de objetivo y aspecto ≥ 8,5; no fija motor de batalla nuevo (rediseño en debate). Sesión `session_01QiKC36Sf8RZgvbyrwhY4GL`, rama `sup1-diseno`. **Diseño cerrado** (`94907c06`, unido; 3,16 M): tiempo seguido, 3 años (~1 h 45), 700–650 a.C., frontera Argos–Esparta (Hisias, ~669 a.C.), pelea con las dos a la vez, tope 60 MB, reparto SUP2–SUP5 aprobado.
+  - ⬜ SUP2 **Menú y lore, vivac, reloj seguido, dos vistas, día y noche, guardado propio** (grande; 2,5 M, esperable 4–5).
+  - ⬜ SUP3 **El oficial y sus 12; rueda Tú · Grupo · Perro** (grande; 2,5 M, 4–5).
+  - ⬜ SUP4 **Trabajos y campamento en 5 etapas** (grande; 3 M, 5–6; necesita el tope de 60 MB).
+  - ⬜ SUP5a **Reglas de las oleadas y bots** (medio; 1,5 M, 2–3; en paralelo desde SUP2).
+  - ⬜ SUP5b **La pelea en vivo** (grande; 2,5 M, 4–5; espera al rediseño de la batalla).
