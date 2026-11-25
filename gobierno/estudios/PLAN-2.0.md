@@ -171,4 +171,8 @@ cambia al aprobarse el plan. Historia: fichas nuevas de la Grecia arcaica con fu
 (en debate)
 
 ## 5. Lo que queda fuera de la 2.0
-(en debate)
+Propuesto (versión 2), en debate: mejoras de la campaña Roma contra Cartago (en pausa); Roma, Cartago y otras
+civilizaciones jugables (P160); mundo de 45 ciudades (P183); Roma 3D (RM1–7); mapa libre (C14, GM25); batallas
+históricas (ES0); batalla dentro de la ciudad (P161); mitología (MG1); Egeo (P175); tarjetas de tinta (P162); vídeos con
+piezas de museo (P165); luz y hora del día (CR4); Nova Roma (P164). Gobierno (skills, gasto, auditoría): lo hace el vigía
+si sobra, no es meta del juego.
