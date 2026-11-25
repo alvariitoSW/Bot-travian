@@ -262,11 +262,11 @@ const SIN_BOTS = !!process.env.SIM_SIN_BOTS, liga = n => console.log('LIGA: ' + 
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
 // JZ1: el bot vive en test/campana-bot.js; las campañas se reparten entre varios procesos (test/sim-paralelo.js) y aquí se recogen
 const campaign = require('./sim-paralelo.js').campana;
+const resumen = l => l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ');   // J20a: fuera del bloque, la usa también I6 Italia
 if (SIN_BOTS) liga('§5 campaña larga 20 partidas'); else {
 // 10 semillas del azar de la IA: el agresivo debe tomar Carthago antes del 146 a.C. en la mayoría; el pasivo, nunca
 const res = { pas: [], agr: [] }; let activo = null;
 for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = campaign(ag, sd); res[ag ? 'agr' : 'pas'].push(s); if (ag && sd === 1) activo = s; }
-const resumen = l => l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ');
 console.log('Bot pasivo   →', resumen(res.pas)); console.log('Bot agresivo →', resumen(res.agr));
 const ganaAgr = res.agr.filter(s => s.over.win).length, ganaPas = res.pas.filter(s => s.over.win).length;
 // CE3 (usuario, 19/11): HASTA CE12 la campaña larga no exige que el agresivo tome Cartago (antes 5 a 8 de 10; medido 7/10 con diez niveles).
