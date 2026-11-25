@@ -1,0 +1,64 @@
+diff --git a/gobierno/jueces.mjs b/gobierno/jueces.mjs
+index 72a6f7f..904cfc7 100644
+--- a/gobierno/jueces.mjs
++++ b/gobierno/jueces.mjs
+@@ -148,7 +148,7 @@ async function navegador() {
+   try {
+     await paso('El juego carga y aparecen los modelos', 'comun', async () => {
+       await page.goto(url, { waitUntil: 'load' });
+-      await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
++      await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
+       const t = Date.now();
+       const modelos = await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).then(() => true, () => false);
+       await espera(1500);
+@@ -166,7 +166,7 @@ async function navegador() {
+       if (m.h < 44 || m.d > 390 || !/Testudo a pie/.test(m.t) || !/\/gobierno\/maquetas\/a-pie\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
+       await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
+       const titulo = await page.title(); await espera(1500);
+-      await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
++      await page.click('#salir'); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
+       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
+       const ok = /Testudo a pie/.test(titulo);
+       return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
+@@ -192,7 +192,7 @@ async function navegador() {
+       await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
+       const titulo = await page.title(), ruta = page.url(); await espera(4000);
+       const capE = await foto('falange-escena'), fallosE = errores.slice(antes);
+-      await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
++      await page.click('#salir'); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
+       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
+       const ok = /Falange a pie/.test(titulo) && /\?rival=/.test(ruta) && !fallosE.length;
+       return { ok, detalle: 'botón de ' + m.h + ' px; 4 rivales; abre «' + titulo + '» con ' + ruta.split('/').pop() + (fallosE.length ? '; ' + fallosE.length + ' error(es): ' + fallosE[0] : '; sin errores') + '; «Salir» vuelve al menú', captura: ok ? capE : cap };
+@@ -269,7 +269,7 @@ async function navegador() {
+     }
+ 
+     await paso('Nueva partida: se ve el mapa', 'comun', async () => {
+-      await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
++      await page.click('#menu [data-pn="nueva"]:visible'); await page.click('#menu [data-pn="campana"], #menu [data-pncamp]'); await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
+       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
+       const ok = await estado(() => !!Game.state && !UI.menu && Game.myCities().includes('roma'));
+       return { ok, detalle: ok ? await estado(() => Game.dateStr(Game.state.t)) : 'no hay partida', captura: await foto('ciudad-inicio') };
+@@ -594,9 +594,9 @@ async function navegador() {
+     await paso('Región de Italia: mapa con 7 ciudades', 'musculo', async () => {
+       await page.evaluate(() => Game.save());
+       await page.reload({ waitUntil: 'load' });
+-      await page.waitForSelector('#menu [data-act="newregion"]', { timeout: 30000 });
++      await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
+       await page.waitForFunction(() => window.UI && window.UI.map, null, { timeout: 60000 }).catch(() => { });
+-      await page.click('#menu [data-act="newregion"]'); await espera(3500); await cierraAvisos();
++      await page.click('#menu [data-pn="nueva"]:visible'); await page.click('#menu [data-act="newregion"]'); await espera(3500); await cierraAvisos();
+       await page.evaluate(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); }); await espera(2500);
+       const r = await estado(() => ({ reg: Game.regionId(), vis: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && Game.state.cities[i]).length : -1, fantasmas: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && !Game.state.cities[i]).length : 0, rutas: UI.map ? UI.map.aristas.filter(e => e.line.visible).length : -1 }));
+       const ok = r.reg === 'italia' && r.vis === 7 && r.fantasmas === 0;
+@@ -604,9 +604,9 @@ async function navegador() {
+     });
+ 
+     await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', 'musculo', async () => {
+-      const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-act="hoja"][data-v="corta"]', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
++      const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
+       await recarga();   // el menú vuelve a estar a la vista (la partida de Italia seguía abierta)
+-      const abreCorta = async () => { await page.click('#menu [data-act="hoja"][data-v="corta"]'); await espera(400); };
++      const abreCorta = async () => { await page.evaluate(() => PORTADA.vista('nueva')); await page.click('#menu [data-act="hoja"][data-v="corta"]'); await espera(400); };
+       await abreCorta();   // K12a-B: «Partida corta» vive en una hoja inferior (#hoja), no en #menu
+       const menu = await estado(() => { const m = document.getElementById('menu'), h = document.getElementById('hoja'), b = [...h.querySelectorAll('[data-act="cortaen"],[data-act="cortafun"]')]; return { n: b.length, fuera: b.some(e => e.getBoundingClientRect().right > 390 || e.getBoundingClientRect().left < 0), sw: Math.max(m.scrollWidth, h.scrollWidth) }; });
+       const fm = await foto('i8-menu');

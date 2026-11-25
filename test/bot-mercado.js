@@ -11,7 +11,10 @@ module.exports = function botMercado(G, D) {
   // 2) comprar hierro para la leva siguiente: 150 de la tropa que más hierro pide entre las que puede reclutar
   if (!rate) return;
   let quiere = 0; for (const id of G.myCities()) { const c = s.cities[id]; for (const k of ['triarii', 'principes', 'equites', 'hastati']) if (G.unitOk(c, k)) { quiere = Math.max(quiere, (D.UNITS[k].cost.hierro || 0) * 150); break; } }
-  const falta = quiere - G.disponible('hierro'); if (falta <= 0) return;
-  const reserva = 150 + 3 * Math.max(0, -G.prod().denarios), gastable = G.disponible('denarios') - reserva; if (gastable < 20) return;
-  G.trade('denarios', 'hierro', Math.min(gastable, Math.ceil(falta / (rate * D.HIERRO_COMPRA))));
+  // ES20: el bot pasa por el mercado una vez por estación (antes, varias al mes): compra en varias operaciones, hasta 6
+  for (let k = 0; k < 6; k++) {
+    const falta = quiere - G.disponible('hierro'); if (falta <= 0) return;
+    const reserva = 150 + 3 * Math.max(0, -G.prod().denarios), gastable = G.disponible('denarios') - reserva; if (gastable < 20) return;
+    if (!G.trade('denarios', 'hierro', Math.min(gastable, Math.ceil(falta / (rate * D.HIERRO_COMPRA))))) return;
+  }
 };

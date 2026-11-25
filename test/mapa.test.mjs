@@ -41,5 +41,10 @@ ok(Math.abs(A.x0 + 10) < 0.01 && A.x1 > 37 && A.y0 < 28 && A.y1 === 51.5 && A.w 
 ok(at(31.13, 29.98) > 20, 'Giza no está en tierra: ' + at(31.13, 29.98));
 console.log('Agua: ' + nr.length + ' ríos, ' + nl.length + ' lagos, ' + kbA.toFixed(1) + ' KB');
 console.log('Alturas (m): ' + Object.entries(val).map(([k, v]) => k + ' ' + v).join(', ') + ', Roma ' + Math.round(roma) + ', máx ' + Math.round(M.reduce((a, b) => Math.max(a, b), -1e9)) + '; archivo ' + kb.toFixed(0) + ' KB');
+// AM2: el mapa vivo de Grecia: se lanza su prueba y su fallo cuenta como uno más
+import { spawnSync } from 'node:child_process';
+const gr = spawnSync(process.execPath, [fileURLToPath(new URL('./mapa-grecia.test.mjs', import.meta.url))], { encoding: 'utf8' });
+console.log((gr.stdout || '') + (gr.stderr || ''));
+ok(gr.status === 0, 'test/mapa-grecia.test.mjs (mapa vivo de Grecia) termina bien');
 console.log(fallos ? fallos + ' fallos' : 'APTO: alturas reales en su sitio');
 process.exit(fallos ? 1 : 0);

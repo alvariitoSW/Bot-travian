@@ -2,10 +2,12 @@
 /* AQVILA — genera la página del cuadro de mando a partir de la lista de la 1.0, el tablero, la bitácora y las capturas.
    Uso:  node gobierno/cuadro.mjs   →  escribe gobierno/cuadro.html (no se guarda en git; se publica como Artifact).
    Regla del 18/11: el cuadro enseña el juego, no las tareas. La portada sale de gobierno/lista.json.
-   La página es estática salvo pedidos, sesiones y vigía, que viven en la base de datos del Artifact. */
+   La página es estática salvo pedidos, sesiones y vigía, que viven en la base de datos del Artifact.
+   J20b: la sección «Liga de bots» (vista Taller) sale de gobierno/liga/ultima.json e historial.json (node gobierno/liga.mjs). */
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { estadoLineas, secciones, vinetas, pctCamino, faseActual } from './estado-lineas.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 /* Seguro: no generar el cuadro desde una copia atrasada (el 12/11 una sesión publicó un cuadro viejo y al usuario le salió lo ya contestado como pendiente). */
@@ -28,62 +30,28 @@ const corto = s => { const p = plano(s), m = p.slice(12).search(/[:.;(]/); retur
 const avisos = [];
 const avisa = t => { avisos.push(t); console.warn('AVISO: ' + t); };
 
-/* une las líneas de continuación (sangradas) a su viñeta; una sub-viñeta con marca de tarea (  - ⬜ GP2 …) es una tarea propia */
-function vinetas(lineas) {
-  const out = [];
-  for (const l of lineas) {
-    if (/^(-|\d+\.)\s/.test(l) || /^\s+-\s+(⬜|🔶|✅)/u.test(l)) out.push(l.trim().replace(/^(-|\d+\.)\s+/, ''));
-    else if (/^\s+\S/.test(l) && out.length) out[out.length - 1] += ' ' + l.trim();
-  }
-  return out;
-}
-function secciones(texto) {
-  const s = {}; let actual = null;
-  for (const l of texto.split('\n')) { const m = l.match(/^## (.+)/); if (m) { actual = m[1].trim(); s[actual] = []; } else if (actual) s[actual].push(l); }
-  return s;
-}
+/* CM6: el tablero y el estado de las líneas salen de gobierno/estado-lineas.mjs (la misma función que usa avance.mjs) */
 const seccion = (s, inicio) => s[Object.keys(s).find(k => k.startsWith(inicio))] || [];
 
-const tablero = secciones(await lee('TABLERO.md')), bitacora = secciones(await lee('BITACORA.md'));
+const bitacora = secciones(await lee('BITACORA.md'));
 const config = JSON.parse(await lee('cuadro.json'));
-const lista = JSON.parse(await lee('lista.json'));
+const EL = estadoLineas({ lista: JSON.parse(await lee('lista.json')), tablero: await lee('TABLERO.md') }), lista = EL.lista, tablero = EL.tablero;
 const ESTADO = { '⬜': ['pend', 'por hacer'], '🔶': ['medias', 'a medias'], '✅': ['hecho', 'hecho'] };
 
 /* ---------- el tablero (solo para el archivo y para cruzar con la lista) ---------- */
-let carriles = Object.keys(tablero).filter(k => /^Carril |^Gobierno/.test(k)).map(k => {
-  const m = k.match(/^Carril (\w+) — (.+)/), letra = m ? m[1] : 'G', nombre = m ? m[2] : 'Gobierno';
-  const tareas = vinetas(tablero[k]).flatMap(v => {
-    // los ids pueden llevar guion (GM-K6a)
-    const t = v.match(/^(⬜|🔶|✅)\s+(?:\((en pausa[^)]*)\)\s+)?([\w-]+)\s+(.*)$/u); if (!t) return [];
-    const fila = [{ est: t[1], id: t[3], texto: t[4], pausa: t[2] || '' }];
-    const q = t[1] === '✅' && t[4].match(/Queda ⬜ ([\w-]+):?\s*(.*)$/u);   // una hecha que deja una parte pendiente (p. ej. C2 → C2b)
-    if (q) fila.push({ est: '⬜', id: q[1], texto: q[2], pausa: '', queda: true });
-    return fila;
-  });
-  return { letra, nombre, corto: ({ A: 'Guerra', B: 'Ciudad', C: 'Mapa', D: 'Técnica', E: 'Arte', F: 'Modos', H: 'Historia', I: 'Gran diseño', J: 'Interfaz', K: 'Concurso', L: 'Interfaz guerra', N: 'Guerra nueva', O: 'Economía', V: 'Versión 1.0' })[letra] || nombre.replace(/\s*[\(—].*$/, ''), tareas };
-});
-// una parte «Queda ⬜ X» se olvida si X ya tiene su propia viñeta en el tablero
-const reales = new Set(carriles.flatMap(c => c.tareas.filter(t => !t.queda).map(t => t.id)));
-for (const c of carriles) c.tareas = c.tareas.filter(t => !t.queda || !reales.has(t.id));
-carriles.splice(0, carriles.length, ...carriles.filter(c => c.tareas.length));
+const carriles = EL.carriles, porId = EL.porId;
 const pendientes = c => c.tareas.filter(t => t.est !== '✅');
 carriles.sort((a, b) => (pendientes(b).length > 0) - (pendientes(a).length > 0));
-const porId = new Map();
-for (const c of carriles) for (const t of c.tareas) if (!porId.has(t.id) || t.est !== '✅') porId.set(t.id, t);
 const hecha = id => porId.get(id)?.est === '✅';
 const libre = id => { const t = porId.get(id); return t && t.est !== '✅' && !t.pausa; };
 
 function tareaHtml(t, c) {
   const [cls, rot] = ESTADO[t.est], ok = t.est === '✅', titulo = corto(t.texto), id = esc(t.id), tit = esc(titulo);
   return '<details class="tarea' + (ok ? ' hecha' : '') + '" data-ref="' + id + '"' + (ok ? '' : ' data-carril="' + esc(c.letra) + '" data-pausa="' + (t.pausa ? 1 : 0) + '" data-busca="' + esc((t.id + ' ' + plano(t.texto) + ' ' + c.corto).toLowerCase()) + '"') + '><summary>' +
-    (ok ? '' : '<input type="checkbox" class="sel" data-sel="' + id + '" data-titulo="' + tit + '" aria-label="Elegir ' + id + '">') +
     '<span class="id">' + id + '</span><span class="que">' + esc(titulo) + (ok ? '' : '<small>' + esc(c.letra) + ' · ' + esc(c.corto) + (t.pausa ? ' · ' + esc(t.pausa) : '') + '</small>') + '</span>' +
     '<span class="estado ' + (t.pausa ? 'pausa' : cls) + '">' + (t.pausa ? 'en pausa' : rot) + '</span></summary>' +
     '<div class="cuerpo"><p>' + md(t.texto) + '</p>' +
-    '<div class="fila">' + (ok ? '' : '<button class="boton lleno" data-pedir="abrir" data-ref="' + id + '" data-titulo="' + tit + '">Abrir sesión</button><button class="boton" data-pedir="priorizar" data-ref="' + id + '" data-titulo="' + tit + '">Dar prioridad</button><button class="boton" data-pedir="orden" data-ref="' + (t.pausa ? 'reanudar:' : 'pausar:') + id + '" data-titulo="' + tit + '">' + (t.pausa ? 'Quitar la pausa' : 'Dejar en pausa') + '</button>') +
-    '<button class="boton" data-abrir="c-' + id + '">Pedir un cambio</button></div>' +
-    '<div class="cambio" id="c-' + id + '" hidden><label class="quien" for="tx-' + id + '">Qué cambiarías en ' + id + '</label><textarea id="tx-' + id + '"></textarea>' +
-    '<div class="fila"><button class="boton lleno" data-pedir="cambio" data-ref="' + id + '" data-titulo="' + tit + '" data-texto="tx-' + id + '">Enviar cambio</button></div></div></div></details>';
+    (ok ? '' : '<div class="fila"><button class="boton lleno" data-pedir="abrir" data-ref="' + id + '" data-titulo="' + tit + '">Encárgala</button></div>') + '</div></details>';
 }
 // archivo: todo lo pendiente en una sola lista (lo activo primero, lo que está en pausa al final) y lo hecho por carril
 const listaPend = [];
@@ -109,20 +77,22 @@ async function imagen(ruta, alt) {
   try { const b64 = (await readFile(join(RAIZ, ruta))).toString('base64'), ext = (ruta.split('.').pop() || '').toLowerCase();
     return '<img class="captura" loading="lazy" alt="' + esc(alt) + '" src="data:' + (MIME[ext] || 'image/jpeg') + ';base64,' + b64 + '">'; } catch (e) { avisa('falta la captura ' + ruta); return ''; }
 }
-const lineas = lista.lineas || [], organos = lista.organos || [];
+// CM6: el estado de cada línea sale del tablero (estado-lineas.mjs), no de lo escrito en lista.json
+const lineas = EL.lineas, organos = lista.organos || [];
 const enLinea = new Map();
 for (const l of lineas) {
   for (const id of l.tareas || []) { enLinea.set(id, l.id); if (!porId.has(id)) avisa(l.id + ': la tarea ' + id + ' no está en el tablero'); }
-  const ts = l.tareas || [];
-  if (ts.length && ts.every(hecha) && l.estado !== 'hecha') avisa(l.id + ': todas sus tareas están hechas en el tablero, pero la línea dice «' + l.estado + '»');
-  if (ts.length && l.estado === 'hecha' && !ts.every(hecha)) avisa(l.id + ': la línea dice «hecha», pero en el tablero quedan ' + ts.filter(id => !hecha(id)).join(', '));
+  if (l.estadoEscrito != null) avisa(l.id + ': lista.json escribe «estado» a mano («' + l.estadoEscrito + '»); se ignora, sale del tablero: bórralo');
+  if (l.estado === 'hecha' && l.falta && !/^\s*nada\b/i.test(l.falta)) avisa(l.id + ': la línea está hecha, pero su texto «falta» aún pide cosas; ponlo al día en lista.json');
+  if (!(l.tareas || []).length && l.estado !== 'hecha') avisa(l.id + ': sin tareas en el tablero y con algo que falta; dale sus tareas');
 }
 async function lineaHtml(l) {
   const id = esc(l.id), tit = esc(l.titulo), ts = l.tareas || [], prim = ts.find(libre);
   let dentro = '<p class="rotulo">Qué verás</p><p>' + md(l.veras || '') + '</p>';
   if (l.hecho) dentro += '<p class="rotulo">Qué se hizo</p><p>' + md(l.hecho) + '</p>' + await imagen(l.captura, l.titulo);
   if (l.falta) dentro += '<p class="rotulo">Qué falta</p><p>' + md(l.falta) + '</p>';
-  if (ts.length) dentro += '<p class="tareas-l">Tareas del tablero: ' + ts.map(t => esc(t) + (hecha(t) ? ' ✔' : porId.get(t)?.pausa ? ' (en pausa)' : '')).join(', ') + '</p>';
+  if (l.estado !== 'hecha' && l.activas.length) dentro += '<p class="rotulo">Por qué no está hecha (del tablero)</p><p>Sin terminar: ' + l.activas.map(t => '<b>' + esc(t) + '</b>' + (l.obra.includes(t) ? ' (a medias)' : '')).join(', ') + '.' + (l.aparte.length ? ' No cuentan, por ir en pausa o después de la 1.0: ' + l.aparte.map(esc).join(', ') + '.' : '') + '</p>';
+  if (ts.length) dentro += '<p class="tareas-l">Tareas del tablero: ' + ts.map(t => esc(t) + (hecha(t) ? ' ✔' : l.aparte.includes(t) ? ' (en pausa o después de la 1.0)' : '')).join(', ') + '</p>';
   dentro += '<div class="fila">' + (prim ? '<button class="boton lleno" data-pedir="abrir" data-ref="' + esc(prim) + '" data-linea="' + id + '" data-titulo="' + id + ' · ' + tit + '">Encárgala</button>' : '') +
     '<button class="boton" data-abrir="c-' + id + '">Pedir un cambio</button></div>' +
     '<div class="cambio" id="c-' + id + '" hidden><label class="quien" for="tx-' + id + '">Qué cambiarías en esta línea</label><textarea id="tx-' + id + '"></textarea>' +
@@ -327,7 +297,8 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
   // los commits que tocan algo fuera de gobierno/ (los apuntes del vigía nombran tareas que aún no están hechas)
   const SEP = '\u0001';
   const mensajes = rango => (git('log --no-merges --format=' + SEP + '%s%n%b ' + rango + ' -- . ":(exclude)gobierno"') || '').split(SEP).filter(Boolean);
-  const todasIds = [...new Set(lineas.flatMap(l => l.tareas || []))];
+  const F0 = faseActual(tablero, porId, {});
+  const todasIds = [...new Set([...lineas.flatMap(l => l.tareas || []), ...(F0.meta ? F0.meta.tareas.map(t => t.id) : [])])];
   // MN4b o MN4c cuentan como MN4, salvo que el tablero las tenga como tareas propias (CG6b no es CG6)
   const reId = new Map(todasIds.map(id => [id, new RegExp('(?<![\\w])' + id.replace(/[-]/g, '\\-') + '([a-z]{1,2})?(?![\\w]|-\\d)', 'g')]));
   const nombra = (m, id, re) => [...m.matchAll(re)].some(x => !x[1] || !porId.has(id + x[1]));
@@ -361,9 +332,14 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
     return s.sort((a, b) => ORDEN.indexOf(a.c) - ORDEN.indexOf(b.c));
   };
   const tit = id => { const t = porId.get(id); return t ? plano((t.texto.match(/\*\*(.+?)\*\*/) || [])[1] || corto(t.texto)).replace(/\s*\([^)]*\)/g, '').replace(/\s*\([^)]*$/, '').trim() : ''; };
-  for (const o of organos) {
+  // CM6: con una meta en curso (2.0 · M1…), sus tareas van primero; la 1.0 debajo, por órganos
+  const grupos = organos.map(o => ({ o, ls: lineas.filter(x => x.organo === o.id) }));
+  if (F0.meta) { const ts = F0.meta.tareas.filter(t => t.clase !== 'aparte').map(t => t.id);
+    grupos.unshift({ o: { id: 'meta', nombre: 'Ahora: ' + F0.version + ' · ' + F0.meta.meta + ' ' + F0.meta.nombre }, ls: [{ titulo: F0.meta.meta + ' · ' + F0.meta.nombre, tareas: ts, estado: F0.meta.obra + F0.meta.pendientes ? 'medias' : 'hecha' }] });
+    for (const g of grupos.slice(1)) g.o = { ...g.o, nombre: 'La 1.0 · ' + g.o.nombre }; }
+  for (const { o, ls: lsG } of grupos) {
     let filas = '';
-    for (const l of lineas.filter(x => x.organo === o.id)) {
+    for (const l of lsG) {
       const s = segsLinea(l), n = c => s.filter(x => x.c === c).length, pc = Math.round(100 * n('movil') / s.length);
       const resumen = ORDEN.filter(c => n(c)).map(c => n(c) + ' ' + MOVIL_EST[c]).join(', ');
       const detalle = (l.tareas || []).map(id => { const c = color(id); return '<li class="m-' + c + '" data-mid="' + esc(id) + '"><i aria-hidden="true"></i><b>' + esc(id) + '</b> <span>' + esc(tit(id)) + '</span> <em>' + esc(MOVIL_EST[c]) + (c === 'rama' ? ' (' + esc(otras.get(id).slice(0, 2).join(', ')) + ')' : '') + '</em></li>'; }).join('');
@@ -378,7 +354,9 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
   if (horaMain) {
     const dia = hoyEs(horaMain) ? 'de hoy' : 'del ' + horaMain.toLocaleDateString('es-ES', { ...madrid, day: 'numeric', month: 'long' });
     const hora = horaMain.toLocaleTimeString('es-ES', { ...madrid, hour: '2-digit', minute: '2-digit' });
-    movilCab = 'Tu móvil tiene la versión <b>' + esc(vMain || '¿?') + '</b> ' + dia + ' a las <b>' + hora + '</b>; lo último terminado es <b>' + esc(vRama || '¿?') + '</b>.';
+    // CM6: «lo último terminado es v172» se leía como si v172 estuviera en el móvil; ahora dice dónde está cada versión
+    movilCab = 'Tu móvil tiene la versión <b>' + esc(vMain || '¿?') + '</b>, subida ' + dia + ' a las <b>' + hora + '</b>. ' +
+      (vRama && vRama !== vMain ? 'Ya está terminada la <b>' + esc(vRama) + '</b>, pero aún no está en tu móvil: llega con la próxima subida.' : 'Es la última terminada: no hay otra versión esperando.');
   } else movilCab = 'No se pudo leer qué versión tiene tu móvil.';
   const ls = [...llega.entries()]; llegaN = ls.length;
   movilLlega = ls.length ? ls.slice(0, 8).map(([id, l]) => '<li><b>' + esc(id) + '</b> ' + esc(tit(id)) + ' <span class="nota">· ' + esc(l.titulo) + '</span></li>').join('') + (ls.length > 8 ? '<li class="nota">y ' + (ls.length - 8) + ' más</li>' : '')
@@ -387,12 +365,15 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
 }
 
 /* ---------- CM5 · La 1.0 arriba del todo: camino (gobierno/camino.json), juzgarla (colección «juicio») y hacia la 2.0 ---------- */
-/* El % es el del menú del juego (bitácora 24/11): (hechas + ½ a medias) / total de lineas de lista.json. */
-const pct10 = lineas.length ? Math.round(100 * (lineas.filter(l => l.estado === 'hecha').length + lineas.filter(l => l.estado === 'medias').length / 2) / lineas.length) : 0;
+/* CM6: dos % distintos, cada uno con su nombre y nunca mezclados.
+   · Camino a la 1.0: sale de los pasos de camino.json (100 si todos hechos; si no, el «pct» del último paso hecho).
+   · Objetivos de la lista: el del menú del juego (bitácora 24/11), (hechas + ½ a medias) / total de líneas, con el estado sacado del tablero. */
+const pctLista = EL.pct;
 const ESPANA = { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' };
 const horaEs = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString('es-ES', ESPANA); };
 const EST_CAMINO = { hecho: ['si', '✔', 'hecho'], prueba: ['medias', '◐', 'en prueba'], esperando: ['falta', '○', 'esperando'] };
 let camino = { pasos: [], riesgos: [] }; try { camino = JSON.parse(await lee('camino.json')); } catch (e) { avisa('CM5: falta o no se lee gobierno/camino.json'); }
+const pct10 = pctCamino(camino);
 let htmlCamino = '', htmlMarcasCamino = '', caminoCuando = '';
 for (const [i, p] of (camino.pasos || []).entries()) {
   if (!EST_CAMINO[p.estado]) avisa('CM5: el paso ' + (i + 1) + ' de camino.json tiene un estado raro («' + p.estado + '»); vale hecho, prueba o esperando');
@@ -407,6 +388,34 @@ const ultimo = (camino.pasos || []).filter(p => p.hora).at(-1);
 if (ultimo) caminoCuando = 'Fin previsto: <b>~' + esc(horaEs(ultimo.hora)) + '</b> (hora de España).';
 if (camino.actualizado) { const d = new Date(camino.actualizado); caminoCuando += (caminoCuando ? ' ' : '') + 'Plan puesto al día ' + (isNaN(d) ? esc(camino.actualizado) : 'el ' + d.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long' }) + ' a las ' + horaEs(camino.actualizado)) + '.'; }
 else avisa('CM5: camino.json sin «actualizado»');
+/* CM6 · fase dinámica: en qué punto está el proyecto sale del tablero (faseActual), no de textos escritos a mano */
+const FASE = faseActual(tablero, porId, camino), METAc = { hecha: ['si', '✔', 'hecha'], obra: ['medias', '◐', 'en obra'], pendiente: ['falta', '○', 'falta'], aparte: ['falta', '‖', 'en pausa'] };
+const marcaT = c => { const [k, sim, t] = METAc[c]; return '<span class="marca ' + k + '"><i aria-hidden="true">' + sim + '</i>' + t + '</span>'; };
+let htmlFase = '', caminoTitulo = 'Camino a la 1.0', caminoAbre = '', caminoCierra = '', v10Abre = '', v10Cierra = '', organosTitulo = 'Cómo va el juego';
+let v10Titulo = 'La 1.0 · ' + pct10 + ' %';
+let juzgarAviso = 'Se juzga cuando la barra llegue al 100 %. Puedes adelantarte: los botones ya guardan.', hacia2Titulo = 'Hacia la 2.0';
+if (FASE.meta) {
+  const M = FASE.meta, orden = ['obra', 'pendiente', 'hecha', 'aparte'];
+  const fila = t => '<li><b>' + esc(t.id) + '</b><span>' + md(t.titulo) + '</span>' + (t.clase === 'pendiente' ? '<button class="boton fino lleno" data-pedir="abrir" data-ref="' + esc(t.id) + '" data-titulo="' + esc(t.id + ' · ' + plano(t.titulo)) + '">Encárgala</button>' : marcaT(t.clase)) + '</li>';
+  const ts = [...M.tareas].sort((a, b) => orden.indexOf(a.clase) - orden.indexOf(b.clase)), hh = ts.filter(t => t.clase === 'hecha');
+  const filas = ts.filter(t => t.clase !== 'hecha').map(fila).join('') + (hh.length ? '</ul><details class="plegable"><summary>' + hh.length + ' hechas</summary><ul class="meta-t">' + hh.map(fila).join('') + '</ul></details><ul class="meta-t">' : '');
+  const otras = FASE.metas.filter(x => x !== M).map(x => esc(x.meta + ' ' + x.nombre + ': ' + x.pct + ' %')).join(' · ');
+  const ap = FASE.aparte.map(a => '<p class="nota">Carril aparte: <b>' + esc(a.nombre) + '</b>, ' + a.pct + ' % (' + a.tareas.map(t => esc(t.id) + ' ' + METAc[t.clase][2]).join(', ') + ').</p>').join('');
+  htmlFase = '<section class="ficha camino" aria-labelledby="t-fase"><h2 id="t-fase">Ahora: ' + esc(FASE.version) + ' · ' + esc(M.meta) + ' ' + esc(M.nombre) + '</h2>' +
+    '<div class="cpct"><b>' + M.pct + ' %</b><span>hecho · queda ' + (100 - M.pct) + ' %</span></div>' +
+    '<div class="cbarra" role="img" aria-label="' + M.pct + ' % hecho de ' + esc(M.meta) + '"><span style="width:' + M.pct + '%"></span></div>' +
+    '<p class="nota">De sus ' + M.total + ' tareas en el tablero: ' + M.hechas + ' hechas, ' + M.obra + ' en obra y ' + M.pendientes + ' sin empezar (las en obra cuentan la mitad).' + (M.plan ? ' Plan: <code>' + esc(M.plan) + '</code>.' : '') + (otras ? ' Otras metas: ' + otras + '.' : '') + '</p>' +
+    '<ul class="meta-t">' + filas + '</ul>' + ap + '</section>';
+  caminoTitulo = 'Cómo se llegó a la 1.0'; v10Titulo = 'La 1.0 · ' + (FASE.v10.terminada ? 'terminada' : FASE.v10.pct + ' %');
+  const v = FASE.v10.terminada ? 'terminada' : 'sin terminar (' + FASE.v10.pct + ' %)';
+  caminoAbre = '<details class="plegable v10"><summary>La 1.0: ' + v + '. Toca para ver su camino</summary>'; caminoCierra = '</details>';
+  v10Abre = '<details class="plegable v10"><summary>Cómo quedó la 1.0, por órganos</summary>'; v10Cierra = '</details>'; organosTitulo = 'Cómo quedó la 1.0';
+  juzgarAviso = FASE.v10.terminada ? 'La 1.0 ya está terminada: júzgala en tu móvil. Tus «Mal» van a CR20, las críticas a la 1.0.' : juzgarAviso;
+  hacia2Titulo = 'Ideas para la ' + esc(FASE.version);
+}
+if (!FASE.meta) htmlFase = '<section class="ficha camino" aria-labelledby="t-fase"><h2 id="t-fase">Camino a la 1.0</h2><div class="cpct"><b>' + pct10 + ' %</b><span>hecho · queda ' + (100 - pct10) + ' %</span></div><div class="cbarra"><span style="width:' + pct10 + '%"></span></div><p class="nota"><a href="#lista">Ver el camino paso a paso</a>.</p></section>';
+// CM6 (1A): «Mejorar un equipo»: un chip por equipo y un solo botón
+const htmlEqChips = EQ.map((e, i) => '<button class="chip" data-mejora-eq="' + esc(e.id) + '" data-nombre="' + esc(e.nombre) + '" aria-pressed="' + (i ? 'false' : 'true') + '">' + esc(e.nombre) + '</button>').join('');
 const htmlRiesgos = (camino.riesgos || []).length ? '<p class="riesgos"><b>Riesgos:</b> ' + (camino.riesgos || []).map(md).join(' · ') + '</p>' : '';
 // juzgar: una prueba por línea de la lista, en el orden de los órganos
 const htmlJuicio = organos.map(o => {
@@ -420,10 +429,36 @@ const htmlJuicio = organos.map(o => {
 }).join('');
 if (!lineas.length) avisa('CM5: no hay líneas que juzgar en lista.json');
 
+/* J20b: liga de bots (gobierno/liga.mjs): última pasada y tendencia de las anteriores */
+let htmlLiga = '<div class="ficha liga"><p class="nota">Sin pasadas aún.</p></div>';
+try {
+  const u = JSON.parse(await readFile(join(AQUI, 'liga', 'ultima.json'), 'utf8')); let hist = []; try { hist = JSON.parse(await readFile(join(AQUI, 'liga', 'historial.json'), 'utf8')); } catch (e) { }
+  const NB = { pacifico: 'Pacífico', agresivo: 'Agresivo', investiga: 'El que investiga' }, cuando = new Date(u.fecha);
+  const ant = hist.length > 1 ? hist[hist.length - 2] : null, num = v => v == null ? '—' : Number(v).toLocaleString('es-ES');
+  const delta = (k, v) => { if (!ant || !ant.porBot || !ant.porBot[k]) return ''; const a = +String(ant.porBot[k]).split('/')[0], d = v.victorias - a;
+    return d ? ' <span class="' + (d > 0 ? 'sube' : 'baja') + '">(' + (d > 0 ? '+' : '') + d + ')</span>' : ' <span class="nota">(=)</span>'; };
+  const bots = Object.entries(u.resumen.porBot).map(([k, v]) => '<li class="bot"><span>' + esc(NB[k] || k) + '</span><span class="cifra">' + v.victorias + '/' + v.total + ' victorias' + delta(k, v) + '</span>' +
+    '<span class="barra" aria-hidden="true"><span style="width:' + (v.total ? Math.round(100 * v.victorias / v.total) : 0) + '%"></span></span>' +
+    '<span class="nota">Acaba de media en el ' + num(v.anioMedio) + ' a.C. · ' + num(v.denariosMedio) + ' denarios · ' + num(v.ciudadesMedio) + ' ciudades</span></li>').join('');
+  const ult = hist.slice(-12), pct = h => h.partidas ? 100 * h.victorias / h.partidas : 0;
+  const linea = ult.length > 1 ? '<p class="nota">Victorias en las últimas ' + ult.length + ' pasadas (de ' + Math.round(Math.min(...ult.map(pct))) + ' % a ' + Math.round(Math.max(...ult.map(pct))) + ' %):</p><svg viewBox="0 0 100 40" preserveAspectRatio="none" role="img" aria-label="Victorias en las últimas ' + ult.length + ' pasadas"><polyline points="' +
+    ult.map((h, i) => (i * 100 / (ult.length - 1)).toFixed(1) + ',' + (38 - pct(h) * 0.36).toFixed(1)).join(' ') + '"/></svg>' : '';
+  const tend = ant ? 'Frente a la pasada anterior (' + new Date(ant.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + '): victorias ' + ant.victorias + '/' + ant.partidas + ' → ' + u.resumen.victorias + '/' + u.resumen.partidas + '; fin medio ' + num(ant.anioMedio) + ' → ' + num(u.resumen.anioMedio) + ' a.C.'
+    : 'Primera pasada: la tendencia sale a partir de la segunda.';
+  htmlLiga = '<div class="ficha liga"><p class="cab"><b>Última pasada</b><span class="nota">' + esc(cuando.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long' }) + ', ' + cuando.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' })) +
+    ' · ' + u.resumen.partidas + ' partidas · ' + (Math.round(u.segundos / 6) / 10).toLocaleString('es-ES') + ' min</span><span class="veredicto ' + (u.ok ? 'ok' : 'no') + '" style="color:var(' + (u.ok ? '--bien' : '--mal') + ')">' + (u.ok ? 'Todas acaban bien' : 'Alguna falla') + '</span></p>' +
+    '<ul class="bots">' + bots + '</ul>' + linea + '<p class="nota">' + esc(tend) + '</p></div>';
+} catch (e) { if (e.code !== 'ENOENT') avisa('J20b: no se lee gobierno/liga/ultima.json (' + e.message + ')'); }
+
+// CM6: la frase del estandarte es la de la fase en curso: «En una frase: *…*» del plan de la meta; si no hay, la de la lista de la 1.0
+let frase = lista.frase || '';
+if (FASE.meta && FASE.meta.plan) { try { const m = (await readFile(join(RAIZ, FASE.meta.plan), 'utf8')).match(/En una frase:\s*\*([^*]+)\*/); if (m) { const t = m[1].replace(/\s+/g, ' ').trim(); frase = t.charAt(0).toUpperCase() + t.slice(1); } } catch (e) { avisa('CM6: no se lee el plan ' + FASE.meta.plan); } }
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
-  PCT10: pct10, PCT10_QUEDA: 100 - pct10, CAMINO: htmlCamino, CAMINO_MARCAS: htmlMarcasCamino, CAMINO_CUANDO: caminoCuando, RIESGOS: htmlRiesgos, JUICIO: htmlJuicio,
-  FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(lista.frase || ''), VIGIA: esc(config.vigia || ''),
+  LIGA: htmlLiga,
+  FASE: htmlFase, V10_TITULO: esc(v10Titulo), EQUIPOS_CHIPS: htmlEqChips, EQUIPO_1: esc((EQ[0] || {}).id || ''), EQUIPO_1_NOMBRE: esc((EQ[0] || {}).nombre || ''), CAMINO_TITULO: caminoTitulo, CAMINO_ABRE: caminoAbre, CAMINO_CIERRA: caminoCierra, V10_ABRE: v10Abre, V10_CIERRA: v10Cierra, ORGANOS_TITULO: organosTitulo, JUZGAR_AVISO: juzgarAviso, HACIA2_TITULO: hacia2Titulo,
+  PCT10: pct10, PCT10_QUEDA: 100 - pct10, PCT_LISTA: pctLista, PCT_LISTA_NOTA: lineas.filter(l => l.estado === 'hecha').length + ' hechas, ' + lineas.filter(l => l.estado === 'medias').length + ' a medias y ' + lineas.filter(l => l.estado === 'falta').length + ' por hacer, de ' + lineas.length + ' líneas', CAMINO: htmlCamino, CAMINO_MARCAS: htmlMarcasCamino, CAMINO_CUANDO: caminoCuando, RIESGOS: htmlRiesgos, JUICIO: htmlJuicio,
+  FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(frase), VIGIA: esc(config.vigia || ''),
   ORGANOS: htmlOrganos, COMPROBACIONES: htmlComprob, TE_ESPERAN: htmlTeEsperan,
   N_LINEAS: lineas.length, LISTA_PROPUESTA: htmlPropuesta, LISTA: htmlLista, RESTO: htmlResto, RESTO_RESUMEN: esc(resumenResto), N_NEVERA: nevera.length, NEVERA: htmlNevera,
   ESPERA: htmlEspera, COLA: htmlCola, N_ESP: vistas.length, TAB_DECIDIR_OCULTO: vistas.length ? '' : 'hidden',

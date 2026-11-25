@@ -1,10 +1,10 @@
 /* Juez de la economía (CE2): node test/economia.js [--n 5] [--modo corta|larga]
    El bot de test/sim.test.js (el mismo que gana la campaña) juega la partida corta y la campaña larga, agresivo y pasivo.
    Mide, por modo:
-   - % de cada recurso perdido por el tope del almacén en toda la partida (perdido al cerrar el mes / lo que entró: producción, botín,
-     compras y ventas en el mercado), y de los bienes;
-   - % de estaciones (3 meses) en que FALTA al menos uno: una obra o recluta que el bot quiso y no pudo pagar,
-     una cuota detenida por falta de fondos, o el grano a cero con la producción en negativo;
+   - % de cada recurso perdido por el tope del almacén en toda la partida (ES20: lo que no cabe al recoger, en cada estación / lo que entró:
+     producción, botín, compras y ventas en el mercado), y de los bienes;
+   - % de estaciones en que FALTA al menos uno: una obra o recluta que el bot quiso y no pudo pagar (ES20: se paga entero al ordenar),
+     o el grano a cero con la producción en negativo;
    - si gana y en qué año acaba.
    Criterio CE1 §5: ningún recurso pierde más del 10 %; en 7 de cada 10 estaciones falta alguno; el bot sigue ganando. */
 const D = require('../js/data.js');
@@ -56,19 +56,18 @@ function partida1(aggressive, region, opciones) {
   if (G.fundando()) { const sitio = G.modo().inicio.fundar.sitio; let pt = null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z]; G.fundarColonia(sitio, pt[0], pt[1]); }
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0;
-  while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {
-    G.tick(0.25); M.est.add(estacion());
+  // ES20: el bot juega por estaciones como el de test/campana-bot.js: ordena al empezar cada una y pulsa «Pasar estación»
+  while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 5000) {
+    if (guard > 1) G.pasarEstacion(); M.est.add(estacion());
     if (process.env.DBG_ANIO && s.t % 12 < 0.25) { const p = G.prod(); console.log(G.yearOf(s.t), 'ciud', G.myCities().length, 'hombres', G.men(G.myCities().reduce((u, id) => { for (const k in s.cities[id].units) u[k] = (u[k] || 0) + s.cities[id].units[k]; return u; }, {})), 'disp', D.RES.map(r => r[0] + Math.round(G.disponible(r))).join(' '), 'prod', D.RES.map(r => r[0] + Math.round(p[r])).join(' '), 'rate', G.tradeRate().toFixed(2)); }
     if (s.res.grano + s.alm.grano <= 0 && G.prod().grano < 0) marcaFalta('grano');
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); G.applyBattle(b.result()); }
-    if (G.bienes && G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: al final de cada mes el bot compra hierro y vende lo que sobra (solo con la economía nueva)
-    if (guard % 8) continue;
     if (D.SENADO.sala && s.senado && s.senado.votacion) G.votar(G.tratos(s.senado.votacion.id).filter(t => t.etiqueta === 'Favorable'));
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) {
-        let hizo = false, quiso = false, falto = null;
-        for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { if (G.recruits(c) >= 10) quiso = true; const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); hizo = true; break; } else if (!falto) falto = queFalta(G.unitCost(k, 10)); } }
+        let hizo = 0, quiso = false, falto = null;   // ES20: como test/campana-bot.js: hasta dos lotes por estación, primero los baratos
+        for (const k of ['hastati', 'principes', 'triarii', 'equites']) { if (G.unitOk(c, k)) { if (G.recruits(c) >= 10) quiso = true; const n = Math.min(150, G.maxTrain(k), G.recruits(c)); if (n >= 10) { if (G.train(id, k, n) && ++hizo >= 2) break; } else if (!falto) falto = queFalta(G.unitCost(k, 10)); } }
         if (quiso && !hizo) marcaFalta('recluta:' + falto);
       }
       for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) { enObra = true; const ok = G.upgrade(id, b); enObra = false; if (ok) { hizo = true; break; } } if (!hizo) break; }
@@ -83,6 +82,7 @@ function partida1(aggressive, region, opciones) {
         if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { if (s.senado) s.senado.permisos[t.owner] = 99999; G.send(id, n, u, G.heroAvailable(id)); break; }
       }
     }
+    if (G.bienes) botMercado(G, D);   // CE2: compra hierro y vende lo que el tope tiraría esta estación; ES20: después de construir y reclutar
   }
   if (!s.over && G.campanaLarga()) s.over = { win: !!(s.caminos && s.caminos.victoria), why: 'fin de prueba' };   // CE10
   G.onEvent = null; const m = M; M = null;

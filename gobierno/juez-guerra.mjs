@@ -24,7 +24,11 @@ await new Promise(ok => srv.listen(0, '127.0.0.1', ok));
 const { chromium } = createRequire(import.meta.url)('playwright');
 const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 await mkdir(SALIDA, { recursive: true });
-const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), page = await ctx.newPage();
+const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true });
+/* J20a: fotogramas espaciados (gobierno/ritmo-pruebas.js; RITMO_MS=0 lo quita): la página responde al juez en milisegundos */
+const RITMO_MS = process.env.RITMO_MS === undefined ? 2000 : +process.env.RITMO_MS;
+if (RITMO_MS > 0) await ctx.addInitScript({ content: 'window.__ritmoMs=' + RITMO_MS + ';' + await readFile(join(RAIZ, 'gobierno', 'ritmo-pruebas.js'), 'utf8') });
+const page = await ctx.newPage();
 const fallos = [], esp = ms => page.waitForTimeout(ms);
 page.setDefaultTimeout(120000);   /* a ~1 fotograma/s y con la máquina cargada, 30 s no bastan */
 page.on('console', m => { if (m.type() === 'error' && !/GPU stall|GL Driver/.test(m.text())) { fallos.push('consola: ' + m.text().slice(0, 250)); console.log('  [error] ' + m.text().slice(0, 250)); } });
@@ -39,13 +43,26 @@ const PRE = '#modal:not([hidden]) [data-act="bview"], #modal:not([hidden]) [data
 /* provoca un ataque a Capua con un ejército pequeño (menos de 600 hombres: sin maniobra) y espera el aviso de batalla */
 async function provoca() {
   await page.evaluate(() => { const G = window.Game, s = G.state; s.cities.capua.owner = 'campanos'; s.cities.capua.units = { hoplitas: 150, milicia: 100 }; s.cities.roma.units = { hastati: 200, principes: 100 }; s.marches = [];
-    G.send('roma', 'capua', { hastati: 200, principes: 100 }, false); s.marches[0].t1 = s.t + 0.01; G.tick(G.turnos ? Math.max(0.02, G.finTurno() - s.t) : 0.05); });
-  await esperaAviso();
+    G.send('roma', 'capua', { hastati: 200, principes: 100 }, false); s.marches[0].t1 = s.t + 0.01; });
+  await llegaLaMarcha();
 }
 /* ejército grande a Capua: más de 600 hombres, así que pasa antes por la maniobra */
 async function provocaGrande() {
   await page.evaluate(() => { const G = window.Game, s = G.state; s.cities.capua.owner = 'campanos'; s.cities.capua.units = { hoplitas: 400, milicia: 300 }; s.cities.roma.units = { hastati: 500, principes: 300, triarii: 100 }; s.marches = [];
-    G.send('roma', 'capua', { hastati: 500, principes: 300, triarii: 100 }, false); s.marches[0].t1 = s.t + 0.01; G.tick(G.turnos ? Math.max(0.02, G.finTurno() - s.t) : 0.05); });
+    G.send('roma', 'capua', { hastati: 500, principes: 300, triarii: 100 }, false); s.marches[0].t1 = s.t + 0.01; });
+  await llegaLaMarcha();
+}
+/* JG2: el tiempo corre hasta el cierre de la estación, cuando llegan las marchas (ES20). Si por el camino arde una casa (CN13c),
+   el reloj se para hasta que el jugador decide: el juez pulsa «Dejar arder» en la tarjeta del fuego, como haría él, y sigue.
+   Sin fuegos basta una vuelta; la comprobación (que salga el aviso de batalla) no cambia. */
+async function llegaLaMarcha() {
+  for (let i = 0; i < 6; i++) {
+    const r = await page.evaluate(() => { const G = window.Game, s = G.state; if (!s.vivo && !s.pending.length) G.tick(Math.max(0.02, G.finTurno() - s.t)); return { fuego: !!s.vivo, batalla: s.pending.length > 0 }; });
+    if (r.batalla || !r.fuego) break;
+    await page.waitForSelector('#cubos:not([hidden]) [data-act="arder"]', { timeout: 30000 });
+    console.log('  (arde una casa: el juez pulsa «Dejar arder», como el jugador, y sigue la estación)');
+    await clic('#cubos [data-act="arder"]'); await esp(600);
+  }
   await esperaAviso();
 }
 /* los avisos que salgan antes (hechos históricos…) se cierran con su primer botón, salvo que ya esté el de la batalla */

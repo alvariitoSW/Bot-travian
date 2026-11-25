@@ -6,9 +6,16 @@ const G = require('../js/game.js');
 const MERCADO = require('../js/mercado.js');
 const botMercado = require('./bot-mercado.js');
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function campaign(aggressive, seed, region, opciones) {
+/* J20b: parar (opcional) es una función (s) => true para dejar la partida a medias (gobierno/liga.mjs --hacer-partidas); sin ella, igual que siempre */
+function campaign(aggressive, seed, region, opciones, parar) {
   const rndOrig = Math.random; if (seed) Math.random = mulberry32(seed); G.usarMercado(MERCADO);
-  try { return campaign1(aggressive, region, opciones); } finally { Math.random = rndOrig; G.usarMercado(null); }
+  try { return campaign1(aggressive, region, opciones, parar); } finally { Math.random = rndOrig; G.usarMercado(null); }
+}
+/* J20b: sigue con el mismo bot una partida ya cargada en G.state (gobierno/liga.mjs), hasta su final. Empieza pasando la estación,
+   como habría hecho el bot en su siguiente vuelta. Devuelve el estado (s.over dice quién gana). */
+function continuar(aggressive, seed, opciones) {
+  const rndOrig = Math.random; if (seed) Math.random = mulberry32(seed); G.usarMercado(MERCADO);
+  try { const s = G.state; assert(s, 'hay una partida cargada'); jugar(s, aggressive, opciones, null, 1, []); return s; } finally { Math.random = rndOrig; G.usarMercado(null); }
 }
 // I8b: el bot que investiga (opciones.investiga): sube de edad en cuanto puede y estudia el saber más barato de una rama nueva, solo si le sobra el doble de lo que cuesta (si no, gasta lo del ejército y pierde ciudades)
 function investigarBot(s) {
@@ -33,19 +40,30 @@ function botAgro(s) {
   for (const k of ['aceite', 'vino', 'verdura', 'lana']) if ((b[k] || 0) > 12) { const c = G.mercadoMejorCiudad(k, true); if (c) G.mercadoVender(c, k, Math.floor(b[k] - 6)); }
   if (Math.floor(s.t) % 12 === 0 && !G.rutasMercado().length && oro() > RES) { const q = G.mercadoConsejo(); if (q && q.prod) G.rutaCrear(q.a, q.b, q.prod, 4); }
 }
-function campaign1(aggressive, region, opciones) {
-  const s = G.newGame('Test', region, opciones); const meta = G.capitalRival(); const events = [];
+function campaign1(aggressive, region, opciones, parar) {
+  const s = G.newGame('Test', region, opciones); const events = [];
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
   if (G.fundando()) { const sitio = G.modo().inicio.fundar.sitio; let pt = G.notaFundar(sitio, 172, -196).vale ? [172, -196] : null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z]; assert(pt, 'hay un punto válido para fundar'); assert(G.fundarColonia(sitio, pt[0], pt[1]).ok); }   // I8: el bot funda su primera ciudad
+  if (jugar(s, aggressive, opciones, parar, 0, events)) return s;   // J20b: parada a medias pedida por la liga
+  assert(events.includes('event'));
+  return s;
+}
+/* J20b: el bucle del bot, tal cual estaba en campaign1. guard0 = 0 al empezar una partida nueva; 1 al seguir una cargada.
+   Devuelve true si se paró a medias por parar(s). */
+function jugar(s, aggressive, opciones, parar, guard0, events) {
+  if (guard0) G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
+  const meta = G.capitalRival();
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
-  let guard = 0;   // CDe4: el bot construye y calma revueltas él mismo (con el gobernador del contrato de MN3 la corta no ganaba: 0/10)
+  let guard = guard0;   // CDe4: el bot construye y calma revueltas él mismo (con el gobernador del contrato de MN3 la corta no ganaba: 0/10)
   // CDe4 (CE10): la campaña larga ya no acaba al tomar Cartago ni por años: el bot para al lograr los caminos (s.caminos.victoria) o al llegar al año límite
-  while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {   // CDe4 (plan A del vigía): la campaña larga para en el 150 a.C., donde se mide el criterio «aguanta»; sin fin por Cartago, jugar hasta el 145 pasaba de la hora
-    G.tick(0.25);
+  // ES20: el bot juega por estaciones: al empezar cada una hace todo lo suyo y pulsa «Pasar estación»; las batallas se resuelven al cerrarla
+  while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 5000) {   // CDe4 (plan A del vigía): la campaña larga para en el 150 a.C., donde se mide el criterio «aguanta»; sin fin por Cartago, jugar hasta el 145 pasaba de la hora
+    if (parar && parar(s)) return true;   // J20b: la liga deja la partida a medias
     while (s.pending.length && !s.over) { const r = G.resolverPendiente(); if (process.env.DBG) console.log(G.yearOf(s.t), r.info.kind, r.info.city, JSON.stringify(r.info.cfg.sides.map(x => x.units)), 'wall', r.info.cfg.wall, r.plan.via, '->', r.out.win); }   // CG4c: la batalla jugada (maniobra y simulador, como «Delegar»), no js/battle.js
-    if (G.fraccionMes() >= 0.7) botAgro(s);   // CDe3-F2a: campos, ventas y una ruta del mercado nuevo
-    if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: al final de cada mes el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
-    if (guard % 8) continue;
+    if (G.finDePrueba() || s.over) break;
+    if (guard > 1) G.pasarEstacion();   // la primera vuelta ordena antes de pasar
+    while (s.pending.length && !s.over) { const r = G.resolverPendiente(); if (process.env.DBG) console.log(G.yearOf(s.t), r.info.kind, r.info.city, JSON.stringify(r.info.cfg.sides.map(x => x.units)), 'wall', r.info.cfg.wall, r.plan.via, '->', r.out.win); }
+    if (G.finDePrueba() || s.over) break;
     if (opciones && opciones.investiga) investigarBot(s);
     if (D.SENADO.sala && s.senado && s.senado.votacion) G.votar(G.tratos(s.senado.votacion.id).filter(t => t.etiqueta === 'Favorable'));   // SN1: el bot vota con la tarjeta Favorable (o deja pasar)
     if (!process.env.SINPLAN && !s.modo) {   // CDe1: en la partida corta el bot no vota planes (le restan obras: medido 3/10 con plan, 4/10 sin él)
@@ -53,7 +71,7 @@ function campaign1(aggressive, region, opciones) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (G.enRevuelta && G.enRevuelta(c)) c.nec.mem.forEach((m, i) => { if (m && m.revuelta) for (const r of ['grano', 'juegos', 'tropas']) if (G.calmarRevuelta(id, i, r).ok) break; });   // CDe2: el bot calma las revueltas de barrio
-      if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
+      { let hechos = 0; if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['hastati', 'principes', 'triarii', 'equites']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k), G.recruits(c)); if (n >= 10 && G.train(id, k, n) && ++hechos >= 2) break; } } }   // ES20: ordena una vez por estación (antes, cada dos meses): hasta dos lotes, el tope es la gente que hay. Primero los baratos: con la reserva entera los triarios (2 estaciones) siempre alcanzaban y se comían el hierro (medido 1/10 en la corta; así, 6/10)
       for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
       G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
       if (!aggressive) continue;
@@ -67,10 +85,11 @@ function campaign1(aggressive, region, opciones) {
         if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { if (s.senado) s.senado.permisos[t.owner] = 99999; G.send(id, n, u, G.heroAvailable(id)); break; }   // SN1: el bot declara la guerra por su cuenta
       }
     }
+    botAgro(s);   // CDe3-F2a: campos, ventas y una ruta del mercado nuevo
+    botMercado(G, D);   // CE2: compra hierro para la estación que viene y vende lo que el tope tiraría (test/bot-mercado.js); ES20: después de construir y reclutar
   }
   if (!s.over && G.campanaLarga()) s.over = { win: !!s.caminos.victoria, why: s.caminos.victoria ? 'Caminos logrados en ' + G.yearOf(s.t) + ' a.C.' : 'Sin victoria en ' + G.yearOf(s.t) + ' a.C.' };   // CE10: victoria = !!s.caminos.victoria (el equilibrio de cuántos caminos logra el bot es CE12)
   assert(s.over, 'la campaña debe terminar');
-  assert(events.includes('event'));
-  return s;
+  return false;
 }
-module.exports = { campaign, mulberry32 };
+module.exports = { campaign, continuar, mulberry32 };

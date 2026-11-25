@@ -1,0 +1,7 @@
+/* piel C: placas redondas de color, como fichas */
+.piel-c .etq.polis { background: #fffaf0; border: 2px solid #2c2118; border-radius: 14px; padding: 2px 6px 2px 5px; font-family: 'Trebuchet MS', Verdana, sans-serif; font-size: 12.5px; box-shadow: 0 2px 0 #2c2118; }
+.piel-c .etq.polis b { width: 11px; height: 11px; }
+.piel-c .etq.zona { font-family: 'Trebuchet MS', Verdana, sans-serif; font-style: normal; font-weight: bold; font-size: 10px; }
+.piel-c .etq.zona i { width: 26px; height: 26px; border: 2px solid #2c2118; box-shadow: 0 2px 0 #2c2118; }
+.piel-c #botones button { font-size: 12px; padding: 0 7px; }
+.piel-c #botones button, .piel-c #leyenda, .piel-c #ficha { font-family: 'Trebuchet MS', Verdana, sans-serif; border: 2px solid #2c2118; border-radius: 12px; }

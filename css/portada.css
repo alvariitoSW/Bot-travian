@@ -77,4 +77,66 @@ body.portada #menu .spqr { flex: none; margin: 0; text-align: center; font: 700 
   body.portada #menu .mcred { grid-column: 1 / -1; padding: 3px 8px; font-size: 9.5px; line-height: 1.3; }
   body.portada #menu .spqr { display: none; }
 }
+/* ===== PN1 · menú de inicio: tarjeta «Bienvenido» / «Partida nueva» (js/portada.js) ===== */
+body.portada #menu .mcarta.pn-oculta, body.portada #menu .mfila.pn-oculta { display: none !important; }
+body.portada #menu .pn-carta .mtit { margin-top: 2px; }
+body.portada #menu .pn-carta.pn-nueva { margin-top: 4px; }
+body.portada #menu .pn-mient { margin: 10px 0 6px; font: 700 13.5px Georgia, 'Noto Serif', serif; color: #5a4220; }
+body.portada #menu .pn-ops { display: grid; gap: 7px; }
+body.portada #menu .pn-op { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; width: 100%; min-height: 54px; padding: 7px 12px; border: 0; border-radius: 6px; text-align: left; color: #2b1c0a; cursor: pointer;
+  background: radial-gradient(ellipse at 15% 0%, rgba(255, 255, 255, .75), transparent 60%), linear-gradient(var(--pt-marmol), var(--pt-marmol2));
+  box-shadow: 0 0 0 1.5px #b8862b, 0 0 0 2.5px #4a3512, inset 0 1px 0 rgba(255, 255, 255, .8), 0 3px 7px rgba(0, 0, 0, .35); }
+body.portada #menu .pn-op:active { filter: brightness(.93); transform: translateY(1px); }
+body.portada #menu .pn-opt { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+body.portada #menu .pn-op b { font: 700 15px/1.2 'Cinzel', Georgia, serif; letter-spacing: .02em; color: #2b1c0a; }
+body.portada #menu .pn-op small { font: 400 13px/1.25 Georgia, 'Noto Serif', serif; color: #5a4220; }
+/* etiqueta «En pausa»: sello pequeño ocre, en la opción y en la rúbrica de la nueva campaña */
+body.portada #menu .pn-pausa { display: inline-block; padding: 2px 7px; border-radius: 4px; vertical-align: middle; white-space: nowrap;
+  font: 700 11px/1.3 Georgia, 'Noto Serif', serif; letter-spacing: .06em; text-transform: uppercase; color: #fff4d6; background: #8a5a12; box-shadow: 0 0 0 1px #4a3512; text-shadow: none; }
+@media (orientation: landscape) and (max-height: 520px) {
+  body.portada #menu .pn-mient { margin: 6px 0 4px; }
+  body.portada #menu .pn-op { min-height: 48px; padding: 5px 10px; }
+}
 @media (prefers-reduced-motion: no-preference) { body.portada #menu .mfila, body.portada #menu .btn { transition: transform .08s, filter .08s; } }
+
+/* ===== PN2 · elegir polis: rejilla de 8 tarjetas y ficha (js/portada.js) ===== */
+body.portada #menu .pn-elige { margin: 8px 0 6px; font: 700 17px/1.2 'Cinzel', Georgia, serif; letter-spacing: .04em; color: #2b1c0a; }
+body.portada #menu .pn-rejilla { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+body.portada #menu .pn-polis { display: grid; justify-items: center; align-content: start; gap: 3px; min-height: 132px; padding: 9px 6px 8px; border: 0; border-radius: 6px; text-align: center; color: #2b1c0a; cursor: pointer; overflow: clip;
+  background: radial-gradient(ellipse at 15% 0%, rgba(255, 255, 255, .75), transparent 60%), linear-gradient(var(--pt-marmol), var(--pt-marmol2));
+  box-shadow: 0 0 0 1.5px #b8862b, 0 0 0 2.5px #4a3512, inset 0 1px 0 rgba(255, 255, 255, .8), 0 3px 7px rgba(0, 0, 0, .35); }
+body.portada #menu .pn-polis:active { filter: brightness(.93); transform: translateY(1px); }
+body.portada #menu .pn-polis b { font: 700 16px/1.15 'Cinzel', Georgia, serif; letter-spacing: .03em; color: #2b1c0a; }
+body.portada #menu .pn-polis small { font: 400 13px/1.2 Georgia, 'Noto Serif', serif; color: #5a4220; }
+body.portada #menu .pn-lujo { display: inline-flex; align-items: center; gap: 5px; margin-top: auto; font: 700 12.5px/1.2 Georgia, 'Noto Serif', serif; color: #3a2a12; }
+body.portada #menu .pn-pto { flex: none; width: 11px; height: 11px; border-radius: 50%; box-shadow: 0 0 0 1.5px #4a3512; }
+body.portada #menu .pn-sello { flex: none; display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: #fff7dc; background: radial-gradient(circle at 35% 28%, color-mix(in srgb, var(--pc) 70%, #fff), var(--pc) 60%, color-mix(in srgb, var(--pc) 70%, #000));
+  font: 700 17px/1 'Cinzel', Georgia, serif; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); box-shadow: 0 0 0 2px #4a3512, 0 0 0 3px #b8862b, inset 0 -3px 5px rgba(0, 0, 0, .35); }
+body.portada #menu .pn-cab { display: flex; align-items: center; gap: 12px; margin: 6px 0 8px; }
+body.portada #menu .pn-cab .pn-sello { width: 58px; height: 58px; font-size: 21px; }
+body.portada #menu .pn-nom { margin: 0; font: 700 24px/1.1 'Cinzel', Georgia, serif; letter-spacing: .05em; color: #2b1c0a; }
+body.portada #menu .pn-lema { margin: 2px 0 0; font: 400 14px/1.25 Georgia, 'Noto Serif', serif; color: #5a4220; }
+body.portada #menu .pn-imgs { display: flex; gap: 8px; margin: 0 0 8px; }
+body.portada #menu .pn-fig, body.portada #menu .pn-ret { position: relative; margin: 0; height: 150px; overflow: clip; border-radius: 5px; background: #e9dcb8; box-shadow: 0 0 0 1.5px #b8862b, 0 2px 4px rgba(0, 0, 0, .35); }
+body.portada #menu .pn-fig { flex: 1 1 0; min-width: 0; }
+body.portada #menu .pn-ret { flex: none; width: 34%; background: radial-gradient(circle at 50% 30%, #3a4a66, #141c2c); }
+body.portada #menu .pn-fig img { display: block; width: 100%; height: 100%; object-fit: contain; padding-bottom: 20px; box-sizing: border-box; }
+body.portada #menu .pn-ret img { display: block; width: 100%; height: 100%; object-fit: contain; padding-bottom: 22px; box-sizing: border-box; }
+body.portada #menu .pn-fig figcaption, body.portada #menu .pn-ret figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 6px; font: 400 11px/1.25 Georgia, serif; color: #f3e2b4; background: rgba(23, 17, 13, .78); }
+body.portada #menu .pn-ret figcaption { font-weight: 700; text-align: center; }
+body.portada #menu .pn-ds { margin: 0; display: grid; gap: 2px; font: 400 14px/1.35 Georgia, 'Noto Serif', serif; color: #3a2a12; }
+body.portada #menu .pn-ds dt { margin-top: 6px; font: 700 12px/1.2 'Cinzel', Georgia, serif; letter-spacing: .08em; text-transform: uppercase; color: #7a2414; }
+body.portada #menu .pn-ds dd { margin: 0; display: block; }
+body.portada #menu .pn-ds dd .pn-pto { display: inline-block; margin-right: 6px; vertical-align: -1px; }
+body.portada #menu .pn-lic { margin-left: 4px; padding: 1px 6px; border-radius: 4px; font: 700 10.5px/1.3 Georgia, serif; letter-spacing: .04em; text-transform: none; color: #fff4d6; background: #8a5a12; white-space: nowrap; }
+body.portada #menu .pn-aviso { margin: 10px 0 0; padding: 8px 10px; border-radius: 6px; border: 1.5px dashed rgba(90, 66, 32, .55); background: rgba(255, 250, 232, .55); font: 400 13.5px/1.35 Georgia, 'Noto Serif', serif; color: #3a2a12; }
+body.portada #menu .pn-aviso2 { margin-top: 6px; border-color: rgba(154, 42, 26, .6); }
+body.portada #menu .pn-emp { margin-top: 10px; min-height: 54px; }
+body.portada #menu .pn-volver { width: 100%; min-height: 48px; margin-top: 8px; border: 0; border-radius: 6px; font: 700 15px Georgia, serif; color: #2b1c0a; background: linear-gradient(var(--pt-marmol), var(--pt-marmol2)); box-shadow: 0 0 0 1.5px #b8862b, 0 0 0 2.5px #4a3512; }
+@media (orientation: landscape) and (max-height: 520px) {
+  body.portada #menu .pn-rejilla { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  body.portada #menu .pn-polis { min-height: 112px; padding: 6px 4px; } body.portada #menu .pn-polis small { font-size: 12px; }
+  body.portada #menu .pn-sello { width: 38px; height: 38px; font-size: 14px; }
+  body.portada #menu .pn-fig, body.portada #menu .pn-ret { height: 110px; }
+  body.portada #menu .pn-cab { margin: 2px 0 4px; }
+}
