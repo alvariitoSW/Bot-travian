@@ -1,0 +1,213 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>GP1c · La vasija viva, segunda vuelta (maquetas)</title><style>
+*{box-sizing:border-box}body{margin:0;width:390px;background:#11151c;font-family:Georgia,serif;color:#1c120c}
+.scr{width:390px;height:800px;position:relative;overflow:hidden;background:#11151c;display:flex;flex-direction:column}
+.top{margin:26px 8px 0;padding:6px 14px;border-radius:20px;background:#1d2533;color:#eee;font-size:14px}
+.top small{color:#aab;letter-spacing:1px;font-size:10px;margin-left:8px}
+.vaso{flex:1;margin:8px;background:#d98a4a;border-radius:10px;border:2px solid #1c120c;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.greca{height:14px;flex:none;background:#e9b06e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='14'%3E%3Cpath d='M0 11.5h15V2.5H4.5v6h6.5V5.5' fill='none' stroke='%231c120c' stroke-width='1.7'/%3E%3C/svg%3E") repeat-x;border-top:2px solid #1c120c;border-bottom:2px solid #1c120c}
+.vaso>.greca:first-child{border-top:0}.vaso>.greca:last-child{border-bottom:0}
+.tabs{display:flex;justify-content:center;gap:26px;padding:8px 0 4px}
+.tabs div{text-align:center;font-size:10px;letter-spacing:1px;color:#3a2010}
+.tabs i{display:block;width:40px;height:40px;border-radius:50%;border:2px solid #1c120c;background:#e9b06e;font-style:normal;font-size:20px;line-height:36px;margin:0 auto 2px}
+.tabs .on i{background:#1c120c;box-shadow:0 0 0 3px #f0dfb8}.tabs .on{color:#1c120c;font-weight:bold}
+.cu{flex:1;padding:4px 12px 8px;display:flex;flex-direction:column;position:relative}
+.estela{align-self:center;background:#f0dfb8;border:2px solid #1c120c;border-radius:40px 40px 4px 4px;padding:8px 18px 6px;text-align:center;min-width:230px}
+.estela b{display:block;font-size:19px;font-variant:small-caps;letter-spacing:.5px}
+.estela span{font-size:12px;display:inline-block;margin:2px 3px 0;background:#d98a4a55;border-radius:9px;padding:1px 7px}
+.pied{display:flex;justify-content:center;gap:3px;margin:8px 0 2px;align-items:center}
+.pied i{width:10px;height:10px;border-radius:50%;border:1.5px solid #1c120c;background:transparent;display:block}
+.pied i.s{background:#f6ecd0}.pied i.n{background:#1c120c}.pied u{width:2px;height:18px;background:#7a1f1f;display:block;margin:0 2px}
+.cta{text-align:center;font-size:13px;margin-bottom:4px}.cta b{font-size:16px}
+.agora{flex:1;display:flex;border-top:2px solid #1c120c;position:relative;background:linear-gradient(#e39a58,#d98a4a)}
+.zona{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:4px 2px 6px;border-right:1.5px dashed #1c120c66}
+.zona:last-child{border-right:0}.zona h4{margin:0 0 auto;font-size:13px;letter-spacing:2px;font-weight:normal;padding-top:4px}
+.gr{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 0;max-width:122px}
+.f{display:block;margin:0 -1px}
+.cuerda{border-top:3px double #1c120c;padding:3px 8px 0;display:flex;align-items:flex-end;gap:0;opacity:.55;font-size:11px;font-style:italic}
+.cuerda span{margin-left:8px;padding-bottom:6px}
+.band{display:flex;align-items:center;gap:8px;background:#7a1f1f;color:#f6ecd0;border-radius:6px;padding:5px 10px;font-size:12.5px;margin-top:6px}
+.bandeja{display:flex;justify-content:space-around;align-items:flex-start;padding:8px 4px 0}
+.fic{width:74px;text-align:center;font-size:10.5px;line-height:1.15}
+.fic i{display:block;width:50px;height:50px;border-radius:50%;margin:0 auto 3px;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;font-style:normal;font-size:24px;line-height:46px}
+.fic.gas i{opacity:.3;box-shadow:none}
+.fant{position:absolute;width:50px;height:50px;border-radius:50%;background:#f0dfb8cc;border:2px dashed #1c120c;font-size:24px;line-height:46px;text-align:center}
+.glo{position:absolute;background:#1c120c;color:#f6ecd0;border-radius:10px;padding:3px 9px;font-size:12px;white-space:nowrap}
+.btns{display:flex;gap:8px;margin:0 8px 8px}.btns div{flex:1;text-align:center;padding:10px 4px;border-radius:8px;font-size:15px;color:#f6ecd0;min-height:48px;background:#3a2a1a;line-height:1.2}
+.btns .vot{flex:2.2;background:#7a1f1f;font-size:18px;font-variant:small-caps;letter-spacing:1px}.btns small{display:block;font-size:11px;font-variant:normal;letter-spacing:0;opacity:.85}
+.nav{display:flex;gap:3px;margin:0 8px 8px}.nav b{flex:1;text-align:center;font-size:9.5px;padding:9px 0;background:#2a2018;color:#e8d8b0;border-radius:4px}.nav b.on{outline:2px solid #b03a2a}
+.bema{position:relative;height:150px;border-top:2px solid #1c120c;background:linear-gradient(#e9a868,#e39a58)}
+.piedra{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:150px;height:44px;background:#f0dfb8;border:2px solid #1c120c;border-bottom:0;border-radius:6px 6px 0 0}
+.cleps{position:absolute;right:10px;top:10px;text-align:center;font-size:10px}
+.cleps b{display:block;font-size:20px;letter-spacing:2px}
+.publico{display:flex;justify-content:space-around;align-items:flex-end;padding:8px 2px 4px;border-top:2px solid #1c120c;background:#d98a4a}
+.publico>div{text-align:center;font-size:10.5px}.publico .gr{max-width:90px}
+.args{display:flex;gap:10px;margin-top:8px}
+.arg{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 4px 0 #1c120c;padding:8px 6px;text-align:center;clip-path:polygon(4% 0,96% 3%,100% 92%,88% 100%,6% 97%,0 12%);min-height:120px}
+.arg em{font-style:normal;font-size:30px;display:block}.arg b{font-size:15px;display:block;margin-bottom:4px;font-variant:small-caps;letter-spacing:1px}
+.arg .ef{display:flex;justify-content:center;align-items:flex-end;gap:2px;font-size:13px}.up{color:#2f6a22;font-weight:bold}.dn{color:#7a1f1f;font-weight:bold}
+.urnas{display:flex;justify-content:center;gap:50px;margin:10px 0 2px;text-align:center;font-size:12px;letter-spacing:2px}
+.filas{margin-top:6px}.fila{display:flex;align-items:center;gap:6px;padding:5px 6px;border-top:1.5px solid #1c120c55}
+.fila .p{display:flex;flex-wrap:wrap;gap:3px;flex:1}.fila .p i{width:14px;height:14px;border-radius:50%;border:1.5px solid #1c120c;display:block}
+.fila .p i.s{background:#f6ecd0}.fila .p i.n{background:#1c120c}
+.fila.sel{background:#f0dfb8;border:2px solid #1c120c;border-radius:8px}
+.trato{font-size:12px;background:#1c120c;color:#f6ecd0;border-radius:12px;padding:5px 9px;white-space:nowrap}
+.ostr{position:relative;flex:1}
+.os{position:absolute;background:#c9703a;border:2px solid #1c120c;padding:14px 10px 10px;text-align:center;font-size:12px;width:128px;box-shadow:3px 4px 0 #1c120c88}
+.os b{display:block;font-family:"Courier New",monospace;letter-spacing:2px;font-size:15px;color:#f6ecd0;text-shadow:0 0 1px #1c120c}
+.os small{display:block;margin-top:2px}
+.rueda{position:relative;height:330px;margin-top:2px}
+.nodo{position:absolute;width:104px;text-align:center;font-size:10.5px;line-height:1.15}
+.nodo i{display:block;width:54px;height:54px;border-radius:50%;margin:0 auto 2px;border:2px solid #1c120c;background:#e9b06e;font-style:normal;font-size:26px;line-height:50px}
+.nodo b{display:block;font-size:13px}.nodo.on i{background:#1c120c;box-shadow:0 0 0 4px #f0dfb8}
+.lin{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px}.lin span{background:#f0dfb8;border:1.5px solid #1c120c;border-radius:12px;padding:3px 9px;font-size:12px}
+.olla{display:flex;align-items:center;gap:8px;margin-top:8px;background:#7a1f1f;color:#f6ecd0;border-radius:8px;padding:7px 10px;font-size:12.5px}
+.olla .seg{display:flex;gap:3px}.olla .seg i{width:14px;height:14px;border-radius:50%;border:1.5px solid #f6ecd0;display:block}.olla .seg i.x{background:#f6ecd0}
+.esc{position:relative;flex:1}
+.pel{position:absolute;left:0;height:86px;background:#f0dfb8;border:2px solid #1c120c;border-left:0;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:11.5px;line-height:1.2}
+.pel em{font-style:normal;font-size:28px}.pel b{display:block;font-size:15px;font-variant:small-caps;letter-spacing:.5px}
+.pel.fut{background:#e9b06e;opacity:.75}
+.tit{position:absolute;left:0;top:0;background:#1c120c;color:#f0dfb8;font:bold 12px Arial;padding:3px 8px;border-radius:0 0 8px 0;z-index:9}
+
+.pasos{display:flex;justify-content:center;gap:8px;align-items:center;font-size:13px;margin-top:2px}
+.pasos i{width:18px;height:18px;border-radius:50%;border:2px solid #1c120c;background:#f0dfb8;display:block}.pasos i.g{background:transparent;opacity:.4}
+.sala{position:relative;flex:1;background:linear-gradient(#3a1d12,#5a2c18);border:2px solid #1c120c;border-radius:8px;margin-top:6px;overflow:hidden}
+.lecho{position:absolute;width:104px;background:#f0dfb8;border:2px solid #1c120c;border-radius:8px;padding:5px 4px 4px;text-align:center;font-size:11px;line-height:1.2;box-shadow:0 5px 0 #1c120c}
+.lecho b{display:block;font-size:13px}.lecho .f{margin:0 auto}
+.lecho.tu{background:#e9b06e}
+.sello{display:inline-block;background:#7a1f1f;color:#f6ecd0;border-radius:10px;padding:1px 7px;font-size:10.5px;margin-top:2px}
+.sello.ab{background:#2f6a22}
+.crat{position:absolute;left:50%;top:128px;transform:translateX(-50%);text-align:center;color:#f0dfb8;font-size:11px}
+.vino{width:150px;height:12px;border-radius:6px;border:1.5px solid #f0dfb8;background:linear-gradient(90deg,#9cc 0,#7a1f1f 100%);position:relative;margin:4px auto 2px}
+.vino u{position:absolute;left:64%;top:-5px;width:6px;height:20px;background:#f0dfb8;border:1.5px solid #1c120c;border-radius:3px}
+.acc{display:flex;gap:6px;margin-top:8px}.acc div{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;border-radius:8px;text-align:center;font-size:10.5px;padding:5px 2px;line-height:1.15}
+.acc em{display:block;font-style:normal;font-size:22px}.acc b{display:block;font-size:12.5px}
+.red{position:relative;height:330px}
+.per{position:absolute;width:76px;text-align:center;font-size:11px;line-height:1.1}
+.per i{display:block;width:50px;height:50px;border-radius:50%;margin:0 auto 1px;border:2px solid #1c120c;background:#e9b06e;overflow:hidden;padding-top:6px}
+.per i .f{margin:0 auto}.per.on i{background:#f0dfb8;box-shadow:0 0 0 4px #1c120c}
+.ficha{background:#f0dfb8;border:2px solid #1c120c;border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.45}
+.ficha b.n{font-size:16px;font-variant:small-caps;letter-spacing:.5px}
+
+.museo{flex:1;margin:8px;border-radius:10px;border:2px solid #1c120c;background:radial-gradient(ellipse at 50% 38%,#6b4a30 0,#2a1a10 62%,#120b07 100%);display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden}
+.cron{position:absolute;left:0;right:0;bottom:0;background:#120b07cc;color:#f0dfb8;font-size:12px;padding:6px 10px;border-top:1px solid #d98a4a;line-height:1.3}
+.cron b{color:#e9b06e}
+.gira{position:absolute;right:8px;top:8px;color:#f0dfb8;font-size:11px;text-align:center;opacity:.85}
+.pp{position:absolute;left:8px;top:8px;color:#f0dfb8;font-size:11px}.pp i{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid #f0dfb8;background:#f0dfb8;margin-right:3px;vertical-align:-3px}.pp i.g{background:transparent;opacity:.5}
+.friso{background:#d98a4a;border:2px solid #1c120c;border-radius:6px;overflow:hidden;display:block}
+.op{display:flex;gap:6px;margin-top:6px}.op div{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;border-radius:8px;font-size:11px;padding:6px 5px;line-height:1.25;text-align:center}
+.op b{display:block;font-size:13px}.op em{display:block;font-style:normal;font-size:20px}.op .sel{background:#fff7dc;outline:3px solid #7a1f1f}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:11.5px;margin-top:8px}
+.h5{font-size:11px;letter-spacing:2px;color:#5a2c18;margin:8px 0 3px;text-transform:uppercase}
+</style></head><body><script>
+const K='#1c120c',C='#f0dfb8';
+function fig(b,p,w){w=w||22;const k=p=='no'?'#7a1f1f':K;let s=`<svg class="f" width="${w}" height="${w*1.7}" viewBox="0 0 20 34">`;
+ if(b=='H')s+=`<path d="M17.5 3v29M16.3 4l1.2-3.5L18.7 4z" stroke="${k}" stroke-width="1" fill="${k}"/>`;
+ if(b=='P')s+=`<path d="M17 8v24" stroke="${k}" stroke-width="1.2"/><ellipse cx="17" cy="6.5" rx="1.9" ry="5" fill="${k}"/>`;
+ if(b=='N')s+=`<path d="M17.5 8v24" stroke="${k}" stroke-width="1.3"/><circle cx="17.5" cy="7" r="1.8" fill="${k}"/>`;
+ s+=`<circle cx="10" cy="5" r="3.6" fill="${k}"/><path d="${b=='P'?'M6.5 10h7l1.5 15h-10z':'M6 10h8l2.5 20h-13z'}" fill="${k}"/><path d="M7.5 ${b=='P'?25:30}v${b=='P'?8:3}M12.5 ${b=='P'?25:30}v${b=='P'?8:3}" stroke="${k}" stroke-width="2"/>`;
+ if(p=='si')s+=`<path d="M7.5 12L3 2.5" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(p=='tu')s+=`<path d="M13 12L21 8" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(b=='H')s+=`<circle cx="8.5" cy="19" r="5.4" fill="${k}" stroke="${C}" stroke-width="1"/><circle cx="8.5" cy="19" r="1.6" fill="${C}"/>`;
+ if(b=='N')s+=`<path d="M6.3 12.5L15 24M7 4.2h6" stroke="${C}" stroke-width="1.4"/>`;
+ if(b=='M')s+=`<path d="M.8 23c0-2.4 5.4-2.4 5.4 0 0 4-1 7-2.7 10C1.8 30 .8 27 .8 23zM2.3 21h2.4" fill="${k}" stroke="${C}" stroke-width=".8"/>`;
+ return s+'</svg>'}
+
+
+function fx(b,p,w,x,y,o){return fig(b,p,w).replace('<svg class="f"',`<svg x="${x}" y="${y}" ${o?'opacity="'+o+'"':''}`)}
+const TOP='<div class="top">🪙 270 &nbsp;🌾 450 &nbsp;🧱 800<small>ATENAS · OTOÑO · 594 a.C.</small></div>';
+const NAV='<div class="nav"><b>CIUDAD</b><b class="on">POLÍTICA</b><b>SABER</b><b>TROPAS</b><b>MAPA</b><b>POLIS</b></div>';
+function scr(id,tit,cu,btns){document.write(`<section id="${id}" class="scr"><div class="tit">${tit}</div>${TOP}<div class="vaso" style="background:#e9b06e"><div class="cu" style="padding-top:8px">${cu}</div></div>${btns?'<div class="btns">'+btns+'</div>':''}${NAV}</section>`)}
+const glo=(x,y,t,c)=>`<g><rect x="${x}" y="${y}" rx="8" width="${t.length*5.7+12}" height="16" fill="${c||'#f0dfb8'}" stroke="${K}" stroke-width="1.3"/><text x="${x+6}" y="${y+11.5}" font-size="10" font-family="Georgia" fill="${c?'#f6ecd0':K}">${t}</text></g>`;
+const G=(x,y,s,h)=>`<g transform="translate(${x} ${y}) scale(${s})">${h}</g>`;
+const TEMPLO=`<path d="M0 22L35 0L70 22zM3 24h64v4H3zM7 30h5v34H7zM20 30h5v34h-5zM33 30h5v34h-5zM46 30h5v34h-5zM59 30h5v34h-5zM-2 64h74v6h-74z" fill="${K}"/><circle cx="35" cy="14" r="3.5" fill="${C}"/>`;
+const TRIP=`<path d="M0 40L8 12M24 40L16 12M12 40V12M0 12h24M6 6c0-7 12-7 12 0z" stroke="${K}" stroke-width="2.4" fill="${K}"/><path d="M12 0c-6-8 6-10 0-20" fill="none" stroke="${K}" stroke-width="1.6" stroke-dasharray="3 3"/>`;
+const FUENTE=(d)=>`<g ${d?'fill="none" stroke-dasharray="4 3"':`fill="${K}"`} stroke="${K}" stroke-width="1.6"><path d="M0 40V12L22 0L44 12V40zM8 40V18h28v22"/><path d="M22 22v10M18 34c0 8 8 8 8 0z"/></g>`;
+const MURO=(w)=>`<path d="M0 40V10h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h${w-96}V40z" fill="${K}"/><path d="M0 22h${w}M0 31h${w}" stroke="#d98a4a" stroke-width="1"/>`;
+const TORRE=`<path d="M0 60V0h6v6h6V0h6v6h6V0h6v60z" fill="${K}"/><rect x="12" y="20" width="6" height="10" fill="#d98a4a"/>`;
+const OLIVO=`<path d="M10 40V20M10 28L4 20M10 26l7-7" stroke="${K}" stroke-width="2.5"/><ellipse cx="10" cy="12" rx="12" ry="11" fill="${K}"/><circle cx="5" cy="9" r="1.3" fill="${C}"/><circle cx="13" cy="14" r="1.3" fill="${C}"/><circle cx="12" cy="6" r="1.3" fill="${C}"/>`;
+const CASA=`<path d="M0 30V12L16 2L32 12V30z" fill="${K}"/><rect x="12" y="16" width="8" height="14" fill="#d98a4a"/>`;
+const STOA=`<path d="M0 6h80v6H0zM4 12h4v26H4zM20 12h4v26h-4zM36 12h4v26h-4zM52 12h4v26h-4zM68 12h4v26h-4zM0 38h80v4H0z" fill="${K}"/>`;
+const NAVE=`<path d="M0 22Q44 38 96 22L108 4L102 24Q50 44 8 30Z" fill="${K}"/><path d="M-10 26L6 24L4 30z" fill="${K}"/><circle cx="12" cy="26" r="2.6" fill="${C}"/><path d="M52 24V-20M34 -16h36" stroke="${K}" stroke-width="2.4"/><path d="M36 -14h32l-3 22H39z" fill="${C}" stroke="${K}" stroke-width="2"/><path d="M26 30l-5 14M38 32l-5 14M50 33l-5 14M62 32l-5 14M74 30l-5 14M86 27l-5 14" stroke="${K}" stroke-width="1.8"/>`;
+const OLAS=(x,y,n)=>`<path d="M${x} ${y}${'q5 -6 10 0t10 0'.repeat(n)}" fill="none" stroke="${K}" stroke-width="2"/>`;
+const CABALLO=`<path d="M10 30Q30 21 52 30Q50 39 30 39Q14 39 10 30z" fill="${K}"/><path d="M45 33Q51 14 62 5L69 10Q60 18 57 35z" fill="${K}"/><path d="M60 5L77 12L75 17L62 13zM58 0l4 6h-5z" fill="${K}"/><path d="M15 34L10 62M21 36l2 26M45 36l-2 26M52 34l7 28M11 30Q0 34 3 54" stroke="${K}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="66" cy="10" r="1.2" fill="${C}"/>`;
+const CARRO=`<path d="M0 0h6v26h34v6H0z" fill="${K}"/><circle cx="16" cy="38" r="14" fill="none" stroke="${K}" stroke-width="3.5"/><path d="M16 24v28M2 38h28M6 28l20 20M26 28L6 48" stroke="${K}" stroke-width="1.6"/><path d="M40 28L96 14" stroke="${K}" stroke-width="2.5"/>`;
+const LECHO=`<path d="M0 0h62v6H0zM3 6v14M59 6v14M0 0c0-10 10-10 12 0" stroke="${K}" stroke-width="2.5" fill="${K}"/>`;
+const CRAT=`<path d="M0 0h30c0 14-6 20-10 24h5v4H5v-4h5C6 20 0 14 0 0z" fill="${K}" stroke="${C}" stroke-width="1"/>`;
+const ESC=(l,c)=>`<circle cx="0" cy="0" r="17" fill="${c||K}" stroke="${C}" stroke-width="2"/><circle cx="0" cy="0" r="13" fill="none" stroke="${C}" stroke-width=".8"/><text x="0" y="6" text-anchor="middle" font-size="17" font-family="Georgia" font-weight="bold" fill="${C}">${l}</text>`;
+const BODY='M135 20H215V36C215 96 318 150 322 290C326 420 250 520 208 562H240V588H110V562H142C100 520 24 420 28 290C32 150 135 96 135 36Z';
+const PALM=[0,1,2,3,4,5,6].map(i=>`<path d="M${110+i*20} 108a8 8 0 0 1 16 0zM${118+i*20} 100v-7M${113+i*20} 101l-4-5M${123+i*20} 101l4-5" fill="${K}" stroke="${K}" stroke-width="1.5"/>`).join('');
+
+/* W1 · la vasija */
+document.write(`<section id="w1" class="scr"><div class="tit">Vasija 2 (1) · La polis viva: lo que pasa fuera se pinta dentro</div>${TOP}<div class="museo">
+<svg width="350" height="600" viewBox="0 0 350 600"><defs><clipPath id="cb"><path d="${BODY}"/></clipPath>
+<linearGradient id="br" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".45"/><stop offset=".22" stop-color="#fff" stop-opacity=".16"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></linearGradient></defs>
+<ellipse cx="175" cy="590" rx="120" ry="9" fill="#000" opacity=".55"/>
+<path d="M135 44C66 40 44 104 76 150M215 44C284 40 306 104 274 150" fill="none" stroke="${K}" stroke-width="12" stroke-linecap="round"/>
+<path d="${BODY}" fill="${K}"/><g clip-path="url(#cb)">
+<rect y="46" width="350" height="22" fill="#d98a4a"/><path d="${[0,1,2,3,4].map(i=>`M${132+i*18} 64h12v-14h-7v8h3`).join('')}" fill="none" stroke="${K}" stroke-width="2"/>
+<rect y="90" width="350" height="22" fill="#d98a4a"/>${PALM}
+<rect y="120" width="350" height="86" fill="#d98a4a"/><rect y="212" width="350" height="112" fill="#d98a4a"/><rect y="330" width="350" height="84" fill="#d98a4a"/><rect y="420" width="350" height="72" fill="#d98a4a"/>
+${[0,1,2,3,4,5,6,7,8,9].map(i=>`<path d="M${75+i*20} 562L${85+i*20} 500L${95+i*20} 562z" fill="#d98a4a"/>`).join('')}
+${G(140,136,1,TEMPLO)}${G(96,164,1,TRIP)}${G(228,166,1,FUENTE(1))}${G(60,166,1,OLIVO)}${G(282,166,1,OLIVO)}
+${fx('N','',22,44,284)}${fx('N','si',22,62,284)}${fx('M','',22,80,284)}
+${fx('H','',22,136,286,.28)}${fx('H','',22,156,286,.28)}${fx('H','',22,176,286,.28)}${fx('H','',22,196,286,.28)}
+${fx('P','no',22,246,286)}${fx('P','no',22,264,286)}${fx('P','',22,282,286)}${fx('M','',22,300,286)}
+${G(70,236,.55,STOA)}
+${G(86,386,1,LECHO)}${fx('N','',20,104,352)}${G(166,380,1,CRAT)}${fx('M','',20,206,378)}${fx('N','tu',20,240,378)}
+${G(118,452,.95,NAVE)}${OLAS(60,486,12)}${fx('M','',16,150,442)}
+<rect width="350" height="600" fill="url(#br)"/></g>
+<path d="M210 20L202 62L220 100L200 148L226 200L208 240" fill="none" stroke="#f6ecd0" stroke-width="3.2"/><path d="M210 20L202 62L220 100L200 148L226 200L208 240" fill="none" stroke="#7a1f1f" stroke-width="1.3"/>
+${glo(224,72,'Discordia 4 de 6','#7a1f1f')}${glo(112,124,'ACRÓPOLIS')}${glo(214,150,'fuente: en obras')}
+${glo(36,216,'ÁGORA')}${glo(128,262,'8 hoplitas en Mégara: no votan','#1c120c')}${glo(232,240,'¡rumor!','#7a1f1f')}
+${glo(64,334,'TU CASA · banquete')}${glo(92,424,'PUERTO · enviado de Corinto')}
+</svg>
+<div class="pp"><i></i><i></i><i class="g"></i> pasos hoy</div><div class="gira">↻<br>gira la<br>vasija</div>
+<div class="cron"><b>Anoche:</b> Filón cenó con el enviado de Mégara · Los remeros murmuran en la fuente a medio hacer</div></div>
+<div class="btns"><div class="vot">Acabar el día</div></div>${NAV}</section>`);
+
+/* W2 · diplomacia */
+const PER=(x,y,b,n,p)=>`${fx(b,p||'',24,x,y)}<text x="${x+12}" y="${y+54}" text-anchor="middle" font-size="11" font-family="Georgia">${n}</text>`;
+scr('w2','Vasija 2 (2) · Diplomacia: las otras polis tienen amigos en tu casa',
+`<svg class="friso" width="342" height="300" viewBox="0 0 342 300">
+<rect width="342" height="64" fill="#e39a58"/>
+${G(46,34,1,ESC('Μ','#7a1f1f'))}${G(128,34,1,ESC('Ϙ'))}${G(212,34,1,ESC('Λ'))}${G(296,34,1,ESC('Χ'))}
+<g font-size="10.5" font-family="Georgia" text-anchor="middle"><text x="46" y="76">Mégara ⚔️</text><text x="128" y="76">Corinto 🤝</text><text x="212" y="76">Esparta 👁</text><text x="296" y="76">Calcis</text></g>
+<path d="M46 82L52 196" stroke="${K}" stroke-width="2" stroke-dasharray="5 4"/><path d="M52 82L132 196" stroke="#7a1f1f" stroke-width="3"/>
+<path d="M128 82L214 196" stroke="${C}" stroke-width="3.5"/><path d="M212 82L60 196" stroke="${K}" stroke-width="2" stroke-dasharray="5 4"/><path d="M296 82L290 196" stroke="${C}" stroke-width="3.5"/>
+${glo(8,128,'le paga plata 🔒','#1c120c')}${glo(150,120,'huéspedes de padres a hijos')}${glo(226,160,'boda posible 💍')}
+${PER(44,200,'N','Filón')}${PER(124,200,'H','Nicóstrato')}${PER(206,200,'M','Eudoro')}${PER(280,200,'N','Tú','tu')}
+<path d="M0 262h342" stroke="${K}" stroke-width="2"/>${G(20,276,.5,NAVE)}${OLAS(0,294,17)}<text x="90" y="282" font-size="11" font-family="Georgia" font-style="italic">Llega un barco de Corinto con su enviado.</text>
+</svg>
+<div class="ficha" style="margin-top:6px"><b class="n">El enviado de Corinto</b> · huésped de Eudoro<br>🎯 <b>Pide</b>: que sus barcos paguen menos en tu puerto<br>🎁 <b>Da</b>: 20 remeros si hay guerra con Mégara<br>⚠️ Los nobles lo ven mal: Filón cobra de Mégara</div>
+<div class="acc"><div><em>🍷</em><b>Banquete</b>con él: trato mejor</div><div><em>💍</em><b>Boda</b>alianza 10 años</div><div><em>🏛️</em><b>Votarlo</b>en el ágora</div><div><em>📣</em><b>Destapar</b>a Filón: traidor</div></div>`,'');
+
+/* W3 · ciudad */
+scr('w3','Vasija 2 (3) · Ciudad: cada obra es una jugada política',
+`<svg class="friso" width="342" height="170" viewBox="0 0 342 170"><rect width="342" height="170" fill="#e39a58"/>
+${G(0,112,1,MURO(342))}${G(8,92,1,TORRE)}${G(304,92,1,TORRE)}
+${G(134,30,1,TEMPLO)}${G(52,58,1,STOA)}${G(230,62,1,FUENTE(1))}${G(284,72,1,CASA)}${G(18,62,1,OLIVO)}
+${fx('P','',18,238,104)}${fx('P','',18,254,104)}
+${glo(112,8,'Templo · lo pagó tu padre')}${glo(40,40,'Pórtico de Filón')}${glo(186,44,'Fuente: ¿quién la paga?','#7a1f1f')}
+</svg>
+<div class="h5">Fuente pública · elige quién la paga</div>
+<div class="op"><div><em>🪙</em><b>Tú</b>120 de plata<br>pobres +6<br>tu prestigio +3</div><div class="sel"><em>🏺</em><b>Eudoro</b>gratis para ti<br>lleva su nombre<br>le debes 1 favor</div><div><em>🧺</em><b>El pueblo</b>60 y grano<br>tarda el doble<br>pobres +3</div></div>
+<div class="h5">Lo que abre cada obra en la política</div>
+<div class="mini"><span>🏛️ Ágora → corrillos y rumores</span><span>🏠 Casa grande → 5 invitados</span><span>⛲ Fuente → oyes a los pobres</span><span>⛵ Puerto → llegan enviados</span><span>🏺 Templo → oráculo</span><span>🤼 Gimnasio → jóvenes nobles</span><span>🧱 Muralla → discordia lenta</span><span>🎭 Teatro → fiestas que calman</span></div>
+<div class="olla" style="margin-top:8px">🔥<div><b>Discordia 4 de 6</b> · las obras van un tercio más lentas. A 6: motín y arde un edificio.</div></div>`,'');
+
+/* W4 · escena */
+scr('w4','Vasija 2 (4) · Escenas grandes: el rival también juega',
+`<svg class="friso" width="342" height="250" viewBox="0 0 342 250"><rect width="342" height="250" fill="#e39a58"/>
+<rect y="0" width="342" height="16" fill="${K}"/><rect y="234" width="342" height="16" fill="${K}"/><path d="${[...Array(19)].map((_,i)=>`M${i*18+2} 13h12V3h-7v6h3`).join('')}" fill="none" stroke="#d98a4a" stroke-width="1.6"/><path d="${[...Array(19)].map((_,i)=>`M${i*18+2} 247h12v-10h-7v6h3`).join('')}" fill="none" stroke="#d98a4a" stroke-width="1.6"/>
+${G(280,104,2,TORRE)}<path d="M252 234V150a28 28 0 0 1 56 0v84z" fill="#e39a58" stroke="${K}" stroke-width="4"/>
+${G(150,150,1.25,CABALLO)}${G(64,170,1.2,CARRO)}
+${fx('H','',44,62,96)}<path d="M76 100c2-14 22-14 20 4" fill="none" stroke="${K}" stroke-width="4"/>${fx('N','tu',36,98,112)}
+${fx('P','si',22,8,194)}${fx('P','si',22,26,194)}${fx('M','si',22,236,196)}${fx('N','no',22,312,196)}
+${glo(20,24,'«¡Atenea trae a Filón a su ciudad!»')}${glo(196,60,'tus hoplitas siguen en Mégara','#1c120c')}
+</svg>
+<div class="ficha" style="margin-top:6px"><b class="n">Filón vuelve en carro</b><br>A su lado, una mujer alta vestida de diosa. El pueblo se lo cree. <i>Heródoto 1.60 lo cuenta de Pisístrato.</i></div>
+<div class="op"><div class="sel"><em>📣</em><b>Destapar el truco</b>sabes su secreto: la «diosa» es una florista<br>Filón −20, discordia −1</div><div><em>🚪</em><b>Cerrar las puertas</b>no puedes: tus hoplitas están fuera</div><div><em>💍</em><b>Aclamarlo</b>y casar a tu hija: mandáis los dos</div></div>
+<div class="cta" style="margin-top:8px;font-size:12px">La escena se pinta después en tu vasija.</div>`,
+'<div class="vot">Destapar el truco</div>');
+</script></body></html>
