@@ -4,6 +4,14 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 175, fecha: '25/11/2026', cosas: [
+      'Las polis de costa tienen mar: al norte del río se extiende el agua hasta el horizonte.',
+      'El ágora de tu polis es ahora el bouleuterion griego, no el foro romano.',
+      'El arranque se ve más claro: la cámara se acerca a la aldea y la lección ya no tapa las casas.',
+      'Los aldeanos son ahora los personajes de Meshy, con cara, y ya no hay muñecos de bloque.',
+      'Con una polis, solo se gana por las armas: todas las ciudades del mapa o el 90 % del territorio.',
+      'Con una polis, la pestaña Mapa es el mapa vivo de Grecia.',
+      'Si hay una versión nueva del juego, un aviso abajo te deja actualizar con un toque.'] },
     { v: 174, fecha: '25/11/2026', cosas: [
       'Tu polis empieza pequeña: el ágora, unas pocas casas y entre 100 y 200 personas, en el año 800 a.C.',
       'Cada partida nueva sale una comarca distinta: el terreno, el sitio del ágora y los bosques cambian.',

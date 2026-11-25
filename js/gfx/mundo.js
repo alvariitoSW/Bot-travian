@@ -27,11 +27,22 @@ export const NIVEL_RIO = -3;
 export const RIO = suavizar([[-2600, -620], [-1700, -540], [-1000, -470], [-560, -440], [-300, -395], [-90, -405], [70, -470], [200, -440], [300, -365], [420, -335], [560, -385], [820, -430], [1500, -390], [2600, -460]], 14);
 const rioCelda = new Map();
 export function distRio(x, z) { if (z > 200 || z < -1100) return 400; const k = Math.round(x / 6) + ',' + Math.round(z / 6); let d = rioCelda.get(k); if (d === undefined) { d = distPoli(RIO, Math.round(x / 6) * 6, Math.round(z / 6) * 6); rioCelda.set(k, d); } return d; }
+/* PN3b: el mar de las polis de costa. zRio(x) = z del río en esa x (la polilínea es casi una función de x). Con el mar encendido todo lo que queda
+   al norte del río es mar: el relieve baja a fondo marino. Apagado, la altura es exactamente la de siempre (Roma no cambia). */
+let MAR = false;
+const ZR0 = -2700, ZRP = 2; let zrTab = null;
+export function zRio(x) {
+  if (!zrTab) { const n = Math.ceil(5400 / ZRP) + 1; zrTab = new Float32Array(n); for (let i = 0; i < n; i++) { const xx = ZR0 + i * ZRP; let z = null; for (let k = 0; k < RIO.length - 1; k++) { const a = RIO[k], b = RIO[k + 1]; if ((a[0] - xx) * (b[0] - xx) <= 0 && a[0] !== b[0]) { z = a[1] + (b[1] - a[1]) * (xx - a[0]) / (b[0] - a[0]); break; } } zrTab[i] = z === null ? (xx < RIO[0][0] ? RIO[0][1] : RIO[RIO.length - 1][1]) : z; } }
+  const u = (Math.min(2700, Math.max(-2700, x)) - ZR0) / ZRP, i = Math.min(zrTab.length - 2, Math.floor(u)); return zrTab[i] + (zrTab[i + 1] - zrTab[i]) * (u - i);
+}
+export const enMarMundo = (x, z) => z < zRio(x);
+export function ponMar(b) { b = !!b; if (b !== MAR) { MAR = b; G.d = null; } }
+export const hayMar = () => MAR;
 const distRioFina = (x, z) => (z > -60 || z < -1100) ? 400 : distPoli(RIO, x, z);     // el río nunca baja de z = −325: más al sur la distancia pasa de 235 y no cuenta
 
 /* ---------- relieve ---------- */
 export const ARX = [-70, -118], FORO = [12, 52], FORO_GIRO = 0.12, FORO_M = [52, 36];      // foro: medias anchuras
-function alturaDe(x, z, pliegues) {
+function alturaDe(x, z, pliegues, mar) {
   const R = Math.hypot(x, z);
   let h = 7 * (fbm(x / 300 + 7.3, z / 300 + 2.1, 3) - 0.5) + 1.2 * (fbm(x / 40, z / 40, 2) - 0.5);
   const ga = Math.exp(-((x - ARX[0]) ** 2 / 115 ** 2 + (z - ARX[1]) ** 2 / 95 ** 2)); h += 50 * (1 - Math.exp(-3.2 * ga)) / (1 - Math.exp(-3.2));
@@ -41,9 +52,11 @@ function alturaDe(x, z, pliegues) {
   if (R > 900) h += (R - 900) * 0.085 * (0.25 + 1.5 * fbm(x / 700 + 3, z / 700 + 9, 3)) * ss(900, 1500, R);                // lomas lejanas
   if (pliegues && R > 1250) { const pl = 1 - Math.abs(2 * fbm(x / 520 + 60, z / 520 + 13, 3) - 1); h += ss(1250, 2000, R) * (40 + (R - 1250) * 0.03) * (pl - 0.72); }   // pliegues y barrancos en las lomas lejanas
   const d = distRioFina(x, z); if (d < 235) { h = mix(-1.6 + 1.2 * (fbm(x / 60, z / 60, 2) - 0.5), h, ss(60, 230, d)); h = mix(-8, h, ss(38, 70, d)); }
+  if (mar) { const sN = zRio(x) - z; if (sN > -4) h = mix(h, -8 - 0.045 * Math.min(sN, 300) + 0.8 * (fbm(x / 90, z / 90, 2) - 0.5), ss(-4, 70, sN)); }      // PN3b: al norte del río, fondo marino
   return h;
 }
-export const altura = (x, z) => alturaDe(x, z, true);
+export const altura = (x, z) => alturaDe(x, z, true, MAR);
+export const alturaTierra = (x, z) => alturaDe(x, z, true, false);      // sin mar: la rejilla de reglas de ciudad.js se hornea con esta
 
 /* Altura en coordenadas LOCALES del juego, con una rejilla horneada (celda de 3,5) que se muestrea de forma bilineal:
    la gente y la guarnición la piden cada cuadro. Fuera de la rejilla se llama a altura. */

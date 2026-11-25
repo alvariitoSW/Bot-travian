@@ -144,7 +144,11 @@
   const nom = c => NOMBRE[c.id] || c.n || c.id;
   const caminos = v => (v && Array.isArray(v.caminos)) ? v.caminos : [];
 
+  /* PN3b2: partida de polis, solo «Dominio por las armas» */
+  function polisTxt(p) { return 'Dominio por las armas: ' + num(p.n) + ' de ' + num(p.m) + ' ciudades · ' + num(p.pct) + ' % del territorio'; }
+  function polisMeta() { return 'Ganas al conquistar todas las ciudades del mapa o el 90 % del territorio.'; }
   function tira(v) {
+    if (v && v.polis) return '<button type="button" class="cam-caja cam-tira" data-cam="abrir" aria-label="Dominio por las armas: ver el detalle"><div class="cam-tira-t"><b>Dominio por las armas</b><span>' + num(v.polis.n) + ' de ' + num(v.polis.m) + ' ciudades</span></div><div class="cam-lema">' + esc(num(v.polis.pct) + ' % del territorio · meta 90 % o todas las ciudades') + '</div></button>';
     return '<button type="button" class="cam-caja cam-tira" data-cam="abrir" aria-label="Tus caminos: ver el detalle"><div class="cam-tira-t"><b>Tus caminos</b><span>Ganas con ' + num(v && v.necesarios, 3) + ' de ' + num(v && v.total, 4) + '</span></div><div class="cam-fila">' +
       caminos(v).map(c => { const e = estado(c); return '<div class="cam-casi ' + cls(c) + '"' + col(c) + '><div class="cam-ic">' + ico(c.id, 24) + '</div><div class="cam-nom">' + esc(nom(c)) + '</div>' + bar(c) + marca(c, e) + '</div>'; }).join('') + '</div></button>';
   }
@@ -166,6 +170,7 @@
       '<div class="cam-hitos">' + (c.hitos || []).map(hito).join('') + '</div></section>';
   }
   function hoja(v, opts) {
+    if (v && v.polis) return '<div class="cam-caja cam-hoja"><div class="cam-cab"><h2>Dominio por las armas</h2><button type="button" class="cam-cerrar" data-cam="cerrar">Cerrar</button></div><div class="cam-laureles"><div class="cam-cuenta"><b>' + num(v.polis.n) + '/' + num(v.polis.m) + '</b><span>' + esc(polisTxt(v.polis)) + '</span></div></div><p class="cam-lema">' + esc(polisMeta()) + '</p></div>';
     opts = opts || {}; const img = opts.img || {}, lg = num(v && v.logrados), nec = num(v && v.necesarios, 3);
     let lau = ''; for (let i = 0; i < nec; i++) lau += '<div class="cam-lh">' + LAUREL(56, i < lg) + '</div>';
     return '<div class="cam-caja cam-hoja"><div class="cam-cab"><h2>Tus caminos</h2><button type="button" class="cam-cerrar" data-cam="cerrar">Cerrar</button></div>' +
@@ -173,6 +178,7 @@
       caminos(v).map(c => tarjeta(c, img)).join('') + '</div>';
   }
   function victoria(v, opts) {
+    if (v && v.polis) return '<div class="cam-caja cam-vic" role="dialog" aria-label="Victoria"><div class="cam-vic-l">' + LAUREL(150, true) + '</div><h1>¡Victoria!</h1><p>Dominio por las armas</p><p>' + esc(polisTxt(v.polis)) + '</p><div class="cam-vic-bt"><button type="button" class="pri" data-cam="seguir">Seguir jugando</button><button type="button" data-cam="abrir">Ver el detalle</button></div></div>';
     const logs = caminos(v).filter(c => c.logrado || (v.victoria && (v.victoria.caminos || []).indexOf(c.id) >= 0)), n = (v && v.victoria && v.victoria.caminos) ? v.victoria.caminos.length : logs.length;
     return '<div class="cam-caja cam-vic" role="dialog" aria-label="Victoria"><div class="cam-vic-l">' + LAUREL(150, true) + '</div><h1>¡Victoria!</h1><p>Roma te aclama</p>' +
       '<div class="cam-vic-c">' + logs.map(c => '<div class="cam-vic-i"' + col(c) + '>' + ico(c.id, 34) + '<b>' + esc(nom(c)) + '</b></div>').join('') + '</div>' +

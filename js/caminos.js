@@ -186,10 +186,20 @@
     return c;
   };
 
+  /* PN3b2: en la partida de polis solo se gana por las armas (decisión del usuario, PLAN-2.0 M4): todas las ciudades del mapa o el 90 % del territorio.
+     Territorio = peso de las ciudades propias (D.CITIES[id].w, 1 si falta) sobre el de todas las del mapa. */
+  CAM.META_TERRITORIO = 0.9;
+  CAM.dominio = function (s) {
+    const cities = obj(obj(s) && s.cities) || {}, CI = (D && D.CITIES) || {}; let n = 0, m = 0, pm = 0, pn = 0;
+    Object.keys(cities).forEach((id) => { const w = Math.max(1, num(CI[id] && CI[id].w) || 1); m++; pm += w; if (cities[id] && cities[id].owner === 'roma') { n++; pn += w; } });
+    const pct = pm ? Math.floor(pn / pm * 100 + 1e-9) : 0;
+    return { n, m, pct, gana: m > 0 && (n >= m || pn / pm >= CAM.META_TERRITORIO) };
+  };
   CAM.paso = function (s, foto, mes) {
     const c = CAM.migrar(s);
     const out = { efectos: [], logra: [], pierde: [], gana: false };
     if (!c) return out;
+    if (s.polis) { const d = CAM.dominio(s); if (c.victoria === null && d.gana) { c.victoria = { mes, caminos: ['armas'] }; c.victoriaVista = false; out.gana = true; const t = '¡Victoria! Dominas ' + d.n + ' de ' + d.m + ' ciudades (' + d.pct + ' % del territorio). Puedes seguir jugando.'; out.efectos.push({ tipo: 'log', texto: t, tono: 'good' }); c.avisos.push({ mes, texto: t, tono: 'good' }); } c.avisos = c.avisos.slice(-8); return out; }
     const ev = CAM.evaluar(foto);
     const aviso = (texto, tono) => { out.efectos.push({ tipo: 'log', texto, tono }); c.avisos.push({ mes, texto, tono }); };
     ev.caminos.forEach((k) => {
@@ -234,7 +244,7 @@
         sostMeta: CIFRAS.sostener[k.id], fallo: e.fallo, gracia: CIFRAS.gracia, perdido: e.perdidoEn !== null && !e.logrado,
         hitos: k.hitos.map((h) => ({ id: h.id, n: h.n, v: h.v, meta: h.meta, ok: h.ok, avance: h.avance, texto: textoHito(h.id, h) })) };
     });
-    return { caminos, logrados: caminos.filter((k) => k.logrado).length, necesarios: CAM.necesarios(4), total: 4,
+    return { caminos, logrados: caminos.filter((k) => k.logrado).length, necesarios: CAM.necesarios(4), total: 4, polis: s && s.polis ? CAM.dominio(s) : null,
       victoria: c.victoria, nuevaVictoria: !!c.victoria && !c.victoriaVista, avisos: c.avisos };
   };
   CAM.marcarVista = function (s) { const c = CAM.migrar(s); if (c) c.victoriaVista = true; return c; };

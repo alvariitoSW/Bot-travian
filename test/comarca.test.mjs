@@ -71,6 +71,24 @@ t('partida de Roma sin cambios: 280 a.C., sin comarca, «Foro» y la Roma de sie
   const r = G.newGame('Test', 'italia', {}); assert.strictEqual(G.yearOf(r.t), 280); assert.strictEqual(r.comarca, undefined);
   const k = G.newGame('Test', null, { modo: 'corta' }); assert.strictEqual(G.yearOf(k.t), D.START_YEAR); assert.strictEqual(k.comarca, undefined);
 });
+const MU = await import('../js/gfx/mundo.js');
+t('PN3b: polis de costa, nada al norte del río (mar); las demás y Roma, igual que siempre', () => {
+  let costas = 0;
+  for (let sem = 1; sem < 40 && costas < 4; sem++) { const s = nueva('atenas', sem * 977 + 3); if (s.comarca.terreno !== 'costa') continue; costas++;
+    const E = G.ciudadE('roma'), mar = (x, z) => z < MU.zRio(x);
+    for (const l of E.parcelas) if (l.casa) assert.ok(!mar(l.x, l.z), 'casa en el mar');
+    for (const e of E.edificios) assert.ok(!mar(e.x, e.z), e.tipo + ' en el mar');
+    assert.ok(E.foro && !mar(E.foro.x, E.foro.z), 'ágora en el mar');
+    for (const a of E.arboles) if (!a.talado) assert.ok(!mar(a.x, a.z), 'árbol en el mar');
+    for (const v of E.vias) if (v.t !== 'camino') for (const q of v.p) assert.ok(!mar(q[0], q[1]), 'calle en el mar');
+    const test = CI.notaSitio(E, 'granja', E.foro.x, MU.zRio(E.foro.x) - 30); assert.ok(!test.vale && /mar/i.test(test.razones[0]), 'construir en el mar: ' + test.razones[0]);
+    assert.ok(CI.motivoCalle(E, [[E.foro.x, MU.zRio(E.foro.x) - 40], [E.foro.x + 40, MU.zRio(E.foro.x + 40) - 40]]), 'calle en el mar'); }
+  assert.ok(costas >= 2, 'hubo costas ' + costas);
+  nueva('esparta', 31337); const Ee = G.ciudadE('roma'); assert.ok(Ee.terreno !== 'costa' && !Ee.marHecho, 'sin mar fuera de la costa');
+  const R = G.newGame('Test', 'italia', {}); const Er = G.ciudadE('roma'); assert.ok(!Er.marHecho);
+  MU.ponMar(false); let d = 0; for (const [x, z] of [[0, 0], [100, -300], [50, 200], [82, -600]]) d += Math.abs(MU.altura(x, z) - MU.alturaTierra(x, z)); assert.strictEqual(d, 0, 'sin mar la altura es la de siempre');
+  MU.ponMar(true); assert.ok(MU.altura(82, -700) < -10, 'fondo marino'); assert.strictEqual(MU.altura(0, 100), MU.alturaTierra(0, 100), 'la orilla sur no cambia'); MU.ponMar(false);
+});
 delete globalThis.localStorage;
 console.log('arranques', JSON.stringify(arr));
 console.log(mal ? 'comarca: ' + mal + ' MAL de ' + (n + mal) : 'comarca: ' + n + ' bien');
