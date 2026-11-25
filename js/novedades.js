@@ -4,6 +4,20 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 171, fecha: '25/11/2026', cosas: [
+      'Limpieza: fuera las escenas viejas del testudo y la falange a pie; el juego pesa menos y se ve igual.'] },
+    { v: 170, fecha: '25/11/2026', cosas: [
+      'Escaramuza nueva: Ásculo, 279 a.C. Está en Escaramuzas, «Pruebas rápidas».',
+      'Eliges bando: ser Pirro, con su falange, o ser Roma, con tres manípulos que forman el testudo.',
+      'Mandas varios cuerpos a la vez: toca su ficha y dibuja su frente, o el de todos.',
+      'El botón de pausa para el tiempo y te deja dar órdenes con calma.',
+      'Honderos, arqueros y vélites: tocas un rival para marcarlo y disparan salvas que vuelan de verdad.'] },
+    { v: 169, fecha: '25/11/2026', cosas: [
+      'La batalla de la campaña es ya la misma que la de Escaramuzas: jugar en vivo, batalla rápida o resolver.',
+      'Si cierras el juego a mitad de batalla, al volver la retomas donde la dejaste.',
+      'Tus heridos vuelven a filas mes a mes en la ciudad; los del vencido pasan a esclavos o se venden.',
+      'La cámara sigue sola al choque, el campo es más verde y los caballos ya no salen negros.',
+      'La falange a pie tiene su propia explicación al empezar.'] },
     { v: 168, fecha: '24/11/2026', cosas: [
       'Cada tropa tiene sus datos y tres grados de veteranía; en la batalla verás sanos, heridos y muertos.',
       'Falange a pie nueva: baja las sarisas a tiempo, cierra los huecos y aguanta el empuje; si se parten, siguen con el muñón.',

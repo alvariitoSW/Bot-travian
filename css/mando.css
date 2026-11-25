@@ -15,7 +15,7 @@
 
 /* barras sobre cada manípulo: hombres, moral, cansancio (lleno = fresco) */
 #mn .mn-e{position:absolute;left:0;top:0;width:28px;margin:-15px 0 0 -14px;padding:2px;border-radius:3px;background:rgba(14,11,8,.72);border:1px solid #c23a2e;display:flex;flex-direction:column;gap:1px;will-change:transform}
-#mn .mn-e.ene{border-color:#8f6fd0;width:22px;margin-left:-11px}
+#mn .mn-e.ene{border-color:var(--mn-rival,#8f6fd0);width:22px;margin-left:-11px}
 #mn .mn-e.sel{border-color:var(--oro);box-shadow:0 0 0 1px var(--oro)}
 #mn .mn-e.roto{opacity:.55}
 #mn .mn-e i{display:block;height:3px;background:rgba(255,255,255,.14);overflow:clip}
@@ -75,7 +75,7 @@
   #mn-cinta{max-width:calc(100% - 16px)}
 }
 
-/* velos: carga, retirarse, fin (como los de ui-guerra) */
+/* velos: carga, retirarse, fin (como los de la pantalla vieja de la campaña, retirada en CG4b) */
 #mn .velo{z-index:6;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;text-align:center;background:rgba(10,8,6,.74);pointer-events:auto}
 #mn .velo h1{margin:0;font:700 30px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--oro)}
 #mn .velo p{margin:0;max-width:340px;font-size:15px;line-height:1.4}
@@ -86,8 +86,23 @@
 #mn .gordo.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
 #mn .creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
 #mn-carga{background:#15130f!important}
+/* CG4b: mientras carga, «Retirarse» queda por encima del velo (se puede salir sin esperar a los modelos) */
+#mn-hud:has(#mn-carga:not([hidden])) #mn-retirar{position:relative;z-index:7}
 @media (max-height:420px){#mn .velo h1{font-size:26px}#mn .velo{gap:8px}#mn .creditos{position:static}}
 /* LP7: a pie, la capa del bloque (gobierno/maquetas/bloque/) ocupa toda la pantalla; debajo, la batalla grande espera en pausa */
 #mn-apie{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;border:0;z-index:60;background:#15130f;display:block}
 #mn.apie #mn-abajo{display:none!important}
 #mn.apie #mn-hud{visibility:hidden}
+
+/* CG4b: Escaramuzas, «Falange a pie» y sus rivales (venían en css/guerra.css, retirado con la pantalla vieja) */
+#hoja button.esc-falange{width:100%;font:inherit;text-align:left;cursor:pointer;-webkit-appearance:none;appearance:none}
+#hoja button.esc-falange.on{background:linear-gradient(#f3e2b4,#d8bb80);border-color:var(--minio,#a33a22)}
+#hoja button.esc-falange.on i{transform:rotate(135deg);margin-top:-4px}
+#hoja .esc-rv{grid-column:1/-1;margin:0 0 2px;padding:8px;border-radius:6px;border:1px solid rgba(60,35,10,.35);background:rgba(255,245,215,.42)}
+#hoja .esc-rv-t{margin:0 0 6px;font:700 13px 'Cinzel',Georgia,serif;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta2)}
+#hoja .esc-rv-g{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#hoja .esc-rv-b{display:flex;flex-direction:column;justify-content:center;min-height:56px;min-width:0;padding:6px 10px;border-radius:6px;border:1px solid rgba(60,35,10,.45);background:linear-gradient(#fbf1d6,#ead6a6);color:var(--tinta);text-decoration:none;box-shadow:0 1px 0 rgba(60,35,10,.25)}
+#hoja .esc-rv-b:active{background:linear-gradient(#f3e2b4,#d8bb80)}
+#hoja .esc-rv-b b{font:700 15px 'Cinzel',Georgia,serif;letter-spacing:.02em}
+#hoja .esc-rv-b small{margin-top:2px;font:400 12px/1.2 var(--libro,Georgia,serif);color:var(--tinta2)}
+@media (min-width:600px){#hoja .esc-rv-g{grid-template-columns:repeat(4,1fr)}}

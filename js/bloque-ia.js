@@ -163,6 +163,7 @@ export const TIPOS = {
   manipulo:  { hombres: 120, ancho: 20, fondo: 7, atk: 1.45, rec: 0.8,  relevos: 3, cansa: 1 / 45, giro: 8 },
   galos:     { hombres: 140, ancho: 22, fondo: 8, atk: 1.05, rec: 1.0,  relevos: 0, cansa: 1 / 55, giro: 18 },
   nobles:    { hombres: 70,  ancho: 12, fondo: 6, atk: 1.35, rec: 0.9,  relevos: 0, cansa: 1 / 60, giro: 30 },
+  falange:   { hombres: 128, ancho: 12, fondo: 8, atk: 1.45, rec: 0.8,  relevos: 0, cansa: 1 / 45, giro: 8 },   /* ES4: la falange rival (medidas de js/bloque.js: 16 columnas a 0,78 m; gira a V_GIRO) */
   tiradores: { hombres: 40,  ancho: 16, fondo: 3, atk: 0.4,  rec: 1.3,  relevos: 0, cansa: 1 / 40, giro: 30 },
 };
 const TEXTO = { cargar: '¡Pila! ¡A la carga!', alto: '¡Alto! ¡Formad!', testudo: '¡Testudo!', abre: '¡Abrid el testudo! ¡Formad!', relevo: '¡Relevo! ¡Segunda fila, adelante!', retirada: '¡Atrás, paso a paso!' };
@@ -247,9 +248,11 @@ export function crearCombate(m = {}) {
   const tuyo = crea('manipulo', 'tuyo', 'r', 0, 0, 0, n0(F('tuyo')));
   const amigas = [crea('manipulo', 'amiga', 'r', -36, 2, 0, n0(F('amigas', 0))), crea('manipulo', 'amiga', 'r', 36, 2, 0, n0(F('amigas', 1)))];
   const lado0 = azar() < 0.5 ? -1 : 1;
+  /* ES4: m.rival = 'romanos' (tres manípulos y vélites, Ásculo con Pirro) | 'falange' (la falange de Pirro y honderos, Ásculo con Roma); sin él, los galos de siempre */
+  const RIV = m.rival === 'romanos' ? { c: 'manipulo', a: 'manipulo' } : m.rival === 'falange' ? { c: 'falange', a: 'manipulo' } : { c: 'galos', a: 'galos' };
   const ene = {
-    centro: crea('galos', 'centro', 'g', 0, -70 + DZ, Math.PI, n0(F('centro'))),
-    alas: [crea('galos', 'ala', 'g', -36, -70 + DZ, Math.PI, F('alas', 0) ?? 120), crea('galos', 'ala', 'g', 36, -70 + DZ, Math.PI, F('alas', 1) ?? 120)],
+    centro: crea(RIV.c, 'centro', 'g', 0, -70 + DZ, Math.PI, n0(F('centro'))),
+    alas: [crea(RIV.a, 'ala', 'g', -36, -70 + DZ, Math.PI, F('alas', 0) ?? 120), crea(RIV.a, 'ala', 'g', 36, -70 + DZ, Math.PI, F('alas', 1) ?? 120)],
     reserva: crea('nobles', 'reserva', 'g', lado0 * 6, -92 + DZ, Math.PI, F('reserva') ?? P.reserva),
     tiradores: crea('tiradores', 'tiradores', 'g', 0, -58 + DZ, Math.PI, n0(F('tiradores'))),
   };
@@ -262,6 +265,8 @@ export function crearCombate(m = {}) {
     ene.centro.z = -78; for (const a of ene.alas) a.z = -78; ene.reserva.z = -100; ene.tiradores.z = -50;
     S.escenario = { meta: { x: 0, z: -62, r: 9 }, fase: 'cruza', tCarga: -1 };
   }
+  /* ES3b: un cuerpo de apoyo tuyo (tus tiradores, js/tiro.js montaTiradores): un bloque más de bando 'r' que lleva el mando. m.apoyo = { x, z, hombres } */
+  if (m.apoyo) S.apoyo = crea('tiradores', 'tiradores', 'r', m.apoyo.x || 0, m.apoyo.z ?? 20, 0, m.apoyo.hombres || 40);
   /* cada partida, su suerte: la fuerza de cada banda galo varía ±VAR con la semilla */
   for (const b of S.bloques) b.atkNivel = b.bando === 'g' ? P.fuerza * (b.papel === 'ala' ? P.alas : 1) * (1 - VAR + azar() * 2 * VAR) : 1;
   S.tuyo = tuyo; S.amigas = amigas; S.ene = ene;
@@ -571,6 +576,7 @@ export function crearCombate(m = {}) {
   /* ---------- las jabalinas de los tiradores galos ---------- */
   function abierto(b) { return b.orden !== 'testudo' && (b.orden === 'cargar' || b.tRelevo > S.T || enChoque(b)); }
   function tiradores(dt) {
+    if (m.tiroRival) return;   /* ES4: los tiradores rivales los lleva js/tiro.js (montaTiradores con rival: true) */
     const t = ene.tiradores, I = S.ia; if (!vivo(t)) return;
     if (S.salva) {
       if (S.T >= S.salva.t) {
@@ -655,7 +661,7 @@ export function crearCombate(m = {}) {
       else A.obj = vivo(C) ? null : puntoFrente(blanco, A);
     });
     /* tiradores: se acercan a tiro y se apartan del choque */
-    if (vivo(Ti) && Ti.estado !== 'huye') {
+    if (!m.tiroRival && vivo(Ti) && Ti.estado !== 'huye') {
       const c = centro(blanco), cT = centro(Ti), d = dist(c, cT);
       if (I.salvas > 0 && d > D_SALVA - 4) { const k = (d - (D_SALVA - 6)) / d; Ti.obj = { x: cT.x + (c.x - cT.x) * k, z: cT.z + (c.z - cT.z) * k, ang: angHacia(c.x - cT.x, c.z - cT.z) }; }
       else if (d < 26 || I.salvas <= 0) { const a = angHacia(cT.x - c.x, cT.z - c.z), f = fr(a); Ti.obj = { x: cT.x + f.x * 10, z: cT.z + f.z * 10, ang: angDif(a + Math.PI, 0) }; }
@@ -734,8 +740,33 @@ export function crearCombate(m = {}) {
   }
   function amiga(b, dt) {
     if (b.U.roto) return mueveHuida(b, dt);
+    /* ES2: una compañera con orden del mando (js/mando-varios.js) carga o para como tu manípulo; sin orden, todo como antes */
+    if (b.orden === 'cargar' && !enChoque(b)) {
+      const v = delanteDe(b, 80, 70 * GRADO);
+      if (v) { const c = centro(v.o), f = fr(b.ang), k = v.o.fondo / 2 + 8; b.obj = { x: c.x + f.x * k, z: c.z + f.z * k, ang: b.ang };
+        if (v.o.estado === 'huye' || retirando(v.o)) b.coh = Math.max(0, b.coh - 2.5 * dt); } else b.obj = null;
+    }
+    if (b.orden === 'alto') b.obj = null;
     if (enChoque(b) && b.fila >= AGOTADA && b.relevos > 0 && b.tRelevo < S.T) { b.relevos--; b.tRelevo = S.T + T_RELEVO; }
     mueve(b, dt);
+    if (b.orden === 'marcha' && !b.obj) b.orden = null;
+  }
+  /* ES2: las órdenes y el frente de cualquier bloque tuyo (la falange es S.tuyo; los manípulos, S.amigas). Para tuyo, las de siempre */
+  function ordenDe(b, n) {
+    if (b === tuyo) return orden(n);
+    if (S.ganador || !ORDENES.includes(n) || b.U.roto || b.estado === 'fuera' || b.estado === 'retira') return false;
+    if (n === 'retirada') return retirada(b, D_RETIRA);
+    if (b.estado === 'reforma') b.estado = enChoque(b) ? 'choque' : 'forma';
+    if (n === 'testudo' && b.orden === 'testudo') { b.orden = 'alto'; b.tOrden = S.T; b.obj = null; return true; }
+    if (n === 'relevo') { if (b.relevos <= 0 || b.tRelevo > S.T) return false; b.relevos--; b.tRelevo = S.T + T_RELEVO; b.coh = Math.max(0, b.coh - 4); S.cuenta.relevos++; b.agotada = false; return true; }
+    if (n === 'cargar') { if (b.orden !== 'cargar') { S.cuenta.cargas++; b.cargaAl = true; } b.obj = null; }
+    if (n === 'alto') b.obj = null;
+    b.orden = n; b.tOrden = S.T; return true;
+  }
+  function frenteDe(b, o) {
+    if (b === tuyo) return frente(o);
+    if (S.ganador || !o || b.U.roto || b.estado === 'fuera' || b.estado === 'retira') return;
+    b.obj = { x: o.x, z: o.z, ang: o.ang }; if (b.orden === 'cargar' || b.orden === 'alto' || b.orden === null) b.orden = 'marcha';
   }
   function fin() {
     const { centro: C, reserva: R, alas } = ene;
@@ -819,7 +850,7 @@ export function crearCombate(m = {}) {
     return k;
   }
   S.lucha = LUCHA ? 'motor' : 'reglas';
-  return { S, paso, orden, forma, formaUtil, baja, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
+  return { S, paso, orden, ordenDe, frenteDe, forma, formaUtil, baja, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
 }
 
 /* una partida entera con un bot (para las pruebas y el juez) */

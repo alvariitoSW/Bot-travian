@@ -2,7 +2,6 @@
    (test/sim-paralelo.js). Las reglas y los criterios siguen en test/sim.test.js; aquí solo está cómo juega el bot. */
 const assert = require('assert');
 const D = require('../js/data.js');
-const { Battle } = require('../js/battle.js');
 const G = require('../js/game.js');
 const MERCADO = require('../js/mercado.js');
 const botMercado = require('./bot-mercado.js');
@@ -43,7 +42,7 @@ function campaign1(aggressive, region, opciones) {
   // CDe4 (CE10): la campaña larga ya no acaba al tomar Cartago ni por años: el bot para al lograr los caminos (s.caminos.victoria) o al llegar al año límite
   while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {   // CDe4 (plan A del vigía): la campaña larga para en el 150 a.C., donde se mide el criterio «aguanta»; sin fin por Cartago, jugar hasta el 145 pasaba de la hora
     G.tick(0.25);
-    while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
+    while (s.pending.length && !s.over) { const r = G.resolverPendiente(); if (process.env.DBG) console.log(G.yearOf(s.t), r.info.kind, r.info.city, JSON.stringify(r.info.cfg.sides.map(x => x.units)), 'wall', r.info.cfg.wall, r.plan.via, '->', r.out.win); }   // CG4c: la batalla jugada (maniobra y simulador, como «Delegar»), no js/battle.js
     if (G.fraccionMes() >= 0.7) botAgro(s);   // CDe3-F2a: campos, ventas y una ruta del mercado nuevo
     if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: al final de cada mes el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
     if (guard % 8) continue;

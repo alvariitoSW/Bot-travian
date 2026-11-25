@@ -8,6 +8,10 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~09:45 (vigía 4), usuario «1 A 2 A»: (1) SB7 dio 42/43 solo porque el bot investigador pasó su plazo de 20 min con todo a la vez (solo: APTO en 759 s): su plazo sube a 30 min en `jueces.mjs` (no es vara de calidad), se repite ese juez y se sube la 1.0. (2) Aníbal contra una Roma que no recluta: se deja así (hay que prepararse para Aníbal).
+- 25/11 (vigía 4, noche): CG4c hecha. Su pregunta «Aníbal contra una Roma que no recluta (cae hacia el 215)»: aplicado lo recomendado (A, dejarlo: hay que prepararse para Aníbal); (B) sería recontar su ejército. Se le cuenta en el resumen de la mañana.
+- 25/11 (vigía 4, noche): CG4b hecha y unida (v169). Su pregunta «dureza de la campaña al delegar» (Roma cae hacia el 250 si delegas todo): aplicado lo recomendado (A, calibrar) por la orden de no preguntar de noche → CG4c. Se le cuenta en el resumen de la mañana.
+- 25/11/2026 ~01:20 — **Subido a `main` (SB6)**: `feeb264f`, caché **v168**; jueces completos APTO 43/43. Lleva CG9 (datos de tropas), CE12 (caminos), falange FU3–FU3c (othismos), FU4 (rivales y elefantes), FU5 (muro y orden abierto) y TH1 (tácticas). Detrás: CG4b (campaña, rama `cg4b-campana`), FU6 y UN3 (combinada), subida final.
 - 24/11/2026 ~23:50 — **Orden de subir** (botón «Subir lo terminado a mi móvil»): abierta SB6, que espera a UN2 y sube con jueces completos.
 - 24/11/2026 ~23:45 — Dureza de los elefantes (FU4): **«A»**, como están (ganan 4 de 5 partidas, unas 60 bajas tuyas de 96, 26–39 picas rotas).
 - 24/11/2026 ~23:40 — (vía FU3c) Dureza del othismos: **(A) como está** (ganas tocando bien, pierdes sin tocar). Pregunta si la falange ya está en main: no; el vigía hace una **subida a main justo después de UN2** (SB6, jueces completos) para que la vea en el móvil sin esperar a CG4b.

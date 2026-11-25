@@ -5,13 +5,16 @@
    Uso: const cine = crearCine({ THREE, camara, cam, ponCamara, S });
      cine.apertura(t?) tras colocar la cámara de mando (cam ya en su sitio): plano ancho y bajada (unos 5 s; un toque la acaba)
      cine.tick()       en cada cuadro, antes de dibujar (usa el reloj real: también corre en pausa)
-     cine.toca()       el dedo toca el lienzo: acaba la apertura al instante
-     cine.libre()      el jugador mueve la cámara: deja de seguir el choque
+     cine.toca()       el dedo toca el lienzo: acaba la apertura al instante y la cámara se queda quieta unos segundos
+     cine.libre()      el jugador mueve la cámara: deja de seguir el choque y manda él unos segundos
+   CG4b: fuera de esos segundos y sin pausa, la cámara se desliza sola, despacio, hacia el centro de la lucha (o, si aún no
+   hay lucha, hacia el medio entre los dos ejércitos que avanzan). No cambia la distancia: el acercamiento lo decide el jugador.
      cine.evento(e)    un momento del registro del simulador (choque, carga, carga-frenada, ruptura…)
    Coordenadas: X = x del simulador, Z = −y. */
 const suave = t => { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
 const QUIETO = 2.4, BAJADA = 3.2;          /* segundos del plano ancho y de la bajada hasta el mando */
-const DESCANSO = 12;                       /* tras mover tú la cámara, tantos segundos sin que el cine la coja */
+const DESCANSO = 6;                        /* tras tocar tú la cámara (arrastrar, pellizcar, mandar), tantos segundos sin que el cine la coja */
+const ARRASTRE = 0.35;                     /* CG4b: rapidez (1/s) con que la cámara se desliza hacia el choque o el avance */
 
 export function crearCine({ THREE, camara, cam, ponCamara, S }) {
   const reloj = () => performance.now() / 1000;
@@ -45,6 +48,14 @@ export function crearCine({ THREE, camara, cam, ponCamara, S }) {
     for (const u of S.man) if (vivo(u) && S.cont && S.cont[u.id] && S.cont[u.id].length) { x += u.x; z -= u.y; n++; }
     return n ? { x: x / n, z: z / n } : null;
   }
+  /* sin lucha: el medio entre los dos ejércitos (el centro de cada bando), que se mueve cuando avanzan */
+  function centroAvance() {
+    const c = [[0, 0, 0], [0, 0, 0]];
+    for (const u of S.man) if (vivo(u) && c[u.lado]) { c[u.lado][0] += u.x; c[u.lado][1] -= u.y; c[u.lado][2]++; }
+    if (!c[0][2] || !c[1][2]) return null;
+    return { x: (c[0][0] / c[0][2] + c[1][0] / c[1][2]) / 2, z: (c[0][1] / c[0][2] + c[1][1] / c[1][2]) / 2 };
+  }
+  let ancla = null;   /* dónde estaba el centro cuando la cámara quedó libre: se sigue cuánto se ha movido, no se salta al centro */
 
   function tick() {
     const ahora = reloj(), dt = Math.min(0.1, Math.max(0, ahora - tAnt)); tAnt = ahora;
@@ -67,7 +78,14 @@ export function crearCine({ THREE, camara, cam, ponCamara, S }) {
           const k = 1 - Math.exp(-dt * (ahora - siguiendo.t0 < 2.5 ? 1.4 : 0.8));
           cam.x += (c.x - cam.x) * k; cam.z += (c.z + 25 - cam.z) * k; cam.d += (siguiendo.d - cam.d) * k;
         }
-      }
+        ancla = null;
+      } else if (!S.pausa && S.fase !== 'fin' && ahora - tLibre > DESCANSO) {
+        /* CG4b: la cámara sigue al choque. Con lucha, se acerca a su centro; sin ella, acompaña el avance sin saltar */
+        const l = centroLucha(), k = 1 - Math.exp(-dt * ARRASTRE);
+        if (l) { cam.x += (l.x - cam.x) * k; cam.z += (l.z + 25 - cam.z) * k; ancla = null; }
+        else { const a = centroAvance();
+          if (a) { if (!ancla) ancla = { x: a.x - cam.x, z: a.z - cam.z }; cam.x += (a.x - ancla.x - cam.x) * k; cam.z += (a.z - ancla.z - cam.z) * k; } }
+      } else ancla = null;
       ponCamara();
     }
     /* el temblor: unos centímetros por metro de distancia, que se apaga en medio segundo */
@@ -96,9 +114,9 @@ export function crearCine({ THREE, camara, cam, ponCamara, S }) {
 
   return {
     apertura, tick, evento,
-    toca() { acabaApertura(); },
-    libre() { acabaApertura(); siguiendo = null; tLibre = reloj(); },
-    get modo() { return modo === 'apertura' ? 'apertura' : siguiendo ? 'sigue' : 'mando'; },
+    toca() { acabaApertura(); tLibre = reloj(); },
+    libre() { acabaApertura(); siguiendo = null; tLibre = reloj(); ancla = null; },
+    get modo() { return modo === 'apertura' ? 'apertura' : siguiendo ? 'sigue' : reloj() - tLibre > DESCANSO && !S.pausa && S.fase !== 'fin' ? 'acompana' : 'mando'; },
     get temblor() { return temblor; }
   };
 }

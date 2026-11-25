@@ -15,7 +15,7 @@ const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -
 /* azar fijo por hombre (no toca el azar de la partida) */
 const hash = k => { const v = Math.sin(k * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
 /* huecos por tipo de bloque: de lado (m), de fondo (m) y cuánto se desordena cada hombre (m). Licencia de juego */
-const HUECO = { manipulo: [1.0, 1.2, 0.08], galos: [1.3, 1.35, 0.38], nobles: [1.2, 1.3, 0.25], tiradores: [1.7, 1.8, 0.5] };
+const HUECO = { falange: [0.78, 0.95, 0.08], manipulo: [1.0, 1.2, 0.08], galos: [1.3, 1.35, 0.38], nobles: [1.2, 1.3, 0.25], tiradores: [1.7, 1.8, 0.5] };
 const DUR = { golpear: 1.55, lanzar: 1.85, cubrirse: 1.25, morir: 2.4, encajar: 0.35 };
 const CAIDOS_MAX = 700;
 const FRENA = 0.88;   /* LP5a: el que va contra alguien afloja hasta 1 − FRENA de su paso (lo mismo que fisica.js FRENA) */

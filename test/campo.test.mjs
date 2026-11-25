@@ -9,7 +9,7 @@ function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e)
 let base = null;
 const nueva = () => {
   if (!base || G.state !== base) base = G.newGame('Test', 'mediterraneo', {});
-  const s = base; G.onEvent = null; G.turnos = false; s.turnos = false; s.t = 0; s.marches = []; s.pending = []; s.cities.roma.units = { hastati: 300 }; s.ajustes.hora = 'elijo';
+  const s = base; G.onEvent = null; G.turnos = false; s.turnos = false; s.t = 0; s.marches = []; s.pending = []; s.cities.roma.units = { hastati: 300 }; delete s.cities.roma.heridos; s.ajustes.hora = 'elijo';
   s.hero.city = 'roma'; s.hero.march = null; s.hero.wound = 0; return s;
 };
 // una marcha a mano: roma → o enemiga (owner), por el camino de a hacia b

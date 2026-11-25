@@ -180,7 +180,7 @@ function cortaHtml() {
   const b = (k, act) => '<button class="btn corta" data-act="' + act + '">' + esc(m.inicio[k].n) + '</button><small class="cortad">' + esc(m.inicio[k].d) + '</small>';
   return '<div class="cortab"><b>Partida corta (Italia, ' + m.duracion.horasMin + ' a ' + m.duracion.horasMax + ' horas)</b>' + b('enPie', 'cortaen') + b('fundar', 'cortafun') + '</div>';
 }
-/* ES1 «Escaramuzas»: batalla suelta desde el menú, con el motor de guerra (Guerra y UIGuerra) y sin campaña: no lee ni escribe la partida guardada.
+/* ES1 «Escaramuzas»: batalla suelta desde el menú, con el simulador de manípulos (js/simulador.js) y sin campaña: no lee ni escribe la partida guardada.
    Se elige en tablillas de cera; «Empezar la batalla» (sello) abre la guerra; al acabar, la hoja «escfin» con el resultado. */
 const milesTxt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 /* MR3b: Escaramuzas con ideas de la batalla personalizada de Rome II (estudios/MR3-menus-rome2.md): los dos bandos frente a frente
@@ -200,8 +200,20 @@ function escFinHtml() {
   const x = UI.escRes; if (!x) return '<div class="empty">Sin resultado.</div>';
   const R = x.res, t = { victoria: 'Victoria', derrota: 'Derrota', retirada: 'Retirada' }[R.como] || 'Fin', m = Math.floor(R.t / 60), sg = Math.round(R.t % 60);
   return '<div class="esc esc-fin"><h3 class="esc-res ' + R.como + '">' + t + '</h3><p class="esc-d">' + esc(R.motivo || '') + '</p>' +
-    '<div class="esc-cif"><span>Tus bajas</span><b>' + milesTxt(R.bajas[0]) + ' de ' + milesTxt(R.inicial[0]) + '</b><span>Bajas de ' + esc(D.FACTIONS[x.fac] ? D.FACTIONS[x.fac].n : '') + '</span><b>' + milesTxt(R.bajas[1]) + ' de ' + milesTxt(R.inicial[1]) + '</b><span>Duración</span><b>' + m + ' min ' + sg + ' s</b></div>' +
+    '<div class="esc-cif"><span>Tus bajas</span><b>' + milesTxt(R.bajas[0]) + ' de ' + milesTxt(R.inicial[0]) + '</b><span>Bajas de ' + esc(D.FACTIONS[x.fac] ? D.FACTIONS[x.fac].n : '') + '</span><b>' + milesTxt(R.bajas[1]) + ' de ' + milesTxt(R.inicial[1]) + '</b><span>Duración</span><b>' + m + ' min ' + sg + ' s</b></div>' + escHeridosHtml(R) +
     '<button class="btn ro-sello esc-go" data-act="hoja" data-v="escaramuza">Otra escaramuza</button><button class="btn ghost esc-go" data-act="hojax">Volver al menú</button></div>';
+}
+// CG4b (pase de CG9): muertos y heridos de cada bando, en frases cortas. Sin esos datos (resultado viejo), nada
+function escHeridosHtml(R) {
+  if (!R || !Array.isArray(R.muertos) || !Array.isArray(R.heridos)) return '';
+  const fr = [], n = milesTxt, gano = R.como === 'victoria';
+  fr.push('Tuyos: ' + n(R.muertos[0]) + ' muertos y ' + n(R.heridos[0]) + ' heridos.');
+  fr.push('Del enemigo: ' + n(R.muertos[1]) + ' muertos y ' + n(R.heridos[1]) + ' heridos.');
+  if (gano && R.recuperados > 0) fr.push('Te quedas con el campo: tus ' + n(R.recuperados) + ' heridos se recuperan.');
+  if (R.prisioneros > 0) fr.push('Sus ' + n(R.prisioneros) + ' heridos caen prisioneros.');
+  if (!gano && R.recuperados > 0) fr.push('El enemigo recoge a sus ' + n(R.recuperados) + ' heridos.');
+  if (R.cautivos > 0) fr.push('Tus ' + n(R.cautivos) + ' heridos caen prisioneros.');
+  return '<p class="esc-d">' + fr.map(esc).join('<br>') + '</p>';
 }
 function escEmpieza() {
   if (!ESC.listo()) { toast('Pon al menos un manípulo en cada bando.', 'bad'); return; }
@@ -210,11 +222,9 @@ function escEmpieza() {
     setTimeout(() => { if (UI.menu) hojaAbre('escfin'); }, 0);   // después del toque en «Ver el resultado»: el oyente general cierra las hojas
   };
   /* CG4: las escaramuzas van con el simulador de manípulos (js/simulador.js) y la pantalla de mando (js/ui-mando.js); su resumen trae
-     estado.resultado = {como, motivo, t, bajas, inicial}, lo mismo que espera escFinHtml. Si no cargan, la batalla vieja. */
-  if (window.UIMando && window.Simulador) { hojaCierra(true); UI.escRes = null; const cfg = { semilla: e.semilla, ejercitos: e.ejercitos, campo: e.campo, col: (D.FACTIONS[e.fac] || {}).col }; import('./ui-batalla-rapida.js').then(() => window.UIBatallaRapida.elegir(cfg, alFin, { volver: () => hojaAbre('escaramuza') })).catch(() => window.UIMando.abrir(cfg, alFin)); return; }   // CG7 (CDe4)
-  if (!window.UIGuerra || !window.Guerra) { toast('No se ha podido cargar la batalla.', 'bad'); return; }
-  hojaCierra(true); UI.escRes = null;
-  window.UIGuerra.abrir({ estado: window.Guerra.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), campo: e.campo }, alFin);
+     estado.resultado = {como, motivo, t, bajas, inicial, sanos, heridos, muertos, prisioneros, cautivos, recuperados}, lo que lee escFinHtml. */
+  if (!window.UIMando || !window.Simulador) { toast('No se ha podido cargar la batalla.', 'bad'); return; }
+  { hojaCierra(true); UI.escRes = null; const cfg = { semilla: e.semilla, ejercitos: e.ejercitos, campo: e.campo, col: (D.FACTIONS[e.fac] || {}).col }; import('./ui-batalla-rapida.js').then(() => window.UIBatallaRapida.elegir(cfg, alFin, { volver: () => hojaAbre('escaramuza') })).catch(() => window.UIMando.abrir(cfg, alFin)); return; }   // CG7 (CDe4)
 }
 /* MR3b «Menú principal tipo Rome 2» (estudios/MR3-menus-rome2.md, maqueta capturas-tarea/MR3-7): arriba águila y nombre; la campaña
    guardada en papiro con «Continuar» en sello (lo más grande); sin partida, el papiro es «Nueva campaña» con el general y la dificultad;
@@ -1326,6 +1336,7 @@ function reclutarHtml(c, bid) {
 function viewArmy() {
   const s = S(), c = s.cities[UI.city], p = G.prod();
   let h = '<h2 class="vtit">Tropas</h2>' + (window.laminaHtml ? laminaHtml('tropas') : '') + cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
+  { const hr = G.heridosDe(UI.city), nh = G.men(hr); if (nh > 0) h += '<div class="empty">🩹 Heridos: ' + nh + ' (' + Object.keys(hr).map(k => hr[k] + ' ' + D.UNITS[k].n.toLowerCase()).join(', ') + '). Vuelven a filas poco a poco cada mes.</div>'; }   // CG4b
   h += '<div class="empty">' + popHtml(c) + '</div>';
   h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' denarios (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' denarios · 🛡️ Guardia urbana al defender: ' + (20 + 20 * G.nivelMuralla(c)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
   h += reclutarHtml(c);
@@ -1843,18 +1854,30 @@ function iniciaNueva(info, pl, resto) {
   try { iniciaNueva2(info, pl, resto); } catch (err) { console.error(err); UI.nueva = false; toast('No se pudo abrir la batalla nueva.', 'bad'); }
 }
 function iniciaNueva2(info, pl, resto) {
-  // GC4: la pantalla de la Guerra. Se guarda a mitad (G.guardarGuerra) para poder retomarla si se recarga la página; al acabar se borra
-  const alChoque = (ch, estM, estado) => window.UIGuerra.abrir({ estado: estado || G.estadoGuerra(info, ch), guardar: B => G.guardarGuerra(info, B, estM) }, r2 => { G.borrarGuerra(); endBattle(G.resultadoNueva(info, r2, estM)); });
-  if (resto) { alChoque(null, resto.estM, resto.estado); return; }
-  if (pl.via === 'maniobra') window.UIManiobra.abrir(G.cfgManiobra(info), r => { if (r.accion === 'batalla') alChoque(r.choque, r.estado); else endBattle(G.resultadoManiobra(info, r.estado)); });
-  else alChoque(null, null);
+  /* CG4b: el choque es la misma batalla de Escaramuzas (js/simulador.js): la hoja «Jugar en vivo / Batalla rápida / Resolver» (js/ui-batalla-rapida.js)
+     y el mando en vivo (js/ui-mando.js). Se guarda a mitad (cfg.guardar → G.guardarGuerra) para retomarla si se recarga la página; al acabar se borra. */
+  const fin = estM => r => { G.borrarGuerra(); endBattle(G.resultadoNueva(info, r, estM)); };
+  const cfgDe = (ch, estM) => { const c = Object.assign(G.cfgSim(info, ch), { guardar: S => G.guardarGuerra(info, S, estM) }); c.S = window.Simulador.crear(c); return c; };   // el estado ya creado lleva los modificadores y el tribuno de la campaña (UIMando y la hoja usan cfg.S)
+  if (!window.UIMando || !window.Simulador) { UI.nueva = false; toast('No se ha podido cargar la batalla.', 'bad'); battlePrompt(); return; }
+  if (resto) { window.UIMando.abrir(Object.assign(cfgDe(null, resto.estM), { S: resto.estado }), fin(resto.estM)); return; }
+  const alChoque = (ch, estM, volver) => {
+    const cfg = cfgDe(ch, estM), hoja = () => window.UIBatallaRapida.elegir(cfg, fin(estM), { volver });
+    import('./ui-batalla-rapida.js').then(hoja).catch(err => { console.error(err); window.UIMando.abrir(cfg, fin(estM)); });   // sin la hoja, en vivo
+  };
+  const aPregunta = () => { UI.nueva = false; battlePrompt(); };   // «Volver» antes de empezar: a la pregunta de la batalla
+  if (pl.via === 'maniobra') window.UIManiobra.abrir(G.cfgManiobra(info), r => {
+    if (r.accion !== 'batalla') { endBattle(G.resultadoManiobra(info, r.estado)); return; }
+    const otraVez = () => alChoque(r.choque, r.estado, () => { toast('La maniobra ya acabó: toca librar la batalla.'); otraVez(); });   // tras la maniobra no hay vuelta atrás
+    otraVez();
+  });
+  else alChoque(null, null, aPregunta);
 }
 function endBattle(res) {
   UI.nueva = false;
   const info = UI.binfo, out = G.applyBattle(res), d = D.CITIES[info.city];
   const loss = side => Object.keys(res.lost[side]).filter(k => res.lost[side][k] > 0).map(k => '<div><span>' + D.UNITS[k].n + '</span><b>−' + res.lost[side][k] + '</b></div>').join('') || '<div><span>Sin bajas</span></div>';
-  modal('<div class="yr">' + (out.kind === 'campo' ? esc(out.campo.nombre.toUpperCase()) : (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase()) + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
-    '<div class="vs"><div class="side"><h4 style="color:#ff9c8c">Bajas romanas</h4>' + loss(0) + '</div><div class="side"><h4>Bajas enemigas</h4>' + loss(1) + '</div></div>' +
+  carta('<div class="yr">' + (out.kind === 'campo' ? esc(out.campo.nombre.toUpperCase()) : (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase()) + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
+    '<div class="vs"><div class="side"><h4 style="color:var(--minio)">Bajas romanas</h4>' + loss(0) + '</div><div class="side"><h4>Bajas enemigas</h4>' + loss(1) + '</div></div>' +
     (res.objetivo ? '<p><b>' + (res.objetivo.cumplido || res.objetivo.ok ? 'Objetivo cumplido' : 'Objetivo no cumplido') + ':</b> ' + esc(res.objetivo.texto || '') + '</p>' : '') + '<p>' + out.lines.map(esc).join('\n') + '</p><div class="acts"><button class="btn" data-act="bdone">Continuar</button></div>', true);
 }
 
@@ -2071,7 +2094,7 @@ loadStaticIndex().then(idx => { const ks = Object.keys(idx).filter(k => !k.start
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
   cuenta.c = true; finCarga();
 }, () => { cuenta.c = true; finCarga(); });
-window.UI = UI; UI.maniobra = window.UIManiobra; UI.guerra = window.UIGuerra; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
+window.UI = UI; UI.maniobra = window.UIManiobra; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 
 
 /* CD2a (CDe4): botón «Calles» en la fila de «Construir»; mientras se trazan, la bandeja de abajo se esconde */

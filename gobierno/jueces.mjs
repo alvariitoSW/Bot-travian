@@ -64,7 +64,7 @@ const LOGICA = [
     return (r.status === 0 ? l.filter(x => /^Resumen/.test(x)).join('') : l.filter(x => /✘ /.test(x) && !/^  ✘ (edificio|tropa|ciudad|hecho|faccion|mejora) /.test(x)).slice(0, 3).join(' | ')).slice(0, 400); } },
   { id: 'mapa', nombre: 'Alturas reales del mapa', f: 'test/mapa.test.mjs', t: 60000, todo: true, lee: r => ((r.stdout || '').trim().split('\n').slice(-2).join(' | ') || (r.stderr || '').trim().split('\n').slice(-2).join(' | ')).slice(0, 400) },
   { id: 'saber', nombre: 'Reglas del Saber', f: 'test/saber.test.mjs', t: 120000, lee: ultima },
-  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1200000, lee: ultima, completo: true },   // ~40 s: solo en el recorrido completo
+  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1800000, lee: ultima, completo: true },   // ~13 min solo (campaña larga hasta el 150 desde CDe4); 30 min con --todo (usuario 25/11 «1A», SB7): solo en el recorrido completo
   { id: 'ajustes', nombre: 'Ajustes y dificultades (bot por nivel)', f: 'test/ajustes.test.mjs', t: 1800000, lee: ultima },
   { id: 'diplomacia', nombre: 'Diplomacia (alianza, tributo, IA construye)', f: 'test/diplomacia.test.mjs', t: 60000, lee: bienMal },
   { id: 'sonido-ciudad', nombre: 'Sonido de la ciudad', f: 'test/sonido-ciudad.test.mjs', t: 60000, lee: ultima },
@@ -403,38 +403,47 @@ async function navegador() {
       return { ok: true, detalle: await estado(() => document.querySelector('#mbox h2').textContent), captura: await foto('aviso-batalla') };
     });
 
-    // GC4: la batalla es la Guerra (js/ui-guerra.js). Con más de 600 hombres pasa antes por la maniobra.
+    // CG4b: la batalla de la campaña es la del simulador (js/simulador.js), como Escaramuzas: hoja «¿Cómo quieres librar la batalla?»
+    // (js/ui-batalla-rapida.js) y «Jugar en vivo» abre el mando (js/ui-mando.js, window.__mn). Con más de 600 hombres pasa antes por la maniobra.
     await paso('Dirigir la batalla (horizontal): una orden con el dedo', { de: 'batallas', para: ['musculo'] }, async () => {
       await page.setViewportSize({ width: 844, height: 390 });
       await page.click('#mbox [data-act="bview"]'); await espera(1500);
-      for (let i = 0; i < 14 && !(await page.locator('#gu').count()); i++) {
+      for (let i = 0; i < 14 && !(await page.locator('#br-el').count()); i++) {
         if (await page.locator('.m-choque [data-a="batalla"]').count()) { await page.click('.m-choque [data-a="batalla"]'); await espera(800); break; }
         if (await page.locator('[data-a="pasar"]').count()) { await page.click('[data-a="pasar"]'); await espera(400); } else await espera(400);
       }
-      await page.waitForFunction(() => window.__gc && window.__gc.lista === true, null, { timeout: 120000 }).catch(() => {});
-      const lista = await estado(() => !!(window.__gc && window.__gc.lista));
-      if (!lista) return { ok: false, detalle: 'la pantalla de la batalla no llegó a estar lista' };
-      await espera(2000);
-      const retirar = await page.isVisible('#gu-retirar'), cuerpos = await page.locator('#gu .cuerpo').count(), ordenes = await page.locator('#gu .orden').count();
-      /* GM5: de lejos los botones son Avanzar/Escudos/Testudo; ya trabados, Empujar/Aguantar/Relevo. Se pulsa el segundo: Escudos o Aguantar */
-      await page.tap('#gu .cuerpo[data-i="1"]'); const o2 = await page.locator('#gu .orden').nth(1).getAttribute('data-o'); await page.tap('#gu .orden[data-o="' + o2 + '"]'); await espera(500);
-      const empuja = await estado(o => window.__gc.B.sect[1].c[0].postura === o, o2);
+      const hoja = await page.waitForSelector('#br-el', { timeout: 30000 }).then(() => true, () => false);
+      if (!hoja) return { ok: false, detalle: 'no salió la hoja «¿Cómo quieres librar la batalla?»', captura: await foto('batalla') };
+      const opciones = await page.locator('#br-el [data-k="vivo"], #br-el [data-k="rapida"], #br-el [data-k="resolver"]').count();
+      await page.click('#br-el [data-k="vivo"]');
+      await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => {});
+      const lista = await estado(() => !!(window.__mn && window.__mn.lista));
+      if (!lista) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('batalla') };
+      await espera(2000); await page.waitForFunction(() => window.__mn.cine() !== 'apertura', null, { timeout: 60000 }).catch(() => {});
+      /* una orden con el dedo: tocar un manípulo tuyo y luego «Aguantar» */
+      const id = await estado(() => { const S = window.__mn.S, u = S.man.find(m => m.lado === 0 && m.tropa === 'hastati' && m.estado === 'firme') || S.man.find(m => m.lado === 0); return u.id; });
+      let elegido = false;
+      for (let k = 0; k < 3 && !elegido; k++) { const p = await estado(i => window.__mn.pantalla(i), id); await page.mouse.click(Math.round(p.x), Math.round(p.y)); await espera(700); elegido = (await estado(() => window.__mn.estado().sel)).includes(id); }
+      const b = page.locator('#mn-ordenes .mn-o').filter({ hasText: 'Aguantar' }).first();
+      if (elegido && await b.count()) { await b.click(); await espera(500); }
+      const obedece = await estado(i => { const u = window.__mn.S.man[i]; return u.orden === 'aguantar' && u.mando === 'jugador'; }, id);
+      const retirar = await page.isVisible('#mn-retirar');
       const captura = await foto('batalla');
-      const ok = retirar && cuerpos === 3 && ordenes === 4 && empuja;
-      return { ok, detalle: ok ? 'Retirarse, tres cuerpos, cuatro órdenes; «' + o2 + '» obedece' : 'retirar ' + retirar + ', cuerpos ' + cuerpos + ', órdenes ' + ordenes + ', empuja ' + empuja, captura };
+      const ok = opciones === 3 && retirar && elegido && obedece;
+      return { ok, detalle: ok ? 'hoja de tres opciones; en vivo, «Retirarse» y un manípulo que obedece «Aguantar» dado con el dedo' : 'opciones ' + opciones + ', retirar ' + retirar + ', elegido ' + elegido + ', obedece ' + obedece, captura };
     });
 
     await paso('La batalla termina y se aplica el resultado', { de: 'batallas', para: ['musculo'] }, async () => {
-      // se juega hasta el final con el bot de la campaña de pruebas; el cartel final da paso al resultado
-      await estado(() => { const g = window.__gc; let n = 0; while (g.B.fase !== 'fin' && n++ < 600) { Game.botGuerra(g.B); g.salta(1.5); } });
-      await page.waitForSelector('#gu-seguir:visible', { timeout: 20000 });
-      await page.click('#gu-seguir');
+      // se acaba con el mismo simulador (sin pintar cada paso); el cartel final da paso al resultado
+      await estado(() => { const g = window.__mn, S = g.S; if (S.pausa) g.pausa(false); g.Sim.avanzar(S, Math.max(0, S.limite - S.t) + 1); g.salta(1); });
+      await page.waitForSelector('#mn-seguir:visible', { timeout: 20000 });
+      await page.click('#mn-seguir');
       await page.waitForSelector('#mbox [data-act="bdone"]', { timeout: 20000 });
       const titulo = await estado(() => document.querySelector('#mbox h2').textContent);
       const captura = await foto('resultado');
       await page.click('#mbox [data-act="bdone"]'); await espera(500);
       await page.setViewportSize({ width: 390, height: 844 }); await espera(800); await cierraAvisos();
-      const ok = await estado(() => !document.querySelector('#gu') && Game.state.stats.battles >= 1);
+      const ok = await estado(() => !document.querySelector('#mn') && Game.state.stats.battles >= 1);
       return { ok, detalle: titulo, captura };
     });
 
@@ -633,10 +642,10 @@ async function navegador() {
   apunta('Sin errores de consola' + (AREA ? ' (pasos de ' + AREA + ')' : ''), errores.length === 0, errores.length ? errores.length + ' error(es): ' + errores.slice(0, 3).join(' ‖ ') : '');
 }
 
-/* ---------- 2b. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min, hasta 30 en una máquina lenta; solo en el recorrido completo) ---------- */
+/* ---------- 2b. Juez de la guerra jugada de verdad (GC2 y CG4b: gobierno/juez-guerra.mjs, ~23 min, hasta 40 en una máquina lenta; solo en el recorrido completo) ---------- */
 async function guerraJugada() {
   console.log('Juez 2 · Guerra jugada de verdad (gobierno/juez-guerra.mjs)');
-  const r = await corre(['gobierno/juez-guerra.mjs'], 1800000);
+  const r = await corre(['gobierno/juez-guerra.mjs'], 2400000);   /* CG4b: la batalla de la campaña con el simulador, ~23 min aquí sin carga; con la máquina ocupada, más */
   const lineas = (r.stdout || '').split('\n'), mal = lineas.filter(l => /MAL:|^prueba:|^consola:|^excepción:/.test(l)), avisos = lineas.filter(l => /AVISO/.test(l)).length, bien = lineas.filter(l => /^\s*bien:/.test(l)).length;
   apunta('Guerra jugada de verdad (entrar, salir, maniobra, primer toque, arte)', r.status === 0, r.status === 0 ? bien + ' comprobaciones bien' + (avisos ? ' · ' + avisos + ' aviso(s) de fallos conocidos del juego (ver salida de juez-guerra.mjs)' : '') : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
   return r.status === 0;

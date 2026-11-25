@@ -63,11 +63,8 @@ const ec = V.nuevo(), rc = semilla(3), huecos = []; let tp = null;
 for (let k = 0; k <= 400; k++) { ec.t = k; ec.tension = 0.3; if (V.elige('espera', ec, rc)) { if (tp !== null) huecos.push(k - tp); tp = k; } }
 ok(huecos.length > 10 && huecos.every(h => h >= 8 && h <= 16), `charla en la espera cada 8-15 s (huecos ${Math.min(...huecos)}–${Math.max(...huecos)} s)`);
 ok(V.elige('desconocida', V.nuevo(), Math.random) === null && V.elige('choque', null) === null, 'situación desconocida o sin estado: nada');
-// mapa de eventos de js/guerra.js
-const d = V.deEvento;
-ok(d({ tipo: 'carga-enemiga', tropa: 'elefantes' }) === 'elefantes' && d({ tipo: 'carga-enemiga', tropa: 'galos' }) === 'carga-enemiga', 'eventos: carga y elefantes');
-ok(d({ tipo: 'roto', lado: 0 }) === 'roto-propio' && d({ tipo: 'roto', lado: 1 }) === 'roto-enemigo' && d({ tipo: 'envuelve', lado: 1 }) === 'flanco', 'eventos: roto y flanco');
-ok(d({ tipo: 'fin' }) === null && d({ tipo: 'caballeria-lista' }) === null && d(null) === null, 'eventos sin voz: fin, caballería lista');
+// (CG4b: el mapa de eventos de js/guerra.js, deEvento, se retiró con la batalla vieja; queda deSim, abajo)
+ok(V.deEvento === undefined, 'sin deEvento: la batalla vieja se retiró');
 // caída de grupos al banco que haya
 const sin = new Set(['grito', 'clamor']), tiene = g => sin.has(g);
 ok(V.grupoDisponible('orden', tiene) === 'grito' && V.grupoDisponible('aclamacion', tiene) === 'clamor' && V.grupoDisponible('cuerno', tiene) === null, 'grupo que falta: cae al parecido que haya');

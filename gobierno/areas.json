@@ -29,7 +29,9 @@
       "gobierno/fichas.mjs",
       "manifest.webmanifest",
       ".gitignore",
-      ".nojekyll"
+      ".nojekyll",
+      "test/campana-bot.js",
+      "test/sim-paralelo.js"
     ],
     "solo_vigia": [
       "gobierno/BITACORA.md",
@@ -83,13 +85,11 @@
         "js/gfx/dialogos-ui.js",
         "test/dialogos.test.mjs",
         "js/maniobra.js",
-        "js/ui-guerra.js",
         "js/ui-mando.js",
         "js/ui-maniobra.js",
         "js/ui-escaramuza.js",
         "js/gfx/campo-mando.js",
         "js/gfx/sonido.js",
-        "css/guerra.css",
         "css/mando.css",
         "css/maniobra.css",
         "test/guerra.test.mjs",
@@ -132,7 +132,11 @@
         "test/fu4-rivales.test.mjs",
         "test/tropas.test.mjs",
         "test/tropas-sim.test.mjs",
-        "test/tropas-precios.test.mjs"
+        "test/tropas-precios.test.mjs",
+        "test/es3-combinada.test.mjs",
+        "test/es4-asculo.test.mjs",
+        "test/registro-lleva.test.mjs",
+        "js/tropas.js"
       ],
       "taller": [],
       "juez": {
@@ -157,7 +161,12 @@
           "test/tacticas.test.mjs",
           "test/fu4-rivales.test.mjs",
           "test/tropas.test.mjs",
-          "test/tropas-sim.test.mjs"
+          "test/tropas-sim.test.mjs",
+          "test/es2-mando.test.mjs",
+          "test/es3-tiro.test.mjs",
+          "test/es3-combinada.test.mjs",
+          "test/es4-asculo.test.mjs",
+          "test/registro-lleva.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",
@@ -400,8 +409,6 @@
       "propios": [
         "js/fisica-batalla.js",
         "test/fisica-batalla.test.mjs",
-        "gobierno/maquetas/a-pie/fisica.js",
-        "gobierno/maquetas/falange/fisica.js",
         "js/gfx/soldado.js",
         "js/gfx/units.js",
         "js/gfx/models.js",
@@ -410,11 +417,6 @@
         "js/combate-*.js",
         "test/combate*.test.mjs",
         "js/gfx/golpes.js",
-        "gobierno/maquetas/a-pie/acciones.js",
-        "gobierno/maquetas/a-pie/esqueleto.js",
-        "gobierno/maquetas/a-pie/soldado.js",
-        "gobierno/maquetas/a-pie/locomocion.js",
-        "gobierno/maquetas/a-pie/proyectiles.js",
         "gobierno/maquetas/combate-*/",
         "gobierno/juez-combate.mjs",
         "gobierno/captura-combate*.mjs",
@@ -452,7 +454,6 @@
           "js/falange-rivales.js",
           "js/bloque.js",
           "js/bloque-ia.js",
-          "gobierno/maquetas/a-pie/escena.js",
           "js/guerra.js",
           "js/battle.js"
         ]
