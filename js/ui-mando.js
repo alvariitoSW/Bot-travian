@@ -71,7 +71,12 @@
   function pantalla(mods, el, $, cfg, S, alTerminar) {
     const { M, U, Gr, St, C } = mods, Sim = root.Simulador;
     const { THREE } = M, { preload, getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, UNIT_SCALE } = U;
-    const COLOR = ['#b3261e', '#5b3a8c'];
+    /* CG4b: el rival lleva el color de su bando (cfg.col, el de la campaña o de Escaramuzas); si no viene o se confunde con el rojo
+       de Roma, el morado de siempre */
+    const rivalDe = col => { try { if (!col) return null; const c = new THREE.Color(col), h = {}; c.getHSL(h); const dh = Math.min(h.h, 1 - h.h) * 360;
+      return dh < 30 && h.s > 0.35 ? null : '#' + c.getHexString(); } catch (e) { return null; } };
+    const COLOR = ['#b3261e', rivalDe(cfg.col) || '#5b3a8c'];
+    { const c = new THREE.Color(COLOR[1]); el.style.setProperty('--mn-rival', '#' + c.clone().lerp(new THREE.Color('#ffffff'), 0.25).getHexString()); }
     /* el soldado nuevo (js/gfx/soldado.js) para estas tropas; las demás (a caballo, elefantes), con 0 A.D. */
     const NUEVO = { hastati: 'hastatus', principes: 'hastatus', vigiles: 'hastatus', galos: 'galo', libios: 'hastatus:libio', triarii: 'triario', velites: 'velite', milicia: 'velite:milicia', honderos: 'hondero', peltastas: 'peltasta', hoplitas: 'hoplita:griego', sagrada: 'hoplita:sagrada', falange: 'falangita', iberos: 'ibero' };
     const UMBRAL_N = [200, 90, 42];      /* alto en pantalla (px CSS) desde el que toca el nivel 0, 1 y 2; por debajo, el 3 */
@@ -181,20 +186,36 @@
       cam.d = Math.max(D_MIN, Math.min(D_MAX, cam.d)); cam.x = Math.max(-700, Math.min(700, cam.x)); cam.z = Math.max(-420, Math.min(420, cam.z));
       const p = inclina(cam.d); camara.position.set(cam.x, Math.sin(p) * cam.d, cam.z + Math.cos(p) * cam.d); camara.lookAt(cam.x, 0, cam.z); camara.updateMatrixWorld();
     }
+    /* CG4b: el encuadre inicial deja ver los dos ejércitos enteros en la parte libre de la pantalla: entre la barra de arriba
+       y la ficha de abajo (en horizontal, también sobre los botones de órdenes, que salen al elegir). Desde detrás de la legión,
+       como en Total War; se acerca todo lo que se pueda sin cortar a nadie. */
+    function libre() {   /* arriba se dejan 54 px más: los estandartes miden al menos 46 en pantalla (js/gfx/estandartes.js) */
+      const r = id => { const e = $(id); return e && !e.hidden ? e.getBoundingClientRect() : null; };
+      const ar = r('arriba'), ab = r('ficha');
+      let arriba = (ar ? ar.bottom + 8 : 60) + 54, abajo = ab && ab.height ? ab.top - 8 : alto - 80;
+      if (!vertical) abajo = Math.min(abajo, alto - 118);   /* en horizontal, los botones de órdenes ocupan unos 110 px de abajo */
+      if (abajo - arriba < alto * 0.3) { arriba = alto * 0.12; abajo = alto * 0.8; }
+      return { arriba, abajo, izq: 10, der: ancho - 10 };
+    }
     function camaraInicial() {
-      let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
-      for (const u of S.man) if (vivo(u)) { x0 = Math.min(x0, u.x); x1 = Math.max(x1, u.x); z0 = Math.min(z0, -u.y); z1 = Math.max(z1, -u.y); }
-      if (x0 > x1) { x0 = -100; x1 = 100; z0 = -100; z1 = 100; }
-      /* detrás de la legión, como en Total War: se ve el frente propio entero y, al fondo, el enemigo; lo demás, desplazando */
-      let r0 = 1e9, r1 = -1e9; for (const u of S.man) if (vivo(u) && u.lado === 0 && u.tropa !== 'velites') { r0 = Math.min(r0, u.x - Sim.frente(u) / 2); r1 = Math.max(r1, u.x + Sim.frente(u) / 2); }
-      if (r0 > r1) { r0 = x0; r1 = x1; }
-      const tanH = Math.tan(camara.fov * Math.PI / 360) * camara.aspect, medio = (r1 - r0) / 2 + 20;
-      cam.x = (r0 + r1) / 2; cam.d = Math.min(vertical ? 380 : 420, Math.max(140, medio / tanH * 1.05));
-      /* el frente romano, a esta altura de la pantalla (de arriba abajo); se busca el punto que mira la cámara */
-      let zR = -1e9; for (const u of S.man) if (vivo(u) && u.lado === 0 && u.tropa !== 'velites') zR = Math.max(zR, -u.y); if (zR < -1e8) zR = z1;
-      const meta = vertical ? 0.6 : 0.68; let lo = zR - 400, hi = zR - 2;
-      for (let k = 0; k < 30; k++) { cam.z = (lo + hi) / 2; ponCamara(); V3.set(cam.x, 0, zR - 3).project(camara); if (V3.z > 1 || (1 - V3.y) / 2 > meta) lo = cam.z; else hi = cam.z; }
-      ponCamara();
+      const us = S.man.filter(vivo); if (!us.length) { cam.x = 0; cam.z = 0; cam.d = 300; ponCamara(); return; }
+      const L = libre(), pts = [];
+      for (const u of us) { const F = Sim.frente(u) / 2 + 2, Df = Sim.fondo(u) / 2 + 2, c = Math.cos(u.a), sn = Math.sin(u.a);
+        for (const [a, b] of [[-F, -Df], [F, -Df], [-F, Df], [F, Df]]) { const x = u.x + a * sn + b * c, y = u.y - a * c + b * sn; pts.push([x, 0, -y]); } }   /* las esquinas, en el suelo (el estandarte va en el margen de arriba) */
+      let x0 = 1e9, x1 = -1e9; for (const p of pts) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); }
+      const caja = () => { let a = 1e9, b = -1e9, l = 1e9, r = -1e9, atras = false; for (const p of pts) { V3.set(p[0], p[1], p[2]).project(camara); if (V3.z > 1) atras = true; const px = (V3.x + 1) / 2 * ancho, py = (1 - V3.y) / 2 * alto; a = Math.min(a, py); b = Math.max(b, py); l = Math.min(l, px); r = Math.max(r, px); } return { a, b, l, r, atras }; };
+      const enZ = () => {   /* coloca cam.z para que la caja quede centrada en vertical en la parte libre */
+        let lo = -900, hi = 900; const meta = (L.arriba + L.abajo) / 2;
+        for (let k = 0; k < 40; k++) { cam.z = (lo + hi) / 2; ponCamara(); const q = caja(); if (q.atras || (q.a + q.b) / 2 > meta) lo = cam.z; else hi = cam.z; }   /* subir cam.z sube lo que se ve en pantalla */
+        ponCamara(); return caja();
+      };
+      cam.x = (x0 + x1) / 2;
+      let mejor = null;
+      for (let d = 120; d <= D_MAX; d += 10) {
+        cam.d = d; const q = enZ();
+        if (!q.atras && q.a >= L.arriba && q.b <= L.abajo && q.l >= L.izq && q.r <= L.der) { mejor = d; break; }
+      }
+      cam.d = mejor || D_MAX; enZ();
     }
 
     /* ---------- figuras: cada manípulo, k figuras dentro de su rectángulo frente × fondo ---------- */
@@ -264,7 +285,7 @@
     function crearEst(ES) {
       const cel = {}, letras = []; let k = [0, 0];
       for (const u of S.man) { const c = u.lado + ':' + u.tropa; if (cel[c] === undefined) { cel[c] = k[u.lado]++ % 8; letras.push([String(nombreTropa(u.tropa)).trim().charAt(0).toUpperCase(), u.lado, cel[c]]); } celdaDe[u.id] = cel[c]; }
-      return ES.crearEstandartes({ THREE, escena, n: S.man.length, talla: TALLA, letras });
+      return ES.crearEstandartes({ THREE, escena, n: S.man.length, talla: TALLA, letras, pano: COLOR });
     }
     function pintarEstandartes() {
       if (!estandartes) return; const al = Math.max(0, Math.min(1, acum / PASO));
@@ -399,7 +420,7 @@
 
     /* ---------- rectángulos en el suelo, fantasmas y flecha ---------- */
     const MT = new THREE.Matrix4(), QT = new THREE.Quaternion(), PT = new THREE.Vector3(), ST = new THREE.Vector3(), YT = new THREE.Vector3(0, 1, 0), CT = new THREE.Color();
-    const C_PROPIO = new THREE.Color('#e0483a'), C_RIVAL = new THREE.Color('#9a78e0'), C_SEL = new THREE.Color('#ffd76a'), C_ROTO = new THREE.Color('#77716a');
+    const C_PROPIO = new THREE.Color('#e0483a'), C_RIVAL = new THREE.Color(COLOR[1]).lerp(new THREE.Color('#ffffff'), 0.3), C_SEL = new THREE.Color('#ffd76a'), C_ROTO = new THREE.Color('#77716a');
     function rect(malla, i, x, y, a, F, Df, h) { PT.set(x, h, -y); QT.setFromAxisAngle(YT, yawDe(a)); ST.set(F + 3, 1, Df + 3); MT.compose(PT, QT, ST); malla.setMatrixAt(i, MT); }
     let arrastre = null;      /* { dx, dy, a } mientras se arrastra una orden */
     function pintarSuelo() {

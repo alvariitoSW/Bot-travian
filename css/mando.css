@@ -15,7 +15,7 @@
 
 /* barras sobre cada manípulo: hombres, moral, cansancio (lleno = fresco) */
 #mn .mn-e{position:absolute;left:0;top:0;width:28px;margin:-15px 0 0 -14px;padding:2px;border-radius:3px;background:rgba(14,11,8,.72);border:1px solid #c23a2e;display:flex;flex-direction:column;gap:1px;will-change:transform}
-#mn .mn-e.ene{border-color:#8f6fd0;width:22px;margin-left:-11px}
+#mn .mn-e.ene{border-color:var(--mn-rival,#8f6fd0);width:22px;margin-left:-11px}
 #mn .mn-e.sel{border-color:var(--oro);box-shadow:0 0 0 1px var(--oro)}
 #mn .mn-e.roto{opacity:.55}
 #mn .mn-e i{display:block;height:3px;background:rgba(255,255,255,.14);overflow:clip}

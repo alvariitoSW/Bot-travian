@@ -5,6 +5,7 @@
    Crece con la distancia para que de lejos siga viéndose (licencia de vista, como en los juegos de referencia).
    Coste: dos llamadas de dibujo en total (astas y paños, instanciados) y ~60 triángulos por unidad. Arte propio, dibujado aquí.
    Uso: const E = crearEstandartes({ THREE, escena, n, talla, letras: [[letra, lado], …] });
+     (CG4b: pano = [propio, rival] cambia el color de los paños; sin él, rojo y morado)
      E.pon(i, x, z, celda, lado, estado)   estado: 0 normal, 1 elegido, 2 roto (huye), -1 oculto
      E.fin(camara, altoPx, t)              al acabar de ponerlos, una vez por cuadro
      E.alto(i)                             alto (m) del último estandarte puesto en i: para colgar debajo las barras
@@ -12,18 +13,21 @@
 const CELDAS = 8, CW = 96, CH = 128;
 const PANO = ['#b3261e', '#5b3a8c'], ORLA = ['#e8c25a', '#d8d0b8'];
 
-function atlas(THREE, letras) {
+function atlas(THREE, letras, PANO) {
+  /* la orla y la letra: clara sobre paño oscuro; sobre un paño claro (amarillo, ocre), oscura para que se lea */
+  const claro = col => { const c = new THREE.Color(col); return 0.299 * c.r + 0.587 * c.g + 0.114 * c.b > 0.42; };
+  const orla = [0, 1].map(l => claro(PANO[l]) ? '#2a1e12' : ORLA[l]), ORLA_ = orla;
   const c = document.createElement('canvas'); c.width = CW * CELDAS; c.height = CH * 2; const g = c.getContext('2d');
   for (let lado = 0; lado < 2; lado++) for (let k = 0; k < CELDAS; k++) {
     const x = k * CW, y = lado * CH;
     g.fillStyle = PANO[lado]; g.fillRect(x, y, CW, CH);
     /* pliegues: bandas verticales más oscuras y más claras */
     for (let b = 0; b < 6; b++) { g.fillStyle = b % 2 ? 'rgba(0,0,0,0.13)' : 'rgba(255,255,255,0.06)'; g.fillRect(x + b * CW / 6, y, CW / 6, CH - 16); }
-    g.strokeStyle = ORLA[lado]; g.lineWidth = 6; g.strokeRect(x + 7, y + 5, CW - 14, CH - 26);
+    g.strokeStyle = ORLA_[lado]; g.lineWidth = 6; g.strokeRect(x + 7, y + 5, CW - 14, CH - 26);
     /* flecos abajo */
-    g.fillStyle = ORLA[lado]; for (let f = 0; f < 9; f++) g.fillRect(x + 6 + f * (CW - 12) / 9, y + CH - 18, 5, 16);
+    g.fillStyle = ORLA_[lado]; for (let f = 0; f < 9; f++) g.fillRect(x + 6 + f * (CW - 12) / 9, y + CH - 18, 5, 16);
     const l = letras.find(q => q[2] === k && q[1] === lado);
-    g.fillStyle = ORLA[lado]; g.font = 'bold 62px Georgia, "Times New Roman", serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = ORLA_[lado]; g.font = 'bold 62px Georgia, "Times New Roman", serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.shadowColor = 'rgba(0,0,0,0.55)'; g.shadowBlur = 4;
     g.fillText(l ? l[0] : '', x + CW / 2, y + CH / 2 - 6); g.shadowBlur = 0;
   }
@@ -43,8 +47,8 @@ function asta(THREE) {
   return g;
 }
 
-export function crearEstandartes({ THREE, escena, n, talla = 1, letras = [] }) {
-  const tex = atlas(THREE, letras);
+export function crearEstandartes({ THREE, escena, n, talla = 1, letras = [], pano = null }) {
+  const tex = atlas(THREE, letras, pano || PANO);   /* CG4b: pano = [color propio, color rival] (el del bando rival en la campaña) */
   const gA = asta(THREE), mA = new THREE.MeshLambertMaterial({ vertexColors: true });
   const astas = new THREE.InstancedMesh(gA, mA, n); astas.frustumCulled = false;
   /* el paño: cuelga del travesaño (arriba en y = 0), 0,46 de ancho por 0,6 de alto; algo curvado; la celda del atlas va por instancia */

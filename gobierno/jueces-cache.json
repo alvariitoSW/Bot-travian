@@ -95,19 +95,19 @@
   "fecha": "2026-11-24T22:16:17.734Z"
  },
  "area:test/guerra.test.mjs": {
-  "huella": "e58b1ad82ba72301",
+  "huella": "57327d369be891ca",
   "ok": true,
-  "fecha": "2026-11-24T23:40:20.104Z"
+  "fecha": "2026-11-25T01:01:33.715Z"
  },
  "area:test/guerra-juego.test.mjs": {
-  "huella": "590c507928584a43",
+  "huella": "584bb0b761fc4065",
   "ok": true,
-  "fecha": "2026-11-24T23:40:36.601Z"
+  "fecha": "2026-11-25T01:01:38.943Z"
  },
  "area:test/simulador.test.mjs": {
-  "huella": "066c1456ee574b68",
+  "huella": "561a60bf4865a326",
   "ok": true,
-  "fecha": "2026-11-24T23:40:53.635Z"
+  "fecha": "2026-11-25T01:01:45.355Z"
  },
  "area:test/maniobra.test.mjs": {
   "huella": "d8d573f04517c9e4",
@@ -115,19 +115,19 @@
   "fecha": "2026-11-24T22:47:48.851Z"
  },
  "area:test/campo.test.mjs": {
-  "huella": "6fe24afbe9df094f",
+  "huella": "a593584504ce26ab",
   "ok": true,
-  "fecha": "2026-11-24T22:47:52.938Z"
+  "fecha": "2026-11-25T01:01:49.454Z"
  },
  "area:test/nb7.test.mjs": {
-  "huella": "abd088f0d3a59387",
+  "huella": "964d83fa340bcf74",
   "ok": true,
-  "fecha": "2026-11-24T23:41:31.204Z"
+  "fecha": "2026-11-25T01:01:59.296Z"
  },
  "area:test/falange.test.mjs": {
-  "huella": "e9361dd857c3f380",
+  "huella": "838d8fb539f210c3",
   "ok": true,
-  "fecha": "2026-11-24T23:43:59.367Z"
+  "fecha": "2026-11-25T01:03:39.914Z"
  },
  "area:test/falange-rivales.test.mjs": {
   "huella": "b5d6c7f62a0cb55b",
@@ -145,19 +145,19 @@
   "fecha": "2026-11-24T22:50:50.953Z"
  },
  "area:test/fisica-batalla.test.mjs": {
-  "huella": "aa55c5318a9327d0",
+  "huella": "4d254511786a1ac5",
   "ok": true,
-  "fecha": "2026-11-24T23:45:58.069Z"
+  "fecha": "2026-11-25T01:05:05.402Z"
  },
  "area:test/batalla-rapida.test.mjs": {
-  "huella": "ebe263308ddc7a86",
+  "huella": "f5bda0867752a22d",
   "ok": true,
-  "fecha": "2026-11-24T23:46:00.735Z"
+  "fecha": "2026-11-25T01:05:06.329Z"
  },
  "area:test/dialogos.test.mjs": {
-  "huella": "504ed10173fd04f0",
+  "huella": "d9192399d19bbabf",
   "ok": true,
-  "fecha": "2026-11-24T23:46:03.703Z"
+  "fecha": "2026-11-25T01:05:07.728Z"
  },
  "navegador-batallas": {
   "huella": "22a473b82782eabf",
@@ -190,14 +190,14 @@
   "fecha": "2026-11-24T22:52:38.155Z"
  },
  "area:test/fu5-formaciones.test.mjs": {
-  "huella": "7b88e523115bfaa7",
+  "huella": "1abf84ef2a2cc50d",
   "ok": true,
-  "fecha": "2026-11-24T23:46:04.999Z"
+  "fecha": "2026-11-25T01:05:08.407Z"
  },
  "area:test/tacticas.test.mjs": {
-  "huella": "2d8f8ab247d281b7",
+  "huella": "320d18b36db9a577",
   "ok": true,
-  "fecha": "2026-11-24T23:46:06.018Z"
+  "fecha": "2026-11-25T01:05:08.676Z"
  },
  "area:test/fu4-rivales.test.mjs": {
   "huella": "3312c11de5d59eb8",
