@@ -254,6 +254,15 @@
     pieles: f(SIN_T, h("Estrabón 5.1.8; Estrabón 5.1.12", "licencia de juego", "Estrabón cuenta que en Aquileya se comerciaban esclavos, ganado y pieles (5.1.8) y que la llanura del Po era rica en ganado (5.1.12). No nombra pieles de Mediolanum ni de Ambracia" + MEC))
   };
 
+  /* PN3d: bienes especiales de las polis (D.ESPECIAL_GR). Solo en partida de polis. Los efectos (+10 %, +3) son licencia de juego. */
+  const LJB = ' · el efecto en el juego (cuánto y sobre qué) es licencia de juego';
+  const especialGr = {
+    ceramica: f(SIN_T, h('Tucídides 1.13.2-5; Estrabón 8.6.20 y 8.6.23; Plinio, NH 35.151-152', 'probable', 'Corinto, rica por el comercio del istmo (Tucídides 1.13; Estrabón 8.6.20). Su cerámica pintada dominó la exportación en época arcaica (Amyx, Corinthian Vase-Painting of the Archaic Period, 1988); en 280-146 a.C. ya no era la primera. Plinio atribuye a la tradición corintia el modelado en arcilla; las tejas de barro más antiguas de Grecia son del templo de Apolo de Corinto, s. VII a.C. (N. A. Winter, Greek Architectural Terracottas, 1993). Que acelere las obras: licencia de juego. Pasajes de memoria, por cotejar' + LJB, 'Los alfareros de Corinto pintaron vasos que se vendían por todo el Mediterráneo. También hacían tejas de barro cocido: las más antiguas de Grecia cubrían un templo de Corinto.')),
+    anguilas: f(SIN_T, h('Aristófanes, Acarnienses 880-894; Ateneo 7.297c-300d', 'historico', 'En Acarnienses (425 a.C.) un beocio trae a Atenas anguilas del lago Copais, el manjar más deseado; Ateneo reúne citas sobre su fama. Es fama de época clásica; seguía en tiempos de Ateneo (s. II d.C.). Pasajes de memoria, por cotejar' + LJB, 'Las anguilas del lago Copais, en Beocia, eran el manjar más caro de Grecia. En una comedia de Aristófanes, un beocio las vende en Atenas como un tesoro.')),
+    lanafina: f(SIN_T, h('Aristófanes, Lisístrata 729-730; Estrabón 12.8.16; Ateneo 12.519b', 'historico', 'La lana de Mileto era la más fina: Aristófanes la menciona como lana de valor; Estrabón dice que las ovejas de Laodicea la superaban «incluso a la milesia» en suavidad. En el juego su lujo es «lana»; el bien se llama lanafina para no confundirse con la lana de la agricultura. Pasajes de memoria, por cotejar' + LJB, 'Mileto criaba ovejas de lana muy suave y teñía sus tejidos para venderlos lejos. La «lana milesia» era sinónimo de lujo en toda Grecia.')),
+    bronce: f(SIN_T, h('Estrabón 10.1.9; Alceo, fr. 357 (Lobel-Page)', 'probable', 'Estrabón cuenta que junto a Calcis hubo minas de cobre y hierro, ya agotadas en su tiempo; Alceo alaba las espadas calcídicas. Si seguían en uso en 280-146 a.C. no se sabe: los talleres de bronce en esta época son reconstrucción. Que acelere la instrucción: licencia de juego. Pasajes de memoria, por cotejar' + LJB, 'Calcis, en Eubea, tuvo minas de cobre y hierro y sus herreros eran famosos por las espadas. Su mismo nombre recuerda al bronce: «chalkós» en griego.'))
+  };
+
   // ---- Regiones (D.REGIONES, I6). Se casan por id. Qué ciudades entran y el corte de fechas son licencia de juego. ----
   const SIN_REG = { sin: 'una región es una ficha de datos; no tiene modelo 3D' };
   const region = {
@@ -684,7 +693,7 @@
     calcis: f(SIN_POLIS, h('Estrabón 10.1.9; Heródoto 5.77', 'probable', 'Calcis, «la de bronce», con minas de cobre y hierro en Eubea y los Hipóbotas («criadores de caballos») (Estrabón 10.1.9; Heródoto 5.77); pasaje exacto, por cotejar.' + LJP, 'Calcis, en la isla de Eubea, trabajaba el bronce y el hierro de sus minas. Su clase dirigente de terratenientes se llamaba los Hipóbotas, los criadores de caballos.'))
   };
 
-  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia, polis };
+  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, especialGr, recurso, veta, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia, polis };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -712,6 +721,7 @@
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] },
+    especialGr: { tabla: 'ESPECIAL_GR', numericos: [], textos: ['n', 'i', 'd'] },   // PN3d
     pueblo: { tabla: 'PUEBLO_TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
     edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },

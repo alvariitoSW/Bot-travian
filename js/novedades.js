@@ -4,6 +4,8 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 177, fecha: '25/11/2026', cosas: [
+      'Cada una de las 8 polis tiene su bien especial: Corinto su cerámica, Tebas sus anguilas, Mileto su lana fina y Calcis su bronce.'] },
     { v: 176, fecha: '25/11/2026', cosas: [
       'Con una polis, tus rivales son ahora las otras polis griegas, cada una en su sitio del mapa.',
       'La pestaña Mapa abre de lejos y ves las 8 polis de golpe; las que no caben junto a su sitio salen unidas con una línea.',

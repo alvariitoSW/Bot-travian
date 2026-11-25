@@ -68,9 +68,20 @@ t('PN3c: rivales griegas en la partida de polis; Roma, sin ellas', () => {
   assert.deepStrictEqual(ids.sort(), ['argos', 'atenas', 'calcis', 'corinto', 'esparta', 'mileto', 'roma', 'tebas']);
   assert.strictEqual(D.CITIES.roma.lon, D.POLIS_GR.megara.lon); assert.deepStrictEqual(G.neighbors('roma').sort(), ['atenas', 'corinto', 'tebas']);
   for (const id of ids) if (id !== 'roma') { assert.strictEqual(s.cities[id].owner, id); assert.ok(D.FACTIONS[id] && G.men(s.cities[id].units) > 0, id); }
-  assert.strictEqual(D.CITIES.roma.esp, 'sal'); nueva('corinto'); assert.strictEqual(D.CITIES.roma.esp, undefined, 'la cerámica no es un bien del juego');
+  assert.strictEqual(D.CITIES.roma.esp, 'sal'); nueva('corinto'); assert.strictEqual(D.CITIES.roma.esp, 'ceramica', 'PN3d: la cerámica es el bien de Corinto');
   const r = nueva(null); assert.ok(!D.CITIES.atenas && !D.FACTIONS.atenas && !r.cities.atenas, 'Roma no ve las polis'); assert.strictEqual(D.CITIES.roma.lon, 12.5); assert.strictEqual(D.CITIES.roma.esp, 'sal');
   assert.ok(D.EDGES.every(e => D.CITIES[e[0]] && D.CITIES[e[1]]), 'ningún camino a una polis quitada');
+});
+t('PN3d: las 8 polis tienen su bien especial, con ficha, y la campaña de Roma no ve los griegos', () => {
+  const GR = ['ceramica', 'anguilas', 'lanafina', 'bronce'];
+  for (const id of IDS) { nueva(id); const k = D.bienPolis(id), e = D.ESPECIAL[k];
+    assert.ok(e && e.n && e.i && e.d && Object.keys(e.bono).length === 1, id + ': bien ' + k); assert.strictEqual(D.CITIES.roma.esp, k);
+    assert.ok(G.especiales()[k], id + ': tiene su bien al empezar');
+    const c = Object.keys(e.bono)[0], v = e.bono[c]; assert.ok(c === 'fel' ? v > 0 && v <= 5 : Math.abs(v - 1) > 0.04 && Math.abs(v - 1) <= 0.1001, id + ': efecto pequeño');
+    for (const o of IDS) if (o !== id) assert.strictEqual(D.CITIES[o].esp, D.bienPolis(o), id + ': la rival ' + o + ' tiene el suyo'); }
+  for (const k of GR) { const f = R.fichas.especialGr[k]; assert.ok(f && f.historia && f.historia.fuente.length > 5 && /licencia de juego/.test(f.historia.nota), k + ' ficha'); }
+  nueva('tebas'); const fel0 = G.bonoSum('fel'); nueva(null); for (const k of GR) assert.ok(!D.ESPECIAL[k], 'Roma no ve ' + k);
+  assert.ok(fel0 >= 3, 'las anguilas suman felicidad'); assert.strictEqual(D.CITIES.roma.esp, 'sal');
 });
 t('la partida corta no cambia aunque se pida polis', () => {
   const s = G.newGame('T', null, { modo: 'corta', polis: 'atenas' }); assert.strictEqual(s.polis, null); assert.strictEqual(D.CITIES.roma.n, 'Roma');

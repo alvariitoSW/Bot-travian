@@ -304,6 +304,15 @@
     maderanaval: { n: 'Madera naval', i: '🌲', d: 'Abre el puerto desde el nivel 7. Viajes por mar un 10 % más rápidos.', abre: { edificios: ['puerto'] }, bono: { viajeMar: 0.9 } },
     pieles: { n: 'Pieles', i: '🦌', d: 'La paga de las guarniciones cuesta un 10 % menos.', abre: {}, bono: { paga: 0.9 } }
   };
+  /* PN3d: bienes especiales de las polis que no tenían uno de Italia (Corinto, Tebas, Mileto y Calcis). Solo existen en partida de polis:
+     al fijar D.polis se meten en D.ESPECIAL y al quitarla salen, para que la campaña de Roma no los pida ni los liste. Fuentes en js/registro.js
+     (fichas especialGr). Los efectos son licencia de juego, del tamaño de los de arriba. Las reglas del lujo por comercio o conquista son de AM3. */
+  D.ESPECIAL_GR = {
+    ceramica: { n: 'Cerámica fina', i: '🏺', d: 'Obras un 10 % más rápidas (tejas y vasos de los alfares).', abre: {}, bono: { obra: 0.9 } },
+    anguilas: { n: 'Manjares del lago', i: '🐟', d: '+3 de felicidad en tus ciudades.', abre: {}, bono: { fel: 3 } },
+    lanafina: { n: 'Lana fina', i: '🧶', d: '+10 % de los denarios de foro y puerto.', abre: {}, bono: { oroCom: 1.1 } },
+    bronce: { n: 'Bronce', i: '🛡️', d: 'Instrucción un 10 % más rápida (armas de bronce a mano).', abre: {}, bono: { instr: 0.9 } }
+  };
   D.FORJA_MAX = 5; D.FORJA_BONO = 0.05;
   D.FORJA = {
     armas: { n: 'Armas', i: '🗡️', ef: 'ataque', cost: { hierro: 120, materiales: 40, denarios: 50 }, time: 3 },
@@ -436,7 +445,7 @@
       edificio: { id: 'puerto', n: 'Nisea', d: 'Puerto de Mégara en el golfo Sarónico.' },
       tropa: { id: 'peltastas', n: 'Epibatas megareos', d: 'Soldados de a bordo, ligeros y de mucho mar.' },
       heroe: 'Polemarco de Mégara', leva: { hoplitas: 20, peltastas: 30 } },
-    mileto: { n: 'Mileto', color: '#c4577a', sello: 'ΜΙ', lema: 'Calles en damero y lana fina', lujo: 'lana', lujoN: 'Lana fina', lujoDe: 'lana milesia',
+    mileto: { n: 'Mileto', color: '#c4577a', sello: 'ΜΙ', lema: 'Calles en damero y lana fina', lujo: 'lana', bien: 'lanafina', lujoN: 'Lana fina', lujoDe: 'lana milesia',
       rasgo: { n: 'Calles en damero', d: 'Las obras cuestan un 8 % menos (el plano de Hipódamo).', bono: { obra: 0.92 } },
       edificio: { id: 'mercado', n: 'Ágora de Mileto', d: 'Plaza de mercado en una ciudad trazada a cordel.' },
       tropa: { id: 'peltastas', n: 'Peltastas jonios', d: 'Tropa ligera de las ciudades de Jonia.' },
@@ -451,7 +460,11 @@
   D.POLIS_RES = { grano: 250, denarios: 250, materiales: 400, hierro: 150 };   // PN3b: 250 (antes 400) para que el trigo del primer invierno quepa en el almacén (Tebas, con dos granjas, también) y no salga nada en rojo
   D.POLIS_ORDEN = ['atenas', 'esparta', 'corinto', 'argos', 'tebas', 'megara', 'mileto', 'calcis'];
   /* Con polis elegida (D.polis = id; lo fijan G.newGame y G.load) la ciudad y el bando del jugador llevan su nombre. Sin polis, «Roma» como siempre. */
+  { let pv = null; Object.defineProperty(D, 'polis', { enumerable: true, configurable: true, get() { return pv; },
+      set(v) { pv = v; const on = !!(v && D.POLIS[v]); for (const k in D.ESPECIAL_GR) { if (on) D.ESPECIAL[k] = D.ESPECIAL_GR[k]; else delete D.ESPECIAL[k]; } } }); }   // PN3d: los bienes griegos, solo con polis
   D.polis = null;
+  /* PN3d: el bien especial de cada polis (clave de D.ESPECIAL): su lujo, salvo Mileto, cuya «lana» ya es un bien de la agricultura (D.BIENES_AGRO) */
+  D.bienPolis = id => { const f = D.POLIS[id]; return f ? (f.bien || f.lujo) : undefined; };
   { const pn = (f, p) => D.polis && D.POLIS[D.polis] ? D.POLIS[D.polis][p] : f;
     Object.defineProperty(D.CITIES.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
     Object.defineProperty(D.FACTIONS.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
@@ -465,8 +478,7 @@
      nueva (s.region 'grecia'); D.ponPolis las mete y las quita, como las colonias. La campaña de Roma no las ve nunca.
      Sitio (lon, lat): el de js/gfx/mapa-grecia-datos.js (fuente: gobierno/historia/AM2-mapa-grecia.md), con el mismo id: el mapa de Grecia
      las pinta en su sitio. Licencia de juego: guarnición = 3 × la leva de su ficha D.POLIS; riqueza (w), muralla (wl) y caminos, de juego.
-     Esparta sin muralla (no la tuvo hasta época helenística: Pausanias 7.8.5). Su bien especial es su lujo si el juego lo tiene (plata, púrpura,
-     caballos, sal); los demás lujos no dan bien. */
+     Esparta sin muralla (no la tuvo hasta época helenística: Pausanias 7.8.5). Su bien especial es su lujo (PN3d: las 8 tienen uno; D.bienPolis). */
   D.POLIS_GR = {
     atenas: { lon: 23.73, lat: 37.98, tipo: 'naval', w: 3, wl: 1, costa: true },
     esparta: { lon: 22.43, lat: 37.07, tipo: 'militar', w: 3, wl: 0, costa: false },
@@ -489,7 +501,7 @@
     for (const id of otras) {
       const f = D.POLIS[id], q = D.POLIS_GR[id], g = {};
       for (const k in f.leva) g[k] = f.leva[k] * 3;
-      D.CITIES[id] = { n: f.n, lon: q.lon, lat: q.lat, f: id, esp: D.ESPECIAL[f.lujo] ? f.lujo : undefined, tipo: q.tipo, w: q.w, wl: q.wl, g, sea: q.costa, griega: true, h: f.lema + '. Lujo: ' + f.lujoN.toLowerCase() + ' (' + f.lujoDe + ').' };
+      D.CITIES[id] = { n: f.n, lon: q.lon, lat: q.lat, f: id, esp: D.bienPolis(id), tipo: q.tipo, w: q.w, wl: q.wl, g, sea: q.costa, griega: true, h: f.lema + '.' };   // PN3d: el lujo va en su línea «Lujo: …» de la hoja, como en tu polis
       D.FACTIONS[id] = { n: f.n, col: f.color, raid: true, from: 280, griega: true };
     }
     for (const e of D.POLIS_CAMINOS) { const a = e[0] === p ? 'roma' : e[0], b = e[1] === p ? 'roma' : e[1], r = [a, b, !!e[2]]; r.griega = true; D.EDGES.push(r); }
@@ -500,8 +512,8 @@
   };
   /* tu polis, en su sitio de Grecia (solo con rivales griegas: las partidas de polis anteriores siguen en el sitio de Roma) */
   for (const k of ['lon', 'lat']) { const v0 = D.CITIES.roma[k]; Object.defineProperty(D.CITIES.roma, k, { enumerable: true, configurable: true, get() { return D.polisGr && D.POLIS_GR[D.polis] ? D.POLIS_GR[D.polis][k] : v0; } }); }
-  /* el bien especial de tu polis es su lujo, si el juego lo tiene; si no, ninguno (antes salía «Sal», el de Roma) */
-  { const e0 = D.CITIES.roma.esp; Object.defineProperty(D.CITIES.roma, 'esp', { enumerable: true, configurable: true, get() { const f = D.polis && D.POLIS[D.polis]; return f ? (D.ESPECIAL[f.lujo] ? f.lujo : undefined) : e0; } }); }
+  /* el bien especial de tu polis es su lujo (PN3d: las 8 tienen uno; antes salía «Sal», el de Roma) */
+  { const e0 = D.CITIES.roma.esp; Object.defineProperty(D.CITIES.roma, 'esp', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? D.bienPolis(D.polis) : e0; } }); }
 
   // [a, b, marítima]
   D.EDGES = [

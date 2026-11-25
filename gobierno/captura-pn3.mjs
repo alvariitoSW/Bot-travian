@@ -57,7 +57,13 @@ await sesion(390, 844, async page => { await empezar(page, 'tebas', 4242); await
 await sesion(390, 844, async page => { await empezar(page, 'esparta', 31337); await plano(page, false); await foto(page, 'PN3b-d-esparta'); });
 /* PN3b: Roma antes/después (AQ_SOLO_ROMA=etiqueta: solo esa captura, con AQ_RAIZ apuntando a otra copia del código) y una en horizontal */
 const romaFoto = async (page, n) => { await accion(page, 'newregion', 'italia'); await page.waitForTimeout(3500); await cierra(page); await ciudad(page); await page.waitForTimeout(10000); await cierra(page); await plano(page, false); await page.waitForTimeout(1500); await foto(page, n); };
-if (process.env.AQ_C) {   /* PN3c: aldea (casas a su escala), Imperio (ámbar), hoja de tu polis en el mapa y una rival griega; vertical y horizontal */
+if (process.env.AQ_D) {   /* PN3d: el bien especial en la hoja de tu polis (Tebas) y de dos rivales (Corinto y Calcis), mismo formato «Lujo: …» */
+  const d = async page => { await empezar(page, 'tebas', 4242); await accion(page, 'tab', 'map'); await page.waitForTimeout(6000); await cierra(page);
+    for (const [id, n] of [['roma', 'tebas'], ['corinto', 'corinto'], ['calcis', 'calcis']]) { await page.evaluate(i => { UI.sel = i; UI.sheetKey = ''; }, id); await page.waitForTimeout(1500); await foto(page, 'PN3d-hoja-' + n);
+      console.log('hoja-' + n, JSON.stringify(await page.evaluate(() => { const h = document.getElementById('sheet'); return h && !h.hidden ? ([...h.querySelectorAll('.stat')].map(e => e.textContent).filter(t => /^Lujo:/.test(t)) || [h.innerText.slice(0, 200)])[0] : null; }))); } };
+  d.b2 = true; await sesion(390, 844, d);
+}
+else if (process.env.AQ_C) {   /* PN3c: aldea (casas a su escala), Imperio (ámbar), hoja de tu polis en el mapa y una rival griega; vertical y horizontal */
   const c = async (page, sfx) => { await empezar(page, 'atenas', 1013); await plano(page, true); await foto(page, 'PN3c-arriba-' + sfx); await plano(page, false); await foto(page, 'PN3c-cerca-' + sfx);
     console.log('arranque-' + sfx, JSON.stringify(await page.evaluate(() => ({ rojo: [...document.querySelectorAll('#res .neg, #res .baja')].filter(e => e.offsetParent).map(e => e.parentNode.textContent.trim()), grano: Math.round(Game.state.res.grano), cap: Game.capDe ? Game.capDe('grano') : null, ciudades: Object.keys(Game.state.cities) }))));
     await accion(page, 'tab', 'imperio'); await page.waitForTimeout(2500); await cierra(page); await foto(page, 'PN3c-imperio-' + sfx);
