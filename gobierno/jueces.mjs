@@ -4,6 +4,11 @@
          node gobierno/jueces.mjs --todo     (todo, aunque no haya cambiado nada: la subida final de la 1.0)
          node gobierno/jueces.mjs --rapido   (solo la lógica, sin navegador)
          node gobierno/jueces.mjs --seguido  (una prueba detrás de otra, como antes de JZ1; para medir o si la máquina va justa)
+         node gobierno/jueces.mjs --liga     (J20a: SOLO la liga, sin navegador ni guerra jugada: test/sim.test.js entero con sus bots de
+              partida entera, el bot investigador y el de ajustes por nivel. Va aparte de la subida, que corre sim.test.js con
+              SIM_SIN_BOTS=1 y se salta esos bloques; ninguna vara se relaja, solo cambia el comando. Con memoria JZ1; --todo la repite.
+              Informe en gobierno/capturas-liga/informe.json; no pisa gobierno/capturas/.)
+   J20a: las pruebas con reloj de pared (marcadas «solo») corren antes y en serie, sin nada compitiendo.
    JZ1: cada prueba guarda en gobierno/jueces-cache.json la huella de los archivos que lee al dar APTO; si no cambió ninguno, no
         se repite (gobierno/jueces-cache.mjs). La lógica corre a la vez que el navegador y test/sim.test.js reparte sus campañas
         entre los núcleos (test/sim-paralelo.js). Los criterios de aprobado no cambian.
@@ -25,13 +30,15 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RAPIDO = process.argv.includes('--rapido');
 /* JZ1: --todo repite todo aunque nada haya cambiado (subida final de la 1.0); --seguido, una prueba detrás de otra, como antes */
 const TODO = process.argv.includes('--todo'), SEGUIDO = process.argv.includes('--seguido');
+const LIGA = process.argv.includes('--liga');   // J20a: solo la liga (ver arriba)
 const HILOS_LOGICA = 2;   // pruebas de Node a la vez (sim.test.js ya reparte sus campañas en todos los núcleos)
 const MEMORIA = leeMemoria(), NUEVA = {}; let saltadas = 0;
 /* MIN4: cada paso del navegador dice de qué área es (de) y a qué otras áreas prepara (para): con --area solo corren los suyos,
    los comunes y los que preparan su estado. Sin --area corre todo, en el mismo orden de siempre (las mismas 43 comprobaciones). */
 const AREA = process.argv.includes('--area') ? process.argv[process.argv.indexOf('--area') + 1] : null;
+if (LIGA && AREA !== null) { console.error('--liga no se combina con --area.'); process.exit(2); }
 if (AREA !== null && !['batallas', 'cerebro', 'musculo'].includes(AREA)) { console.error('Áreas con pasos de navegador: batallas, cerebro, musculo.'); process.exit(2); }
-const CAPS = AREA ? join(RAIZ, 'gobierno', 'capturas-area', AREA) : join(RAIZ, 'gobierno', 'capturas');
+const CAPS = AREA ? join(RAIZ, 'gobierno', 'capturas-area', AREA) : join(RAIZ, 'gobierno', LIGA ? 'capturas-liga' : 'capturas');
 const CAPS_TAREA = AREA ? CAPS : join(RAIZ, 'gobierno', 'capturas-tarea');   // R3 y R4 dejan ahí sus capturas fijas
 const pasos = [];                       // { nombre, ok, detalle, captura }
 const errores = [];                     // errores de consola del navegador
@@ -50,36 +57,37 @@ const bienMal = (r, n) => { const lineas = (r.stdout || '').split('\n').filter(l
   return (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, n || 400); };
 const ultima = r => (((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '').slice(0, 200);
 const LOGICA = [
-  { id: 'sim', nombre: 'Pruebas de lógica', f: 'test/sim.test.js', t: 5400000, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
+  { id: 'sim', nombre: 'Pruebas de lógica (sin los bots de partida entera: van a la liga)', f: 'test/sim.test.js', t: 5400000, env: { SIM_SIN_BOTS: '1' }, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
+  { id: 'sim-liga', nombre: 'Liga · pruebas de lógica con los bots de partida entera', f: 'test/sim.test.js', t: 5400000, liga: true, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
   { id: 'pausas', nombre: 'Pausas del reloj con motivo', f: 'test/pausas.test.mjs', t: 120000, lee: bienMal },
   { id: 'encargos', nombre: 'Encargos del Senado e hitos', f: 'test/encargos.test.mjs', t: 60000, lee: bienMal },
   { id: 'movil', nombre: 'Copia de la partida, nota y parada', f: 'test/movil.test.mjs', t: 60000, lee: bienMal },
-  { id: 'ciudad', nombre: 'Reglas de la ciudad nueva', f: 'test/ciudad.test.mjs', t: 300000, lee: bienMal },
+  { id: 'ciudad', nombre: 'Reglas de la ciudad nueva', f: 'test/ciudad.test.mjs', t: 300000, solo: true, lee: bienMal },   // J20a: CN9a mide tiempos (< 2,5 s y < 1 s): a solas
   { id: 'senado', nombre: 'Senado nuevo (sala de votos)', f: 'test/senado.test.js', t: 120000, lee: bienMal },
   { id: 'campo', nombre: 'Toparse en el camino (campaña, sin pantalla)', f: 'test/campo.test.mjs', t: 180000, lee: bienMal },
   { id: 'guerra', nombre: 'Guerra nueva (motor sin pantalla)', f: 'test/guerra.test.mjs', t: 120000, lee: bienMal },
-  { id: 'simulador', nombre: 'Simulador de batallas (manípulos)', f: 'test/simulador.test.mjs', t: 120000, lee: bienMal },
+  { id: 'simulador', nombre: 'Simulador de batallas (manípulos)', f: 'test/simulador.test.mjs', t: 120000, solo: true, lee: bienMal },
   { id: 'guerra-juego', nombre: 'Guerra en el juego (bot y guardar a mitad)', f: 'test/guerra-juego.test.mjs', t: 120000, lee: r => bienMal(r, 300) },
   { id: 'fichas', nombre: 'Fichas de las piezas', f: 'gobierno/fichas.mjs', t: 60000, todo: true, lee: r => { const l = (r.stdout || '').trim().split('\n').filter(Boolean);
     return (r.status === 0 ? l.filter(x => /^Resumen/.test(x)).join('') : l.filter(x => /✘ /.test(x) && !/^  ✘ (edificio|tropa|ciudad|hecho|faccion|mejora) /.test(x)).slice(0, 3).join(' | ')).slice(0, 400); } },
   { id: 'mapa', nombre: 'Alturas reales del mapa', f: 'test/mapa.test.mjs', t: 60000, todo: true, lee: r => ((r.stdout || '').trim().split('\n').slice(-2).join(' | ') || (r.stderr || '').trim().split('\n').slice(-2).join(' | ')).slice(0, 400) },
   { id: 'saber', nombre: 'Reglas del Saber', f: 'test/saber.test.mjs', t: 120000, lee: ultima },
-  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1800000, lee: ultima, completo: true },   // ~13 min solo (campaña larga hasta el 150 desde CDe4); 30 min con --todo (usuario 25/11 «1A», SB7): solo en el recorrido completo
-  { id: 'ajustes', nombre: 'Ajustes y dificultades (bot por nivel)', f: 'test/ajustes.test.mjs', t: 1800000, lee: ultima },
+  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1800000, lee: ultima, liga: true },   // ~13 min solo (campaña larga hasta el 150 desde CDe4); J20a: va a la liga
+  { id: 'ajustes', nombre: 'Ajustes y dificultades (bot por nivel)', f: 'test/ajustes.test.mjs', t: 1800000, lee: ultima, liga: true },
   { id: 'diplomacia', nombre: 'Diplomacia (alianza, tributo, IA construye)', f: 'test/diplomacia.test.mjs', t: 60000, lee: bienMal },
   { id: 'sonido-ciudad', nombre: 'Sonido de la ciudad', f: 'test/sonido-ciudad.test.mjs', t: 60000, lee: ultima },
 ];
 /* lanza un proceso sin parar a los demás; devuelve lo mismo que spawnSync (status, stdout, stderr) */
-function corre(args, timeout) {
+function corre(args, timeout, env) {
   return new Promise(ok => {
-    const h = spawn(process.execPath, args, { cwd: RAIZ }); let out = '', err = '', fin = false;
+    const h = spawn(process.execPath, args, { cwd: RAIZ, env: env ? Object.assign({}, process.env, env) : process.env }); let out = '', err = '', fin = false;
     h.stdout.on('data', d => { out += d; }); h.stderr.on('data', d => { err += d; });
     const reloj = setTimeout(() => { if (!fin) h.kill('SIGKILL'); }, timeout);
     h.on('close', status => { fin = true; clearTimeout(reloj); ok({ status, stdout: out, stderr: err }); });
   });
 }
 async function logica() {
-  const filas = LOGICA.filter(p => !(p.completo && RAPIDO));
+  const filas = LOGICA.filter(p => !!p.liga === LIGA);   // J20a: la liga y la subida no se mezclan
   /* si la prueba abre un navegador o recorre carpetas (o se marca con todo), depende de todo lo que se sirve */
   const huellaDe = p => { const c = cierre([p.f]), todo = p.todo || c.some(x => /\.m?js$/.test(x) && /playwright|readdirSync|readdir\(/.test(readFileSync(join(RAIZ, x), 'utf8')));
     return huella([...c, ...(todo ? servido() : []), 'gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs']); };
@@ -90,10 +98,15 @@ async function logica() {
     cola.push(p);
   }
   if (cola.length) console.log('Juez 1 · lógica: ' + cola.map(p => p.f.replace(/^(test|gobierno)\//, '')).join(', ') + (cola.length < filas.length ? ' (las demás, sin cambios)' : ''));
+  /* J20a: las pruebas «solo» (reloj de pared) corren antes y en serie, sin lógica ni navegador compitiendo */
+  for (const p of cola.filter(x => x.solo)) { cola.splice(cola.indexOf(p), 1);
+    const t = Date.now(), r = await corre([p.f], p.t, p.env), ok = r.status === 0;
+    apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s, a solas)');
+    if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() }; }
   const hilos = SEGUIDO ? 1 : Math.max(1, Math.min(cola.length, HILOS_LOGICA));
   await Promise.all(Array.from({ length: hilos }, async () => {
     for (let p; (p = cola.shift());) {
-      const t = Date.now(), r = await corre([p.f], p.t), ok = r.status === 0;
+      const t = Date.now(), r = await corre([p.f], p.t, p.env), ok = r.status === 0;
       apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s)');
       if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() };
     }
@@ -664,13 +677,13 @@ const visual = async () => {
   if (!AREA) await conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
 };
 /* la lógica (procesos aparte) y el navegador corren a la vez: el recorrido pasa mucho rato esperando a la página */
-const grupos = [...(AREA ? [] : [logica]), ...(RAPIDO ? [] : [visual])];
+const grupos = [...(AREA ? [] : [logica]), ...(RAPIDO || LIGA ? [] : [visual])];
 if (SEGUIDO) for (const g of grupos) await g(); else await Promise.all(grupos.map(g => g()));
 { const m = leeMemoria(); Object.assign(m, NUEVA); if (Object.keys(NUEVA).length) guardaMemoria(m); }
 
 const fallos = pasos.filter(p => !p.ok);
-const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, area: AREA, todo: TODO, saltadas, pasos, errores };
+const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, liga: LIGA, area: AREA, todo: TODO, saltadas, pasos, errores };
 if (!RAPIDO) await mkdir(CAPS, { recursive: true });
 if (!RAPIDO) await writeFile(join(CAPS, 'informe.json'), JSON.stringify(informe, null, 1));
-console.log('\n' + (informe.ok ? 'VEREDICTO: APTO' : 'VEREDICTO: NO APTO (' + fallos.length + ' fallo' + (fallos.length > 1 ? 's' : '') + ')') + ' · ' + pasos.length + ' comprobaciones' + (saltadas ? ' (' + saltadas + ' sin cambios, de memoria)' : '') + ' · ' + informe.segundos + ' s' + (AREA ? ' · área ' + AREA : '') + (RAPIDO ? '' : ' · capturas en ' + CAPS.slice(RAIZ.length + 1) + '/'));
+console.log('\n' + (informe.ok ? 'VEREDICTO: APTO' : 'VEREDICTO: NO APTO (' + fallos.length + ' fallo' + (fallos.length > 1 ? 's' : '') + ')') + ' · ' + pasos.length + ' comprobaciones' + (saltadas ? ' (' + saltadas + ' sin cambios, de memoria)' : '') + ' · ' + informe.segundos + ' s' + (AREA ? ' · área ' + AREA : '') + (LIGA ? ' · liga' : '') + (RAPIDO ? '' : ' · capturas en ' + CAPS.slice(RAIZ.length + 1) + '/'));
 process.exit(informe.ok ? 0 : 1);

@@ -43,7 +43,8 @@ if (process.env.SIM_OBRERO) {   // ---- obrero: juega en orden las campañas que
 }
 
 /* ---- proceso principal ---- */
-const HILOS = Math.max(1, +process.env.SIM_HILOS || os.cpus().length);
+/* J20a: con SIM_SIN_BOTS=1 (la subida) test/sim.test.js salta las campañas del bot (van a la liga): no hay nada que repartir, no se arranca ningún obrero */
+const HILOS = process.env.SIM_SIN_BOTS ? 1 : Math.max(1, +process.env.SIM_HILOS || os.cpus().length);
 let DIR = null; const hijos = [];
 if (HILOS > 1) {
   DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'aqvila-sim-'));
