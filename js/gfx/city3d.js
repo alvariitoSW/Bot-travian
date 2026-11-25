@@ -843,7 +843,7 @@ export class CityView3D {
     selActual = sel || null;
     dibujar();
     this.etiquetasBarrio(H);
-    const el = this.armyEl, txt = '⚔️ ' + ((window.DATA && DATA.LEVA_FICHAS && DATA.LEVA_FICHAS.campo_marte && DATA.LEVA_FICHAS.campo_marte.n) || 'Campo de Marte') + ' · ' + this.men;   // PN3: en partida de polis, «Campo de armas» if (el._t !== txt) { el._t = txt; el.textContent = txt; }
+    const el = this.armyEl, txt = '⚔️ ' + ((window.DATA && DATA.LEVA_FICHAS && DATA.LEVA_FICHAS.campo_marte && DATA.LEVA_FICHAS.campo_marte.n) || 'Campo de Marte') + ' · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }   // PN3: en partida de polis, «Campo de armas»
     if (this.guarn && this.men && cam.d < 700) { const p = aPantalla(this.guarn.x, this.guarn.z, 14), r = host.getBoundingClientRect(), y = p.y - r.top; if (p.ok && y > 104 && y < H - 150) { el.style.display = ''; el.style.transform = 'translate(' + (p.x - r.left).toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-100%)'; } else el.style.display = 'none'; } else el.style.display = 'none';
   }
   /* CN6: una etiqueta pequeña por barrio («Foro · II»), solo con la cámara lejos y lejos de la línea de arriba y de la bandeja de abajo */
