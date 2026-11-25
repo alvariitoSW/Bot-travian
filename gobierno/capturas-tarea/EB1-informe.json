@@ -1,22 +1,58 @@
 {
- "falange-manipulos-inicio-v": {
+ "vivo-estado-v": {
+  "t": 42.800000000000004,
+  "fin": false,
+  "res": null,
+  "sel": [],
+  "pausa": false,
+  "vel": 1,
+  "cam": {
+   "x": -28.040956897415175,
+   "z": 44.08385293115829,
+   "d": 40,
+   "y": -56.560373342064324
+  },
+  "tri": 644598,
+  "llamadas": 28,
+  "figuras": 800,
+  "caidas": 58,
+  "niveles": [
+   0,
+   0,
+   33,
+   825
+  ]
+ },
+ "mando-v": {
   "errores": 0,
   "ej": []
  },
- "falange-manipulos-estado-v": {
-  "T": 49.000000000000426,
-  "nivel": "normal",
-  "ganador": null,
-  "util": null,
-  "orden": null,
-  "llamadas": 22,
-  "triangulos": 650060,
-  "figs": 213,
-  "caidos": 27
+ "vivo-estado-h": {
+  "t": 43,
+  "fin": false,
+  "res": null,
+  "sel": [],
+  "pausa": false,
+  "vel": 1,
+  "cam": {
+   "x": -25.437589943598976,
+   "z": 52.89551319037183,
+   "d": 40,
+   "y": -56.560373342064324
+  },
+  "tri": 626279,
+  "llamadas": 26,
+  "figuras": 800,
+  "caidas": 58,
+  "niveles": [
+   0,
+   0,
+   0,
+   858
+  ]
  },
- "falange-manipulos-lucha-v": {
+ "mando-h": {
   "errores": 0,
   "ej": []
- },
- "fallo": "locator.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('#inicio:not([hidden]) [data-nivel=\"normal\"]').first()\u001b[22m\n"
+ }
 }

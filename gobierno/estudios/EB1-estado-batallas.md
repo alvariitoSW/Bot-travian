@@ -21,4 +21,56 @@ mapa de Grecia, la hoja de estación y menús (`git diff main origin/claude/roma
 archivo de batalla). Capturas de esta sesión: `gobierno/capturas-tarea/EB1-*.jpg` (390×844 «-v» y 844×390 «-h»), hechas con
 `gobierno/maquetas/bloque/captura-eb1.mjs` y `captura-eb1-oficial.mjs`. 0 errores de consola en todas.
 
-<!-- RESUMEN -->
+**Página visual para el móvil** (pedida por el usuario el 25/11: «ejemplificarme de manera visual cómo está ahora el estado
+del juego en cuanto a las batallas, para con ese formato visual hacer ajustes más finos»): https://claude.ai/artifact/1jprVyJMkpnDVEYbGYft8N
+Cada nota lleva un número (T1, F0, G5…) para pedir ajustes finos.
+
+## 1. En una pantalla
+- **No está unificado.** Tres pantallas: batalla grande en vivo (`js/ui-mando.js` + `js/simulador.js`; campaña y escaramuza
+  montada), batalla rápida (`js/ui-batalla-rapida.js`, lienzo 2D) y escena «a pie» (`gobierno/maquetas/bloque/`).
+- Testudo, falange, manípulo y Ásculo ya son **la misma escena a pie** (FU1–FU6: mismo campo, dibujar el frente, cuatro botones).
+- Por dentro, **cuatro reglas de lucha**: bloque con CB3 (`js/bloque.js`, `bloque-ia.js`, `combate-tropas.js`) para testudo y
+  manípulo; `js/falange.js` + `falange-rivales.js` para la falange; `js/mando-varios.js` + `tiro.js` para Ásculo; `js/simulador.js`
+  para la batalla grande y la rápida.
+- **Cuatro juegos de botones**: Testudo·Cargar·Relevo·Alto / Bajar picas·Cerrar filas·Avanzar·Alto / Avanzar·Alto·Cargar·Retirada /
+  Cargar·Relevar·Retroceder·Aguantar·Formar…·Al tribuno·Bajar.
+- **Soldados comunes** (`js/gfx/soldado.js`, los cargan la escena a pie y el mando), salvo falangitas propios. **Campo y luz
+  distintos**: a pie `maquetas/falange/campo.js` (dorado, colinas); arriba `js/gfx/campo-mando.js` (verde y plano).
+- Física de cuerpos y proyectiles: un solo motor (`js/fisica-batalla.js`, FI3u/FI4).
+
+## 2. Lo más grave (usuario, 25/11, con captura: «Aquí se ve con el atraviesan las picas que no se cuántas veces habré repetido
+que no quiero que pase eso....»)
+- **F0 · Las picas atraviesan los cuerpos** en la falange: las de las filas de atrás entran por la espalda de los de delante
+  (el oficial incluido) y cruzan a los caídos. Causa: FU3c coloca cada sarisa en un «carril» fijo a 33 cm del hombro
+  (`bloque/formaciones/falange.js`, `CARRIL`, «Solo dibujo»): nada comprueba si choca con el cuerpo de delante cuando las filas
+  se aprietan. Pedido ya el 23/11 («que no se atraviesen las picas ni los brazos»); P187 (brazos) en la nevera.
+- **F1 · La lanza del oficial**: FU3c (24/11) dejó de pintar la sarisa del oficial («salía como una tabla delante de la cámara»)
+  y adelgazó todas. Antes: `capturas-tarea/FU3-oficial-390.jpg`; ahora: `EB1-oficial-falange-v.jpg`. Lo que mejoró (el usuario
+  lo nota): vista de arriba y movimiento.
+
+## 3. Notas por escena (detalle y capturas en la página)
+- Testudo: T1 techo plano de escudos idénticos; T2 sin pared delante ni a los lados; T3 tinte rojo que tapa el objetivo;
+  T4 tamaño en vertical; T5 el testudo de la batalla grande no se ve igual; T7 bajo el techo, dos escudos enormes con una raja
+  de cielo y el frente abierto. T6 se entiende (bien).
+- Falange: F0, F1; F2 penacho de bloque blanco; F3 desde arriba no se lee si las picas están bajadas; F5 pendientes de FU3c.
+- Manípulo: M1 casi la misma partida que el testudo; M2 vélites y triarios de LP5 perdidos.
+- Ásculo: A1 su falange no tiene nada de la de «Falange a pie»; A2 itálicos y tiradores con modelo equivocado; A3 no cuenta en
+  la campaña (ES5).
+- Batalla grande: G1 al empezar solo estandartes y barras; G2 otro campo; G3 nombres de botones distintos; G4 física por encima
+  del tope (1,31 ms, FI4); G5 alfombras de color y estandarte enorme; G6 pocas figuras separadas por manípulo.
+- Bajar a pie: B1 cambia campo, luz, botones y reglas. Batalla rápida: R1 tercer aspecto.
+
+## 4. Propuesta de objetivo final de las batallas en la 2.0 (para aprobar)
+«Una batalla, dos alturas, un solo mundo», sobre lo que hay: (1) una sola forma de mandar (mismos botones y nombres, más una
+orden propia por tropa); (2) un solo campo y una luz; (3) las mismas tropas, cada pueblo con su modelo; (4) un motor de golpes
+a pie (CB3) para testudo, manípulo, falange y Ásculo; la batalla grande mantiene su simulador («De momento hay que mantener lo
+que tenemos», 25/11) con los mismos números de tropa; (5) **nada atraviesa nada**, regla fija con prueba automática; (6) el
+testudo como pieza de muestra; (7) vara: ficha de objetivo de 8–12 cosas, aspecto ≥ 8,5 y examen de jugabilidad por una
+sesión que no construyó. Tandas: 1 testudo + nada atraviesa nada (F0) · 2 botones iguales + lanza y penacho · 3 un campo y una
+luz · 4 Ásculo con la falange de verdad · 5 un motor de golpes a pie (+CB2b).
+Para el modo supervivencia (después, aparte): lo que se acuerde aquí (campo, luz, botones, nada atraviesa nada) le sirve igual;
+SUP1 dejó preguntas a los departamentos en `estudios/SUP1-diseno.md` §2b.
+
+## 5. Decisiones del usuario (literal)
+(pendiente)
+
