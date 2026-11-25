@@ -6,6 +6,17 @@ Rama `plan-2.0`. **Sin aprobar**: hasta su «sí» no se toca TABLERO, BITACORA,
 
 Estado: 1.0 en `main` = v168 (SB6). La subida final SB7 (v171) está en prueba.
 
+## 0. Cómo convergemos (acordado el 25/11)
+1. El usuario dice mejoras, sueltas o en tanda; se apuntan literales con fecha y su área.
+2. Cada idea pasa tres preguntas: ¿la verás jugando?, ¿sirve a «EL JUEGO»?, ¿cuánto cuesta?
+3. Cada idea cuelga de una meta («La 2.0 está terminada cuando…») o queda fuera. Sin término medio.
+4. Cuando el usuario diga «ya está»: página con metas, orden y lo que queda fuera; decide con preguntas A/B.
+
+Decisiones del usuario (25/11, en este chat):
+- «5 metas (Recomendado)»: la 2.0 tiene **5 metas como máximo**.
+- «Archivar todas (Recomendado)»: las **105 tareas «en pausa» del tablero se archivan** (siguen en git); solo vuelve
+  la que encaje en una meta. Lo aplica el vigía cuando se apruebe el plan.
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
