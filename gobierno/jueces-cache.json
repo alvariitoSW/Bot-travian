@@ -300,13 +300,13 @@
   "fecha": "2026-11-25T12:38:22.309Z"
  },
  "navegador-cerebro": {
-  "huella": "a06788d98c68ba11",
+  "huella": "277876851c036749",
   "ok": true,
-  "fecha": "2026-11-25T13:37:03.189Z"
+  "fecha": "2026-11-25T13:41:13.267Z"
  },
  "area:gobierno/jueces.mjs --area cerebro": {
-  "huella": "b81741dafb6b0375",
+  "huella": "277876851c036749",
   "ok": true,
-  "fecha": "2026-11-25T13:37:03.199Z"
+  "fecha": "2026-11-25T13:41:13.277Z"
  }
 }
