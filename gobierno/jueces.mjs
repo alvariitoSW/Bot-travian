@@ -64,7 +64,7 @@ const LOGICA = [
     return (r.status === 0 ? l.filter(x => /^Resumen/.test(x)).join('') : l.filter(x => /✘ /.test(x) && !/^  ✘ (edificio|tropa|ciudad|hecho|faccion|mejora) /.test(x)).slice(0, 3).join(' | ')).slice(0, 400); } },
   { id: 'mapa', nombre: 'Alturas reales del mapa', f: 'test/mapa.test.mjs', t: 60000, todo: true, lee: r => ((r.stdout || '').trim().split('\n').slice(-2).join(' | ') || (r.stderr || '').trim().split('\n').slice(-2).join(' | ')).slice(0, 400) },
   { id: 'saber', nombre: 'Reglas del Saber', f: 'test/saber.test.mjs', t: 120000, lee: ultima },
-  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1200000, lee: ultima, completo: true },   // ~40 s: solo en el recorrido completo
+  { id: 'investigador', nombre: 'Bot investigador', f: 'test/investigador.test.mjs', t: 1800000, lee: ultima, completo: true },   // ~13 min solo (campaña larga hasta el 150 desde CDe4); 30 min con --todo (usuario 25/11 «1A», SB7): solo en el recorrido completo
   { id: 'ajustes', nombre: 'Ajustes y dificultades (bot por nivel)', f: 'test/ajustes.test.mjs', t: 1800000, lee: ultima },
   { id: 'diplomacia', nombre: 'Diplomacia (alianza, tributo, IA construye)', f: 'test/diplomacia.test.mjs', t: 60000, lee: bienMal },
   { id: 'sonido-ciudad', nombre: 'Sonido de la ciudad', f: 'test/sonido-ciudad.test.mjs', t: 60000, lee: ultima },
