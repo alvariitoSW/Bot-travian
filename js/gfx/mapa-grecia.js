@@ -107,7 +107,7 @@ export class MapaGrecia {
     for (const t in BASICOS) { const m = new THREE.Mesh(cintas(aros.filter(a => a.z.t === t)), materialLinea(this.com, { ancho: 0, minPx: 2.6, color: BASICOS[t].color, opacidad: 0.9, trazo: 4, alza: 2.5 })); m.frustumCulled = false; m.renderOrder = 3; this.cercos.add(m); }
     for (const m of [this.rios, this.caminos]) { m.frustumCulled = false; m.renderOrder = 2; this.escena.add(m); } this.escena.add(this.cercos); this._estiloLineas();
   }
-  _estiloLineas() { const E = ESTILOS[this.est], pon = (m, o) => { const u = m.material.uniforms; u.uColor.value.copy(new THREE.Color().setRGB(...hex(o.color), THREE.LinearSRGBColorSpace)); u.uColor2.value.copy(new THREE.Color().setRGB(...hex(o.borde), THREE.LinearSRGBColorSpace)); u.uOpacidad.value = o.opacidad; u.uTrazo.value = o.trazo || 0; u.uMinPx.value = o.minPx || 1.8; };
+  _estiloLineas() { const E = ESTILOS[this.est], pon = (m, o) => { const u = m.material.uniforms; u.uColor.value.copy(new THREE.Color().setRGB(...hex(o.color), THREE.LinearSRGBColorSpace)); u.uColor2.value.copy(new THREE.Color().setRGB(...hex(o.borde), THREE.LinearSRGBColorSpace)); u.uOpacidad.value = o.opacidad; u.uTrazo.value = o.trazo || 0; u.uMinPx.value = o.minPx || 1.8; if (m.userData.ancho0 === undefined) m.userData.ancho0 = u.uAncho.value; u.uAncho.value = o.ancho || m.userData.ancho0; };
     pon(this.rios, E.rio); pon(this.caminos, E.camino); }
 
   /* ---------- rótulos (HTML: nítidos a 390 px) ---------- */

@@ -270,7 +270,7 @@ export const ESTILOS = {
     rio: { color: '#5fa2bd', borde: '#2c5a70', opacidad: 0.95 }, camino: { color: '#e6d2a2', borde: '#6a543a', opacidad: 0.9, trazo: 0 } },
   b: { n: 'Carta antigua viva', suelo: 'suelo-b.webp', masc: 'mascaras-b.webp', niebla: '#d9c9a0', nubes: 0.16, nubesAltas: 0,
     mar: { costa: '#a9c2b4', hondo: '#8fb0ae', brillo: '#fff8e0', espuma: '#f4ecd6', fuerzaBrillo: 0.05, fuerzaEspuma: 0.5, ondas: 0.3, rayas: 0.7, dura: 0, tinta: 1 },
-    rio: { color: '#3f7890', borde: '#2f5666', opacidad: 1, minPx: 2.1 }, camino: { color: '#8a2c20', borde: '#8a2c20', opacidad: 0.95, trazo: 5, minPx: 2.5 } }
+    rio: { color: '#8fb4b8', borde: '#2f5666', opacidad: 0.95, minPx: 2.1, ancho: 0.0034 }, camino: { color: '#8a2c20', borde: '#8a2c20', opacidad: 0.95, trazo: 5, minPx: 2.5 } }
 };
 
 export class Suelo {
