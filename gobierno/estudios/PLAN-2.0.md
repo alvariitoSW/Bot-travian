@@ -46,6 +46,16 @@ Decisiones del usuario (25/11, en este chat):
   históricas) también entran en Escaramuzas.
 - Va en **M1** (base de la 2.0), lo primero de todo: sin ella, los jueces nuevos no tienen dónde medir.
 
+### La idea central de la 2.0 (usuario, 25/11, literal)
+«Vale, ahora yo en la ciudad puedo elegir civilización. Y empiezo en un mapa aleatorio de 0 según haya elegido ciudad,
+y empiece con el foro y unas pocas casas de ciudadanos con algo de materias básicas y tenga un pequeño núcleo de
+población, y ahí es donde entra la verdadera jugabilidad que hemos creado de ir construyendo, delegar en los ministros
+para que la construyan de 0. Y la ciudad empiece a crecer y se vaya construyendo mientras se abastece a la ciudadanía y
+se va construyendo el ejercito y el comercio etc. La cuestión sería empezar de 0 en una ciudad de Grecia en el 1000 ac o
+en el 800ac y desde ahí cogiendo las cosas del 1.0 que hay hechas las pulimos creando la 2.0. Como se integra esto en el plan?»
+→ Propuesta: las 5 metas se reordenan alrededor de «Partida nueva desde cero» (ver §3, versión 2). Choca con la regla
+de época de CLAUDE.md (280–146 a.C.): la cambia solo el usuario.
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
