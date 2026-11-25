@@ -155,9 +155,9 @@
   "fecha": "2026-11-25T04:48:13.727Z"
  },
  "area:test/dialogos.test.mjs": {
-  "huella": "0832e6cff72b55bf",
+  "huella": "5473421647383d7f",
   "ok": true,
-  "fecha": "2026-11-25T04:48:15.005Z"
+  "fecha": "2026-11-25T12:29:04.569Z"
  },
  "navegador-batallas": {
   "huella": "8ab5f4924a8e20ff",
@@ -170,9 +170,9 @@
   "fecha": "2026-11-25T04:52:47.172Z"
  },
  "area:gobierno/juez-guerra.mjs": {
-  "huella": "6612415c65a6bce7",
+  "huella": "787cf2914479f5ff",
   "ok": true,
-  "fecha": "2026-11-25T05:50:41.161Z"
+  "fecha": "2026-11-25T12:41:46.010Z"
  },
  "area:test/fu3-falange.test.mjs": {
   "huella": "8a76adac61c1b454",
@@ -275,9 +275,9 @@
   "fecha": "2026-11-25T11:23:50.450Z"
  },
  "area:gobierno/arte.mjs": {
-  "huella": "0bff38ec430e9c34",
+  "huella": "787cf2914479f5ff",
   "ok": true,
-  "fecha": "2026-11-25T11:23:50.739Z"
+  "fecha": "2026-11-25T12:29:04.931Z"
  },
  "area:gobierno/fichas.mjs": {
   "huella": "5595621cf30c434d",
@@ -293,5 +293,15 @@
   "huella": "5a7641918e6ffa88",
   "ok": true,
   "fecha": "2026-11-25T12:03:48.367Z"
+ },
+ "area:gobierno/juez-aspecto.mjs animacion": {
+  "huella": "2dd06d7cf302cbc1",
+  "ok": true,
+  "fecha": "2026-11-25T12:16:20.267Z"
+ },
+ "area:gobierno/juez-aspecto.mjs graficos": {
+  "huella": "2dd06d7cf302cbc1",
+  "ok": true,
+  "fecha": "2026-11-25T12:41:46.178Z"
  }
 }

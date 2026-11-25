@@ -31,7 +31,8 @@
       ".gitignore",
       ".nojekyll",
       "test/campana-bot.js",
-      "test/sim-paralelo.js"
+      "test/sim-paralelo.js",
+      "gobierno/juez-aspecto.mjs"
     ],
     "solo_vigia": [
       "gobierno/BITACORA.md",
@@ -73,7 +74,7 @@
   },
   "areas": {
     "batallas": {
-      "nombre": "Ministerio de Batallas (ejércitos, mando, campo y pantallas)",
+      "nombre": "Departamento de Jugabilidad y mando (antes Batallas): qué haces y cómo mandas, ritmo, IA rival, equilibrio, pantallas",
       "en_vigor": true,
       "guia": ".claude/skills/ministerio-batallas/SKILL.md",
       "objetivo": "OBJETIVOS.md, órgano Corazón: se puede lograr el camino de las armas; hay una sola batalla, con el testudo a pie alcanzable desde el juego.",
@@ -88,7 +89,6 @@
         "js/ui-mando.js",
         "js/ui-maniobra.js",
         "js/ui-escaramuza.js",
-        "js/gfx/campo-mando.js",
         "js/gfx/sonido.js",
         "css/mando.css",
         "css/maniobra.css",
@@ -115,8 +115,6 @@
         "js/ui-batalla-rapida.js",
         "test/batalla-rapida.test.mjs",
         "gobierno/captura-cg7.mjs",
-        "js/gfx/cine-mando.js",
-        "js/gfx/estandartes.js",
         "test/fu2-oficial.test.mjs",
         "js/mando-varios.js",
         "js/tiro.js",
@@ -177,6 +175,11 @@
           "gobierno/fichas.mjs",
           "gobierno/juez-sonido.mjs"
         ]
+      },
+      "examen": {
+        "_regla": "Examen de jugabilidad (usuario, 25/11): antes de enseñar al usuario una tarea de batalla, la juzga una sesión que NO la construyó, con capturas a 390 px contra REF-batallas-referencias.md y críticas. Sin examen no se enseña. MINISTERIOS.md §4d.",
+        "quien": "verificador u otra sesión que no tocó el código de la tarea",
+        "deja": "gobierno/partes/<fecha>-<ID>-examen.md"
       }
     },
     "cerebro": {
@@ -326,7 +329,7 @@
       "objetivo": "OBJETIVOS.md, órgano Músculo: aspecto cuidado y coherente; fluido y sin conexión en el móvil del usuario."
     },
     "arte": {
-      "nombre": "Taller de Arte común: reglas, licencias, presupuesto y herramientas; arte de edificios y menús (el del mapa, en el Departamento de Arte de Mapas)",
+      "nombre": "Taller de Arte común: reglas, licencias, presupuesto y herramientas; arte de edificios y menús y, desde DB0 (25/11), el Arte de soldados (modelos, telas, escudos, pueblos). El del mapa, en Arte de Mapas",
       "en_vigor": true,
       "propios": [
         "assets/static/",
@@ -338,7 +341,16 @@
         "assets/personajes/",
         "assets/laminas/",
         "assets/edificios-griegos/",
-        "tools/aligerar_edificios_griegos.mjs"
+        "tools/aligerar_edificios_griegos.mjs",
+        "assets/soldados/",
+        "assets/units/",
+        "tools/blender/",
+        "tools/glb_a_static.mjs",
+        "tools/build_units.mjs",
+        "tools/resolve_units.py",
+        "gobierno/entornos/batallas-taller.sh",
+        "gobierno/entornos/batallas-taller.md",
+        "gobierno/maquetas/soldado-*/"
       ],
       "taller": [],
       "juez": {
@@ -397,21 +409,16 @@
       }
     },
     "combate": {
-      "nombre": "Departamento de Combate: motor de lucha, físicas, cuerpos y animaciones de los soldados (con el taller de arte de soldados)",
+      "nombre": "Departamento de Motor de guerra (antes Combate): lucha, física y proyectiles; meta, fluido con 1.000–2.000 por bando",
       "en_vigor": true,
       "guia": ".claude/skills/ministerio-combate/SKILL.md",
       "objetivo": "OBJETIVOS.md, órgano Corazón (líneas L17 y L18): la lucha se siente real. Cada soldado se cubre con el escudo y golpea con la otra mano; cuenta el arma que lleva; los manípulos combaten y se relevan como en la época.",
       "propios": [
         "js/fisica-batalla.js",
         "test/fisica-batalla.test.mjs",
-        "js/gfx/soldado.js",
-        "js/gfx/units.js",
-        "js/gfx/models.js",
-        "gobierno/maquetas/soldado-*/",
         "js/combate.js",
         "js/combate-*.js",
         "test/combate*.test.mjs",
-        "js/gfx/golpes.js",
         "gobierno/maquetas/combate-*/",
         "gobierno/juez-combate.mjs",
         "gobierno/captura-combate*.mjs",
@@ -432,18 +439,9 @@
         "test/combate-bloque.test.mjs",
         "gobierno/captura-cb3.mjs"
       ],
-      "taller": [
-        "assets/soldados/",
-        "assets/units/",
-        "tools/blender/",
-        "tools/glb_a_static.mjs",
-        "tools/build_units.mjs",
-        "tools/resolve_units.py",
-        "gobierno/entornos/batallas-taller.sh",
-        "gobierno/entornos/batallas-taller.md"
-      ],
+      "taller": [],
       "da_a": {
-        "_regla": "Combate da el motor; Batallas lo usa. Batallas no cambia js/combate.js ni js/fisica-batalla.js: pide el cambio como pase. Combate no cambia las escenas ni las pantallas de Batallas: entrega la función y Batallas la conecta.",
+        "_regla": "Combate da el motor; Batallas lo usa. Batallas no cambia js/combate.js ni js/fisica-batalla.js: pide el cambio como pase. Combate no cambia las escenas ni las pantallas de Batallas: entrega la función y Batallas la conecta. Animación lee el estado del motor (js/combate-poses.js es suyo) y lo pinta; no cambia el motor: pide el cambio como pase.",
         "batallas": [
           "js/falange.js",
           "js/falange-rivales.js",
@@ -451,6 +449,14 @@
           "js/bloque-ia.js",
           "js/guerra.js",
           "js/battle.js"
+        ],
+        "animacion": [
+          "js/combate.js",
+          "js/combate-tropas.js",
+          "js/falange.js",
+          "js/falange-rivales.js",
+          "js/bloque.js",
+          "js/bloque-ia.js"
         ]
       },
       "juez": {
@@ -458,7 +464,6 @@
           "test/bloque-ia.test.mjs",
           "test/bloque.test.mjs",
           "test/combate-bloque.test.mjs",
-          "test/combate-poses.test.mjs",
           "test/combate.test.mjs",
           "test/falange-rivales.test.mjs",
           "test/falange.test.mjs",
@@ -506,6 +511,104 @@
       "guia": ".claude/skills/arte-mapas/SKILL.md",
       "objetivo": "OBJETIVOS.md, órgano Músculo: aspecto cuidado y coherente. PLAN-2.0 M1: mapa vivo con nota ≥ 7 frente a referencias tipo Total War; recursos básicos en ≥ 3 zonas, lujo en 1–3 ciudades.",
       "modelo": "AM1 y AM2 con Fable por excepción del usuario («Fable diseña y construye», 25/11); el resto, Opus."
+    },
+    "animacion": {
+      "nombre": "Departamento de Animación (nuevo, DB0 25/11): movimientos de soldados, jinetes, elefantes y barcos",
+      "en_vigor": true,
+      "guia": ".claude/skills/ministerio-animacion/SKILL.md",
+      "objetivo": "OBJETIVOS.md, órgano Corazón y PLAN-2.0 «Departamentos de batalla»: sin atravesar escudos ni movimientos robóticos; juez de aspecto con nota ≥ 8,5 sobre su ficha de objetivo (gobierno/aspecto/animacion.md).",
+      "propios": [
+        "js/gfx/soldado.js",
+        "js/gfx/units.js",
+        "js/gfx/models.js",
+        "js/combate-poses.js",
+        "test/combate-poses.test.mjs",
+        "js/animacion*.js",
+        "js/gfx/animacion*.js",
+        "test/animacion*.mjs",
+        "gobierno/maquetas/animacion-*/",
+        "gobierno/maquetas/soldado-pil3/",
+        "gobierno/maquetas/soldado-rome2/construir/anim.py",
+        "gobierno/maquetas/soldado-rome2/construir/poses.py",
+        "gobierno/maquetas/soldado-rome2/construir/probar_anim.py",
+        "gobierno/maquetas/falange/esqueleto.js",
+        "gobierno/maquetas/falange/locomocion.js",
+        "gobierno/maquetas/falange/caballeria.js",
+        "gobierno/maquetas/falange/elefante.js",
+        "gobierno/maquetas/falange/soldados.js",
+        "tools/blender/pilum_tiro.py",
+        "tools/blender/pilum_throw.glb",
+        "tools/blender/importa_ual.py",
+        "tools/blender/pil3_lanzar2_meshy.py",
+        "tools/blender/anim*",
+        "gobierno/captura-animacion*.mjs",
+        "gobierno/aspecto/animacion*"
+      ],
+      "taller": [],
+      "da_a": {
+        "_regla": "Animación pinta lo que dice el motor y lo que manda la batalla. No cambia el motor (Motor de guerra) ni las escenas y pantallas (Jugabilidad y mando): entrega la función y ellos la conectan. Modelos y texturas son de Arte de soldados.",
+        "batallas": [
+          "js/gfx/soldado.js",
+          "js/gfx/units.js",
+          "js/gfx/models.js",
+          "js/combate-poses.js"
+        ]
+      },
+      "juez": {
+        "logica": [
+          "test/combate-poses.test.mjs",
+          "gobierno/juez-aspecto.mjs animacion"
+        ],
+        "navegador": [
+          "gobierno/juez-guerra.mjs"
+        ],
+        "si_toca_arte": [
+          "gobierno/arte.mjs",
+          "gobierno/fichas.mjs"
+        ]
+      }
+    },
+    "graficos": {
+      "nombre": "Departamento de Gráficos (nuevo, DB0 25/11): luz, cielo, campo, polvo, sangre, cámara de cine y fluidez de la escena de batalla",
+      "en_vigor": true,
+      "guia": ".claude/skills/ministerio-graficos/SKILL.md",
+      "objetivo": "OBJETIVOS.md, órgano Corazón y PLAN-2.0 «Departamentos de batalla»: aspecto ≥ 8,5 frente a referencias sobre su ficha de objetivo (gobierno/aspecto/graficos.md); sin tirones en el móvil del usuario.",
+      "propios": [
+        "js/gfx/campo-mando.js",
+        "js/gfx/cine-mando.js",
+        "js/gfx/estandartes.js",
+        "js/gfx/golpes.js",
+        "js/gfx/graficos*.js",
+        "test/graficos*.mjs",
+        "gobierno/maquetas/graficos-*/",
+        "gobierno/maquetas/cine-mando/",
+        "gobierno/maquetas/testudo-luz-campo/",
+        "gobierno/maquetas/a-pie/campo.js",
+        "gobierno/maquetas/falange/campo.js",
+        "gobierno/captura-graficos*.mjs",
+        "gobierno/aspecto/graficos*"
+      ],
+      "taller": [],
+      "da_a": {
+        "_regla": "Gráficos entrega la escena (luz, cielo, campo, efectos, cámara) como funciones; Jugabilidad y mando las conecta en sus pantallas (js/ui-mando.js, js/ui-escaramuza.js). El suelo común (js/gfx/ground.js, statics.js) es del Músculo: por pase.",
+        "batallas": [
+          "js/gfx/campo-mando.js",
+          "js/gfx/cine-mando.js",
+          "js/gfx/estandartes.js"
+        ]
+      },
+      "juez": {
+        "logica": [
+          "gobierno/juez-aspecto.mjs graficos"
+        ],
+        "navegador": [
+          "gobierno/juez-guerra.mjs"
+        ],
+        "si_toca_arte": [
+          "gobierno/arte.mjs",
+          "gobierno/fichas.mjs"
+        ]
+      }
     }
   }
 }
