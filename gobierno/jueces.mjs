@@ -31,7 +31,7 @@ const RAPIDO = process.argv.includes('--rapido');
 /* JZ1: --todo repite todo aunque nada haya cambiado (subida final de la 1.0); --seguido, una prueba detrás de otra, como antes */
 const TODO = process.argv.includes('--todo'), SEGUIDO = process.argv.includes('--seguido');
 const LIGA = process.argv.includes('--liga');   // J20a: solo la liga (ver arriba)
-const RITMO_MS = process.env.RITMO_MS === undefined ? 1000 : +process.env.RITMO_MS;   // J20a: ver gobierno/ritmo-pruebas.js
+const RITMO_MS = process.env.RITMO_MS === undefined ? 2000 : +process.env.RITMO_MS;   // J20a: ver gobierno/ritmo-pruebas.js
 const HILOS_LOGICA = 2;   // pruebas de Node a la vez (sim.test.js ya reparte sus campañas en todos los núcleos)
 const MEMORIA = leeMemoria(), NUEVA = {}; let saltadas = 0;
 /* MIN4: cada paso del navegador dice de qué área es (de) y a qué otras áreas prepara (para): con --area solo corren los suyos,
@@ -488,6 +488,8 @@ async function navegador() {
     await paso('Mapa por escalones: tocar Italia acerca y «← volver» devuelve', 'musculo', async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; UI.map.esc.anim = null; UI.map.esc.zona = null; UI.map.esc.pila = []; UI.map.c.x = 94; UI.map.c.z = 46; UI.map.c.dist = 330; UI.map.clamp(); });
       await espera(1500);
+      /* J20a: las etiquetas de zona se colocan al dibujar; se espera a que estén las ocho (no a un plazo fijo) antes de medir */
+      await page.waitForFunction(() => [...document.querySelectorAll('.mlabel.zona')].filter(e => e.style.display !== 'none').length === 8 && [...document.querySelectorAll('.mlabel.zona')].some(e => e.textContent === 'Italia'), null, { timeout: 30000 }).catch(() => { });
       const antes = await estado(() => ({ x: UI.map.c.x, z: UI.map.c.z, dist: UI.map.c.dist, zonas: [...document.querySelectorAll('.mlabel.zona')].filter(e => e.style.display !== 'none').length }));
       const fotoMare = await foto('escalon-mare');
       await page.evaluate(() => [...document.querySelectorAll('.mlabel.zona')].find(e => e.textContent === 'Italia').click());

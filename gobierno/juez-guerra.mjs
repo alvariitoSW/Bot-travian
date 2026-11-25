@@ -26,7 +26,7 @@ const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftsh
 await mkdir(SALIDA, { recursive: true });
 const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true });
 /* J20a: fotogramas espaciados (gobierno/ritmo-pruebas.js; RITMO_MS=0 lo quita): la página responde al juez en milisegundos */
-const RITMO_MS = process.env.RITMO_MS === undefined ? 1000 : +process.env.RITMO_MS;
+const RITMO_MS = process.env.RITMO_MS === undefined ? 2000 : +process.env.RITMO_MS;
 if (RITMO_MS > 0) await ctx.addInitScript({ content: 'window.__ritmoMs=' + RITMO_MS + ';' + await readFile(join(RAIZ, 'gobierno', 'ritmo-pruebas.js'), 'utf8') });
 const page = await ctx.newPage();
 const fallos = [], esp = ms => page.waitForTimeout(ms);
