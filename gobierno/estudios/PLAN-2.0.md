@@ -37,6 +37,15 @@ Decisiones del usuario (25/11, en este chat):
   → La 2.0 se construye y se juzga sobre **«Partida nueva»** (hoy «Partida corta», Italia, 3–5 h, con final). La campaña
   larga queda **en pausa**. Los bots y jueces juegan la partida nueva: más corta, más rápido el juez.
 
+- Menú: **«Partida nueva arriba (Recomendado)»**: arriba «Continuar» y «Partida nueva»; dentro de Partida nueva se elige
+  Italia (la corta de hoy, con final) o la Campaña Roma contra Cartago; debajo Escaramuzas y Opciones; «Región de Italia»
+  sale de la lista (queda dentro).
+- Campaña: **«Jugable, sin mejoras (Recomendado)»**: en el menú con etiqueta «en pausa»; nadie la mejora; los jueces
+  solo miran que abra.
+- Dónde va lo nuevo: **«1 y 2»** → todo lo nuevo se hace y se juzga en Partida nueva, y las batallas nuevas (asedio,
+  históricas) también entran en Escaramuzas.
+- Va en **M1** (base de la 2.0), lo primero de todo: sin ella, los jueces nuevos no tienen dónde medir.
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
@@ -128,7 +137,7 @@ tiritas; solo Opus; ministerios «A»; cadenas sin supervisión y subidas con ju
 ## 3. Metas de la 2.0
 Propuesta del director (25/11), en debate. Cada idea de la nevera, colgada de una meta o fuera.
 
-**M1 · La 1.0, pulida** (todas las áreas; medio). *Terminada cuando* lo que el usuario critique de la v171 está
+**M1 · La base: Partida nueva y la 1.0 pulida** (todas las áreas; medio). *Terminada cuando* el menú tiene «Partida nueva» (Italia o Campaña en pausa), los jueces juegan la partida nueva en minutos y lo que el usuario critique de la v171 está
 arreglado y lo da por bueno en su móvil. Dentro: sus críticas; textos cortados («Pirro», «Tu manípulo», avisos);
 hoplitas y Batallón Sagrado bajan a pie; regla del 15 % en todas las tropas; física de escaramuza bajo 1 ms; guía de juego al día.
 
