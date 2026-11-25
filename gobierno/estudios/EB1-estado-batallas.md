@@ -52,10 +52,11 @@ que no quiero que pase eso....»)
 - Testudo: T1 techo plano de escudos idénticos; T2 sin pared delante ni a los lados; T3 tinte rojo que tapa el objetivo;
   T4 tamaño en vertical; T5 el testudo de la batalla grande no se ve igual; T7 bajo el techo, dos escudos enormes con una raja
   de cielo y el frente abierto. T6 se entiende (bien).
-- Falange: F0, F1; F2 penacho de bloque blanco; F3 desde arriba no se lee si las picas están bajadas; F5 pendientes de FU3c.
-- Manípulo: M1 casi la misma partida que el testudo; M2 vélites y triarios de LP5 perdidos.
+- Falange: F0, F1; F2 penacho de bloque blanco; F3 desde arriba no se lee si las picas están bajadas; F5 pendientes de FU3c; F6 contra elefantes pone «Trabados» y no se ve ningún elefante.
+- Manípulo: M1 casi la misma partida que el testudo; M2 vélites y triarios de LP5 perdidos; M3 la vista del
+  oficial en la lucha es la mejor del juego (bien); M4 el cuarto botón cambia de «Alto» a «Retirada»; M5 etiquetas que se pisan.
 - Ásculo: A1 su falange no tiene nada de la de «Falange a pie»; A2 itálicos y tiradores con modelo equivocado; A3 no cuenta en
-  la campaña (ES5).
+  la campaña (ES5); A4 cámara muy alta y con bruma; A5 las fichas tapan el campo y las etiquetas asoman encima de los botones.
 - Batalla grande: G1 al empezar solo estandartes y barras; G2 otro campo; G3 nombres de botones distintos; G4 física por encima
   del tope (1,31 ms, FI4); G5 alfombras de color y estandarte enorme; G6 pocas figuras separadas por manípulo.
 - Bajar a pie: B1 cambia campo, luz, botones y reglas. Batalla rápida: R1 tercer aspecto.
