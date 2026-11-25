@@ -355,14 +355,14 @@
   "fecha": "2026-11-25T17:51:57.210Z"
  },
  "navegador-cerebro": {
-  "huella": "739453bc921ba66c",
+  "huella": "df1206695cb20576",
   "ok": true,
-  "fecha": "2026-11-25T20:51:16.940Z"
+  "fecha": "2026-11-25T20:58:58.987Z"
  },
  "area:gobierno/jueces.mjs --area cerebro": {
-  "huella": "43a4c7f9e011c79e",
+  "huella": "2f0fb33f6a5e1d03",
   "ok": true,
-  "fecha": "2026-11-25T20:51:16.993Z"
+  "fecha": "2026-11-25T20:58:59.002Z"
  },
  "sim-liga": {
   "huella": "abc9da41782883d4",
@@ -390,8 +390,8 @@
   "fecha": "2026-11-25T20:54:24.017Z"
  },
  "area:test/comarca.test.mjs": {
-  "huella": "3879113ffc7233ab",
+  "huella": "5a03d8499c1a0155",
   "ok": true,
-  "fecha": "2026-11-25T20:49:58.151Z"
+  "fecha": "2026-11-25T20:58:00.031Z"
  }
 }
