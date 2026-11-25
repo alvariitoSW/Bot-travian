@@ -95,6 +95,19 @@ tanda: ficha → construir en todas → pruebas que miran → examen → nota de
 Tandas con sus notas: 1 (F0 T1 T2 T3 T5 T7) · 2 (G3 M4 F1 F2 M5 A5) · 3 (G1 G2 G5 G6 B1) · 4 (A1 A2 A3 A4 F6) · 5 motor de
 golpes a pie. En espera: supervivencia, naval, batalla rápida (R1), escenas o rivales nuevos.
 
+## 4d. Tres planes para converger (pedido del usuario, 25/11: «2 o 3 planes para atajar con todas las mejoras […] que no diverjan
+1000 tareas, sino que lo converja todo en pocas tareas»). Página visual: https://claude.ai/artifact/43EApqAa4eb4hxW7sWZ87f
+Las 30 notas salen de 3 problemas de fondo: las cosas no son comunes; las formaciones se ven mal de cerca; la batalla grande no se
+parece a la de a pie.
+- **Plan A · Tres pasos (recomendado)**: 1 «Lo común, una sola vez»: nada atraviesa nada con prueba, una barra de órdenes, etiquetas
+  que no se pisan, un campo y una luz, testudo y manípulo juntos (F0 G3 M4 M5 A5 G2 B1 T3 A4 M1). 2 «Las formaciones de cerca»:
+  testudo caparazón, falange (lanza, penacho, picas bajadas legibles, elefantes), golpes con su movimiento, vélites y triarios
+  (T1 T2 T4 T5 T7 F1 F2 F3 F5 F6 M2 CB2b). 3 «Una batalla entera»: batalla grande con soldados visibles, bloques prietos, aros;
+  Ásculo con la falange de verdad, modelos y resultado; un motor de golpes a pie; física bajo el tope (G1 G5 G6 G4 A1 A2 A3).
+- **Plan B · Cinco tandas por tema** (la propuesta de 4c): más vueltas de examen; botones y campo se tocan dos veces.
+- **Plan C · Ásculo de muestra y copiar**: dos tareas; la primera enorme y con riesgo alto.
+En los tres, en espera: R1, supervivencia, naval. Cada tarea da la vuelta de 4c (ficha → construir en todas → pruebas → examen → nota).
+
 ## 5. Decisiones del usuario (literal)
 (pendiente)
 
