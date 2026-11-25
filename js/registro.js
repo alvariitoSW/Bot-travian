@@ -74,6 +74,31 @@
     general: f(uni('general', { provisional: true, nota: 'modelo único de Escipión para todos los generales' }), h('Regla de juego: el general es una pieza propia del juego', 'licencia de juego', 'cada bando tuvo generales distintos', 'El jefe del ejército, un personaje de juego que mejora tus tropas. Representa a los grandes mandos de la época, pero no es un cargo concreto de las fuentes.'))
   };
 
+  /* CG4b (pase de CG9): lo que lleva cada tropa, con su fuente y su dictamen. Textos de gobierno/historia/CG9-fuentes.md §2 (cotejado = leído en el pasaje).
+     js/tropas.js muestra el mismo texto en Escaramuzas (test/registro-lleva.test.mjs vigila que coincidan). */
+  const LLEVA = {
+    hastati: { texto: 'Lleva scutum, espada hispana, dos pila, casco de bronce con plumas y greba; pectoral de bronce, o cota de malla si es rico.', fuente: 'Polibio 6.23 (cotejado)', dictamen: 'historico' },
+    principes: { texto: 'Lleva lo mismo que los hastati: scutum, espada hispana, dos pila, casco de bronce, greba y pectoral o cota de malla.', fuente: 'Polibio 6.23 (cotejado)', dictamen: 'historico' },
+    triarii: { texto: 'Lleva scutum, espada hispana y lanza larga en vez de pila; casco de bronce, greba y pectoral o cota de malla.', fuente: 'Polibio 6.23 (cotejado); Livio 8.8', dictamen: 'historico' },
+    velites: { texto: 'Lleva espada, jabalinas ligeras y parma redonda de tres pies; casco sencillo, a veces con piel de lobo. Sin coraza.', fuente: 'Polibio 6.22 (cotejado)', dictamen: 'historico' },
+    equites: { texto: 'Lleva coraza, escudo redondo y lanza con contera, a la griega; antes iban sin coraza. Sin estribos.', fuente: 'Polibio 6.25 (cotejado)', dictamen: 'historico' },
+    hoplitas: { texto: 'Lleva escudo redondo grande, lanza larga y espada corta; casco de bronce y coraza de lino o de bronce.', fuente: 'Plutarco, Filopemén 9 (cotejado, solo escudos y lanzas aqueas); Connolly 1998', dictamen: 'probable' },
+    falange: { texto: 'Lleva sarisa de 14 codos (unos 6 m) a dos manos y escudo pequeño colgado; casco y, solo algunos, coraza ligera.', fuente: 'Polibio 18.29 (cotejado); escudo y coraza: Connolly 1998', dictamen: 'probable', nota: 'sarisa histórica; resto probable' },
+    peltastas: { texto: 'Lleva jabalinas, espada y escudo ligero (oval o en media luna); casco sencillo y sin coraza.', fuente: 'Sekunda 1996; Livio 44.41 los llama caetrati (cotejado)', dictamen: 'licencia de juego', nota: 'licencia de juego (nombre)' },
+    honderos: { texto: 'Lleva tres hondas (en la cabeza, a la cintura y en la mano) y tira piedras grandes. Sin escudo ni armadura.', fuente: 'Diodoro 5.18; Livio 28.37 (cotejados)', dictamen: 'historico' },
+    libios: { texto: 'Lleva equipo romano tomado al enemigo desde 217 a.C.: scutum, espada, casco y pectoral o cota. Antes, lanza y escudo.', fuente: 'Polibio 3.87, 3.114; Livio 22.46 (cotejados)', dictamen: 'historico', nota: 'histórico (lo de «antes», probable)' },
+    iberos: { texto: 'Lleva escudo largo o caetra pequeña, espada de punta y filo, jabalina toda de hierro y túnica de lino con borde púrpura.', fuente: 'Polibio 3.114 (cotejado); Diodoro 5.33–34 (extracto)', dictamen: 'historico' },
+    galos: { texto: 'Lleva espada larga que solo corta y escudo largo; calzas y capa, o desnudo como los gesatos. Casi nunca coraza.', fuente: 'Polibio 2.28–30 (cotejado), 2.33 (extracto), 3.114 (cotejado)', dictamen: 'historico' },
+    sagrada: { texto: 'Lleva escudo redondo grande, lanza, casco y coraza: equipo caro de ciudadanos ricos de Cartago.', fuente: 'Diodoro 16.80 (cotejado: ciudadanos ricos); el equipo no lo detalla', dictamen: 'probable', nota: 'probable; la tropa en 280–146 es licencia' },
+    jinetes: { texto: 'Lleva lanza, jabalinas o espada, escudo redondo y casco; coraza según su pueblo y su riqueza.', fuente: 'Ninguna concreta', dictamen: 'licencia de juego' },
+    numidas: { texto: 'Lleva un haz de jabalinas y escudo redondo pequeño; monta sin silla ni freno. Sin armadura.', fuente: 'Livio 35.11 (cotejado); escudo: Connolly 1998', dictamen: 'historico', nota: 'histórico (el escudo, probable)' },
+    tesalios: { texto: 'Lleva lanza larga de caballería, espada, casco y coraza; sin escudo, a la manera macedonia.', fuente: 'Plutarco, Pirro 17.3 (cotejado, solo la carga); equipo: Connolly 1998', dictamen: 'probable' },
+    elefantes: { texto: 'Lleva conductor y, a veces, torre con tiradores. Pirro, elefantes indios; Cartago, africanos más pequeños.', fuente: 'Plutarco, Pirro 15–17, 21; Polibio 5.84 (cotejados)', dictamen: 'historico', nota: 'histórico; la torre en Cartago, discutida' },
+    milicia: { texto: 'Lleva lo que puede pagar: lanza o jabalinas, escudo de su ciudad y casco si hay dinero. Casi nunca coraza.', fuente: 'Ninguna concreta (leva ciudadana)', dictamen: 'licencia de juego' },
+    vigiles: { texto: 'Lleva garrote o lanza corta, escudo pequeño y casco sencillo; sin coraza. Ronda de noche y apaga fuegos.', fuente: 'Livio 39.14 (cotejado: guardias nocturnas y cinco hombres contra incendios, 186 a.C.)', dictamen: 'licencia de juego', nota: 'licencia de juego (los vigiles son de Augusto, 6 d.C.)' }
+  };
+  for (const id in LLEVA) if (tropa[id]) tropa[id].historia.lleva = LLEVA[id];
+
   // ---- Ciudades (D.CITIES). Sin modelo propio: todas usan la escena común de city3d.js. Fuente: H1-ciudades.md ----
   const SIN_C = { sin: 'sin modelo propio: usa la escena común de la ciudad (city3d.js)' };
   const ciudad = {

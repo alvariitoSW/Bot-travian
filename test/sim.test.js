@@ -2014,13 +2014,14 @@ console.log('OK — todas las pruebas superadas');
   assert(!/G\.(puertas|licenciar|triunfo)\(/.test(txt), 'el bot no usa puertas, licencias ni triunfos');
   console.log('CN16b: puertas, veteranos y triunfo OK');
 }
-{ // ES1: escaramuzas. Ejércitos válidos para el motor de guerra, sin tocar la partida
-  const GU = require('../js/guerra.js'), E = G.ESCARAMUZA, antes = JSON.stringify(G.state);
+{ // ES1: escaramuzas. Ejércitos válidos para el motor de batalla (CG4b: el simulador de manípulos, el mismo de la campaña), sin tocar la partida
+  const Z = require('../js/simulador.js'), E = G.ESCARAMUZA, antes = JSON.stringify(G.state);
+  assert(!('ajuste' in E), 'CG4b: sin tabla de ajuste por facción');
   for (const fac of E.facciones) for (const t of Object.keys(E.tamanos)) {
     const e = G.escaramuza({ mio: t, ene: t, fac, campo: 'bosque', dif: 'dificil', semilla: 5 });
     assert(e.fac === fac && e.campo === 'bosque' && e.ejercitos[0].hastati > 0, 'escaramuza: ' + fac + ' ' + t);
     for (const u of e.ejercitos) for (const k in u) assert(D.UNITS[k] && u[k] > 0 && Number.isInteger(u[k]), 'escaramuza: tropa válida ' + k);
-    const B = G.jugarGuerra(GU.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), 1.5); assert(B.fase === 'fin', 'escaramuza: la batalla termina (' + fac + ' ' + t + ')');
+    const B = G.jugarGuerra(Z.crear({ semilla: e.semilla, ejercitos: e.ejercitos, tacticas: true })); assert(B.fase === 'fin', 'escaramuza: la batalla termina (' + fac + ' ' + t + ')');
   }
   const f = G.escaramuza({ fac: 'epiro', dif: 'facil', semilla: 1 }), d = G.escaramuza({ fac: 'epiro', dif: 'dificil', semilla: 1 }), n = u => Object.values(u).reduce((a, b) => a + b, 0);
   assert(n(d.ejercitos[1]) > n(f.ejercitos[1]), 'escaramuza: en difícil el enemigo trae más hombres');

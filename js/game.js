@@ -869,7 +869,7 @@
   G.ciudadE = function (id) { const c = G.state && G.state.cities[id]; if (!c || c.owner !== 'roma') return null; const r = infoC(c); return r ? r.E : null; };
   G.convertir = id => { const c = G.state.cities[id]; if (!c || !CI) return null; regE.delete(c); delete c.ciudad; delete c.plantilla; return abrir(c) ? G.ciudadE(id) : null; };
   // una ciudad que deja de ser nuestra pierde su ciudad nueva y se queda con los números
-  function soltarCiudad(c) { delete c.sabios; regE.delete(c); delete c.ciudad; delete c.plantilla; delete c.heredado; if (!c.b.viviendas) c.b.viviendas = 2; }   // sin ciudad nueva, c.b.viviendas (vista derivada = 0) vuelve a un mínimo para que la reconquista no hunda la población
+  function soltarCiudad(c) { delete c.heridos; delete c.sabios; regE.delete(c); delete c.ciudad; delete c.plantilla; delete c.heredado; if (!c.b.viviendas) c.b.viviendas = 2; }   // sin ciudad nueva, c.b.viviendas (vista derivada = 0) vuelve a un mínimo para que la reconquista no hunda la población
   // una obra de partida vieja (sin pieza) se liga a la pieza que ahora existe si no pasa por encima de lo ya convertido
   function migrarObra(c, antes) {
     for (const q of c.obras) migrarUna(c, antes, q);
@@ -1082,7 +1082,7 @@
   const PAUSAS = ['todas', 'graves', 'ninguna'];
   G.PAUSAS = PAUSAS;
   G.migrarPausas = function (s) { const a = s && s.ajustes; if (a && !PAUSAS.includes(a.pausas)) a.pausas = 'todas'; };
-  /* NB7/GC4: motor de batalla. Solo hay uno: 'nueva' (maniobra + choque de la Guerra, js/guerra.js). Las partidas viejas con 'clasica' pasan a 'nueva'. */
+  /* NB7/GC4/CG4b: motor de batalla. Solo hay uno: 'nueva' (maniobra + choque en el simulador de manípulos, js/simulador.js). Las partidas viejas con 'clasica' pasan a 'nueva'. */
   const BATALLAS = ['nueva'];
   G.BATALLAS = BATALLAS;
   G.migrarBatalla = function (s) { const a = s && s.ajustes; if (a && !BATALLAS.includes(a.batalla)) a.batalla = 'nueva'; };
@@ -1657,6 +1657,8 @@
     G.senadoMes(rojo || s.deudaPaga > 0);
     cierreCD(s);   // CDe1-A: ministros, plan del Senado y necesidades de barrio
     cierreAgro(s, mesAhora(s));   // CDe3-F2a: cosecha de los campos, pérdida de lo que se estropea y el mercado del mes
+    for (const id in s.cities) if (s.cities[id].heridos && s.cities[id].owner !== 'roma') delete s.cities[id].heridos;   // CG4b: ciudad perdida, heridos perdidos
+    for (const id of G.myCities()) G.curaHeridos(id);   // CG4b: parte de los heridos vuelve a filas cada mes
     for (const id of G.myCities()) {   // barrios: sube un nivel si cumple más; baja tras BARRIO_RETRASO meses de déficit
       const c = s.cities[id], bi = G.barrioInfo(c), nom = D.CITIES[id].n;
       if (bi.barrios.length) {   // ciudad nueva: los barrios ya subieron o bajaron solos en su mes; la ciudad es su media
@@ -1770,14 +1772,14 @@
       heroIn = m.hero;
       me = Object.assign({ units: m.units, name: 'Roma', col: D.FACTIONS.roma.col, gen: heroIn ? { n: h.name, mando: h.sk.mando, disc: h.sk.disc, lvl: h.lvl } : null }, heroIn ? hm : noHero);
       const g = c.owner === d.f ? G.cityGen(cid, G.yearOf(s.t)) : null;
-      foe = { units: c.units, name: D.FACTIONS[c.owner].n, col: D.FACTIONS[c.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
+      foe = { units: c.units, fac: c.owner, name: D.FACTIONS[c.owner].n, col: D.FACTIONS[c.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
     } else {
       heroIn = G.heroAvailable(cid);
       const u = Object.assign({}, c.units); u.vigiles = 20 + 20 * G.nivelMuralla(c);
       me = Object.assign({ units: u, name: 'Roma', col: D.FACTIONS.roma.col, gen: heroIn ? { n: h.name, mando: h.sk.mando, disc: h.sk.disc, lvl: h.lvl } : null }, heroIn ? hm : noHero);
       { const dg = G.diosDe(c); if (dg && dg.mor) me.mor += dg.mor * G.diosNivel(c); }
       const g = m.gen;
-      foe = { units: m.units, name: D.FACTIONS[m.owner].n, col: D.FACTIONS[m.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
+      foe = { units: m.units, fac: m.owner, name: D.FACTIONS[m.owner].n, col: D.FACTIONS[m.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
     }
     {   // I5c-A: ciencia de guerra del jugador
       const wall = G.nivelMuralla(c), mar = pb.kind === 'attack' && G.esMar(m.from, m.to);
@@ -1802,6 +1804,47 @@
   };
 
   const keep = (surv, lost, f, g) => { const o = {}; for (const k in surv) { if (k === 'vigiles') continue; const n = Math.floor(surv[k] * f + (lost[k] || 0) * g); if (n > 0) o[k] = n; } return o; };
+  /* CG4b (ES0 §5, decidido por el usuario): heridos y cautivos de la batalla del simulador.
+     · Tus heridos no vuelven de golpe: van a c.heridos de la ciudad donde acaba tu ejército y vuelven a filas mes a mes. Si pierdes esa ciudad, se pierden.
+     · Los heridos del enemigo vencido son cautivos: esclavos de tu ciudad más cercana hasta que los esclavos sean un tercio de su gente; el resto se vende.
+     Cifras: licencia de juego. */
+  G.HERIDOS = { rapido: 0.3, lento: 0.1 };   // parte que vuelve cada mes: 30 % con pocos heridos, bajando a 10 % si igualan o superan a los sanos
+  G.CAUTIVOS = { tercio: 1 / 3, precio: 3 };   // tope de esclavos (parte de la población) y denarios por cautivo vendido
+  // con heridos del simulador, tu bando no recupera de golpe parte de las bajas (el 0,25 de keep): los sustituyen los heridos
+  const gTuyo = res => (res && res.heridos ? 0 : 0.25);
+  const sumaU = u => { let n = 0; for (const k in u || {}) n += u[k] > 0 ? u[k] : 0; return n; };
+  // tu ciudad más cercana a un punto (lon, lat)
+  const romanaCerca = (lon, lat) => { let r = null, d = Infinity; for (const id of G.myCities()) { const q = D.CITIES[id], e = (q.lon - lon) * (q.lon - lon) + (q.lat - lat) * (q.lat - lat); if (e < d) { d = e; r = id; } } return r; };
+  const cercaDeCiudad = cid => (G.state.cities[cid] && G.state.cities[cid].owner === 'roma' ? cid : romanaCerca(D.CITIES[cid].lon, D.CITIES[cid].lat));
+  // los heridos de tu bando quedan en la ciudad cid y vuelven poco a poco
+  function heridosA(cid, her, out) {
+    const c = cid && G.state.cities[cid]; if (!c || c.owner !== 'roma') return 0; let n = 0;
+    for (const k in her || {}) { if (k === 'vigiles' || !D.UNITS[k]) continue; const q = Math.round(her[k]); if (q > 0) { if (!c.heridos) c.heridos = {}; c.heridos[k] = (c.heridos[k] || 0) + q; n += q; } }
+    if (n > 0 && out) out.lines.push('🩹 ' + n + (n === 1 ? ' herido vuelve' : ' heridos vuelven') + ' a filas poco a poco en ' + D.CITIES[cid].n + '.');
+    return n;
+  }
+  // los cautivos (heridos del vencido): esclavos de la ciudad cid hasta el tope; lo que no cabe se vende
+  function cautivos(n, cid, out) {
+    n = Math.max(0, Math.round(n || 0)); if (!n) return { esc: 0, venta: 0 };
+    const s = G.state, c = cid && s.cities[cid] && s.cities[cid].owner === 'roma' ? s.cities[cid] : null, T = G.CAUTIVOS.tercio; let k = 0;
+    if (c) { const cl = G.clases(c); k = Math.max(0, Math.min(n, Math.floor((T * cl.pop - cl.esc) / (1 - T)))); if (k > 0) { c.pop = (c.pop || 0) + k; c.esc = (c.esc || 0) + k; } }
+    const v = n - k, oro = v * G.CAUTIVOS.precio; if (oro > 0) s.res.denarios += oro;
+    if (out) out.lines.push('⛓️ ' + n + ' cautivos: ' + (k > 0 ? k + ' pasan a esclavos de ' + D.CITIES[cid].n : 'ninguno cabe como esclavo') + (v > 0 ? ' y ' + v + ' se venden (+' + oro + ' denarios).' : '.'));
+    return { esc: k, venta: v };
+  }
+  // cada mes, en cada ciudad tuya: parte de los heridos vuelve a filas (más despacio cuantos más heridos hay frente a los sanos)
+  G.curaHeridos = function (cid) {
+    const c = G.state.cities[cid], h = c && c.heridos; if (!h) return 0;
+    const n = sumaU(h); if (!n) { delete c.heridos; return 0; }
+    const sanos = sumaU(c.units) - (c.units.vigiles || 0), H = G.HERIDOS, p = n >= sanos ? H.lento : H.rapido - (H.rapido - H.lento) * n / Math.max(1, sanos);
+    let vuelven = 0;
+    for (const k in h) { const q = Math.min(h[k], Math.max(1, Math.round(h[k] * p))); if (q > 0) { c.units[k] = (c.units[k] || 0) + q; h[k] -= q; vuelven += q; } if (!(h[k] > 0)) delete h[k]; }
+    if (!Object.keys(h).length) delete c.heridos;
+    return vuelven;
+  };
+  // CG4b: c.heridos = {tropa: n} (opcional). Al cargar, lo que no sea así se limpia
+  G.migrarHeridos = function (c) { if (!c || c.heridos === undefined) return; const h = c.heridos; if (!h || typeof h !== 'object' || Array.isArray(h)) { delete c.heridos; return; } for (const k in h) if (!D.UNITS[k] || !(h[k] > 0)) delete h[k]; else h[k] = Math.round(h[k]); if (!Object.keys(h).length) delete c.heridos; };
+  G.heridosDe = cid => { const c = G.state && G.state.cities[cid]; return Object.assign({}, (c && c.owner === 'roma' && c.heridos) || {}); };
 
   // Una ciudad tuya pasa a otro dueño. Sin f: vuelve a su dueño anterior (inquietud). Con f y texto: rebelión de un hecho (Capua, 216)
   function rebelion(id, fijo, texto) {
@@ -1823,20 +1866,20 @@
     if (G.state.pending[0] && G.state.pending[0].kind === 'campo') return aplicarCampo(res);   // GM15b
     const s = G.state, pb = s.pending.shift(), m = pb.m, cid = m.to, c = s.cities[cid], d = D.CITIES[cid], h = s.hero;
     const heroIn = pb.kind === 'attack' ? m.hero : G.heroAvailable(cid);
-    const esc = !!(res.objetivo && res.objetivo.tipo === 'escapar' && res.objetivo.fin && res.objetivo.cumplido), win = res.winner === 0 && !esc, out = { win: win, kind: pb.kind, city: cid, dead: res.dead, lines: [] };
+    const esc = !!(res.objetivo && res.objetivo.tipo === 'escapar' && res.objetivo.fin && res.objetivo.cumplido), win = res.winner === 0 && !esc, out = { win: win, kind: pb.kind, city: cid, dead: res.dead, lines: [] }; let dHer = null;   // CG4b: dHer = ciudad donde quedan tus heridos
     const copL = G.copiaActualiza(pb, m, res, pb.kind === 'attack' ? c.owner : m.owner); for (const x of copL) out.lines.push(x);
     s.stats.battles++; if (win) s.stats.wins++; if (win && pb.kind === 'attack' && D.SENADO.sala) { G.senadoVictoria(m); out.sinTriunfo = !!m.sinTriunfo; } s.stats.kills += res.dead[1]; s.stats.lost += res.dead[0];
     if (pb.kind === 'attack') {
       if (win && m.mision === 'saqueo') {
         const loot = G.botin(cid), home = s.cities[m.from].owner === 'roma' ? m.from : G.capital();
         for (const r of D.RES) { s.res[r] += loot[r]; apunta(cid, r, loot[r], 'botin'); }
-        merge(s.cities[home].units, keep(res.surv[0], res.lost[0], 1, 0.25)); c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.saqueada = s.t;
+        merge(s.cities[home].units, keep(res.surv[0], res.lost[0], 1, gTuyo(res))); dHer = home; c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.saqueada = s.t;
         if (m.hero) { h.city = home; h.march = null; }
         G.vetCuenta(home); out.saqueo = true; out.lines.push('💰 Saqueo de ' + d.n + ': ' + D.RES.map(r => '+' + loot[r] + ' ' + D.RES_ICON[r]).join(' ') + '.', 'Tus tropas vuelven a ' + D.CITIES[home].n + '; la ciudad sigue siendo de ' + D.FACTIONS[c.owner].n + '.');
         G.log('💰 Saqueada ' + d.n + ' sin conquistarla.', 'good');
       } else if (win) {
         const prev = D.FACTIONS[c.owner].n;
-        DIP.conquista(s, c.owner); incorporar(c, keep(res.surv[0], res.lost[0], 1, 0.25), true);
+        DIP.conquista(s, c.owner); incorporar(c, keep(res.surv[0], res.lost[0], 1, gTuyo(res)), true); dHer = cid;
         c.b.muralla = Math.max(0, (c.b.muralla || 0) - 1); G.vetCuenta(cid); out.conquista = true;
         if (D.SENADO.sala) G.senadoActo('tomada', cid);   // CE6
         if (m.hero) { h.city = cid; h.march = null; }
@@ -1855,7 +1898,7 @@
       }
     } else {
       if (win) {
-        c.units = keep(res.surv[0], res.lost[0], 1, 0.25); G.vetCuenta(cid);
+        c.units = keep(res.surv[0], res.lost[0], 1, gTuyo(res)); dHer = cid; G.vetCuenta(cid);
         out.lines.push('🛡️ ' + d.n + ' resiste.');
         G.log('🛡️ ' + d.n + ' rechaza el ataque de ' + D.FACTIONS[m.owner].n + '.', 'good');
       } else if (m.mision === 'saqueo') {
@@ -1880,7 +1923,9 @@
       if (res.genDead[0] && !esc) { const mw = Math.max(6, 24 + G.invSum('herida')); h.wound = s.t + mw; out.lines.push('🩸 ' + h.name + ' ha sido herido: ' + mw + ' meses de convalecencia.'); G.log('🩸 ' + h.name + ' cae herido en combate.', 'bad'); }
     }
     if (res.nueva) {   // NB7: prisioneros, triunfo y el tribuno que mandaba
-      if (win && res.prisioneros > 0) { const oro = res.prisioneros * 3; s.res.denarios += oro; out.lines.push('⛓️ ' + res.prisioneros + ' prisioneros: se venden como esclavos o se piden en rescate (+' + oro + ' denarios).'); }
+      if (win && res.prisioneros > 0) cautivos(res.prisioneros, cercaDeCiudad(cid), out);   // CG4b: los heridos del vencido son cautivos: esclavos o venta
+      if (win && res.heridos) heridosA(dHer, res.heridos[0], out);
+      if (!win && res.cautivos > 0) out.lines.push('⛓️ ' + res.cautivos + (res.cautivos === 1 ? ' herido tuyo cae prisionero.' : ' heridos tuyos caen prisioneros.'));
       if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push('🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); }
     }
     if (m.tribuno != null && s.tribunos) {
@@ -1903,7 +1948,6 @@
   const TRIB_INI = [['Quinto Fabio', 'prudente'], ['Marco Claudio', 'agresivo'], ['Cayo Lelio', 'astuto'], ['Publio Cornelio', 'agresivo']];
   const TRIB_NOM = ['Lucio Emilio', 'Tito Manlio', 'Gneo Servilio', 'Aulo Atilio', 'Marco Minucio', 'Sexto Julio', 'Cayo Flaminio', 'Quinto Cecilio', 'Publio Sulpicio', 'Lucio Postumio'], TRIB_CAR = ['prudente', 'agresivo', 'astuto'];
   const BAT = () => root.Battle || (typeof require !== 'undefined' ? require('./battle.js').Battle : null);
-  const GU = () => root.Guerra || (typeof require !== 'undefined' ? require('./guerra.js') : null);
   const MAN = () => root.Maniobra || (typeof require !== 'undefined' ? require('./maniobra.js') : null);
   G.migrarTribunos = function (s) {
     if (!s) return;
@@ -1947,32 +1991,35 @@
     const legs = (u, nom) => { const n = hombres(u) >= 800 ? 2 : 1, r = []; for (let i = 0; i < n; i++) { const x = {}; for (const k in u) { const q = n === 1 ? u[k] : (i === 0 ? Math.floor(u[k] / 2) : u[k] - Math.floor(u[k] / 2)); if (q > 0) x[k] = q; } if (hombres(x)) r.push({ nombre: n === 1 ? nom : nom + ' ' + ['I', 'II'][i], units: x }); } return r; };
     return { ciudad: info.city, zona: info.campo ? D.ZONA_CAMPO[info.campo.rasgo] : undefined, semilla: info.cfg.seed, defensor: info.cfg.defender, bandos: [{ nombre: sd[0].name, car: 'equilibrado', plan: 'centro', legiones: legs(sd[0].units, sd[0].tribuno ? 'Legión de ' + sd[0].tribuno.n.split(' ')[1] : 'Legión') }, { nombre: sd[1].name, car, plan: PLAN_CAR[car], legiones: legs(sd[1].units, 'Ejército') }] };
   };
-  // GC4: el estado inicial del choque (motor Guerra). ch = choque de la maniobra (sus ejércitos) o null (escaramuza: los de la ciudad)
-  G.estadoGuerra = function (info, ch) {
-    const sd = info.cfg.sides, ej = [0, 1].map(b => Object.assign({}, ch && ch.sides && ch.sides[b] ? ch.sides[b].units : sd[b].units));
-    return GU().crear({ semilla: info.cfg.seed, ejercitos: ej });
+  /* CG4b: el choque de la campaña es el simulador de manípulos (js/simulador.js), el mismo de Escaramuzas: «Jugar en vivo», «Batalla rápida»
+     o «Resolver». Los datos de cada tropa salen de js/tropas.js con el pueblo de cada bando; las tácticas de la época (TH1) van siempre. */
+  const SIM = () => root.Simulador || (typeof require !== 'undefined' ? require('./simulador.js') : null);
+  let _TRO = null;
+  const TRO = () => { if (root.Tropas) return root.Tropas; if (!_TRO && typeof require !== 'undefined') { try { _TRO = require('./tropas.js'); } catch (e) { _TRO = false; } } return _TRO || null; };
+  // el pueblo de js/tropas.js de una facción (roma, cartago, epiro, macedonia, galos, iberos); otra facción: null (datos base de la tropa)
+  G.puebloDe = f => { const T = TRO(); return T && T.PUEBLO && Object.hasOwn(T.PUEBLO, f) ? f : null; };
+  // la facción del bando rival de una batalla (battleInfo la apunta en sides[1].fac; si no, por el nombre)
+  const facRival = info => { const sd = info.cfg.sides[1] || {}; if (D.FACTIONS[sd.fac]) return sd.fac; return Object.keys(D.FACTIONS).find(f => D.FACTIONS[f].n === sd.name) || null; };
+  // el paisaje del simulador (llano, colina, bosque o mixto) desde el terreno de la batalla
+  const CAMPO_SIM = { llano: 'llano', colina: 'colina', cerro: 'colina', loma: 'colina', bosque: 'bosque', mixto: 'mixto', rio: 'llano', pantano: 'mixto' };
+  // cfg de Simulador.crear (y de UIMando / UIBatallaRapida). ch = choque de la maniobra (sus ejércitos) o null (los de la ciudad)
+  /* Los modificadores de la campaña (sides[b].atkMul, defMul y mor: héroe, forja, ciencia, murallas, dioses, copia del rival) pasan al simulador
+     como cfg.mods (licencia de juego, ver kMod en js/simulador.js). Levas bisoñas (sides[b].bis, fracción 0–1): atk × (1 − 0,3 × bis), el mismo
+     criterio que el poder de un bando en js/battle.js. bono0 (al delegar): atk del bando 0 × bono0. El tribuno de campaña manda el centro romano. */
+  const modsDe = (sd, bono0) => [0, 1].map(b => { const x = sd[b] || {}; return { atk: (x.atkMul || 1) * (1 - 0.3 * Math.max(0, Math.min(1, x.bis || 0))) * (b === 0 && bono0 > 0 ? bono0 : 1), def: x.defMul || 1, mor: x.mor || 0 }; });
+  G.cfgSim = function (info, ch, bono0) {
+    const sd = info.cfg.sides, ej = [0, 1].map(b => { const u = Object.assign({}, ch && ch.sides && ch.sides[b] ? ch.sides[b].units : sd[b].units); for (const k in u) if (!(u[k] > 0)) delete u[k]; return u; });
+    const fac = facRival(info), Bt = BAT();
+    ej.pueblos = [G.puebloDe('roma'), G.puebloDe(fac)];
+    const ter = info.campo ? (D.TERRENO_CAMPO[info.campo.rasgo] || 'llano') : (info.cfg.terreno || (Bt && Bt.terrenoDe ? Bt.terrenoDe(info.city, info.cfg.seed) : 'llano'));
+    const cfg = { semilla: (info.cfg.seed >>> 0) || 7, ejercitos: ej, campo: CAMPO_SIM[ter] || 'llano', col: (D.FACTIONS[fac] || {}).col || sd[1].col, tacticas: true, pueblo: 'roma', fac, mods: modsDe(sd, bono0) };
+    const tr = sd[0].tribuno, Z = SIM(); if (tr && tr.car && Z && Z.TRIBUNOS) { const t0 = Z.TRIBUNOS.map(x => Object.assign({}, x)); t0[1] = { n: tr.n || t0[1].n, car: tr.car }; cfg.tribunos = [t0, Z.JEFES.map(x => Object.assign({}, x))]; }
+    return cfg;
   };
-  // GC4: un bot sencillo para el bando 0 (es el de la prueba «con cabeza» de test/guerra.test.mjs). Lo usan «Delegar» y la campaña de pruebas
-  G.botGuerra = function (B) {
-    const R = GU(); if (R.cubrirse) R.cubrirse(B); if (B.fase !== 'lucha') return;   // GM5: de lejos, escudos bajo los proyectiles
-    for (let i = 0; i < 3; i++) {
-      const s = B.sect[i], c = s.c[0], e = s.c[1]; if (c.roto || e.roto) continue;
-      const fe = R.frente(e).fatiga, fr = R.frente(c).fatiga;
-      R.ordenar(B, i, (e.postura === 'aguantar' && fr < 0.75) || fe > 0.6 || e.flanqueado || e.golpe > 0 ? 'empujar' : 'aguantar');
-      const l = R.frente(c), sig = c.lineas[1];
-      if (sig && sig.fatiga < 0.4 && (fr > 0.7 || l.hombres < 0.45 * l.max) && sig.hombres / sig.max > l.hombres / l.max - 0.1) R.ordenar(B, i, 'relevo');
-    }
-    if (B.cab.estado === 'lista') {
-      if (B.num.estado === 'hostiga' || B.num.estado === 'llega') R.ordenar(B, B.num.sect, 'caballeria');
-      else if (B.num.proxima - B.t > 12 || B.num.veces >= 3) { const v = B.sect.filter(s => !s.c[1].roto && !s.c[0].roto).sort((a, b) => a.c[1].moral - b.c[1].moral)[0]; if (v && v.c[1].moral < 0.6) R.ordenar(B, v.i, 'caballeria'); }
-    }
-  };
-  // juega el estado B hasta el final con el bot (decide cada `cada` segundos de batalla); devuelve B
-  G.jugarGuerra = function (B, cada) {
-    const R = GU(); let prox = B.t;
-    for (let n = 0; B.fase !== 'fin' && n < 20000; n++) { if (B.t >= prox) { G.botGuerra(B); prox = B.t + (cada || 1.5); } R.paso(B, 0.1); }
-    return B;
-  };
+  // el estado inicial del choque (JSON puro: se guarda y se carga)
+  G.estadoGuerra = (info, ch, bono0) => SIM().crear(G.cfgSim(info, ch, bono0));
+  // juega el estado S hasta el final: deciden los tribunos de los dos bandos (como «Resolver»). Devuelve S
+  G.jugarGuerra = function (S) { SIM().avanzar(S, Math.max(0, S.limite - S.t) + 1); return S; };
   /* ES1 «Escaramuzas»: los dos ejércitos de una batalla suelta, sin campaña ni guardado. No toca el estado de la partida.
      Roma: una legión manipular en las proporciones de Polibio 6.21 (hastati y príncipes iguales, triarios la mitad, vélites
      delante, un puñado de équites; Polibio 6.21, sin cotejar). El enemigo: la mezcla de tropas de las guarniciones de esa facción en D.CITIES (la misma
@@ -1982,17 +2029,13 @@
     tamanos: { pequeno: { n: 'Pequeño', k: 0.5 }, mediano: { n: 'Mediano', k: 1 }, grande: { n: 'Grande', k: 2 } },
     facciones: ['cartago', 'epiro', 'macedonia', 'galos', 'iberos'],
     campos: { llano: 'Llano', colina: 'Colina', bosque: 'Bosque', mixto: 'Mixto' },
-    dificultad: { facil: { n: 'Fácil', k: 0.8 }, normal: { n: 'Normal', k: 1 }, dificil: { n: 'Difícil', k: 1.2 } },
-    /* cuánto más o menos trae el enemigo en «Normal» para que la pelea quede pareja con el bot de pruebas (G.botGuerra, 16 semillas).
-       Medido el 17/11 con el motor de GM36; si cambian las reglas de guerra, se vuelve a medir. Licencia de juego. */
-    ajuste: { cartago: { pequeno: 0.8, mediano: 0.8, grande: 0.88 }, epiro: { pequeno: 1.23, mediano: 1.43, grande: 1.77 },
-      macedonia: { pequeno: 0.8, mediano: 1.03, grande: 1.06 }, galos: { pequeno: 1.76, mediano: 1.77, grande: 2.2 },
-      iberos: { pequeno: 0.79, mediano: 0.8, grande: 0.8 } }
+    dificultad: { facil: { n: 'Fácil', k: 0.8 }, normal: { n: 'Normal', k: 1 }, dificil: { n: 'Difícil', k: 1.2 } }
+    /* CG4b (pase de CG9): sin tabla de ajuste por facción; los precios por tropa y pueblo de js/tropas.js igualan la pelea. op.ajuste sigue como opción */
   };
   G.escaramuza = function (op) {
     op = op || {}; const E = G.ESCARAMUZA, km = (E.tamanos[op.mio] || E.tamanos.mediano).k;
     const fac = E.facciones.includes(op.fac) ? op.fac : 'cartago', te = E.tamanos[op.ene] ? op.ene : 'mediano';
-    const aj = op.ajuste != null ? op.ajuste : ((E.ajuste[fac] || {})[te] || 1), ke = E.tamanos[te].k * aj * (E.dificultad[op.dif] || E.dificultad.normal).k;
+    const aj = op.ajuste != null ? op.ajuste : 1, ke = E.tamanos[te].k * aj * (E.dificultad[op.dif] || E.dificultad.normal).k;
     const roma = { hastati: Math.round(360 * km), principes: Math.round(360 * km), triarii: Math.round(180 * km), velites: Math.round(240 * km), equites: Math.round(60 * km) };
     const plan = {}; for (const id in D.CITIES) if (D.CITIES[id].f === fac) for (const t in D.CITIES[id].g) plan[t] = (plan[t] || 0) + D.CITIES[id].g[t];
     let pie = 0; for (const t in plan) if (D.UNITS[t] && D.UNITS[t].cls !== 'cav' && D.UNITS[t].cls !== 'ele') pie += plan[t];
@@ -2004,8 +2047,8 @@
   // la partida a medias de la batalla (clave aparte en localStorage): sobrevive a recargar la página. clave = la batalla pendiente a la que pertenece
   const GUERRA_KEY = 'aqvila-guerra-v1';
   const claveGuerra = info => [info.city, info.cfg.seed, info.kind].join('|');
-  G.guardarGuerra = function (info, B, estM) { try { if (typeof localStorage !== 'undefined') localStorage.setItem(GUERRA_KEY, JSON.stringify({ clave: claveGuerra(info), B: GU().guardar(B), estM: estM || null })); } catch (e) { /* almacenamiento no disponible */ } };
-  G.guerraGuardada = function (info) { try { if (typeof localStorage === 'undefined') return null; const x = JSON.parse(localStorage.getItem(GUERRA_KEY)); if (!x || x.clave !== claveGuerra(info)) return null; const B = GU().cargar(x.B); return B && B.fase !== 'fin' ? { estado: B, estM: x.estM || null } : null; } catch (e) { return null; } };
+  G.guardarGuerra = function (info, S, estM) { try { if (typeof localStorage !== 'undefined') localStorage.setItem(GUERRA_KEY, JSON.stringify({ clave: claveGuerra(info), S: SIM().guardar(S), estM: estM || null })); } catch (e) { /* almacenamiento no disponible */ } };   // CG4b: el estado del simulador
+  G.guerraGuardada = function (info) { try { if (typeof localStorage === 'undefined') return null; const x = JSON.parse(localStorage.getItem(GUERRA_KEY)); if (!x || x.clave !== claveGuerra(info)) return null; if (typeof x.S !== 'string') { G.borrarGuerra(); return null; } const S = SIM().cargar(x.S); return S && Array.isArray(S.man) && S.fase !== 'fin' ? { estado: S, estM: x.estM || null } : null; } catch (e) { return null; } };   // un guardado viejo de la Guerra (con B) se descarta
   G.borrarGuerra = function () { try { if (typeof localStorage !== 'undefined') localStorage.removeItem(GUERRA_KEY); } catch (e) { /* nada que borrar */ } };
   // bajas por deserción u hombres perdidos en la maniobra: lo que había al empezar menos lo que queda en las legiones
   function bajasManiobra(info, e) {
@@ -2019,11 +2062,25 @@
     return Object.assign({ dead, lost, surv, genDead: [false, false], nueva: true, prisioneros: 0 }, extra);
   }
   // resultado del choque nuevo en la forma que espera applyBattle (bajas, supervivientes, general, prisioneros)
+  /* r2 = Simulador.resumen(S): por fila bando, tipo, bajas, heridos, muertos, prisioneros, recuperados. Ojo: el ganador ya recupera a sus heridos dentro de n.
+     CG4b: si ganas, tus heridos (recuperados) salen de los supervivientes y van a res.heridos[0] (vuelven mes a mes); los heridos del vencido son
+     res.prisioneros (cautivos). Si pierdes, tus heridos caen prisioneros (res.cautivos): ya cuentan en las bajas. */
   G.resultadoNueva = function (info, r2, estM) {
-    const lost = bajasManiobra(info, estM), sd = info.cfg.sides;
-    for (const x of r2.bajas) if (x.bajas > 0) lost[x.bando][x.tipo] = (lost[x.bando][x.tipo] || 0) + x.bajas;
+    const lost = bajasManiobra(info, estM), sd = info.cfg.sides, gana = r2.ganador === 0, her = [{}, {}]; let pris = 0, caut = 0, conFila = false;
+    for (const x of r2.bajas) {
+      if (x.bajas > 0) lost[x.bando][x.tipo] = (lost[x.bando][x.tipo] || 0) + x.bajas;
+      if (x.prisioneros === undefined) continue; conFila = true;
+      if (gana && x.bando === 0 && x.recuperados > 0) her[0][x.tipo] = (her[0][x.tipo] || 0) + x.recuperados;
+      if (gana && x.bando === 1) pris += x.prisioneros || 0;
+      if (!gana && x.bando === 0) caut += x.prisioneros || 0;
+    }
     const murio = !!(r2.general && !r2.general.vivo), conGen = !!(sd[0].gen || sd[0].tribuno);
-    return forma(info, lost, { winner: r2.ganador, genDead: [murio && !!sd[0].gen, false], tribunoMuerto: murio && !sd[0].gen && !!sd[0].tribuno, prisioneros: r2.ganador === 0 ? r2.prisioneros | 0 : 0, conGen });
+    const res = forma(info, lost, { winner: r2.ganador, genDead: [murio && !!sd[0].gen, false], tribunoMuerto: murio && !sd[0].gen && !!sd[0].tribuno, prisioneros: gana ? (conFila ? pris : r2.prisioneros | 0) : 0, conGen });
+    if (conFila) {   // los heridos que vuelven no están en filas: se quitan de los supervivientes
+      for (const k in her[0]) { const q = Math.min(her[0][k], res.surv[0][k] || 0); if (q > 0) { her[0][k] = q; res.surv[0][k] -= q; if (!(res.surv[0][k] > 0)) delete res.surv[0][k]; } else delete her[0][k]; }
+      res.heridos = her; res.cautivos = caut;
+    }
+    return res;
   };
   // maniobra que termina sin choque: rendición o retirada de un bando
   G.resultadoManiobra = function (info, e) {
@@ -2040,8 +2097,8 @@
       for (let i = 0; i < 12 && !e.terminado; i++) { const c = M.consejoDia(e, 0), f = c.filter(x => x.etiqueta === 'Favorable').sort((x, y) => y.puntos - x.puntos)[0] || c.filter(x => x.etiqueta === 'Dudoso').sort((x, y) => y.puntos - x.puntos)[0]; e = M.resolverDia(M.moverDia(e, f ? f.ordenes : [], 0), sem * 7 + i).estado; }
       estM = e; if (!(e.fin && e.fin.tipo === 'choque')) return G.resultadoManiobra(info, e); ch = e.choque;
     }
-    const B = G.jugarGuerra(G.estadoGuerra(info, ch), opt.bono0 && opt.bono0 < 1 ? 2.5 : 1.5);   // al delegar, tus tribunos reaccionan más despacio
-    return G.resultadoNueva(info, GU().resumen(B), estM);
+    const S = G.jugarGuerra(G.estadoGuerra(info, ch, opt.bono0));   // CG4b: deciden los tribunos; al delegar (bono0 < 1) tu bando golpea algo menos
+    return G.resultadoNueva(info, SIM().resumen(S), estM);
   };
   // Resuelve la batalla pendiente sin pantalla (bot): la forma de res sirve a applyBattle
   G.resolverPendiente = function () {
@@ -2210,7 +2267,7 @@
     const s = G.state, m = pb.m, e = pb.e, K = pb.campo, h = s.hero, fa = G.forjaMul(s, 'armas'), fd = G.forjaMul(s, 'armaduras');
     const hm = { atkMul: (1 + 0.04 * h.sk.mando) * (s.mods.flex ? 1.1 : 1) * fa, defMul: (1 + 0.03 * h.sk.disc) * fd, mor: 4 * h.sk.disc }, noHero = { atkMul: (s.mods.flex ? 1.1 : 1) * fa, defMul: fd, mor: 0 };
     const heroIn = !!m.hero, me = Object.assign({ units: m.units, name: 'Roma', col: D.FACTIONS.roma.col, gen: heroIn ? { n: h.name, mando: h.sk.mando, disc: h.sk.disc, lvl: h.lvl } : null }, heroIn ? hm : noHero), g = e.gen;
-    const foe = { units: e.units, name: D.FACTIONS[e.owner].n, col: D.FACTIONS[e.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
+    const foe = { units: e.units, fac: e.owner, name: D.FACTIONS[e.owner].n, col: D.FACTIONS[e.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
     me.atkMul *= Math.min(D.SABER.techos.atk, G.invMul('atk')); me.mor += G.invSum('mor');
     { const k = G.copiaDe(e.owner); if (G.copiaBando(e.owner) && k > 0) { const V = G.cienciaGuerra(0, false), q = k * D.SABER.copia; foe.atkMul *= 1 + q * (V.atk - 1); foe.defMul *= 1 + q * (V.def - 1); foe.mor += q * V.mor; } }
     if (!heroIn && m.tribuno != null) { const t = (s.tribunos || []).find(x => x.id === m.tribuno); if (t) me.tribuno = { id: t.id, n: t.n, car: t.car }; }
@@ -2221,13 +2278,13 @@
   // aplica el resultado de una batalla de campo: el que pierde vuelve a su ciudad de salida, el que gana sigue (el ejército que esperaba en un sitio vuelve a casa)
   function aplicarCampo(res) {
     const s = G.state, pb = s.pending.shift(), m = pb.m, e = pb.e, K = pb.campo, h = s.hero;
-    const win = res.winner === 0, out = { win: win, kind: 'campo', city: m.to, campo: K, dead: res.dead, lines: [] };
+    const win = res.winner === 0, out = { win: win, kind: 'campo', city: m.to, campo: K, dead: res.dead, lines: [] }; let dHer = null;   // CG4b: ciudad donde quedan tus heridos
     s.stats.battles++; if (win) s.stats.wins++; s.stats.kills += res.dead[1]; s.stats.lost += res.dead[0];
     const heroIn = !!m.hero, enNom = D.FACTIONS[e.owner].n; if (s.cities[m.from] && s.cities[m.from].owner === 'roma') G.vetCuenta(m.from);   // CN16b: cuenta para los veteranos de su ciudad
     if (win) {
-      m.units = keep(res.surv[0], res.lost[0], 1, 0.25);
-      if (m.sitio) { delete m.sitio; delete m.postura; const home = aCasa(m); out.lines.push('Tus tropas vuelven a ' + D.CITIES[home].n + '.'); }
-      else { reanuda(m, pb.pm); out.lines.push('Tu ejército sigue su marcha, con ' + Math.round(D.CAMPO.retraso * 30) + ' días' + ' de retraso.'); }
+      m.units = keep(res.surv[0], res.lost[0], 1, gTuyo(res));
+      if (m.sitio) { delete m.sitio; delete m.postura; const home = aCasa(m); dHer = home; out.lines.push('Tus tropas vuelven a ' + D.CITIES[home].n + '.'); }
+      else { reanuda(m, pb.pm); dHer = s.cities[m.from] && s.cities[m.from].owner === 'roma' ? m.from : G.capital(); out.lines.push('Tu ejército sigue su marcha, con ' + Math.round(D.CAMPO.retraso * 30) + ' días' + ' de retraso.'); }
       const eh = e.from && s.cities[e.from] && s.cities[e.from].owner === e.owner ? e.from : null;
       if (eh) merge(s.cities[eh].units, keep(res.surv[1], res.lost[1], 0.7, 0)); out.lines.push(enNom + ' se retira' + (eh ? ' a ' + D.CITIES[eh].n : '') + '.');
       G.log('🏆 Victoria en el camino: ' + K.nombre + '.', 'good');
@@ -2245,7 +2302,9 @@
       if (res.genDead[0]) { const mw = Math.max(6, 24 + G.invSum('herida')); h.wound = s.t + mw; out.lines.push('🩸 ' + h.name + ' ha sido herido: ' + mw + ' meses de convalecencia.'); G.log('🩸 ' + h.name + ' cae herido en combate.', 'bad'); }
     }
     if (res.nueva) {
-      if (win && res.prisioneros > 0) { const oro = res.prisioneros * 3; s.res.denarios += oro; out.lines.push('⛓️ ' + res.prisioneros + ' prisioneros: se venden como esclavos o se piden en rescate (+' + oro + ' denarios).'); }
+      if (win && res.prisioneros > 0) { const A = D.CAMINOS[K.camino - 1], p = K.punto || 0, a = A && D.CITIES[A[0]], b = A && D.CITIES[A[1]]; cautivos(res.prisioneros, a && b ? romanaCerca(a.lon + (b.lon - a.lon) * p, a.lat + (b.lat - a.lat) * p) : dHer, out); }   // CG4b: cautivos a tu ciudad más cercana al camino
+      if (win && res.heridos) heridosA(dHer, res.heridos[0], out);
+      if (!win && res.cautivos > 0) out.lines.push('⛓️ ' + res.cautivos + (res.cautivos === 1 ? ' herido tuyo cae prisionero.' : ' heridos tuyos caen prisioneros.'));
       if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push('🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); }
     }
     if (m.tribuno != null && s.tribunos) {
@@ -2268,7 +2327,7 @@
   G.dipRomper = f => { const r = DIP.romper(G.state, f); if (r) G.log('⚔️ Roma rompe el pacto con ' + D.FACTIONS[f].n + '.', 'bad'); return r; };
   G.dipIngreso = () => DIP.ingresoMes(G.state);
   G.load = function () { let ok = false; cargando = true; try { ok = cargar(); } finally { cargando = false; } if (ok) { G.migrarAjustes(G.state); G.migrarTribunos(G.state); G.migrarParada(G.state); G.migrarCampo(G.state); G.migrarAgro(G.state); } if (ok && CI) alCargar(); return ok; };
-  function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; G.migrarNiveles(s); G.migrarEstaciones(s); G.migrarRecursos(s); for (const id in s.cities) G.ligarObras(s.cities[id]); if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (s.vivo === undefined) s.vivo = null; if (!Array.isArray(s.vivoCola)) s.vivoCola = []; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(id); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; if (typeof c.puertas !== 'boolean') c.puertas = false; if (typeof c.vetB !== 'number') c.vetB = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarPueblos(s); G.migrarRetirados(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); DIP.migrar(s); G.migrarCD(s); G.migrarAjustes(s); G.migrarModo(s); if (s.triunfo === undefined) s.triunfo = null; if (typeof s.triunfoFin !== 'number') s.triunfoFin = 0; return true; } } catch (e) { /* partida corrupta */ } return false; }
+  function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; G.migrarNiveles(s); G.migrarEstaciones(s); G.migrarRecursos(s); for (const id in s.cities) G.ligarObras(s.cities[id]); if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (s.vivo === undefined) s.vivo = null; if (!Array.isArray(s.vivoCola)) s.vivoCola = []; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(id); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; G.migrarHeridos(c); if (typeof c.puertas !== 'boolean') c.puertas = false; if (typeof c.vetB !== 'number') c.vetB = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarPueblos(s); G.migrarRetirados(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); DIP.migrar(s); G.migrarCD(s); G.migrarAjustes(s); G.migrarModo(s); if (s.triunfo === undefined) s.triunfo = null; if (typeof s.triunfoFin !== 'number') s.triunfoFin = 0; return true; } } catch (e) { /* partida corrupta */ } return false; }
   /* CE3-A2: de diez niveles a cinco. Todo nivel viejo L pasa a ceil(L / 2) en c.b, c.heredado, foroMin y el muro guardado de la ciudad nueva (las piezas guardan su mejora 0..3:
      ahora valen 1..4 niveles y c.b se rehace solo). Las obras en curso conservan lo pagado y su fin se acorta a 2 estaciones (6 meses) desde ahora. Idempotente con s.niveles5. */
   G.migrarNiveles = function (s) {

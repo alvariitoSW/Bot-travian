@@ -20,6 +20,7 @@
    cfg = { semilla, ejercitos: [{tropa: n}, {tropa: n}] }        → despliegue clásico (Roma en tres líneas; el enemigo en una o dos)
        o { semilla, manipulos: [{lado, tropa, n, x, y, a?, forma?, ala?, mando?, fatiga?, moral?, tras?}] }   → a mano (pruebas, CG5)
        + tribunos: [[{n, car}×3], [{n, car}×3]] (opcional) · planes: [[plan×3], [plan×3]] (opcional) · limite: segundos (900)
+       + mods: [{atk, def, mor}, {atk, def, mor}] (opcional, CG4b: los modificadores de la campaña; ver kMod)
    orden = { tipo, lado, ids, ... }: ver ordenar(). Historia y licencias: al final de las tablas y en el parte de CG3. */
 (function (root) {
   'use strict';
@@ -209,6 +210,11 @@
     for (const u of S.man) if (u.lado === lado) { const lx = lado === 0 ? u.x : -u.x; u.ala = lx < -W / 6 ? 0 : lx > W / 6 ? 2 : 1; }
   }
 
+  /* CG4b (licencia de juego): modificadores de la campaña, solo con cfg.mods = [{atk, def, mor}, {atk, def, mor}] (héroe, forja, ciencia, murallas,
+     dioses, copia del rival, levas bisoñas…). atk multiplica las bajas que causa ese bando (choque, impacto, tiro y pila); def las divide al recibir;
+     mor en puntos de la campaña: si es negativa, baja la moral inicial (/100, hasta 0,5); si es positiva, divide la moral que se pierde en el choque por 1 + mor/100 (la moral nunca pasa de 1). Sin cfg.mods, kMod vale 1 y la batalla es idéntica byte a byte. */
+  const kMor = (S, b) => (S.mods && S.mods[b.lado].mor > 0 ? 1 / (1 + S.mods[b.lado].mor / 100) : 1);   /* moral alta: pierde menos en el choque */
+  const kMod = (S, b) => { const M = S.mods; if (!M) return 1; return M[1 - b.lado].atk / M[b.lado].def; };
   function crear(cfg) {
     cfg = cfg || {};
     const S = { v: 1, sem: ((cfg.semilla || 7) >>> 0) || 1, n: 0, t: 0, fase: 'lucha', pausa: false, man: [], reg: [], resultado: null, ordenes: 0,
@@ -217,9 +223,11 @@
       planes: cfg.planes || [['avanzar', 'avanzar', 'avanzar'], ['avanzar', 'avanzar', 'avanzar']], n0: [{}, {}] };
     if (!TAC) TAC = root.Tacticas;   /* el navegador puede cargar js/tacticas.js después de este archivo */
     if (cfg.tacticas && TAC) S.tac = {};
+    if (cfg.mods) S.mods = [0, 1].map(b => { const m = cfg.mods[b] || {}; return { atk: limita(+m.atk || 1, 0.3, 3), def: limita(+m.def || 1, 0.3, 3), mor: limita(+m.mor || 0, -40, 40) }; });   /* CG4b */
     if (cfg.manipulos) for (const m of cfg.manipulos) manipulo(S, m);
     else for (let b = 0; b < 2; b++) desplegar(S, b, (cfg.ejercitos && cfg.ejercitos[b]) || {}, cfg.ejercitos && cfg.ejercitos.pueblos ? cfg.ejercitos.pueblos[b] || null : null, cfg.ejercitos && cfg.ejercitos.vet ? cfg.ejercitos.vet[b] : null);
     for (const u of S.man) S.n0[u.lado][u.tropa] = (S.n0[u.lado][u.tropa] || 0) + u.n0;
+    if (S.mods) for (const u of S.man) if (S.mods[u.lado].mor < 0) u.moral = limita(u.moral + S.mods[u.lado].mor / 100, 0.5, 1);   /* CG4b: moral de la campaña baja (puntos/100); la que sube frena la pérdida (kMor) */
     recontar(S);
     return S;
   }
@@ -480,7 +488,7 @@
           golpeF[b.id] += fa * (R ? R : 1);
         }
         if (vivo(b) && S.tac && TAC) d *= TAC.recibe(S, b, cara);   /* TH1 */
-        const dm = d * (R ? R : defMul(b.tropa) / (VIDA[b.tropa] || 1));
+        const dm = d * (R ? R : defMul(b.tropa) / (VIDA[b.tropa] || 1)) * kMod(S, b);
         dano[b.id] += dm; danoM[b.id] += dm * fm;
       }
     }
@@ -490,7 +498,7 @@
       if (dano[b.id] > 0) quitar(S, b, dano[b.id], danoM[b.id] / dano[b.id]);
       if (vivo(b) && lucha) {
         const rb = S.cont[b.id][0], Rb = rb ? razon(b, M[rb.id], 'frente') : null, fb = fuerza(b) * (Rb || 1), T = car(b.tropa);
-        b.moral -= (S.tac && TAC ? TAC.moral(S, b) : 1) * (b.mod ? b.mod.moral : 1) * morMul(b) * (dano[b.id] / b.n0 * MORAL_BAJA + TENSION * dt + (flanq[b.id] ? 0.028 : 0) * dt + (golpeF[b.id] > fb ? 0.013 * (golpeF[b.id] - fb) * dt : 0) + (b.fatiga > 0.85 ? 0.006 * dt : 0));
+        b.moral -= (S.tac && TAC ? TAC.moral(S, b) : 1) * (b.mod ? b.mod.moral : 1) * kMor(S, b) * morMul(b) * (dano[b.id] / b.n0 * MORAL_BAJA + TENSION * dt + (flanq[b.id] ? 0.028 : 0) * dt + (golpeF[b.id] > fb ? 0.013 * (golpeF[b.id] - fb) * dt : 0) + (b.fatiga > 0.85 ? 0.006 * dt : 0));
         if (b.postura === 'aguantar' && !flanq[b.id]) b.moral += 0.004 * dt;
         b.fatiga = limita(b.fatiga + (b.postura === 'empujar' ? BASE_FATIGA * cansa(b) * (b.mod ? b.mod.cansa : 1) : -BASE_FATIGA * 0.22) * dt, 0, 1);
         if (flanq[b.id] && !b.flanqueado && S.t - (b.tFlanco || -99) > 8) b.tFlanco = S.t, ev(S, S.cont[b.id].some(c => c.cara === 'retaguardia') ? 'retaguardia' : 'flanqueo', b, b.nom + (S.cont[b.id].some(c => c.cara === 'retaguardia') ? ': ¡les atacan por la espalda!' : ': ¡les atacan por el flanco!'));
@@ -540,7 +548,7 @@
     if (esCab(a.tropa)) { bajas = 22 * esc * (cara === 'frente' ? 0.4 : 1); moral = 0.2 * esc * (cara === 'frente' ? 0.4 : 1); }
     else if (esEle(a.tropa)) { bajas = 5 * a.n * lado2; moral = 0.18 * lado2; for (const v of S.man) if (v.lado !== a.lado && vivo(v) && Math.hypot(v.x - a.x, v.y - a.y) < 40) v.moral -= 0.05; }   /* pavor (Plutarco, Pirro 21) */
     else { bajas = 0.04 * a.n * (FORMAS[a.forma].choque || 1) * lado2; moral = 0.06 * lado2 * (FORMAS[a.forma].choque || 1); }
-    b.golpe = Math.max(b.golpe, 4); b.moral -= moral * morMul(b); quitar(S, b, bajas * kImpacto(a, b, cara) * (FORMAS[b.forma].frena && cara === 'frente' ? 0.5 : 1), esCab(a.tropa) ? 0.4 : esEle(a.tropa) ? 0.55 : 0.5);
+    b.golpe = Math.max(b.golpe, 4); b.moral -= moral * morMul(b); quitar(S, b, bajas * kImpacto(a, b, cara) * (FORMAS[b.forma].frena && cara === 'frente' ? 0.5 : 1) * kMod(S, b), esCab(a.tropa) ? 0.4 : esEle(a.tropa) ? 0.55 : 0.5);
     ev(S, 'carga', a, a.nom + ' cargan contra ' + b.nom + (cara === 'frente' ? '' : cara === 'flanco' ? ' por el flanco' : ' por la espalda'), { con: b.id, cara, bajas: Math.round(bajas) });
   }
 
@@ -625,7 +633,7 @@
     const F = FORMAS[b.forma];
     /* CG9: el daño del tirador cuenta (daño + perfora, contra el de los vélites, que son la referencia de las jabalinas) */
     let kd = 1; const T = TR(); if (T) { const d = T.datos(u.tropa, u.pueblo, u.vet), r = T.datos('velites', u.pueblo, u.vet); if (d.tiro && r.tiro) kd = (d.tiro.dano + d.tiro.perfora) / (r.tiro.dano + r.tiro.perfora); }
-    const n = u.n * A.tiro * kd * dt * (0.85 + 0.3 * rnd(S)) * kTiro(u, b) * F.tiro;
+    const n = u.n * A.tiro * kd * dt * (0.85 + 0.3 * rnd(S)) * kTiro(u, b) * F.tiro * kMod(S, b);
     b.fuego = S.t; quitar(S, b, n / (TR() ? 1 : (VIDA[b.tropa] || 1)), 0.3);
     b.moral -= morMul(b) * (n / b.n0 * 1.5 + (F.tiro >= 1 ? SUSTO : 0) * dt);
   }
@@ -635,7 +643,7 @@
     let b = null; for (const v of S.man) { if (v.lado === u.lado || !vivo(v)) continue; const [lx, ly] = local(u, v.x, v.y); if (ly > 0 && ly - fondo(v) / 2 - fondo(u) / 2 < SALVA.alc && Math.abs(lx) < frente(u) / 2 + frente(v) / 2) { b = v; break; } }
     if (!b) return;
     u.pila = true;
-    const n = SALVA.parte * u.n * kTiro(u, b, true) * FORMAS[b.forma].tiro;
+    const n = SALVA.parte * u.n * kTiro(u, b, true) * FORMAS[b.forma].tiro * kMod(S, b);
     quitar(S, b, n / (TR() ? 1 : (VIDA[b.tropa] || 1)), 0.35); b.moral -= morMul(b) * n / b.n0 * 1.5; b.frenada = 5; b.fuego = S.t;
     ev(S, 'pila', u, u.nom + ' arrojan ' + (ARROJA[u.tropa] === 'pila' ? 'los pila' : 'sus jabalinas') + ' sobre ' + b.nom, { con: b.id, arma: ARROJA[u.tropa] });
   }
