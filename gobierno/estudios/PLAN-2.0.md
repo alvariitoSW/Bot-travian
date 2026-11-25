@@ -374,7 +374,7 @@ departamento de animación, de gráficos ni de jugabilidad.
   sguaz y a parte quiero meter un nuevo modo de juego rollo de supervivencia que no se aún como meterlo que será un propio
   juego dentro del juego en el que básicamente seas como un campamento o un regimiento apostado en alguna región del mapa
   y te tengo que mandar videos para que entiendas como hacer esto asique abre otra sesión y te lo mando».
-  → Se mantienen los motores de hoy. Pendiente: «batallas de sguaz» (por aclarar) y un **modo supervivencia** (un
+  → Se mantienen los motores de hoy. Pendiente: «batallas de sguaz» (aclarado por el usuario el 25/11: «Batallas de agua quería decir» = **batallas navales**) y un **modo supervivencia** (un
   campamento o regimiento apostado en una región). Se abre una sesión de diseño aparte para recibir sus vídeos.
 - Tamaño: **«1.000–2.000 (Recomendado)»** hombres por bando en una batalla grande, a medir en su móvil.
 

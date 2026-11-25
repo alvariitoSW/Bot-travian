@@ -23,8 +23,7 @@ aquí solo las ideas. Ni su código ni su arte.
 4. **Rueda de órdenes** en tres grupos (tú, tu grupo, tu animal): formar columna o línea, trabajar, defender. En el
    móvil, una rueda grande con el pulgar.
 5. **Día y noche, antorchas**: la noche es peligrosa.
-6. Probable sentido de «batallas de sguaz»: **batallas de escuadra** (squad), con tu grupo pequeño. Está por confirmar
-   con el usuario.
+6. «Batallas de sguaz»: el usuario aclaró (25/11) «Batallas de agua quería decir»: son **batallas navales**, no de escuadra.
 
 ## Cómo encaja en AQVILA (para el debate, sin decidir)
 - Un modo aparte en el menú, en la 2.0 (Grecia, 800 a.C.): un grupo de hoplitas o una partida de colonos apostados en
