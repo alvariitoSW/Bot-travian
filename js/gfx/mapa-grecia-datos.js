@@ -84,7 +84,7 @@ export const COPAIS = { lon: 23.02, lat: 38.45, rx: 13, rz: 6.5 };
 export const CLASES = { mar: [14, 400], golfo: [3, 30], region: [16, 140], comarca: [3.5, 34], isla: [2.5, 30], islaG: [4, 80], monte: [1.5, 22], lugar: [0, 9] };
 export const LUGARES = [
   { n: 'Mar Egeo', c: 'mar', lon: 25.15, lat: 38.7 }, { n: 'Mar Jónico', c: 'mar', lon: 20.2, lat: 37.3 }, { n: 'Mar de Creta', c: 'mar', lon: 24.7, lat: 36.0 },
-  { n: 'Mar de Tracia', c: 'mar', lon: 25.1, lat: 40.45, a: [10, 90] }, { n: 'Mar Icario', c: 'mar', lon: 26.3, lat: 37.3, a: [8, 60] }, { n: 'Mar Mirtoo', c: 'mar', lon: 23.7, lat: 36.75, a: [8, 60] },
+  { n: 'Mar de Tracia', c: 'mar', lon: 25.1, lat: 40.45, a: [10, 90] }, { n: 'Mar Icario', c: 'mar', lon: 26.3, lat: 37.3, a: [8, 60] }, { n: 'Mar de Libia', c: 'mar', lon: 23.2, lat: 34.95 }, { n: 'Mar Mirtoo', c: 'mar', lon: 23.7, lat: 36.75, a: [8, 60] },
   { n: 'Golfo de Corinto', c: 'golfo', lon: 22.45, lat: 38.2 }, { n: 'Golfo Sarónico', c: 'golfo', lon: 23.5, lat: 37.62 }, { n: 'Golfo de Argos', c: 'golfo', lon: 22.92, lat: 37.4 },
   { n: 'Golfo de Laconia', c: 'golfo', lon: 22.75, lat: 36.55 }, { n: 'Golfo de Mesenia', c: 'golfo', lon: 22.05, lat: 36.8 }, { n: 'Golfo Termaico', c: 'golfo', lon: 22.85, lat: 40.2 }, { n: 'Golfo de Eubea', c: 'golfo', lon: 23.25, lat: 38.67, a: [2.5, 16] },
   { n: 'Peloponeso', c: 'region', lon: 22.05, lat: 37.42 }, { n: 'Tesalia', c: 'region', lon: 22.1, lat: 39.42 }, { n: 'Macedonia', c: 'region', lon: 22.2, lat: 40.78 }, { n: 'Epiro', c: 'region', lon: 20.7, lat: 39.62 },
@@ -113,7 +113,7 @@ export const LUGARES = [
 
 /* Vistas de cámara de capturas y botones: centro (lon, lat) y ancho de pantalla en decenas de km (en vertical) */
 export const VISTAS = {
-  entera: { lon: 24.2, lat: 37.7, a: 84 }, corazon: { lon: 23.05, lat: 37.75, a: 21 }, comarca: { lon: 22.78, lat: 37.6, a: 3.2 },
+  entera: { lon: 23.8, lat: 37.7, a: 84 }, corazon: { lon: 23.05, lat: 37.75, a: 21 }, comarca: { lon: 22.78, lat: 37.6, a: 3.2 },
   atenas: { lon: 23.6, lat: 37.98, a: 9.5 }, egeo: { lon: 25.5, lat: 37.6, a: 46 }, peloponeso: { lon: 22.55, lat: 37.35, a: 17 }
 };
 

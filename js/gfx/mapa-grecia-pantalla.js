@@ -19,9 +19,9 @@ const CSS = `
 .mgp-abajo{position:absolute;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;align-items:flex-end;justify-content:space-between;pointer-events:none}
 .mgp-abajo>*{pointer-events:auto}
 .mgp-fila{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.mgp-regla{pointer-events:none;font-size:11px;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000;display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin-bottom:2px}
+.mgp-regla{pointer-events:none;font-size:11.5px;padding:3px 6px 4px;border-radius:5px;background:#1c161099;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000;display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin-bottom:2px}
 .mgp-regla i{display:block;height:5px;border:1.5px solid #fff;border-top:0;box-shadow:0 1px 1px #0008}
-.mgp-b .mgp-regla{color:#3a2416;text-shadow:0 0 3px #f1e3bd,0 0 2px #f1e3bd}.mgp-b .mgp-regla i{border-color:#3a2416;box-shadow:none}
+.mgp-b .mgp-regla{color:#3a2416;background:#f4e8c8dd;text-shadow:none}.mgp-b .mgp-regla i{border-color:#3a2416;box-shadow:none}
 .mgp-zoom{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px}
 .mgp-zoom button{font-size:20px;padding:0}
 .mgp-leyenda{position:absolute;left:8px;right:8px;top:calc(58px + env(safe-area-inset-top,0px));padding:5px 8px;border-radius:6px;background:#f3e7c6ee;border:1px solid #6b5335;font-size:11.5px;line-height:1.2;box-shadow:0 2px 4px #0007;pointer-events:none}
@@ -32,7 +32,7 @@ const CSS = `
 .mgp .rec.lujo i{box-shadow:0 0 0 1.5px #e3b341}
 .mgp .rec svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 .6px #000) drop-shadow(0 0 .6px #000)}
 .mgp-leyenda em{display:block;font-size:10.5px;opacity:.85;margin-top:2px}
-.mgp-ficha{position:absolute;left:8px;right:8px;bottom:calc(62px + env(safe-area-inset-bottom,0px));padding:10px 12px 8px;border-radius:8px;background:#f6ecd0f7;border:1px solid #6b5335;box-shadow:0 4px 12px #000a;font-size:13px;z-index:3}
+.mgp-ficha{position:absolute;left:8px;right:8px;bottom:calc(62px + env(safe-area-inset-bottom,0px));padding:10px 12px 8px;border-radius:8px;background:#f6ecd0;border:1px solid #6b5335;box-shadow:0 4px 12px #000a;font-size:13px;z-index:3}
 .mgp-ficha h2{margin:0 44px 4px 0;font-size:18px;display:flex;align-items:center;gap:7px}.mgp-ficha h2 b{width:13px;height:13px;border-radius:50%;border:1px solid #0008}
 .mgp-ficha p{margin:4px 0}.mgp-ficha em{font-style:normal;font-weight:bold}.mgp-ficha small{display:block;font-size:11.5px;opacity:.85}
 .mgp-ficha .falta{border-top:1px solid #6b533566;padding-top:5px}
@@ -52,7 +52,7 @@ export async function montarMapaGrecia(caja, opts) {
   const raiz = document.createElement('div'); raiz.className = 'mgp'; caja.appendChild(raiz);
   raiz.innerHTML = '<div class="mgp-mapa"></div>' +
     '<div class="mgp-arriba">' + (opts.onVolver ? '<button data-a="volver">Volver</button>' : '') + '<div class="mgp-titulo"><b>Grecia</b><span data-r="lema"></span></div><button data-a="estilo" aria-label="Cambiar el estilo del mapa"></button></div>' +
-    '<div class="mgp-leyenda" hidden><span class="f">' + Object.keys(BASICOS).map(k => rec(k, BASICOS[k])).join('') + '</span><span class="f"><span class="rec lujo"><i style="--c:#cfd6dd">' + ICONOS.plata + '</i>Aro dorado: lujo, solo en esa ciudad</span></span><em>Lo que no tienes: por comercio o conquista.</em></div>' +
+    '<div class="mgp-leyenda" hidden><span class="f">' + Object.keys(BASICOS).map(k => rec(k, BASICOS[k])).join('') + '<span class="rec lujo"><i style="--c:#cfd6dd">' + ICONOS.plata + '</i>Lujo (solo en esa polis)</span></span></div>' +
     '<div class="mgp-zoom"><button data-a="mas" aria-label="Acercar">+</button><button data-a="menos" aria-label="Alejar">−</button></div>' +
     '<div class="mgp-ficha" hidden></div>' +
     '<div class="mgp-abajo"><div class="mgp-regla"><span></span><i></i></div><div class="mgp-fila"><button data-a="recursos" aria-pressed="false">Recursos</button><button data-v="entera">Grecia entera</button><button data-v="corazon">Las polis</button></div></div>' +

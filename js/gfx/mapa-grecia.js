@@ -33,7 +33,7 @@ const CSS = `
 .mg-zona i{width:24px;height:24px;border-radius:50%;padding:4px;background:var(--c);color:#fff;border:1.5px solid #fff;box-shadow:0 1px 3px #0009;font-style:normal}
 .mg-zona.compacta span{display:none}
 .mg-zona svg,.mg-polis .lujo svg{filter:drop-shadow(0 0 .6px #000) drop-shadow(0 0 .6px #000)}
-.mg-l{color:#fff;text-shadow:0 1px 2px #000b,0 0 4px #0009,0 0 1px #000;font-size:12px}
+.mg-l{color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000c,0 0 2px #000,1px 0 1px #0008,-1px 0 1px #0008;font-size:12.5px}
 .mg-l.mar{font-style:italic;font-size:15px;letter-spacing:3px;color:#dcecf6;text-shadow:0 1px 2px #0a2740,0 0 5px #0a2740}
 .mg-l.golfo{font-style:italic;font-size:11.5px;color:#dcecf6;text-shadow:0 1px 2px #0a2740,0 0 4px #0a2740}
 .mg-l.region{font-variant:small-caps;font-size:16px;letter-spacing:4px;color:#fff6dc}
@@ -163,7 +163,7 @@ export class MapaGrecia {
     if (this.anim) { const A = this.anim, f = clamp((performance.now() - A.t0) / A.ms, 0, 1), s = f * f * (3 - 2 * f); V.x = mix(A.x0, A.x1, s); V.z = mix(A.z0, A.z1, s); V.upx = Math.exp(mix(A.u0, A.u1, s)); if (f >= 1) this.anim = null; }
     else if (this.vel.x || this.vel.z) { V.x += this.vel.x * dt; V.z += this.vel.z * dt; const k = Math.exp(-dt / 260); this.vel.x *= k; this.vel.z *= k; if (Math.abs(this.vel.x) + Math.abs(this.vel.z) < V.upx * 0.01) this.vel.x = this.vel.z = 0; }
     const lz = Math.log(V.upx * 390), el = mix(EL_CERCA, EL_LEJOS, paso(Math.log(1.2), Math.log(60), lz)); this._el = el;
-    this._upxMax = Math.min(ANCHO / w, FONDO * 1.45 * Math.sin(el) / h); V.upx = clamp(V.upx, UPX_MIN, this._upxMax);
+    this._upxMax = Math.min(ANCHO / w, FONDO * 1.8 * Math.sin(el) / h); V.upx = clamp(V.upx, UPX_MIN, this._upxMax);
     const mx = Math.min(ANCHO / 2, w * V.upx * 0.42), mz = Math.min(FONDO / 2, h * V.upx / Math.sin(el) * 0.42); V.x = clamp(V.x, XI + mx, XI + ANCHO - mx); V.z = clamp(V.z, ZN + mz * 0.86, ZN + FONDO - Math.min(mz, FONDO * 0.35));
     const a = V.upx * 390, ky = mix(KY_CERCA, KY_LEJOS, paso(Math.log(4), Math.log(40), Math.log(a))), U = this.com;
     U.uKy.value = ky; U.uPx.value = V.upx; U.uCerca.value = 1 - paso(0.004, 0.02, V.upx);
