@@ -448,13 +448,14 @@
       heroe: 'Polemarco de Calcis', leva: { hoplitas: 30, jinetes: 10, peltastas: 10 } }
   };
   /* PN3: almacén al empezar una partida de polis (unas materias básicas; licencia de juego) */
-  D.POLIS_RES = { grano: 400, denarios: 250, materiales: 400, hierro: 150 };
+  D.POLIS_RES = { grano: 250, denarios: 250, materiales: 400, hierro: 150 };   // PN3b: 250 (antes 400) para que el trigo del primer invierno quepa en el almacén (Tebas, con dos granjas, también) y no salga nada en rojo
   D.POLIS_ORDEN = ['atenas', 'esparta', 'corinto', 'argos', 'tebas', 'megara', 'mileto', 'calcis'];
   /* Con polis elegida (D.polis = id; lo fijan G.newGame y G.load) la ciudad y el bando del jugador llevan su nombre. Sin polis, «Roma» como siempre. */
   D.polis = null;
   { const pn = (f, p) => D.polis && D.POLIS[D.polis] ? D.POLIS[D.polis][p] : f;
     Object.defineProperty(D.CITIES.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
     Object.defineProperty(D.FACTIONS.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
+    { const h0 = D.CITIES.roma.h; Object.defineProperty(D.CITIES.roma, 'h', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? D.POLIS[D.polis].lema + '.' : h0; } }); }   // AM4: la hoja de tu polis no habla de las siete colinas
     Object.defineProperty(D.FACTIONS.roma, 'col', { enumerable: true, configurable: true, get() { return pn('#b3261e', 'color'); } });
     /* PN3: en partida de polis el foro se llama «Ágora» (mismo edificio, mismas reglas) */
     Object.defineProperty(D.BUILD.foro, 'n', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? 'Ágora' : 'Foro'; } });

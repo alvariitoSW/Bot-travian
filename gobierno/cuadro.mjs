@@ -355,7 +355,7 @@ let htmlMovil = '', movilCab = '', movilLlega = '', movilNota = '', llegaN = 0;
     const dia = hoyEs(horaMain) ? 'de hoy' : 'del ' + horaMain.toLocaleDateString('es-ES', { ...madrid, day: 'numeric', month: 'long' });
     const hora = horaMain.toLocaleTimeString('es-ES', { ...madrid, hour: '2-digit', minute: '2-digit' });
     // CM6: «lo último terminado es v172» se leía como si v172 estuviera en el móvil; ahora dice dónde está cada versión
-    movilCab = 'Tu móvil tiene la versión <b>' + esc(vMain || '¿?') + '</b>, subida ' + dia + ' a las <b>' + hora + '</b>. ' +
+    movilCab = 'Publicada para tu móvil: la versión <b>' + esc(vMain || '¿?') + '</b>, subida ' + dia + ' a las <b>' + hora + '</b>. Si el juego aún enseña otra, ciérralo del todo y ábrelo dos veces (la primera descarga la nueva). ' +
       (vRama && vRama !== vMain ? 'Ya está terminada la <b>' + esc(vRama) + '</b>, pero aún no está en tu móvil: llega con la próxima subida.' : 'Es la última terminada: no hay otra versión esperando.');
   } else movilCab = 'No se pudo leer qué versión tiene tu móvil.';
   const ls = [...llega.entries()]; llegaN = ls.length;

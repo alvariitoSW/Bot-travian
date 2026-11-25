@@ -153,3 +153,14 @@ console.log('caminos: ' + n + ' pruebas OK');
   assert.strictEqual(larga.corta, false); assert.strictEqual(larga.cartago, false);
   console.log('caminos: CE12 corta OK');
 }
+t('PN3b2: partida de polis, solo victoria por armas (todas las ciudades o 90 % del territorio)', () => {
+  const D = require('../js/data.js'), ids = Object.keys(D.CITIES);
+  const mk = (propias) => { const cities = {}; ids.forEach(id => { cities[id] = { owner: propias.includes(id) ? 'roma' : 'otro' }; }); return { t: 5, polis: 'atenas', cities, res: {}, alm: {} }; };
+  const s0 = mk(['roma']); let d = CAM.dominio(s0); assert.strictEqual(d.m, ids.length); assert.ok(!d.gana && d.n === 1);
+  assert.deepStrictEqual(CAM.paso(s0, CAM.foto(s0, null), 5).gana, false);
+  const v = CAM.vista(s0, CAM.foto(s0, null)); assert.ok(v.polis && v.polis.m === ids.length);
+  const s1 = mk(ids); const r = CAM.paso(s1, CAM.foto(s1, null), 6); assert.ok(r.gana && s1.caminos.victoria.caminos[0] === 'armas' && /Dominas/.test(r.efectos[0].texto));
+  const s2 = mk(ids.filter(id => id !== 'roma' && (D.CITIES[id].w || 1) === 1).slice(0, 0).concat(ids)); s2.cities[ids[0]].owner = 'otro'; s2.cities[ids[1]].owner = 'otro';   // 2 sin conquistar
+  d = CAM.dominio(s2); assert.ok(d.n === ids.length - 2 && (d.pct >= 90) === d.gana);
+  const sr = mk(['roma']); delete sr.polis; assert.ok(CAM.vista(sr, CAM.foto(sr, null)).polis === null, 'Roma: sin dominio de polis');
+});

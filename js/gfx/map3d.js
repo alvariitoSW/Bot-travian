@@ -8,6 +8,7 @@ import AGUA from '../../assets/mapa/agua.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
+const anioMapa = () => (G.state && G.anioReglas ? G.anioReglas(G.state.t) : (D.anio || D.START_YEAR || 280));      // PN3b: las calzadas siguen la fecha de las reglas (romanas), no los 800 a.C. de la polis
 const MARE_DIST = 130;   // C6: distancia de Mare Nostrum de reserva (C8: la real se calcula según la pantalla en ajustarMare)
 /* C15 · cámara con horizonte: de cerca la cámara va baja (unos 20° en vertical, 13° en horizontal) y deja ver el mar y los montes a lo lejos, con cielo y bruma; al alejar
    se endereza poco a poco hasta la vista de carta de siempre (70°), a la que llega a 115 de distancia (Mare Nostrum no cambia). */
@@ -535,7 +536,7 @@ function vidaMover(vista, vd, t, state) {
   if (vd.viajeros) {   // los barcos se ven hasta Italia entera; los carros, solo de cerca (fuera de su distancia, o sin calzada aún, escala 0)
     const barcos = dist < 175, carros = dist < 70; vd.viajeros.visible = barcos || carros;
     if (vd.viajeros.visible) {
-      const eb = Math.min(2.6, Math.max(1, dist / 40)), ec = Math.min(2, Math.max(1, dist / 22)), anio = D.anio || D.START_YEAR || 280;
+      const eb = Math.min(2.6, Math.max(1, dist / 40)), ec = Math.min(2, Math.max(1, dist / 22)), anio = anioMapa();
       for (const o of vd.rutasMar) vd.viajeros.setMatrixAt(o.i, vaiven(o, 0.35, false, barcos ? eb : 0, 0.02, true));
       for (const o of vd.rutasTierra) { const c = D.CALZADAS[o.id], hecha = !c.anio || anio <= c.anio; vd.viajeros.setMatrixAt(o.i, vaiven(o, 0.12, true, carros && hecha ? ec : 0, 0.1, false)); }
       vd.viajeros.instanceMatrix.needsUpdate = true;
@@ -1332,7 +1333,7 @@ export class MapView3D {
     this.adornos.material.opacity = 0.92 * ss(16, 42, c.dist) * (1 - horizonte(c.dist));   // C15: con la cámara baja, sin letras de carta   // C10: los adornos de carta se desvanecen al acercarse
     this.adornos.visible = this.adornos.material.opacity > 0.01;   // C5a: viñeta del marco solo en vistas lejanas
     this.tribus.material.opacity = 0.95 * ss(170, 125, c.dist) * ss(13, 24, c.dist); this.tribus.visible = this.tribus.material.opacity > 0.01;   // C11: cintas de los pueblos a media distancia (de muy cerca se ve el poblado)
-    if (D.anio !== this.calzAnio) { this.calzAnio = D.anio; calzadasAnio(this.calzadas, D.anio || D.START_YEAR || 280); }   // C12: calzadas pálidas hasta su año
+    { const an = anioMapa(); if (an !== this.calzAnio) { this.calzAnio = an; calzadasAnio(this.calzadas, an); } }   // C12: calzadas pálidas hasta su año
     this.vias.material.opacity = 0.95 * ss(120, 80, c.dist) * ss(8, 14, c.dist); this.vias.visible = this.vias.material.opacity > 0.01;   // C12: nombres de calzadas a media distancia
     this.puertos.material.opacity = 0.95 * ss(260, 190, c.dist) * ss(6, 11, c.dist); this.puertos.visible = this.puertos.material.opacity > 0.01;   // C12: anclas de los puertos
     this.aldeas.visible = c.dist < 135;
