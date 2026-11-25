@@ -600,6 +600,7 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Hierro en Grecia**: sin comprar hierro en el mercado, tu polis no pasa de unos 50 hombres y cae hacia el 787 a.C. (A) Dar veta de hierro a Calcis y que la lección del arranque enseñe a comprar hierro [recomendado]; (B) bajar las guarniciones rivales; (C) dejarlo así. Por qué: es lo que más pesa en el equilibrio de las polis.
 
 
 ## Propuestas por aprobar
