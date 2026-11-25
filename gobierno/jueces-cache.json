@@ -200,44 +200,44 @@
   "fecha": "2026-11-25T19:42:35.261Z"
  },
  "area:test/fu4-rivales.test.mjs": {
-  "huella": "3312c11de5d59eb8",
+  "huella": "bbfc7ea0ca1a53f7",
   "ok": true,
-  "fecha": "2026-11-24T22:53:04.792Z"
+  "fecha": "2026-11-25T19:43:20.722Z"
  },
  "area:test/tropas.test.mjs": {
-  "huella": "4788470bf3a5a7e9",
+  "huella": "9718e91f9a30d75d",
   "ok": true,
-  "fecha": "2026-11-25T01:09:17.649Z"
+  "fecha": "2026-11-25T19:43:20.790Z"
  },
  "area:test/tropas-sim.test.mjs": {
-  "huella": "ee88440c1f977446",
+  "huella": "a96eaf724801e173",
   "ok": true,
-  "fecha": "2026-11-25T04:48:16.573Z"
+  "fecha": "2026-11-25T19:43:23.861Z"
  },
  "area:test/es2-mando.test.mjs": {
-  "huella": "bff3c034e744069e",
+  "huella": "fd0b37b8588f1740",
   "ok": true,
-  "fecha": "2026-11-25T03:57:05.075Z"
+  "fecha": "2026-11-25T19:43:25.184Z"
  },
  "area:test/es3-tiro.test.mjs": {
-  "huella": "744f89a7343f5467",
+  "huella": "d1cbb86392fb60c2",
   "ok": true,
-  "fecha": "2026-11-25T03:57:05.141Z"
+  "fecha": "2026-11-25T19:43:25.322Z"
  },
  "area:test/es3-combinada.test.mjs": {
-  "huella": "8a73005e62971380",
+  "huella": "8bc44abbc388af3e",
   "ok": true,
-  "fecha": "2026-11-25T03:57:05.519Z"
+  "fecha": "2026-11-25T19:43:26.415Z"
  },
  "area:test/es4-asculo.test.mjs": {
-  "huella": "7602f0d2a1c6aa63",
+  "huella": "4ffe397c825a97d6",
   "ok": true,
-  "fecha": "2026-11-25T03:57:05.844Z"
+  "fecha": "2026-11-25T19:43:27.382Z"
  },
  "area:test/registro-lleva.test.mjs": {
-  "huella": "999a8f5f54c30258",
+  "huella": "b5260a7f63f9f893",
   "ok": true,
-  "fecha": "2026-11-25T04:48:16.650Z"
+  "fecha": "2026-11-25T19:43:27.456Z"
  },
  "area:test/combate-bloque.test.mjs": {
   "huella": "4b01ffc743948385",
@@ -245,14 +245,14 @@
   "fecha": "2026-11-25T04:45:53.841Z"
  },
  "area:test/combate-poses.test.mjs": {
-  "huella": "e665d4acc977ce06",
+  "huella": "d5adcc14a4dbc442",
   "ok": true,
-  "fecha": "2026-11-25T04:45:53.882Z"
+  "fecha": "2026-11-25T19:45:05.227Z"
  },
  "area:test/combate.test.mjs": {
-  "huella": "e29385211d8f2c4c",
+  "huella": "fbfe7988e739b253",
   "ok": true,
-  "fecha": "2026-11-25T04:45:55.093Z"
+  "fecha": "2026-11-25T19:45:04.860Z"
  },
  "area:test/mapa.test.mjs": {
   "huella": "f23ad41ed435a771",
@@ -300,14 +300,14 @@
   "fecha": "2026-11-25T12:04:59.102Z"
  },
  "area:gobierno/juez-aspecto.mjs animacion": {
-  "huella": "2dd06d7cf302cbc1",
+  "huella": "4a21fd71940301b9",
   "ok": true,
-  "fecha": "2026-11-25T12:16:20.267Z"
+  "fecha": "2026-11-25T19:45:05.320Z"
  },
  "area:gobierno/juez-aspecto.mjs graficos": {
-  "huella": "26c1305c4f0abfe6",
+  "huella": "4a21fd71940301b9",
   "ok": true,
-  "fecha": "2026-11-25T17:07:40.087Z"
+  "fecha": "2026-11-25T19:45:05.549Z"
  },
  "area:test/ciudad.test.mjs": {
   "huella": "9d9d59053042927a",
