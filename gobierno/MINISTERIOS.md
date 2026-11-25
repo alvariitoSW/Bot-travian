@@ -10,6 +10,7 @@ sin tope de gasto para montarlo, pero midiendo. El código del juego no se ha to
 | **Corazón · Batallas** (ejércitos, mando, campo, pantallas) | `ministerio-batallas` | lógica 48 s + navegador 12 min (`juez-guerra`) + 5,5 min (sus pasos de `jueces.mjs`, MIN4) | «AQVILA Batallas taller» |
 | **Cerebro** (ramas Ciudades y Política) | `ministerio-cerebro` | lógica 63 s + navegador 2 min (MIN4): **3,6 min en total** | el de siempre |
 | **Músculo** (mapa, menús, manejo, fluidez) | `ministerio-musculo` | lógica 10 s + navegador 8 min (MIN4, con la batalla de preparación) | el de siempre |
+| **Departamento de Arte de Mapas** (25/11, dentro del Músculo, con el taller de Arte): mapa vivo, Grecia y sus polis, recursos en el mapa; AM1–AM2 con Fable | `arte-mapas` | `mapa.test` + `juez-mapas.mjs` (navegador, 2 capturas) | el de siempre |
 | **Taller de Arte** común | `arte` | `arte.mjs` y `fichas.mjs`, segundos | «AQVILA Batallas taller» |
 | **Taller de Sonido** (director de sonido, 23/11) | `sonido` (+ `sonido-efectos`, `sonido-musica`) | `juez-sonido.mjs`, 3 s | «AQVILA Batallas taller» (OpenGameArt abierto) |
 
@@ -91,7 +92,7 @@ cuál prepara: Músculo pasa la batalla del recorrido como preparación porque �
 antes de cada commit. Cuatro clases:
 | Clase | Quién lo toca | Ejemplos |
 |---|---|---|
-| Propio de un área | Solo las sesiones de esa área | `js/guerra.js` (Batallas), `js/gfx/city3d.js` (Cerebro), `js/gfx/map3d.js` (Músculo) |
+| Propio de un área | Solo las sesiones de esa área | `js/guerra.js` (Batallas), `js/gfx/city3d.js` (Cerebro), `js/gfx/map3d.js` (Arte de Mapas, desde el 25/11) |
 | **Común** | Una sola sesión a la vez, la que el vigía nombre «de paso» | `js/ui.js`, `js/game.js`, `js/data.js`, `js/registro.js`, `sw.js`, `index.html` |
 | Solo el vigía | El vigía | `BITACORA.md`, `TABLERO.md`, `lista.json`, `cuadro.json` |
 | Libre | Cualquiera, solo archivos nuevos con su ID | `partes/`, `capturas-tarea/`, `estudios/` |

@@ -13,13 +13,15 @@ archivos tocas, qué jueces pasas y quién escribe en el tablero y la bitácora 
 menús, botones, letra y partida en todo el juego); **fluido y sin conexión** en el móvil del usuario.
 
 ## Tus archivos (`gobierno/areas.json` → `musculo`; duda: `node gobierno/juez-area.mjs --dueno <ruta>`)
-- **Propios**: `js/gfx/map3d.js`, `ground.js`, `statics.js`, `fluidez.js`, `movil.js`; pruebas `mapa`, `movil`, `ajustes`,
+- **Propios**: `js/gfx/ground.js`, `statics.js`, `fluidez.js`, `movil.js`; pruebas `movil`, `ajustes`,
   `avisos`, `pausas`; maquetas de menús y del concurso.
 - **Ojo**: los menús viven en `js/ui.js`, `index.html` y `css/style.css`, que son **comunes**. Una tarea de menús es casi
   siempre la sesión **«de paso»**: pídeselo al vigía al abrir, y aplica de una vez los pases que las otras áreas tengan
   apuntados para esos archivos.
 - **Vetados**: batalla y ciudad (`js/guerra.js`, `js/ciudad.js`, `js/gfx/city3d.js`…).
-- Arte de mapa y menús: lo pide al taller de Arte (pase → Arte).
+- **El mapa de campaña** (`js/gfx/map3d.js`, `assets/mapa/`, prueba `mapa`, `captura-mapa.mjs`) es del **Departamento de
+  Arte de Mapas** (skill `arte-mapas`, 25/11), dentro del Músculo: lo que necesites ahí, por pase → mapas.
+- Arte de menús: lo pide al taller de Arte (pase → Arte).
 
 ## Cómo se prueba
 | Cuándo | Orden | Tarda (medido el 23/11) |
