@@ -838,6 +838,11 @@
         if (ES) estandartes = crearEst(ES);
         if (CI) { cine = CI.crearCine({ THREE, camara, cam, ponCamara, S }); cine.apertura(); }
         if (FIS) FF = FIS.crearFisicaFiguras({ escala: altoN * TALLA / 1.78 });   /* FI4: radios y escudos a la medida de la figura (TALLA) */
+        /* BT1: el primer cuadro (subir texturas y ejemplares del campo y las figuras) se pinta con el velo de carga aún puesto, y se
+           espera a que llegue a pantalla: si no, al retomar una batalla guardada el campo se veía negro unos segundos (pase de JG2) */
+        try { pinta(0); } catch (e) { /* el bucle lo volverá a intentar */ }
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        if (cerrado) return;   /* cerrarTodo ya lo ha soltado */
         lista = true; if (banda) banda.inicia(); $('carga').hidden = true; pausa(S.pausa); pintarHud(true);
         if (S.fase === 'fin') finYa();
         else if (DU && !S.arenga && S.t === 0) arengar();
