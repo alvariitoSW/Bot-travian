@@ -199,8 +199,8 @@
       svg = svg0;
     }
     function enemigo(x, y, a) { const G = el(svg, 'g', { transform: `translate(${x} ${y}) scale(${o.esc || 1.45}) translate(${-x} ${-y})` }); const svg0 = svg; svg = G;
-      el(svg, 'circle', { cx: x, cy: y, r: 2.8, fill: '#3b2a3e' });
-      el(svg, 'path', { d: `M${x + Math.cos(a) * 2 - 2.5} ${y + Math.sin(a) * 2} a3 3 0 0 0 5 0`, fill: '#a9452c', transform: `rotate(${a * 57.3 - 90} ${x} ${y})` });
+      el(svg, 'circle', { cx: x, cy: y, r: 2.8, fill: '#2a2a2a' });
+      el(svg, 'circle', { cx: x + Math.cos(a) * 2.4, cy: y + Math.sin(a) * 2.4, r: 3, fill: '#3d4f7a', stroke: '#1a2238', 'stroke-width': .7 });
       el(svg, 'circle', { cx: x, cy: y, r: 1.3, fill: '#c7a27a' });
       svg = svg0;
     }

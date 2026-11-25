@@ -1,6 +1,6 @@
 # SUP1 · Mesa de diseño del modo supervivencia (25/11/2026)
 
-Estado: **diseño cerrado por la mesa, pendiente de las respuestas del usuario** (§9). Sin construir. Rama `sup1-diseno`.
+Estado: **diseño cerrado y respondido por el usuario el 25/11** (§9, §11). Reparto aprobado. Sin construir. Rama `sup1-diseno`.
 Base: `SUP0-modo-supervivencia.md` (decisiones literales del usuario, no se reabren) y `PLAN-2.0.md` («Modo
 supervivencia», §3 Estándar, «M2: respuesta del usuario al estándar»). Aprobado abrir SUP1 el 25/11: «Carril aparte»,
 «Sí, ya». Sirve a OBJETIVOS → Corazón (guerras) y Músculo (entretenimiento).
@@ -10,35 +10,38 @@ por aviso del vigía, los dos departamentos de batalla nuevos: Animación y Grá
 Todos leyeron y opinaron; ninguno tocó código. Lo que sigue es la síntesis del director; las discrepancias van a §9.
 
 ## 0. En una frase
-Eres el oficial de una guarnición de hoplitas que acaba de desembarcar en tierra hostil. Cada estación se juega como
-**un día**: de mañana repartes a tus hombres para talar, cavar y vigilar; por la tarde te preparas; por la noche llega
-la oleada y la peleas **a pie con tus 12** mientras el resto aguanta en sus puestos. Al alba, cuentas y sigues. Ganas si
-aguantas **3 años**.
+Eres el oficial de una guarnición argiva en la frontera con Esparta, hacia el 669 a.C. El tiempo corre sin parar: de
+mañana repartes a tus hombres para talar, cavar y vigilar; por la tarde te preparas; por la noche llega la oleada y la
+peleas **a pie con tus 12** mientras el resto aguanta en sus puestos. Al alba, cuentas y sigues. Ganas si aguantas **3 años**.
 
-## 1. El tiempo (cerrado por la mesa)
-**Un día jugable por estación** (propuesta del Músculo, apoyada por Corazón e Historia).
+## 1. El tiempo (decidido por el usuario: «Tiempo seguido»)
+El reloj **no se corta**: no hay hoja que pare el juego ni turno. Corren el día y la noche, y pasan solas las estaciones
+y los años. (La mesa recomendaba un día por estación; el usuario eligió tiempo seguido.)
 
 | Pieza | Cifra | Qué pasa |
 |---|---|---|
-| Mañana | ~3 min reales | Trabajos: talar, agua y comida, obras, guardia, descanso |
-| Tarde | ~2 min | Patrulla, colocar puestos, el aviso se hace más claro |
-| Noche | ~3 min | La oleada. La vista desde arriba va a cámara lenta |
-| Alba | hoja | «Pasar estación»: bajas, daños, lo recogido, la próxima oleada y la obra larga de la estación |
-| Año | 4 días · ~35 min | Primavera tantean · **verano la gorda** · otoño saqueo · invierno frío y hambre |
-| Partida | 3 años · 12 noches · ~1 h 45 | La última, en el invierno del año 3, la más dura |
+| Un día | ~3 min reales | Mañana ~1:10 trabajos · tarde ~0:40 preparar · noche ~1:10 |
+| Una estación | 3 días · ~9 min | Una noche de **oleada grande** por estación (con aviso); las otras, tranquilas o con una incursión pequeña |
+| Un año | 4 estaciones · ~36 min | Primavera tantean · **verano la gorda** · otoño saqueo · invierno frío y hambre |
+| Partida | **3 años** · 12 oleadas grandes · ~1 h 45 | La última, en el invierno del año 3, la más dura |
 
 Reglas del reloj:
 - Pausa siempre a la vista; se pausa sola al salir de la aplicación. **×2 solo de día**; de noche nunca.
 - «Saltar a la noche» cuando no queda nada que hacer. Rueda de órdenes abierta: el juego va a ×0,25 (no se para).
 - **Siempre hay aviso** al menos medio día antes (humo, el perro, un explorador): cuántos, de dónde, qué traen.
-- Guardado al empezar cada parte del día; si recargas a media oleada, esa noche vuelve a empezar.
+- Al alba, un **parte corto en la cinta** (bajas, daños, lo recogido, lo que viene). No para el juego; se abre entero con un toque.
+- Las obras largas (doblar el foso, una torre) se eligen cuando quieras en el panel; duran días o estaciones y se ven avanzar.
+- Guardado solo, cada alba y al salir; si recargas a media oleada, esa noche vuelve a empezar.
 
-Por qué así: tiene tiempo real para bajar a pie y vivir la noche (lo que el turno puro no da) y cada día es una parada
-natural para jugar a ratos en el móvil (lo que el tiempo seguido no da). Y **una estación del campamento = un turno de
-la polis**: cuando el modo entre en la campaña («primero aparte, luego dentro»), encaja sin rehacer el reloj.
+Para cuando entre en la campaña («primero aparte, luego dentro»): el cambio de estación sigue marcado, así que una
+estación del campamento casa con un turno de la polis sin rehacer el reloj.
 Historia: los griegos guerreaban en verano (temporada de campaña); el invierno pesa por comida y leña.
 
-## 2. La pelea en oleadas (cerrado por la mesa)
+**Jueces rápidos** (usuario, literal, §11): los jueces **no juegan la partida entera**. Las reglas se prueban en Node
+con el reloj acelerado y desde partidas guardadas avanzadas (año 2, año 3 a punto de acabar); el navegador solo saca
+las capturas de cada punto de la ficha. Vara: **≤ 15 min** por prueba de tanda, como pide PLAN-2.0 para M1.
+
+## 2. La pelea en oleadas (decidido por el usuario: «Las dos a la vez»)
 **Las dos cosas a la vez, en la misma escena**: no se carga otra pantalla.
 - **A pie (lo normal)**: llevas al oficial y su grupo de **12** con la rueda. Vas a donde duele: la puerta, la brecha.
 - **El resto de la guarnición** pelea sola en el **puesto** que le diste: un tramo de empalizada, la puerta, las
@@ -53,9 +56,9 @@ Historia: los griegos guerreaban en verano (temporada de campaña); el invierno 
 | Oleada | De 15–20 hombres (primera) a 120–150 (última). Las grandes llegan por tandas |
 | Figuras vivas a la vez | ≤ 200 (≈ 70 propias, ≈ 130 enemigas); los caídos, con tope |
 
-Escalones del enemigo (Historia: lore de Tasos, §5): saqueadores y piratas con jabalina → tracios en grupo con escudo
-de media luna, honderos → guerreros con hacha y fuego contra la madera → **muro hoplita** de otra polis o jinetes
-tracios al final. Escala en número, en mezcla, en lados de entrada y en herramientas.
+Escalones del enemigo (lore elegido: frontera de Argos con Esparta, §5; Historia lo afina): saqueadores ligeros
+con jabalina y honderos → hoplitas vecinos en grupos pequeños con hachas y fuego contra la madera → columnas mayores →
+**la falange espartana** al final. Escala en número, en mezcla, en lados de entrada y en herramientas.
 
 Las defensas cambian la pelea:
 - **Foso**: el que lo cruza va a menos de la mitad y queda abajo, a tiro.
@@ -139,13 +142,15 @@ Tucídides 6.66 y el muro de piedra suelta de Pilos (Tuc. 4.4).
 ## 5. Época y lore (Historia)
 - **Hoplitas en el 800 a.C.: NO APTO tal cual.** El escudo hoplita y el casco corintio aparecen hacia el 700 a.C.
   (Snodgrass 1964; coraza de Argos T45, ~720 a.C.); la falange cerrada, en el vaso Chigi (~650 a.C.) y Tirteo.
-  Recomendación de Historia: **situar el modo en 700–650 a.C.** (es aparte de la campaña, puede tener su fecha) → §9.
-- Primer lore propuesto: **Tasos, ~650 a.C.**: colonos de Paros frente a la costa de Tracia (Arquíloco, que luchó allí,
-  fr. 5 West). Otros: la frontera de Argos con Esparta (Hisias, ~669 a.C., Pausanias 2.24.7) y Leontinos en Sicilia
-  (729 a.C., Tucídides 6.3). Monte Ira (Pausanias 4.17–20), como leyenda.
+  **Decidido por el usuario: 700–650 a.C.** (el modo es aparte de la campaña y tiene su fecha). Hoplitas sin licencia.
+- **Primer lore, decidido por el usuario: la frontera de Argos con Esparta** (Tireátide e Hisias, ~669 a.C.; Pausanias
+  2.24.7 cuenta la derrota espartana en Hisias; la disputa de Tirea, Heródoto 1.82, es posterior, ~546). Eres el
+  oficial de una guarnición argiva en la frontera. Enemigo: incursiones espartanas, de ligeros a la falange.
+  Historia redacta el lore con fuente y dictamen. Siguientes lores: Tasos (~650 a.C., colonos de Paros contra los
+  tracios, Arquíloco fr. 5 West), Leontinos (729 a.C., Tucídides 6.3), Monte Ira (Pausanias 4.17–20, leyenda).
 - Lo que se tiene que ver: escudo redondo grande **con emblema pintado** (gorgona, toro, ave; todos los de la
   guarnición, el mismo), casco corintio con cimera, grebas, coraza de campana. Evitar: lino, cascos ático y tracio,
-  todo lo romano y el escudo de rayos de los vídeos de referencia. Tracios: escudo de media luna (pelta), gorro de zorro (probable).
+  todo lo romano y el escudo de rayos de los vídeos de referencia. Espartanos del s. VII: hoplitas como los tuyos; se distinguen por el emblema y el color del escudo (la lambda es posterior, s. V: no usarla).
 - Las citas son de memoria: Historia las comprueba antes de que salga texto en pantalla.
 
 ## 6. Sonido (Director de Sonido)
@@ -194,35 +199,29 @@ Captura de partida (lo que hay hoy en el juego; el modo no existe):
 
 Maquetas (bocetos 2D del objetivo; fuentes en `gobierno/maquetas/supervivencia/`, se rehacen con
 `node gobierno/maquetas/supervivencia/_captura.mjs`):
-- `SUP1-menu.jpg`: entrar en 2 toques; tipo de partida y lore (Tasos) con «Acampar».
+- `SUP1-menu.jpg`: entrar en 2 toques; tipo de partida y lore (frontera de Argos) con «Acampar».
 - `SUP1-arriba-dia.jpg`: desde arriba de mañana; reloj del día, aviso de humo, panel de hombres.
 - `SUP1-etapas.jpg`: las cinco etapas del campamento.
 - `SUP1-oficial.jpg` (844×390): el oficial a pie, su grupo en línea, el perro y la rueda.
 - `SUP1-noche.jpg`: la oleada desde arriba, brecha tapada por tu grupo, puestos.
-- `SUP1-amanecer.jpg`: la hoja del alba (pasar estación).
-- `SUP1-tiempo.jpg`: cómo pasa el tiempo.
+- `SUP1-amanecer.jpg`: el parte del alba abierto entero (con tiempo seguido, por defecto va corto en la cinta y no para el juego).
+- `SUP1-tiempo.jpg`: cómo pasa el tiempo (rehecha con tiempo seguido).
 
-## 9. Lo que decide el usuario
-Preguntas en el chat de SUP1 (formato numerado A/B). Respuestas literales: §11.
-1. Tiempo: (A) un día jugado por estación + hoja del alba [recomendada]; (B) tiempo seguido.
-2. Duración de «Mantener la posición»: (A) 3 años, ~1 h 45 [recomendada]; (B) 5 años, ~3 h.
-3. Fecha: (A) 700–650 a.C., hoplitas reales [recomendada]; (B) 800 a.C. con la panoplia marcada como licencia de juego.
-4. Primer lugar: (A) Tasos, colonos contra tracios [recomendada]; (B) frontera de Argos con Esparta.
-5. Pelea: (A) las dos a la vez: tú a pie con 12, el resto en sus puestos [recomendada]; (B) solo tu grupo a pie.
-6. Peso: Arte avisa de que la descarga está en 55,6 de 56 MB. (A) subir el tope a 60 MB [recomendada]; (B) quitar otra cosa.
-7. Reparto SUP2–SUP5 de §10: (A) aprobado [recomendada]; (B) cambiarlo.
+## 9. Lo que decidió el usuario
+Respondidas el 25/11 (literales en §11): tiempo **seguido**; **3 años**; **700–650 a.C.**; **frontera de Argos con
+Esparta**; pelea **las dos a la vez**; tope de descarga **60 MB**; reparto **aprobado**.
 
-## 10. Reparto propuesto SUP2–SUP5
+## 10. Reparto SUP2–SUP5 (aprobado por el usuario el 25/11)
 Archivos propios del modo (área nueva «supervivencia» en `areas.json`, la da de alta el vigía). Guardado propio
 `aqvila-superv-v1`, sin tocar `aqvila-save-v1` ni `G.load`. Lógica sin pantalla, probada en Node.
-M = millones de tokens (`gasto.mjs`). Gasto medido en esta sesión: 2,4 M (director + departamentos, todo Opus). Lo de abajo es estimación: declarado (esperable).
+M = millones de tokens (`gasto.mjs`). Gasto medido en esta sesión: 3,2 M (director + departamentos, todo Opus). Lo de abajo es estimación: declarado (esperable).
 
 | Tanda | Qué entrega | Archivos nuevos | Tamaño | Gasto esperable | Depende de |
 |---|---|---|---|---|---|
 | **SUP2** | Botón «Supervivencia» (2 toques), tipo y lore, campamento inicial (vivac), reloj del día y la estación, hoja del alba vacía, dos vistas con su botón, día/noche con antorchas y humo, ambiente sonoro, guardado propio | `js/superv.js`, `js/ui-superv.js`, `js/gfx/superv3d.js`, `css/superv.css`, `test/superv.test.mjs` | Grande | 2,5 (4–5) M | Pases: una línea en el menú (`js/ui.js`), `sw.js` (subida), cámara del oficial de la maqueta del bloque (Batallas) |
 | **SUP3** | Oficial con su grupo de 12, rueda Tú·Grupo·Perro, columna/línea/sígueme/defender/trabajar, perro, escudos con emblema | `js/sup-grupo.js`, `js/ui-sup-rueda.js`, `js/gfx/sup-camara.js`, `test/sup-grupo.test.mjs` | Grande | 2,5 (4–5) M | Motor a pie de hoy (`bloque.js`); animaciones del rediseño (si no llegan, las de hoy) |
-| **SUP4** | Trabajos y campamento que crece: panel de hombres, obras tocando el suelo, 5 etapas, foso, empalizada, puerta, torres, talleres; hombres trabajando de verdad; sonidos de trabajo | `js/sup-campamento.js`, `js/gfx/sup-obras.js`, `test/sup-campamento.test.mjs` | Grande (el arte más gordo: 4 movimientos de trabajo, tiendas, puerta, torre) | 3 (5–6) M | Tope de descarga (pregunta 6); movimientos de 0 A.D. (talar, cavar, martillear, acarrear) |
-| **SUP5a** | Oleadas en reglas: calendario, escalado, tipos, bajas, refuerzos, derrota y victoria a los 3 años; defensas con vida; bot bueno aguanta 8/10, bot vago cae 10/10 | `js/sup-oleadas.js`, `js/sup-defensas.js`, `test/sup-oleadas.test.mjs` | Medio | 1,5 (2–3) M | Nada (no depende del rediseño) |
+| **SUP4** | Trabajos y campamento que crece: panel de hombres, obras tocando el suelo, 5 etapas, foso, empalizada, puerta, torres, talleres; hombres trabajando de verdad; sonidos de trabajo | `js/sup-campamento.js`, `js/gfx/sup-obras.js`, `test/sup-campamento.test.mjs` | Grande (el arte más gordo: 4 movimientos de trabajo, tiendas, puerta, torre) | 3 (5–6) M | Tope de 60 MB (aprobado; lo aplica Arte en `arte.json`); movimientos de 0 A.D. (talar, cavar, martillear, acarrear) |
+| **SUP5a** | Oleadas en reglas: calendario, escalado, tipos, bajas, refuerzos, derrota y victoria a los 3 años; defensas con vida; bot bueno aguanta 8/10, bot vago cae 10/10, **en ≤ 15 min** con reloj acelerado y partidas avanzadas | `js/sup-oleadas.js`, `js/sup-defensas.js`, `test/sup-oleadas.test.mjs` | Medio | 1,5 (2–3) M | Nada (no depende del rediseño) |
 | **SUP5b** | La oleada en vivo: enemigos, puestos, brecha, torre, tu fila en la puerta, sálpinx y avisos, hoja del alba con datos, juez de aspecto con los 12 puntos | `js/sup-lucha.js`, `js/ui-sup-oleada.js` | Grande | 2,5 (4–5) M | **Rediseño de la batalla** (animaciones, cámara, 200 figuras); pases a Combate: muros fijos, enemigos sueltos, dory, hacha contra madera |
 
 Orden: SUP2 → SUP3 → SUP4, con **SUP5a en paralelo** desde SUP2 (solo reglas). SUP5b, cuando el rediseño de la
@@ -233,7 +232,16 @@ cambiar de vista, ≤ 2 toques cada orden, a 390 px y en horizontal); bot de reg
 fichas de Historia; el «Bien» del usuario en su móvil.
 
 ## 11. Respuestas del usuario
-*(pendiente: se apuntan aquí, literales, con fecha)*
+25/11/2026, en el chat de SUP1, con botones (pidió «Mándame las preguntas en formato pregunta para que pulse»):
+1. Tiempo: **«Tiempo seguido»** (la mesa recomendaba un día por estación).
+2. Duración, primera respuesta, literal: «Esto habría UE evitar que los jueces jugases 3,h y tardaswn tanto en pasar las
+   pruebas por qué las partidas son largas». → Los jueces no juegan la partida entera (§1, «Jueces rápidos»).
+   Repreguntada con esa aclaración: **«3 años, ~1 h 45 (Recomendado)»**.
+3. Fecha: **«700–650 a.C. (Recomendado)»**.
+4. Lugar: **«Frontera Argos–Esparta»** (la mesa recomendaba Tasos).
+5. Pelea: **«Las dos a la vez (Recomendado)»**.
+6. Peso: **«Subir el tope a 60 MB (Recomendado)»**.
+7. Reparto: **«Sí, aprobado (Recomendado)»**.
 
 ## 12. Fuera de este diseño
 Supervivientes, Mitología y Libre (después); batallas de agua («sguaz», tema aparte); conectar con la campaña (después
