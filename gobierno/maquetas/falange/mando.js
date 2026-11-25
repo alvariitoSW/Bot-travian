@@ -4,8 +4,8 @@
    - Dibujas el frente con el dedo (dedos.js de la maqueta del bloque) y el muro marcha hasta allí: gira como una puerta y pesa.
      Lo mueve js/bloque.js (LP1) con un bloque «sombra» de 12 de frente: su ancla y su rumbo pasan al pivote del motor
      (S.xF, S.zF, S.giro). El ancho no cambia (la falange no se estira). En el choque, la raya solo gira el muro en su sitio.
-   - Cuatro órdenes (estandartes con aro y palabra): Picas (bajar o alzar las cinco) · Cerrar filas · Avanzar (antes del
-     choque, marcha de frente; en el choque, ¡Empujad!) · Alto (antes, para; en el choque, ¡Aguantad!).
+   - Órdenes: Picas (bajar o alzar las cinco) · Cerrar filas · Avanzar (antes del choque, marcha de frente; en el choque,
+     ¡Empujad!) · Alto (antes, para; en el choque, ¡Aguantad!) · Retirada (BT1: el «retroceder» del motor; «Alto» lo para).
    - Los hombres pelean solos: en el choque, el «¡Ha!» de cada latido y la estocada del oficial van sin tocar nada; la lucha la
      resuelve el motor (js/falange.js, lucha() con fin = FIN_LUCHA: hasta que a un bando le queda el 15 %).
    Contrato: crearMando({ S, acc, avisa }) → { frente(p0, p1), haciaDonde(p0, p1), orden(n), paso(dt), lee(), meta(), reinicia() }
@@ -16,7 +16,7 @@
 import { crearBloque, dibujaFrente, paso as pasoBloque } from '../../../js/bloque.js';
 import { FILES, DX, DZ, BAJAN, PULSO, VENTANA } from '../../../js/falange.js';
 
-export const ORDENES = ['picas', 'cerrar', 'avanzar', 'alto'];
+export const ORDENES = ['picas', 'cerrar', 'avanzar', 'alto', 'retirada'];   /* BT1: «Retirada» es el «retroceder» del motor (js/falange.js) */
 export const BAJA_A = 16, AVANCE = 40;
 const difAng = d => Math.atan2(Math.sin(d), Math.cos(d));
 
@@ -62,7 +62,13 @@ export function crearMando({ S, acc, avisa = () => {} }) {
       const F = { x: Math.sin(S.giro), z: -Math.cos(S.giro) }, m = pon(S.xF + F.x * AVANCE, S.zF + F.z * AVANCE, S.giro);
       if (m) { m.sinRaya = true; avisa('grito', { texto: '¡Adelante! ¡Paso a paso!' }); } return m ? 'marcha' : null;   /* sin raya: iría encima del enemigo */
     }
+    if (n === 'retirada') {   /* BT1: el muro recula paso a paso, mirando al enemigo, hasta que se dé «Alto» (regla del motor: V_RETRO, cuesta cohesión) */
+      if (S.orden === 'retroceder') return 'retrocede';
+      if (B.meta) { B.meta = null; B.fase = 'quieto'; B.bisagra = null; }
+      return acc.orden('retroceder');
+    }
     if (n === 'alto') {
+      if (S.orden === 'retroceder' && !S.choque) { acc.orden('retroceder'); avisa('grito', { texto: '¡Alto!' }); return 'alto'; }   /* repetir la orden la suelta: se paran */
       if (S.choque) return acc.orden('aguantar');
       if (B.meta) { B.meta = null; B.fase = 'quieto'; B.bisagra = null; avisa('grito', { texto: '¡Alto!' }); return 'alto'; }
       return 'nada';
@@ -110,8 +116,8 @@ export function crearMando({ S, acc, avisa = () => {} }) {
     const b = bajadas(), ch = !!S.choque;
     return {
       conviene: conviene(), choque: ch, marcha: marchando(), gira: !!(B && B.fase === 'gira'),
-      vigente: { picas: b === BAJAN, cerrar: S.orden === 'cerrar', avanzar: ch ? S.orden === 'empujar' : marchando(), alto: S.orden === 'aguantar' },
-      texto: { picas: b === BAJAN ? 'Alzar picas' : 'Bajar picas', cerrar: 'Cerrar filas', avanzar: ch ? 'Empujad' : 'Avanzar', alto: ch ? 'Aguantad' : 'Alto' },
+      vigente: { picas: b === BAJAN, cerrar: S.orden === 'cerrar', avanzar: ch ? S.orden === 'empujar' : marchando(), alto: S.orden === 'aguantar', retirada: S.orden === 'retroceder' },
+      texto: { picas: b === BAJAN ? 'Alzar picas' : 'Bajar picas', cerrar: 'Cerrar filas', avanzar: ch ? 'Empujad' : 'Avanzar', alto: ch ? 'Aguantad' : 'Alto', retirada: 'Retirada' },
     };
   }
   nuevo();

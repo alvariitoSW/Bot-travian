@@ -122,7 +122,7 @@ const CARRIL_0 = () => ({ x: 0.2, y: 1.0 });
 function conHuesos(mat, tex) { const m = mat.clone(), ob = mat.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob(sh, r); sh.uniforms.uHuesos = { value: tex }; }; m.customProgramCacheKey = mat.customProgramCacheKey; m.userData.huesos = tex.image.data; return m; }
 /* los puños del esqueleto fino (nivel 0 del falangita): los de lejos (36 huesos) los toman de él. Se prepara en segundo plano */
 export function preparaPunos() {
-  return PREP || (PREP = cargarSoldado('falangita').then(s => { const nv = s && s.niveles[0]; if (!nv) return; const tab = generaTabla(aFloat(nv.crudo), nv.j, geoDe(nv), CARRIL_0); PUNOS = { D: tab.esq.B.D.puno, I: tab.esq.B.I.puno }; }).catch(e => { console.warn('[FU3c] sin gestos de brazos', e); }));
+  return PREP || (PREP = cargarSoldado('falangita').then(s => { const nv = s && s.niveles[0]; if (!nv) return; const tab = generaTabla(aFloat(nv.crudo), nv.j, geoDe(nv), CARRIL_0); PUNOS = { D: tab.esq.B.D.puno, I: tab.esq.B.I.puno }; if (typeof window !== 'undefined' && window.__bloque) window.__bloque.gestos = true; }).catch(e => { console.warn('[FU3c] sin gestos de brazos', e); }));
 }
 export function kitGestos(t, carril = CARRIL_0) {
   let k = KITS.get(t); if (k !== undefined) return k;
@@ -138,10 +138,10 @@ export function kitGestos(t, carril = CARRIL_0) {
 /* BT1: la espada en guardia y en el golpe. En el movimiento «guardia» de los modelos de espada (hastatus, galo y los que les toman las armas)
    la hoja quedaba a 0,8 m a la derecha del hombre y entraba en el de al lado. Aquí, con la tabla de gestos, la mano derecha va delante del cuerpo
    (dentro de su propio ancho) con la punta hacia el rival, y el golpe es el tajo de la tabla (al frente). La mano izquierda, con el escudo, al
-   pecho. Solo el dibujo: cuándo golpea lo deciden las reglas (el clip de tropas.js). En testudo no (su escudo va arriba). */
+   pecho. Solo el dibujo: cuándo golpea lo deciden las reglas (el clip de tropas.js). */
 const CON_ESPADA = { guardia: 1, golpear: 1, encajar: 1 }, DUR_GOLPE = 1.55;
 export function gestoEspada(f, t, i) {
-  if (!CON_ESPADA[f.clip] || (f.b && f.b.orden === 'testudo')) return;
+  if (!CON_ESPADA[f.clip]) return;   /* en testudo, la 1.ª fila (el muro) va en guardia: también; los de debajo del techo, «cubrirse», no */
   const pz = t.s.j.piezas; if (!pz || !pz.espada_hoja) return;
   const k = kitGestos(t); if (!k) return;
   const tb = k.tab, cu = t.malla.geometry.attributes.aCuadro, fps = (t.s.j.clips.quieto || {}).fps || 30;
@@ -150,3 +150,6 @@ export function gestoEspada(f, t, i) {
   else { x = (f.t * fps) % (CJ.guardia - 1); a = Math.floor(x); b = a + 1; a += tb.F_GUARD; b += tb.F_GUARD; }
   cu.setXYZ(i, a, b, x - Math.floor(x)); cu.needsUpdate = true;
 }
+/* listos los puños: los gestos de brazos ya se ven (las pruebas esperan a esto: window.__bloque.gestos) */
+export const gestosListos = () => !!PUNOS;
+if (typeof window !== 'undefined') preparaPunos();   /* se baja desde el principio, a la vez que lo demás */

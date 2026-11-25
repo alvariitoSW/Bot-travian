@@ -11,7 +11,7 @@ import { crearMando } from '../mando.js';
 import { crearTira } from '../tira-mando.js';
 import { montaTiradores, DETRAS } from '../../../../js/tiro.js';   /* ES3b: tus tiradores (reglas, sin pantalla) */
 import { crearVista } from '../tiradores.js';   /* ES3b: cómo se ven y se tocan */
-import { crearSarisas, pintaSarisas } from './falange.js';   /* BT1: las sarisas de los falangitas, las mismas que en la falange a pie */
+import { crearSarisas, pintaSarisas, gestoSarisa } from './falange.js';   /* BT1: las sarisas de los falangitas, las mismas que en la falange a pie */
 
 export const HOMBRES_FALANGE = 128;
 /* ES4: ?escenario=asculo&bando=pirro|roma. pirro: tu falange y dos manípulos itálicos contra la legión (tres manípulos y vélites rivales).
@@ -33,6 +33,10 @@ export function crear() {
       const h = f.hs || (f.hs = { i: Math.round(f.semilla * 7), kB: 0 }), cols = b.vis.cols; h.r = Math.floor(f.slot / cols); h.f = f.slot % cols; h.huye = b.estado === 'huye' || b.estado === 'fuera'; h.vivo = f.vivo !== false;
       const quiere = h.r < 5 && !h.huye ? baja.get(b) : 0; h.kB += (quiere - h.kB) * Math.min(1, dt * 1.2); if (Math.abs(quiere - h.kB) < 0.002) h.kB = quiere;
       lista.push({ h, f, kB: h.kB, pinta: true });
+      /* los brazos, como en la falange: en las cinco primeras filas, con la sarisa bajada y quietos, en guardia y con las manos en el asta */
+      if (!f.gesto) f.gesto = gestoSarisa(f, h, () => S.T);
+      f.gk = h.r < 5 && h.vivo && !h.huye ? h.kB : 0; f.gg = 0;
+      if (h.vivo && !h.huye && h.r < 5 && h.kB > 0.5 && !(f.v > 0.3) && f.clip !== 'morir' && f.clip !== 'guardia') { f.clip = 'guardia'; f.t = (h.i % 97) * 0.03; }
     }
     pintaSarisas(MS, lista, { H: ctx.H, Tm: S.T });
   }

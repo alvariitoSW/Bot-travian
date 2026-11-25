@@ -266,24 +266,27 @@ export function pintaSarisas(M, lista, o) {
   return { ns, nm };
 }
 
+/* BT1: los brazos de un falangita con la sarisa (FU3c, tabla de gestos): f.gk (cuánto la baja) y f.gg (estocada) los pone quien la pinta;
+   reloj() → el tiempo de la partida (null: aún no). Para f.gesto de tropas.js (escena.js pintaSoldados); solo en los hombres de cerca (nivel 0) */
+export function gestoSarisa(f, h, reloj) {
+  const g = { vivo: true, r: 0, kB: 0, kG: 0, huye: false, i: h.i };
+  return (t, i, n) => {
+    const T = reloj(); if (n !== 0 || T === null) return;
+    const k = kitGestos(t, CARRIL); if (!k || !(f.gk > 0.002)) return;
+    const cu = t.malla.geometry.attributes.aCuadro;
+    if (f.clip === 'guardia' || f.clip === 'golpear' || f.clip === 'cubrirse') t.pose(i, 'quieto', f.t, 0);   /* la tabla de gestos se apoya en «quieto» y «andar» */
+    g.r = Math.min(4, h.r); g.kB = f.gk; g.kG = f.gg || 0;
+    filasNuevo(k.fig, g, T, [cu.getX(i), cu.getY(i), cu.getZ(i)]); cu.setXYZ(i, g.A, g.B, g.mx); cu.needsUpdate = true;
+  };
+}
 export function crear() {
+  let MIOS = null;
   let ctx = null, sar = null, mun = null, pil = null, V = null, MS = null, tB = -9, bajadasAntes = false;   /* BT1: MS, las sarisas (crearSarisas) */
   const forma = { bajadas: false };   /* FU3b: lo pone la escena cada fotograma (falangita.js estado().bajadas): las sarisas de la 1.ª fila bajan de golpe y estocan. Solo dibujo */
   /* FU3c: brazos de FA2. Los hombres de cerca (nivel 0 de tropas) usan una tabla de huesos con las filas «sarisa bajada en el carril de la fila r»
      (soldados.js de la maqueta de la falange); aquí solo se elige la fila de cada uno. Los de lejos siguen con su clip */
   const kBde = (h, primera) => h.huye ? 0 : suave(primera && forma.bajadas ? 1 : (h.kB || 0)), primera0 = h => h.r === 0;
-  const kitDe = t => kitGestos(t, CARRIL);   /* BT1: la tabla de gestos, compartida con las espadas (soldados.js) */
-  function hazGesto(f, h) {
-    const g = { vivo: true, r: 0, kB: 0, kG: 0, huye: false, i: h.i };
-    return (t, i, n) => {
-      if (n !== 0 || !ctx || !ctx.S) return;
-      const k = kitDe(t); if (!k || !(f.gk > 0.002)) return;
-      const cu = t.malla.geometry.attributes.aCuadro;
-      if (f.clip === 'guardia' || f.clip === 'golpear' || f.clip === 'cubrirse') t.pose(i, 'quieto', f.t, 0);   /* la tabla de gestos se apoya en «quieto» y «andar» */
-      g.r = Math.min(4, h.r); g.kB = f.gk; g.kG = f.gg || 0;
-      filasNuevo(k.fig, g, ctx.S.T, [cu.getX(i), cu.getY(i), cu.getZ(i)]); cu.setXYZ(i, g.A, g.B, g.mx); cu.needsUpdate = true;
-    };
-  }
+  const hazGesto = (f, h) => gestoSarisa(f, h, () => (ctx && ctx.S ? ctx.S.T : null));
   const hashH = h => { const v = Math.sin((h.i || 0) * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
   return {
     id: 'falange', ordenes: ORDENES.slice(), objetivo: 'Baja las picas y rompe a los manípulos', escenario: null, muroDelante: false,
@@ -306,7 +309,8 @@ export function crear() {
     paso() {
       if (!ctx || !sar) return;
       const F = ctx.S.fal, H = ctx.H, figs = new Map(), Tm = ctx.S.T;
-      for (const f of ctx.TR.figs) if (f.h) { figs.set(f.h, f); if (!f.tallaBT1) { f.talla = 1 + ((f.talla || 1) - 1) * 0.2; f.tallaBT1 = true; } }   /* BT1: en la falange, todos de una talla (±1 %): las manos de cada fila, a su altura (los carriles van a 10–12 cm) */
+      const mios = MIOS && MIOS.fal === F.fal ? MIOS.set : (MIOS = { fal: F.fal, set: new Set(F.fal) }).set;   /* BT1: solo los falangitas (los rivales pintados con sus hombres no llevan sarisa ni sus gestos) */
+      for (const f of ctx.TR.figs) if (f.h && mios.has(f.h)) { figs.set(f.h, f); if (!f.tallaBT1) { f.talla = 1 + ((f.talla || 1) - 1) * 0.2; f.tallaBT1 = true; } }   /* BT1: en la falange, todos de una talla (±1 %): las manos de cada fila, a su altura (los carriles van a 10–12 cm) */
       if (forma.bajadas && !bajadasAntes) tB = Tm; bajadasAntes = forma.bajadas;
       const uB = (Tm - tB) / T_BAJADAS, estoca = uB >= 0 && uB < 1 ? Math.sin(Math.PI * uB) : 0;
       const yo = ctx.ocultaYo ? ctx.ocultaYo() : null, FI = ctx.FI;   /* FU4 */

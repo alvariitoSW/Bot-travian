@@ -74,5 +74,14 @@ t('d) la forma: S.tuyo, S.B.hombres, dos bloques, ordenUtil y el contrato de las
   assert.strictEqual(f.util(), null); f.monta({ C }); assert.ok(f.util() === null || ORDENES.includes(f.util()));
 });
 
+t('BT1: «Retirada» es el «retroceder» del motor (recula) y «Alto» lo para, dentro y fuera del choque', () => {
+  const C = combate({ semilla: 3 }), F = C.S.fal; for (let i = 0; i < 30; i++) C.paso(DT);
+  const z0 = F.zF, g = F.giro; assert.strictEqual(F.orden, null);
+  C.orden('retirada'); assert.strictEqual(F.orden, 'retroceder'); C.orden('retirada'); assert.strictEqual(F.orden, 'retroceder', 'repetirla no la suelta');
+  for (let i = 0; i < 60; i++) C.paso(DT);
+  const atras = (F.zF - z0) * Math.cos(g) - 0 * Math.sin(g); assert.ok(atras > 0.5, 'recula ' + atras.toFixed(2) + ' m (el frente mira a −z)');
+  C.orden('alto'); assert.notStrictEqual(F.orden, 'retroceder', 'Alto lo para');
+  assert.ok(C.mando.lee().vigente.retirada === false);
+});
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);

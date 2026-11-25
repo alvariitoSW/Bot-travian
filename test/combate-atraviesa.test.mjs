@@ -45,7 +45,7 @@ try {
     const url = `http://localhost:${PUERTO}/gobierno/maquetas/bloque/?semilla=7&nivel=normal&fase=${marcha}${q ? '&' + q : ''}${VIEJO ? '&carril=viejo' : ''}`;
     try {
       await p.goto(url, { waitUntil: 'load' });
-      await p.waitForFunction(() => window.__bloque && window.__bloque.listo && window.__bloque.choques, null, { timeout: 240000 }); await espera(p, 9000);
+      await p.waitForFunction(() => window.__bloque && window.__bloque.listo && window.__bloque.choques && window.__bloque.gestos, null, { timeout: 240000 }); await espera(p, 6000);   /* gestos: los brazos de la tabla de gestos (espada y sarisa) ya se pintan */
       for (const fase of ['marcha', 'lucha']) {
         if (fase === 'lucha') { await p.evaluate(() => window.__bloque.salta('lucha')); await espera(p, 2500); }
         for (const vista of ['arriba', 'oficial']) {

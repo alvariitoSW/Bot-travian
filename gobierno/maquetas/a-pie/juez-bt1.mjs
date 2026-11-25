@@ -4,7 +4,8 @@
        (la propia: Testudo en manípulo y testudo, Bajar picas en la falange, la del cuerpo elegido en Ásculo, Formar… en la batalla grande);
      · un botón cambia de texto durante la partida (salvo la propia de Ásculo, y solo al elegir otro cuerpo);
      · dos etiquetas visibles se solapan (estandartes y sus palabras, gritos, avisos, «¡Jabalinas!», barras de la batalla grande);
-     · una etiqueta visible pisa la barra de órdenes, la raya del cansancio, la cabecera del objetivo o la tira de cuerpos;
+     · una etiqueta visible queda cortada por el borde de la pantalla, o hay torres de más de dos etiquetas apiladas;
+   · una etiqueta visible pisa la barra de órdenes, la raya del cansancio, la cabecera del objetivo o la tira de cuerpos;
      · un botón de la barra mide menos de 52 px, se sale de la pantalla o su palabra se sale de su hueco;
      · hay errores de consola.
    Escenas: manípulo y testudo (por gobierno/maquetas/a-pie/ y por la URL vieja sin parámetros), falange con un rival, Ásculo (Pirro y
@@ -62,6 +63,12 @@ const MIRA = () => {
   const choques = [];
   for (let i = 0; i < et.length; i++) for (let j = i + 1; j < et.length; j++) if (pisa(et[i], et[j], 2)) choques.push(et[i].n + ' pisa ' + et[j].n);
   for (const a of et) for (const z of zonas) if (pisa(a, z, 0)) choques.push(a.n + ' asoma sobre ' + z.n);
+  /* cortadas por el borde de la pantalla (estandartes, avisos del borde, gritos…) */
+  for (const a of et) if (a.l < -0.5 || a.r > innerWidth + 0.5 || a.t < -0.5 || a.b > innerHeight + 0.5) choques.push(a.n + ' queda cortada por el borde de la pantalla');
+  /* torres: como mucho dos etiquetas apiladas una encima de otra */
+  const sobre = (a, b) => a.b <= b.t + 1 && b.t - a.b <= 6 && a.l < b.r - 1 && a.r > b.l + 1;   /* a justo encima de b (a menos de 6 px; rotulos.js TORRE) */
+  const altura = (b, n = 1) => { const a = et.find(x => x !== b && sobre(x, b)); return a && n < 9 ? altura(a, n + 1) : n; };
+  for (const b of et) { const h = altura(b); if (h > 2) { choques.push('torre de ' + h + ' etiquetas sobre ' + b.n); break; } }
   return { textos, medidas, choques, etiquetas: et.length };
 };
 /* una escena: mira la barra varias veces mientras se juega; propia = el texto que debe tener el primer hueco */
@@ -120,6 +127,9 @@ if (quiere('falange')) {
     await page.setViewportSize({ width: w, height: h });
     await page.goto(BASE + 'gobierno/maquetas/bloque/index.html?formacion=falange&rival=manipulos&nivel=normal&semilla=3'); await listo();
     await examina('falange (' + o + ')', page, 'Bajar picas', { muestras: 3, accion: async k => { if (k === 1) await salta('picas'); if (k === 2) await salta('lucha'); } });
+    /* «Retirada» vale (el retroceder del motor) y «Alto» lo para */
+    const ret = await page.evaluate(async () => { const q = h => document.querySelector('#ordenes .orden[data-h="' + h + '"]'), F = window.__bloque.S.fal; const ap = q('retirada').classList.contains('apagada'); q('retirada').click(); const r1 = F.orden; await new Promise(r => setTimeout(r, 300)); q('alto').click(); return { ap, r1, r2: F.orden }; });
+    bien(!ret.ap && ret.r1 === 'retroceder' && ret.r2 !== 'retroceder', `falange (${o}): «Retirada» recula (${ret.r1}) y «Alto» lo para (${ret.r2})`);
     await foto(page, 'falange-lucha-' + o);
   }
 }

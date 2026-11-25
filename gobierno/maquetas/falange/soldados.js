@@ -138,7 +138,7 @@ export function generaTabla(T0, j, geo, carril, punos) {
   const GOLPE = { manoD: [-0.17, 1.0, 0.24], manoI: [-0.15, 1.03, 0.66], cierra: 1 };
   bases.forEach((b, k) => { for (let r = 0; r < 5; r++) pon(N0 + (CJ.baja + r) * CJ.filas + k, b, bajaQ(r)); pon(N0 + CJ.golpe * CJ.filas + k, b, GOLPE); });
   /* la espada: puño en la empuñadura de la vaina (costado izquierdo), luego arriba y a la guardia */
-  const q0 = C.quieto.ini, vainaEn = esq.en(q0, j.huesos.indexOf('root'), PUNO_VAINA), GUARD = { manoD: [-0.2, 1.14, 0.36], manoI: [0.17, 1.12, 0.3], dirD: uno([0.12, 0.42, 0.9]) };
+  const q0 = C.quieto.ini, vainaEn = esq.en(q0, j.huesos.indexOf('root'), PUNO_VAINA), GUARD = { manoD: [-0.2, 1.14, 0.36], manoI: [0.2, 1.1, 0.2], dirD: uno([0.08, 0.8, 0.6]) };   /* BT1: la hoja más alzada (53°) y el escudo 10 cm más pegado al cuerpo: delante de él y sin llegar al que tiene delante en diagonal (antes 25° y 0,30) */
   const D_ARRIBA = uno([0.05, 0.95, 0.3]), D_VAINA = uno([0.13, -0.97, -0.17]);   /* D_VAINA: el eje de la vaina, hacia abajo y atrás */   /* la hoja sale de la vaina hacia arriba y baja al frente, a la guardia */
   const b0 = bajaQ(0), ARRIBA = [-0.04, 1.4, 0.12];
   const camino = u => {

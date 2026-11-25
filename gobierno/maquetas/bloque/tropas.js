@@ -18,6 +18,14 @@ const hash = k => { const v = Math.sin(k * 127.1 + 311.7) * 43758.5453; return v
 const HUECO = { falange: [0.78, 0.95, 0.08], manipulo: [1.0, 1.2, 0.08], galos: [1.3, 1.35, 0.38], nobles: [1.2, 1.3, 0.25], tiradores: [1.7, 1.8, 0.5] };
 const DUR = { golpear: 1.55, lanzar: 1.85, cubrirse: 1.25, morir: 2.4, encajar: 0.35 };
 const CAIDOS_MAX = 700;
+const T_C = 1.25, P_C = 0.3, R_C = 0.24, V_C = 1.2, M_C = 2;   /* BT1: el caído (la cabeza T_C detrás del sitio, los pies P_C delante; medio ancho) y cuánto se corre */
+/* distancia entre los tramos (ax,az)-(bx,bz) y (cx,cz)-(dx,dz), en el suelo → { d, vx, vz } (del segundo al primero) */
+function dist2(ax, az, bx, bz, cx, cz, dx, dz) {
+  const ux = bx - ax, uz = bz - az, wx = dx - cx, wz = dz - cz, rx = ax - cx, rz = az - cz, a = ux * ux + uz * uz, e = wx * wx + wz * wz, f = wx * rx + wz * rz;
+  let s, t; if (a < 1e-9) { s = 0; t = e < 1e-9 ? 0 : Math.max(0, Math.min(1, f / e)); }
+  else { const c = ux * rx + uz * rz; if (e < 1e-9) { t = 0; s = Math.max(0, Math.min(1, -c / a)); } else { const b = ux * wx + uz * wz, den = a * e - b * b; s = den > 1e-9 ? Math.max(0, Math.min(1, (b * f - c * e) / den)) : 0; t = (b * s + f) / e; if (t < 0) { t = 0; s = Math.max(0, Math.min(1, -c / a)); } else if (t > 1) { t = 1; s = Math.max(0, Math.min(1, (b - c) / a)); } } }
+  const vx = ax + ux * s - cx - wx * t, vz = az + uz * s - cz - wz * t; return { d: Math.hypot(vx, vz), vx, vz };
+}
 const FRENA = 0.88;   /* LP5a: el que va contra alguien afloja hasta 1 − FRENA de su paso (lo mismo que fisica.js FRENA) */
 export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3: reales = [{ b, hombres }]: bloques que se pintan con sus hombres de verdad (x, z, yaw, vivo), no con huecos */   /* FU1: muroDelante: en testudo la 1.ª fila no se cubre arriba, lleva el escudo de frente (guardia) */
   const figs = [], caidos = [];
@@ -169,6 +177,27 @@ export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3:
       }
     }
     for (const f of caidos) if (f.t < DUR.morir) { f.t += dt; if (f.yawCae !== undefined) giraA(f, f.yawCae, 0.8, dt); }
+    separaCaidos(dt);
+  }
+
+  /* BT1: los caídos no se cruzan ni quedan metidos bajo un vivo. El cuerpo tendido es el tramo de los pies (x, z) a la cabeza (T_C detrás, según
+     su giro; los pies, P_C delante) con medio ancho R_C; si dos se cruzan, el caído se corre lo justo (a lo más V_C m/s y M_C m en total, para que no resbale por el
+     campo). Que los vivos no pisen al caído lo hace la física (fisica.js), con el caído donde se dibuja. Solo dibujo; la física de caídos (fisica.js) lee esta misma posición. Licencia de juego */
+  function separaCaidos(dt) {
+    if (!caidos.length) return;
+    const G = new Map(), k = (x, z) => Math.floor(x / 2) + ',' + Math.floor(z / 2), tope = V_C * Math.max(dt, 0.02);
+    const cab = f => { const y = f.yaw; return [f.x - Math.sin(y) * T_C, f.z - Math.cos(y) * T_C]; }, pie = f => { const y = f.yaw; return [f.x + Math.sin(y) * P_C, f.z + Math.cos(y) * P_C]; };
+    for (const f of caidos) { const q = k(f.x, f.z); (G.get(q) || G.set(q, []).get(q)).push(f); }
+    const cerca = (x, z) => { const o = []; const cx = Math.floor(x / 2), cz = Math.floor(z / 2); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const l = G.get((cx + a) + ',' + (cz + b)); if (l) o.push(...l); } return o; };
+    const mueve = (f, dx, dz) => { const m = Math.hypot(dx, dz), resta = M_C - (f.movC || 0); if (m < 1e-6 || resta <= 0) return; const e = Math.min(1, tope / m, resta / m); f.x += dx * e; f.z += dz * e; f.movC = (f.movC || 0) + m * e; };
+    for (const a of caidos) {
+      const [ax, az] = cab(a), [pax, paz] = pie(a);
+      for (const b of cerca(a.x, a.z)) {
+        if (b === a || b.semilla < a.semilla) continue;
+        const [bx, bz] = cab(b), [pbx, pbz] = pie(b), r = dist2(pax, paz, ax, az, pbx, pbz, bx, bz), falta = 2 * R_C - r.d; if (falta <= 0) continue;
+        const nx = r.d > 1e-4 ? r.vx / r.d : 1, nz = r.d > 1e-4 ? r.vz / r.d : 0; mueve(a, nx * falta / 2, nz * falta / 2); mueve(b, -nx * falta / 2, -nz * falta / 2);
+      }
+    }
   }
 
   /* tras saltar en el tiempo (capturas): todos en su hueco y mirando al frente */

@@ -460,7 +460,7 @@
         pon(mo, u.moral); pon(fa, 1 - u.fatiga);
       }
       /* BT1: las etiquetas no se pisan ni asoman encima de la ficha, la barra de órdenes, la de arriba o los avisos */
-      if (mods.RO) mods.RO.separaEstandartes($('capa'), { zonas: [$('abajo'), $('arriba'), $('formas')], fijos: [$('aviso'), $('cinta')] });
+      if (mods.RO) mods.RO.separaEstandartes($('capa'), { zonas: [$('abajo'), $('arriba'), $('formas')], fijos: [$('aviso'), $('cinta')], pila: 2, peso: (e, r) => (e.classList.contains('sel') ? 100 : 0) + (e.classList.contains('ene') ? 0 : 10) + r.bottom / alto });   /* como mucho dos en torre: sobran las del rival más lejanas */
     }
 
     /* ---------- ficha y botones de la selección ----------

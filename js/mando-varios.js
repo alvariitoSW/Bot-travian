@@ -53,7 +53,7 @@ export const HUECOS = {
   grande: { propia: 'formar', avanzar: 'mover', cargar: 'cargar', alto: 'aguantar', relevo: 'relevar', retirada: 'retirar' }
 };
 export const NO_HAY = {
-  falange: { retirada: 'La falange no se retira: aguanta con «Alto»', cargar: 'La falange no corre: «Cargar» empuja ya en el choque' },   /* la de js/falange.js, a pie */
+  falange: { cargar: 'La falange no corre: «Cargar» empuja ya en el choque' },   /* la de js/falange.js, a pie */
   tiradores: { cargar: 'Los tiradores no cargan: «Avanzar» sale a hostigar', relevo: 'Los tiradores no tienen relevo' }
 };
 export const HUECO_DE = { testudo: 'propia', picas: 'propia', tirar: 'propia', formar: 'propia', avanzar: 'avanzar', hostigar: 'avanzar', mover: 'avanzar', cargar: 'cargar', empujar: 'cargar',

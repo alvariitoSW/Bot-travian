@@ -79,7 +79,7 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
       if (f.h) { c.f = f.h.col; c.r = f.h.fila; c.guardia = guardia(f.h, S); SF.fal.push(c); }
       else { c.guardia = null; SF.ene.push(c); }
     }
-    for (const f of TR.caidos) { if (!despiertos.has(f.b)) continue; const c = cuerpo(f); if (c.vivo) { c.vivo = false; c.x = f.x; c.z = f.z; c.yaw = f.yaw; } tiende(c, f); alarga(c, dt); (f.h ? SF.fal : SF.ene).push(c); }
+    for (const f of TR.caidos) { if (!despiertos.has(f.b)) continue; const c = cuerpo(f); if (c.vivo) { c.vivo = false; c.yaw = f.yaw; } c.x = f.x; c.z = f.z; tiende(c, f);   /* BT1: el caído, donde se dibuja (tropas.js lo corre si cae sobre otro) */ alarga(c, dt); (f.h ? SF.fal : SF.ene).push(c); }
   }
   /* la frontera: dos bloques rivales no se meten uno en otro, aunque las reglas metan un rectángulo en otro (o unos tiradores
      que huyen pasen por encima de tus filas). Para cada par de bloques rivales cuyos rectángulos (los de sus hombres, con MARGEN) se tocan: la
@@ -362,9 +362,11 @@ const CADENAS = [   /* [nombre, hueso de un extremo, hueso del otro, huesos cuyo
   ['brazoD', 'upperarm01.R', 'lowerarm01.R', ['upperarm01.R', 'upperarm02.R'], 'brazo'], ['antebrazoD', 'lowerarm01.R', 'wrist.R', ['lowerarm01.R', 'lowerarm02.R'], 'brazo'], ['manoD', 'wrist.R', 'finger3-1.R', ['wrist.R', 'metacarpal2.R', 'metacarpal3.R'], 'brazo'],
   ['musloI', 'upperleg01.L', 'lowerleg01.L', ['upperleg01.L', 'upperleg02.L'], 'pierna'], ['piernaI', 'lowerleg01.L', 'foot.L', ['lowerleg01.L', 'lowerleg02.L'], 'pierna'],
   ['musloD', 'upperleg01.R', 'lowerleg01.R', ['upperleg01.R', 'upperleg02.R'], 'pierna'], ['piernaD', 'lowerleg01.R', 'foot.R', ['lowerleg01.R', 'lowerleg02.R'], 'pierna']];
-/* grupo de cada pieza del .json: 0 cuerpo, 1 escudo, 2 lanza, 3 pilum, 4 jabalina en mano, 5 espada en mano, 9 lo demás (vaina, correa, repuestos: no cuentan) */
+/* grupo de cada pieza del .json: 0 cuerpo, 1 escudo, 2 lanza, 3 pilum, 4 jabalina en mano, 5 espada en mano, 9 lo demás (vaina, correa, repuestos: no cuentan).
+   TOLERANCIA ESCRITA: el penacho y la cresta del yelmo (yelmo_pluma, yelmo_cresta: plumas y crin, blandos y abiertos) no cuentan como cuerpo: el asta
+   que roza la crin no la atraviesa. El casco (yelmo_cuenco, carrilleras, nuca) sí cuenta. */
 const GRUPO = nom => /^escudo/.test(nom) ? 1 : /^lanza|^sarisa/.test(nom) ? 2 : /^pilum/.test(nom) ? 3 : /^jabalina_(asta|punta)$/.test(nom) ? 4 : /^espada_(puno|guarda|hoja)$/.test(nom) ? 5
-  : /^(cuerpo|piel|ojo|melena|bigote|calzon|pernera|cota|manga|faldon|yelmo|hombrera|pteruges|greba|zorro|suela)/.test(nom) ? 0 : 9;
+  : /^yelmo_(pluma|cresta)/.test(nom) ? 9 : /^(cuerpo|piel|ojo|melena|bigote|calzon|pernera|cota|manga|faldon|yelmo|hombrera|pteruges|greba|zorro|suela)/.test(nom) ? 0 : 9;
 const ARMA_N = { 2: 'lanza', 3: 'pilum', 4: 'jabalina', 5: 'espada' };
 function h2f(h) { const s = (h & 0x8000) ? -1 : 1, e = (h >> 10) & 0x1f, m = h & 0x3ff; return e === 0 ? s * Math.pow(2, -14) * (m / 1024) : e === 31 ? (m ? NaN : s * Infinity) : s * Math.pow(2, e - 15) * (1 + m / 1024); }
 /* lo que no cambia de un nivel de soldado: grupo de cada vértice, centros de los huesos en reposo y radios de las cápsulas */

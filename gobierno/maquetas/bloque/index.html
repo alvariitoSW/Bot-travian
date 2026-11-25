@@ -60,8 +60,8 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 /* avisos en el borde: una franja roja del lado del peligro, con su frase */
 .borde{position:absolute;pointer-events:none;opacity:0;transition:opacity .35s;display:flex;align-items:center}
 .borde.ve{opacity:1}
-.borde span{font:700 13px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 3px #000,0 0 8px #000;line-height:1.25}
-#borde-i,#borde-d{top:20%;bottom:28%;width:92px}
+.borde span{font:700 13px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 3px #000,0 0 8px #000;line-height:1.25;max-width:100%;overflow-wrap:break-word}   /* BT1: el texto no se sale de su franja ni de la pantalla */
+#borde-i,#borde-d{top:20%;bottom:28%;width:104px}
 #borde-i{left:0;padding-left:8px;background:linear-gradient(to right,rgba(200,32,18,.6),rgba(200,32,18,0) 36px)}
 #borde-d{right:0;padding-right:8px;justify-content:flex-end;text-align:right;background:linear-gradient(to left,rgba(200,32,18,.6),rgba(200,32,18,0) 36px)}
 /* BT1: arriba, una franja fina en el borde y la frase debajo de la barra de arriba (antes, 150 px de rojo tapaban el cielo y el objetivo) */

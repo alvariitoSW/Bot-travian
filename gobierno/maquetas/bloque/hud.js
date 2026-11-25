@@ -72,7 +72,6 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
       const ch = !!S.fal.choque;
       if (h === 'avanzar') return ch ? { no: NO_AHORA.empujaFalange } : { o: 'avanzar' };
       if (h === 'cargar') return ch ? { o: 'avanzar' } : { no: NO_HAY.falange.cargar };
-      if (h === 'retirada') return { no: NO_HAY.falange.retirada };
     }
     return o ? { o } : { no: (NO_HAY[tropa()] || {})[h] || 'Esta tropa no tiene esa orden' };
   }
@@ -179,7 +178,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     for (const el of botones) {
       const h = el.dataset.h, r = interna(h), o = r.o;
       let vig = false, no = r.o ? '' : r.no;
-      if (lee) vig = h === 'propia' ? lee.vigente.picas : h === 'relevo' ? lee.vigente.cerrar : h === 'alto' ? lee.vigente.alto : (h === 'avanzar' || h === 'cargar') && o ? lee.vigente.avanzar : false;
+      if (lee) vig = h === 'propia' ? lee.vigente.picas : h === 'relevo' ? lee.vigente.cerrar : h === 'alto' ? lee.vigente.alto : h === 'retirada' ? !!lee.vigente.retirada : (h === 'avanzar' || h === 'cargar') && o ? lee.vigente.avanzar : false;
       else vig = h === 'relevo' ? tu.tRelevo > S.T : h === 'retirada' ? tu.estado === 'retira' : h === 'avanzar' ? avanzo && tu.orden === 'marcha' : !!o && tu.orden === o;
       if (!no) {
         if (S.ganador) no = NO_AHORA.fin; else if (tu.U.roto) no = NO_AHORA.roto;
