@@ -110,7 +110,13 @@ export function combate(m = {}) {
    La geometría es la de falange/escena.js (geoSarisa y geoMunon: mismas piezas y colores), rehecha aquí porque aquella escena no la exporta. */
 /* FU3c: el carril de cada sarisa en ESTA escena: la 1.ª fila, a la cadera como siempre; las de detrás, todas en el mismo pasillo (a 33 cm a la derecha de su hombre: justo fuera
    de su hombro y entre el hombro y el escudo del vecino de la derecha, que cuelga al pecho) y a la altura de su fila, sin cruzar cascos ni escudos. Solo dibujo */
-const CARRIL = r => { const c = CARRIL_VIEJO(r); return r === 0 ? c : { x: 0.33, y: c.y }; };
+const CARRIL_FU3C = r => { const c = CARRIL_VIEJO(r); return r === 0 ? c : { x: 0.33, y: c.y }; };
+/* BT1 (F0, «las sarisas atraviesan a los compañeros»): las filas 2.ª a 5.ª llevan la sarisa POR ENCIMA de los hombros de los de delante,
+   cada fila algo más alta, y alternando dos pasillos (más cerca o más lejos de su hombro) para no tocar las manos de la fila de delante.
+   ?carril=viejo vuelve al de FU3c (para la prueba test/combate-atraviesa.test.mjs, que debe fallar con él). Solo dibujo */
+const Qc = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
+const CARRIL_BT1 = (() => { try { const v = Qc && Qc.get('carrilxy'); if (v) return JSON.parse(v); } catch (e) { /* el de serie */ } return [null, [0.33, 1.62], [0.45, 1.68], [0.33, 1.76], [0.45, 1.82]]; })();
+const CARRIL = Qc && Qc.get('carril') === 'viejo' ? CARRIL_FU3C : r => { const c = CARRIL_VIEJO(r), k = Math.min(4, r); return r === 0 ? c : { x: CARRIL_BT1[k][0], y: CARRIL_BT1[k][1] }; };
 const PIEZAS_SARISA = (() => {
   /* FU3c: sarisa fina (≈3,6 cm de diámetro), fresno con veta (color por vértice que varía a lo largo), regatón de bronce atrás, manguito fino de bronce y punta de hierro clara y estrecha */
   const pz = [[0.004, 0.02, 0, 0.22, '#8a6a3c']], N = 24, ruido = i => { const v = Math.sin(i * 12.9898) * 43758.5453; return v - Math.floor(v); };
@@ -152,7 +158,7 @@ export function crear() {
   const kits = new WeakMap(); let punos = null, prep = null;
   const aFloat = c => { const T = new Float32Array(c.length), h2f = ctx.THREE.DataUtils.fromHalfFloat; for (let i = 0; i < T.length; i++) T[i] = h2f(c[i]); return T; };
   const geoDe = nv => { const a = nv.geo.attributes; return { position: a.position.array, aSkinI: a.aSkinI.array, aSkinW: a.aSkinW.array }; };
-  function conHuesos(mat, tex) { const m = mat.clone(), ob = mat.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob(sh, r); sh.uniforms.uHuesos = { value: tex }; }; m.customProgramCacheKey = mat.customProgramCacheKey; return m; }
+  function conHuesos(mat, tex) { const m = mat.clone(), ob = mat.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob(sh, r); sh.uniforms.uHuesos = { value: tex }; }; m.customProgramCacheKey = mat.customProgramCacheKey; m.userData.huesos = tex.image.data; return m; }   /* BT1: la medida de choques lee esta tabla */
   /* los puños del esqueleto fino (nivel 0 del falangita): los de lejos (36 huesos) los toman de él. Se prepara en segundo plano al montar */
   function preparaPunos() {
     if (prep) return prep;
@@ -202,6 +208,7 @@ export function crear() {
       rotas = new WeakMap(); tB = -9; bajadasAntes = false; preparaPunos();
       sar = new T.InstancedMesh(V.gs, V.mat, n); mun = new T.InstancedMesh(V.gm, V.mat, n); pil = new T.InstancedMesh(V.gp, V.mat, NPILA);
       V.camP = null; sar.onBeforeRender = (r, sc, cam) => { V.camP = cam.position; };   /* FU3c: dónde está la cámara (para no pintar tu propia sarisa ante ella) */
+      sar.userData.asta = { tipo: 'sarisa', largo: SARISA, radio: 0.0195, duenos: [] }; mun.userData.asta = { tipo: 'muñón', largo: 2.86, radio: 0.031, duenos: [] };   /* BT1: medirChoques (bloque/fisica.js) */
       for (const m of [sar, mun, pil]) { m.frustumCulled = false; m.count = m === pil ? NPILA : n; c.escena.add(m); }
       if (typeof window !== 'undefined' && window.__bloque) window.__bloque.mallas = { sar, mun, pil, V };   /* FU3c: gancho de captura */
     },
@@ -236,7 +243,7 @@ export function crear() {
         if (!h.picaRota && FI) { const r = FI.pica(h, V.P, V.D, SARISA); if (r && r.ret) V.P.addScaledVector(V.D, -r.ret); }   /* FU4: la punta se para en el cuerpo o el escudo que toca (js/fisica-batalla.js) */
         if (forma.mide && !h.picaRota && kB > 0.5) forma.picas.push({ h, P: V.P.toArray(), D: V.D.toArray(), L: SARISA });
         V.Q.setFromUnitVectors(V.Z1, V.D); V.M.compose(V.P, V.Q, h.picaRota ? V.Em : V.E);
-        if (h.picaRota) mun.setMatrixAt(nm++, V.M); else sar.setMatrixAt(ns++, V.M);
+        if (h.picaRota) { mun.userData.asta.duenos[nm] = f; mun.setMatrixAt(nm++, V.M); } else { sar.userData.asta.duenos[ns] = f; sar.setMatrixAt(ns++, V.M); }
       }
       /* FU3b: los brazos siguen a la pica (la figura no tiene hueso accesible desde aquí): con la sarisa bajada, la guardia con el arma al frente; con la 1.ª fila
          estocando (bajadas), el golpe; alzada, en reposo. Marchando se deja su andar */

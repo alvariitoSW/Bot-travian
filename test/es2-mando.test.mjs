@@ -2,7 +2,7 @@
 import assert from 'node:assert';
 import * as IA from '../js/bloque-ia.js';
 import * as BL from '../js/bloque.js';
-import { crearMando } from '../js/mando-varios.js';
+import { crearMando, BARRA, HUECOS, ROTULO, ICONO, HUECO_DE, NO_HAY, aSeis } from '../js/mando-varios.js';
 const { crearCombate, juega, DT, V_TESTUDO, centro } = IA;
 let n = 0, mal = 0;
 function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e) { mal++; console.log('MAL', nombre, '—', e.message); } }
@@ -28,9 +28,29 @@ t('combinada: tres cuerpos, falange al centro y manípulos con hueco de 8 m', ()
   const f = S.tuyo, [a, b] = S.amigas;
   assert.ok(a.x < f.x && b.x > f.x);
   assert.ok(Math.abs((f.x - f.ancho / 2) - (a.x + a.ancho / 2) - 8) < 0.01 && Math.abs((b.x - b.ancho / 2) - (f.x + f.ancho / 2) - 8) < 0.01, 'hueco de 8 m');
-  assert.deepStrictEqual(M.ordenesDe('falange'), ['picas', 'cerrar', 'avanzar', 'alto']);
-  assert.deepStrictEqual(M.ordenesDe('man1'), ['testudo', 'cargar', 'relevo', 'alto']);
-  assert.deepStrictEqual(M.ordenesDe('todos'), ['avanzar', 'alto', 'cargar', 'retirada']);
+  /* BT1: la barra común de seis huecos ([propia] · Avanzar · Cargar · Alto · Relevo · Retirada) */
+  assert.deepStrictEqual(M.ordenesDe('falange'), ['picas', 'avanzar', 'cargar', 'alto', 'cerrar', 'retirada']);
+  assert.deepStrictEqual(M.ordenesDe('man1'), ['testudo', 'avanzar', 'cargar', 'alto', 'relevo', 'retirada']);
+  assert.deepStrictEqual(M.ordenesDe('todos'), ['picas', 'avanzar', 'cargar', 'alto', 'relevo', 'retirada']);
+});
+t('BT1 · la barra común: seis huecos iguales en todas las tropas, cada orden en el suyo, ninguna inventada', () => {
+  assert.deepStrictEqual(BARRA, ['propia', 'avanzar', 'cargar', 'alto', 'relevo', 'retirada']);
+  for (const [tropa, H] of Object.entries(HUECOS)) {
+    assert.deepStrictEqual(Object.keys(H), BARRA, tropa + ': los seis huecos, en orden');
+    assert.ok(H.propia && ROTULO[H.propia] && ICONO[H.propia], tropa + ': su orden propia tiene palabra y dibujo');
+    for (const h of BARRA) { if (H[h]) assert.strictEqual(HUECO_DE[H[h]], h, tropa + '.' + h); else assert.ok(NO_HAY[tropa] && NO_HAY[tropa][h], tropa + '.' + h + ' apagado dice por qué'); }
+  }
+  for (const h of BARRA.slice(1)) assert.ok(ROTULO[h] && ICONO[h], h);
+  assert.deepStrictEqual(aSeis(['tirar', 'hostigar', 'retirarse', 'alto']), ['tirar', 'hostigar', null, 'alto', null, 'retirarse']);
+  assert.deepStrictEqual(aSeis(['picas', 'cerrar', 'avanzar', 'alto']), ['picas', 'avanzar', null, 'alto', 'cerrar', null]);
+  /* las órdenes de la batalla grande existen en el simulador (no se inventa ninguna) */
+  assert.deepStrictEqual(Object.values(HUECOS.grande), ['formar', 'mover', 'cargar', 'aguantar', 'relevar', 'retirar']);
+});
+t('BT1 · «Todos» da a cada cuerpo la orden de su mismo hueco; un hueco vacío no hace nada', () => {
+  const { C, M } = nueva(); const S = C.S;
+  assert.strictEqual(M.orden(null), false);
+  pasos(C, 1); M.elige('todos'); assert.ok(M.orden('picas')); assert.strictEqual(S.tuyo.orden, 'cargar', 'la falange baja picas (carga)'); assert.notStrictEqual(S.amigas[0].orden, 'testudo', 'los manípulos no hacen testudo con «Bajar picas»');
+  M.elige('man1'); assert.ok(M.orden('avanzar')); assert.ok(S.amigas[0].obj, 'Avanzar: el manípulo marcha de frente');
 });
 t('elegir cuerpo y frente del elegido mueve solo a ese', () => {
   const { C, M } = nueva(); const S = C.S, f0 = { x: S.tuyo.x, z: S.tuyo.z }, b0 = { x: S.amigas[1].x, z: S.amigas[1].z };

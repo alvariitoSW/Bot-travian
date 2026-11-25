@@ -16,10 +16,10 @@ const nueva = (tipo = 'honderos', sem = 1, nivel = 'normal') => {
 const pasos = (C, s, f) => { for (let i = 0; i < s / DT && !C.S.ganador; i++) { C.paso(DT); f && f(); } };
 const galos = C => C.S.bloques.filter(b => b.bando === 'g').reduce((s, b) => s + b.U.enPie, 0);
 
-t('la quinta ficha: cuerpo de 40 a 20 m detrás de la línea, con sus cuatro órdenes', () => {
+t('la quinta ficha: cuerpo de 40 a 20 m detrás de la línea, con sus órdenes en la barra común', () => {
   const { C, M, X } = nueva('honderos'); const S = C.S;
   assert.strictEqual(S.apoyo.U.hombres, 40); assert.deepStrictEqual(M.cuerpos.map(c => c.id), ['falange', 'man1', 'man2', 'tiradores']);
-  assert.deepStrictEqual(M.ordenesDe('tiradores'), ['tirar', 'hostigar', 'retirarse', 'alto']);
+  assert.deepStrictEqual(M.ordenesDe('tiradores'), ['tirar', 'hostigar', null, 'alto', null, 'retirarse']);   /* BT1: en los seis huecos de la barra común (Cargar y Relevo, apagados) */
   assert.ok(Math.abs(S.apoyo.z - S.tuyo.z - DETRAS) < 0.5, 'a 20 m de tu primera fila');
   assert.ok(centro(S.apoyo).z > centro(S.tuyo).z, 'z mayor = detrás de tu línea');
   assert.strictEqual(M.vida('tiradores').n, 40); assert.strictEqual(X.T.municion, TIRADORES.honderos.municion);

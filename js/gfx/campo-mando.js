@@ -4,6 +4,8 @@
    teñido por el sol, bruma cálida, suelo de fotos con senda, calvas, manchas verdes y flores, piedras, árboles de 0 A.D.,
    lomas y montes con bruma, y polvo que levantan los pies. Adaptado a un campo de 1 200 × 700 m visto desde arriba.
    Arte: texturas y cielo de Poly Haven (CC0) y árboles de 0 A.D. (CC BY-SA 3.0); ver gobierno/maquetas/testudo-luz-campo/LICENSE.txt.
+   BT1: la luz, la bruma, el cielo, el color del suelo y las matas son los de la escena a pie (MUNDO y lo de abajo, que importan
+   gobierno/maquetas/bloque/escena.js y ../falange/campo.js): un solo mundo arriba y abajo.
    Uso: prepararLuz(THREE, renderer) antes de compilar nada; const E = await montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo });
    E.alt(x, z) da la altura; E.sombra dice hacia dónde cae la sombra; E.tick(dt, S, Sim, camara, altoPx) mueve el polvo; E.soltar() lo quita.
    Coordenadas de la escena: X = x del simulador, Z = −y (Roma, en y < 0, queda hacia +Z, cerca de la cámara). */
@@ -12,23 +14,107 @@ const suave = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a)
 const CAMPOS = { llano: { h: 0.35, arb: 140, pie: 120 }, colina: { h: 2.6, arb: 300, pie: 260 }, bosque: { h: 0.9, arb: 900, pie: 160 }, mixto: { h: 1, arb: 400, pie: 200 } };
 export const LLANO = { x: 640, z: 390 };      /* la zona llana donde se lucha (las figuras van a ras de suelo, y = 0) */
 const ARTE = n => 'gobierno/maquetas/testudo-luz-campo/arte/' + n;   /* las fotos de la maqueta GM43e (ya en la caché de sw.js) */
-/* el sol: bajo (unos 30 grados), a la derecha y algo por delante. De lado y no de frente como en la maqueta: desde tan alto, a contraluz los hombres salían negros */
-const SOL_DIR = [0.82, 0.5, -0.28];
+/* ---------- BT1 · un solo mundo: lo que comparten la batalla grande (este archivo, js/ui-mando.js) y la escena a pie
+   (gobierno/maquetas/bloque/escena.js con ../falange/campo.js). La luz, la bruma, el cielo, el color del suelo y las matas de hierba
+   salen de aquí; cada escena solo pone su escala (dónde va la senda, qué es «lejos»). Lo comprueba test/graficos-bt1.mjs ---------- */
+export const MUNDO = Object.freeze({
+  id: 'gm43e-bt1',                     /* el mismo en las dos escenas (window.__mundo); si cambia la luz o el suelo, súbelo */
+  horiz: '#dcb888',                    /* el cielo junto al horizonte y el fondo */
+  bruma: '#c9a77a',                    /* la bruma, cálida */
+  /* el sol: bajo (unos 21 grados), delante y a la derecha. Un término medio: a pie da contraluz dorado (GM43e) y desde arriba no deja
+     a los hombres negros (lo que pasaba con el sol de frente visto desde lo alto) */
+  sol: [0.45, 0.36, -0.82], colSol: 0xffcb90, fuerzaSol: 3.0,
+  cielo: [0xb9c8e0, 0x6e5a3e, 1.5],    /* luz del cielo: arriba, suelo, fuerza */
+  relleno: [0xfff0dc, 2.4, -0.4, 0.6, 1],   /* el cielo que rebota, desde detrás de la cámara: sin él, las espaldas a contraluz salen negras */
+  exposicion: 1.08,
+  /* las matas de hierba: secas y verdes */
+  seca: ['#c9b46c', '#b3a05a', '#a8a85a'], verde: ['#7e9440', '#6b8436', '#94a050']
+});
+/* la bruma, con una sola regla para las dos alturas: las tropas a la distancia de juego (D: de la cámara al suelo que mira en el centro
+   de la pantalla) quedan nítidas y el horizonte se pierde. FogExp2: bruma = 1 − e^(−(k·d)²); con k = 0,15 / D, a D un 2 %, a 2·D un 9 %,
+   a 6·D (el horizonte) más del 50 %. A pie D ≈ 55 m (k ≈ 0,0027; antes 0,0042 fijo); en Ásculo D ≈ 140 m; desde arriba, cientos de metros */
+export const brumaPara = D => 0.15 / Math.max(40, D);
+export const distanciaVista = camara => { const e = camara.matrixWorld.elements, vy = -e[9]; return vy < -0.05 ? Math.min(3000, camara.position.y / -vy) : 3000; };   /* la cámara mira por −z */
+export function ajustaBruma(escena, camara) {
+  if (!escena.fog || !escena.fog.isFogExp2) return;
+  escena.fog.density = brumaPara(distanciaVista(camara));
+}
+/* el cielo: la foto con nubes (Kloofendal 48d, Poly Haven, CC0) teñida por el sol; la misma esfera en las dos escenas */
+export function crearCielo(THREE, tCielo, SOL) {
+  const cielo = new THREE.Mesh(new THREE.SphereGeometry(9000, 40, 20), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: { uCielo: { value: tCielo }, uSol: { value: SOL }, uH: { value: new THREE.Color(MUNDO.horiz) } },
+    vertexShader: 'varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `varying vec3 vD; uniform sampler2D uCielo; uniform vec3 uSol, uH;
+    void main(){ vec3 d = normalize(vD); float e = asin(clamp(d.y, -1.0, 1.0));
+      vec3 c = texture2D(uCielo, vec2(fract((atan(d.z, d.x) - atan(uSol.z, uSol.x)) / 6.2831853 + 0.1), clamp((e + 0.0733) / 1.6441, 0.002, 0.998))).rgb; c = pow(c, vec3(1.25)) * 1.05;
+      float s = max(dot(d, uSol), 0.0);
+      c *= mix(vec3(0.82, 0.9, 1.04), vec3(1.22, 0.98, 0.72), pow(s, 2.0)) * mix(vec3(1.12, 0.95, 0.76), vec3(1.0), smoothstep(0.02, 0.4, e));
+      c = mix(c, c * vec3(0.6, 0.76, 1.0), smoothstep(0.06, 0.5, e) * (1.0 - pow(s, 2.0)));
+      c = mix(uH, c, smoothstep(-0.01, 0.1, e));
+      c += vec3(1.0, 0.72, 0.42) * (pow(s, 8.0) * 0.55 + pow(s, 90.0) * 1.2) + vec3(1.0, 0.95, 0.85) * smoothstep(0.9993, 0.9997, s) * 6.0;
+      gl_FragColor = vec4(c, 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }` }));
+  cielo.renderOrder = -10; cielo.frustumCulled = false; return cielo;
+}
+/* el color del suelo: hierba seca, manchas verdes, calvas y senda de tierra; dos escalas contra la repetición. Va en el lugar de
+   #include <map_fragment> de un MeshLambertMaterial. Cada escena define antes las funciones de su escala:
+     float mascaraSenda(vec2 p, float n)  la senda (1 en medio)     float orillaSenda(vec2 p, float n)  la hierba pisada a sus lados
+     float lejania(vec2 p)                0 donde se lucha, 1 en las lomas (matorral)
+   y los uniformes uRuido, uSeca, uVerde, uTierra; varyings vW (posición en el mundo) y vNy (normal hacia arriba). Con LEJOS, menos lecturas */
+export const SUELO_GLSL = `
+      vec2 p = vW.xz; const mat2 GIRO = mat2(0.8, -0.6, 0.6, 0.8);
+      float n1 = texture2D(uRuido, p * 0.0031).r;
+      #ifdef LEJOS
+      vec3 seca = texture2D(uSeca, GIRO * p * 0.073 + 0.37).rgb * vec3(1.06, 1.1, 0.82), verde = texture2D(uVerde, p * 0.061 + 0.6).rgb * vec3(1.12, 1.18, 0.92);
+      vec3 c = mix(seca, verde, smoothstep(0.32, 0.62, n1) * 0.85);
+      #else
+      vec2 nn = texture2D(uRuido, p * 0.013 + 0.3).gb; float n2 = nn.x, n3 = nn.y;
+      vec3 seca = mix(texture2D(uSeca, p * 0.21).rgb, texture2D(uSeca, GIRO * p * 0.073 + 0.37).rgb, 0.45) * vec3(1.06, 1.1, 0.82);
+      vec3 verde = texture2D(uVerde, GIRO * p * 0.12).rgb * vec3(1.12, 1.18, 0.92);
+      vec3 tierra = texture2D(uTierra, p * 0.26).rgb;
+      float mV = smoothstep(0.32, 0.62, n1 + (n2 - 0.5) * 0.5);
+      vec3 c = mix(seca, verde, mV * 0.85);
+      float calva = smoothstep(0.72, 0.82, n2 + (n3 - 0.5) * 0.3), senda = mascaraSenda(p, n3), orilla = orillaSenda(p, n2);
+      c = mix(c, tierra, max(max(senda * 0.85, calva * 0.6), orilla * 0.3));
+      #endif
+      c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.5);   /* laderas, más secas */
+      { float mq = texture2D(uRuido, p * 0.0093 + 0.71).g; c = mix(c, vec3(0.2, 0.25, 0.12), smoothstep(0.52, 0.68, mq) * 0.65 * lejania(p)); }   /* lejos, matorral mediterráneo */
+      c *= mix(0.84, 1.1, n1);
+      diffuseColor.rgb *= c * 1.08;`;
+/* una mata de hierba: hojas curvas, cada una distinta (azar: el generador de la escena, para que cada una siga siendo la misma) */
+export function geoMata(THREE, HOJAS, azar) {
+  const pos = [], col = [], nor = [], idx = []; let v = 0;
+  for (let b = 0; b < HOJAS; b++) {
+    const a = azar() * Math.PI * 2, r = Math.sqrt(azar()) * 0.17, bx = Math.cos(a) * r, bz = Math.sin(a) * r;
+    const h = 0.5 + azar() * 0.5, w = 0.018 + azar() * 0.014, cara = azar() * Math.PI, px = Math.cos(cara) * w, pz = Math.sin(cara) * w;
+    const dl = a + (azar() - 0.5) * 1.2, l = (0.12 + azar() * 0.4) * h, lx = Math.cos(dl) * l, lz = Math.sin(dl) * l;
+    const pt = t => [bx + lx * t * t, h * t * (1 - 0.15 * t * t * (l / h)), bz + lz * t * t];
+    const m = pt(0.5), tp = pt(1);
+    pos.push(bx - px, 0, bz - pz, bx + px, 0, bz + pz, m[0] - px * 0.7, m[1], m[2] - pz * 0.7, m[0] + px * 0.7, m[1], m[2] + pz * 0.7, tp[0], tp[1], tp[2]);
+    const g0 = 0.55, g1 = 0.85; col.push(g0, g0, g0, g0, g0, g0, g1, g1, g1, g1, g1, g1, 1, 1, 1);
+    for (let i = 0; i < 5; i++) nor.push(0, 1, 0);
+    idx.push(v, v + 1, v + 3, v, v + 3, v + 2, v + 2, v + 3, v + 4); v += 5;
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setIndex(idx); return g;
+}
 
-/* ---------- la gradación de color de la maqueta (luz de A): ACES y luego algo más de contraste y color, sombras frías y luces cálidas.
+
+/* ---------- la gradación de color de la maqueta (luz de A; BT1: la misma que a pie, gobierno/maquetas/bloque/escena.js la toma de aquí): ACES y luego algo más de contraste y color, sombras frías y luces cálidas.
    Va dentro del tonemapping de cada material: ninguna pasada de pantalla completa. Solo la usa el renderer que la pide (CustomToneMapping) ---------- */
 export function prepararLuz(THREE, renderer) {
   const C = THREE.ShaderChunk, viejo = 'vec3 CustomToneMapping( vec3 color ) { return color; }';
   if (C.tonemapping_pars_fragment.includes(viejo)) C.tonemapping_pars_fragment = C.tonemapping_pars_fragment.replace(viejo, `vec3 CustomToneMapping( vec3 color ) {
   vec3 p = sqrt( ACESFilmicToneMapping( color ) );
   float l = dot( p, vec3( 0.299, 0.587, 0.114 ) );
-  p = mix( vec3( l ), p, 1.14 );
-  p = mix( p, p * p * ( 3.0 - 2.0 * p ), 0.35 );
+  p = mix( vec3( l ), p, 1.18 );
+  p = mix( p, p * p * ( 3.0 - 2.0 * p ), 0.45 );
   p += vec3( -0.012, 0.004, 0.022 ) * ( 1.0 - l ) * ( 1.0 - l ) + vec3( 0.03, 0.012, -0.03 ) * l * l;
   p = clamp( p, 0.0, 1.0 );
   return p * p;
 }`);
-  renderer.toneMapping = THREE.CustomToneMapping; renderer.toneMappingExposure = 1.22;
+  renderer.toneMapping = THREE.CustomToneMapping; renderer.toneMappingExposure = MUNDO.exposicion;   /* BT1: la de la escena a pie (antes 1,22) */
 }
 
 /* ---------- ruido propio (el de la maqueta): 256×256, se repite sin costura. r: manchas grandes; g: medianas; b: finas ---------- */
@@ -59,19 +145,29 @@ function texRuido(THREE) {
 /* la senda: un camino de tierra que cruza el campo por detrás de las líneas romanas y se tuerce (misma fórmula aquí y en el sombreador) */
 const sendaZ = x => 300 + 38 * Math.sin(x * 0.0042 + 0.6) + 12 * Math.sin(x * 0.013) - 0.00009 * x * x;
 const GLSL_SENDA = 'float sendaZ(float x){ return 300.0 + 38.0 * sin(x * 0.0042 + 0.6) + 12.0 * sin(x * 0.013) - 0.00009 * x * x; }\n';
+/* BT1: la escala de este campo para SUELO_GLSL: la senda va de lado a lado (a pie, de frente), algo más ancha que a pie para que se lea
+   desde arriba; el matorral, en las lomas de fuera del llano */
+const GLSL_ESCALA = `float mascaraSenda(vec2 p, float n){ return 1.0 - smoothstep(1.0, 2.6, abs(p.y - sendaZ(p.x)) + (n - 0.5) * 2.2); }
+float orillaSenda(vec2 p, float n){ return 1.0 - smoothstep(2.4, 5.5, abs(p.y - sendaZ(p.x)) + (n - 0.5) * 2.2); }
+float lejania(vec2 p){ return smoothstep(700.0, 950.0, max(abs(p.x), abs(p.y) * 1.6)); }
+`;
+const masSenda = (x, z) => 1 - suave(1.0, 2.6, Math.abs(z - sendaZ(x)) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 2) - 0.5) * 2.2);
+const masCalva = (x, z) => suave(0.72, 0.82, ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 1) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 2) - 0.5) * 0.3);
+const masVerde = (x, z) => suave(0.32, 0.62, ruido(x * 0.0031, z * 0.0031, 0) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 1) - 0.5) * 0.5);
 
 export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, renderer }) {
-  const CV = CAMPOS[campo] || CAMPOS.mixto, HORIZ = '#dcb888', puestos = [], texs = [];
+  const CV = CAMPOS[campo] || CAMPOS.mixto, HORIZ = MUNDO.horiz, puestos = [], texs = [];
   const pon = o => { escena.add(o); puestos.push(o); return o; };
   let semilla = 99; const rnd = () => { semilla = (semilla * 1664525 + 1013904223) >>> 0; return semilla / 4294967296; };
-  const SOL = new THREE.Vector3(...SOL_DIR).normalize();
-  /* luz: la de la maqueta, a la escala del campo. Bruma cálida y exponencial (se ven las lomas, se pierden los montes) */
+  const SOL = new THREE.Vector3(...MUNDO.sol).normalize();
+  /* BT1: la luz y la bruma de la escena a pie (MUNDO), la misma regla de bruma (ajustaBruma en tick: nítido donde miras, bruma en el horizonte).
+     Antes aquí: sol de lado 0xffdcb0 3,5, cielo 0xb4c4dc/0x5c5e34, relleno 0xc0cce0 1,7 y bruma verdosa #c3c0a4 fija */
   escena.background = new THREE.Color(HORIZ);
-  escena.fog = new THREE.FogExp2('#c3c0a4', 0.00052);   /* CG8a: bruma menos parda (antes #cdb08a, 0.00062) */
-  pon(new THREE.HemisphereLight(0xb4c4dc, 0x5c5e34, 1.35));
-  const sol = pon(new THREE.DirectionalLight(0xffdcb0, 3.5)); sol.position.copy(SOL).multiplyScalar(200);
+  escena.fog = new THREE.FogExp2(MUNDO.bruma, brumaPara(400));
+  pon(new THREE.HemisphereLight(...MUNDO.cielo));
+  const sol = pon(new THREE.DirectionalLight(MUNDO.colSol, MUNDO.fuerzaSol)); sol.position.copy(SOL).multiplyScalar(200);
   /* relleno desde detrás de la cámara (el cielo que rebota): sin él las espaldas, lejos del sol, quedarían negras */
-  pon(new THREE.DirectionalLight(0xc0cce0, 1.7)).position.set(-0.15, 0.75, 1);
+  pon(new THREE.DirectionalLight(MUNDO.relleno[0], MUNDO.relleno[1])).position.set(MUNDO.relleno[2], MUNDO.relleno[3], MUNDO.relleno[4]);
 
   const cargar = n => new THREE.TextureLoader().loadAsync(ARTE(n)).then(t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; texs.push(t); return t; }).catch(() => null);
   const [tSeca, tVerde, tTierra, tRoca, tCielo] = await Promise.all(['hierba_seca.jpg', 'hierba_verde.jpg', 'tierra.jpg', 'roca.jpg', 'cielo.jpg'].map(cargar));
@@ -87,25 +183,10 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
     return Math.max(0, h);
   }
 
-  /* ---------- cielo: la foto con nubes (Kloofendal 48d, Poly Haven, CC0) teñida por el sol, como en la maqueta ---------- */
+  /* ---------- cielo: la foto con nubes teñida por el sol (crearCielo, el mismo que a pie) ---------- */
   if (tCielo) {
     tCielo.generateMipmaps = false; tCielo.minFilter = THREE.LinearFilter;
-    const cielo = new THREE.Mesh(new THREE.SphereGeometry(9000, 40, 20), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
-      uniforms: { uCielo: { value: tCielo }, uSol: { value: SOL }, uH: { value: new THREE.Color(HORIZ) } },
-      vertexShader: 'varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: `varying vec3 vD; uniform sampler2D uCielo; uniform vec3 uSol, uH;
-      void main(){ vec3 d = normalize(vD); float e = asin(clamp(d.y, -1.0, 1.0));
-        vec3 c = texture2D(uCielo, vec2(fract((atan(d.z, d.x) - atan(uSol.z, uSol.x)) / 6.2831853 + 0.1), clamp((e + 0.0733) / 1.6441, 0.002, 0.998))).rgb; c = pow(c, vec3(1.2)) * 1.06;
-        float s = max(dot(d, uSol), 0.0);
-        c *= mix(vec3(0.84, 0.92, 1.04), vec3(1.22, 0.98, 0.72), pow(s, 2.0)) * mix(vec3(1.12, 0.95, 0.76), vec3(1.0), smoothstep(0.02, 0.4, e));
-        c = mix(c, c * vec3(0.66, 0.8, 1.0), smoothstep(0.06, 0.5, e) * (1.0 - pow(s, 2.0)) * 0.8);
-        c = mix(uH, c, smoothstep(-0.01, 0.12, e));
-        c += vec3(1.0, 0.72, 0.42) * (pow(s, 8.0) * 0.5 + pow(s, 90.0) * 1.1) + vec3(1.0, 0.95, 0.85) * smoothstep(0.9993, 0.9997, s) * 6.0;
-        gl_FragColor = vec4(c, 1.0);
-        #include <tonemapping_fragment>
-        #include <colorspace_fragment>
-      }` }));
-    cielo.renderOrder = -10; cielo.frustumCulled = false; pon(cielo);
+    pon(crearCielo(THREE, tCielo, SOL));   /* BT1: el mismo cielo que a pie */
     /* el mismo cielo, como reflejo para el bronce y el hierro de los soldados (sin él, el metal sale negro); se calcula una vez */
     if (renderer) try { const pm = new THREE.PMREMGenerator(renderer), tc = tCielo.clone(); tc.mapping = THREE.EquirectangularReflectionMapping; tc.needsUpdate = true;
       const rt = pm.fromEquirectangular(tc); pm.dispose(); tc.dispose(); escena.environment = rt.texture; escena.environmentIntensity = 0.42; texs.push({ dispose: () => rt.dispose() });
@@ -113,7 +194,7 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
   }
 
   /* ---------- montes: dos cordilleras con silueta, pliegues y bruma al pie (de la maqueta, a esta escala) ---------- */
-  [[2700, 260, '#4a5246', 0.32, 7.0], [5600, 820, '#636a78', 0.48, 3.0]].forEach(([r, altM, col, bruma, fq], k) => {
+  [[2700, 260, '#3c443e', 0.3, 7.0], [5600, 820, '#59606f', 0.45, 3.0]]   /* BT1: los colores de a pie */.forEach(([r, altM, col, bruma, fq], k) => {
     const n = 300, pos = [], uv = [], idx = [];
     for (let i = 0; i <= n; i++) {
       const t = i / n, a = t * Math.PI * 2, x = Math.cos(a) * r, z = Math.sin(a) * r;
@@ -131,7 +212,6 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
           c = mix(c, uC * vec3(0.62, 0.74, 0.6), smoothstep(0.45, 0.65, b + (0.5 - vUv.y) * 0.4) * 0.7);
           c = mix(c, uB, uBruma); c = mix(c, uB, (1.0 - smoothstep(0.08, 0.6, vUv.y)) * 0.85);
           gl_FragColor = vec4(c, 1.0);
-          #include <tonemapping_fragment>
           #include <colorspace_fragment>
         }` }));
     m.renderOrder = -9 + (1 - k); m.frustumCulled = false; pon(m);
@@ -145,28 +225,10 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
   if (tSeca && tVerde && tTierra) matSuelo.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, { uRuido, uSeca: { value: tSeca }, uVerde: { value: tVerde }, uTierra: { value: tTierra } });
     sh.vertexShader = 'varying vec3 vW; varying float vNy;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vW = (modelMatrix * vec4(transformed, 1.0)).xyz; vNy = objectNormal.y;');
-    sh.fragmentShader = 'varying vec3 vW; varying float vNy; uniform sampler2D uRuido, uSeca, uVerde, uTierra;\n' + GLSL_SENDA + sh.fragmentShader.replace('#include <map_fragment>', `
-      vec2 p = vW.xz; const mat2 GIRO = mat2(0.8, -0.6, 0.6, 0.8);
-      float n1 = texture2D(uRuido, p * 0.0031).r; vec2 nn = texture2D(uRuido, p * 0.009 + 0.3).gb; float n2 = nn.x, n3 = nn.y;
-      vec3 seca = mix(texture2D(uSeca, p * 0.09).rgb, texture2D(uSeca, GIRO * p * 0.053 + 0.37).rgb, 0.5) * vec3(0.98, 1.06, 0.86);
-      vec3 verde = mix(texture2D(uVerde, GIRO * p * 0.05).rgb, texture2D(uVerde, p * 0.029 + 0.6).rgb, 0.4) * vec3(1.12, 1.18, 0.92);
-      vec3 tierra = mix(texture2D(uTierra, p * 0.11).rgb, texture2D(uTierra, GIRO * p * 0.037).rgb, 0.4);
-      vec3 c = mix(seca * vec3(0.84, 1.0, 0.72), verde, 0.64 + 0.34 * smoothstep(0.12, 0.5, n1 + (n2 - 0.5) * 0.5)) * vec3(0.6, 1.12, 1.1);   /* CG8a y CG4b: más verde, de primavera templada (el usuario: campo menos pardo) */
-      /* flores silvestres en corros: manzanilla y crisantemo (amarillo y blanco; el rojo de las amapolas se confundiría con Roma) */
-      float fl = smoothstep(0.74, 0.86, texture2D(uRuido, p * 0.021 + 0.17).b) * smoothstep(0.35, 0.55, n1);
-      c = mix(c, mix(vec3(0.8, 0.7, 0.28), vec3(0.62, 0.66, 0.3), n3), fl * 0.1);
-      float calva = smoothstep(0.78, 0.9, n2 + (n3 - 0.5) * 0.3);
-      /* tierra pisada donde se lucha, con manchas; y la senda */
-      float pis = exp(-(p.y * p.y) / 14000.0) * exp(-(p.x * p.x) / 90000.0) * smoothstep(0.25, 0.65, n2 + 0.25);
-      float ds = abs(p.y - sendaZ(p.x)) + (n3 - 0.5) * 6.0, senda = 1.0 - smoothstep(2.6, 4.6, ds), orilla = 1.0 - smoothstep(4.0, 10.0, ds);
-      c = mix(c, tierra, max(max(senda * 0.9, calva * 0.12), max(pis * 0.22, orilla * 0.25)));
-      c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.35);   /* laderas, algo más secas */
-      { float mq = texture2D(uRuido, p * 0.0047 + 0.71).g, lj = smoothstep(700.0, 950.0, max(abs(p.x), abs(p.y) * 1.6));
-        c = mix(c, vec3(0.2, 0.25, 0.12), smoothstep(0.52, 0.68, mq) * 0.65 * lj); }   /* lejos, matorral mediterráneo por las lomas */
-      c *= mix(0.88, 1.12, n1);
-      diffuseColor.rgb *= c * 1.2;`);
+    /* BT1: el color del suelo de a pie (SUELO_GLSL) con la senda, la orilla y la lejanía de este campo */
+    sh.fragmentShader = 'varying vec3 vW; varying float vNy; uniform sampler2D uRuido, uSeca, uVerde, uTierra;\n' + GLSL_SENDA + GLSL_ESCALA + sh.fragmentShader.replace('#include <map_fragment>', SUELO_GLSL);
   };
-  matSuelo.customProgramCacheKey = () => 'cg4-campo-suelo';
+  matSuelo.customProgramCacheKey = () => 'bt1-campo-suelo';
   pon(new THREE.Mesh(g, matSuelo));
 
   /* ---------- piedras: sueltas por el campo y algún peñasco fuera de donde se lucha (una llamada; 80 triángulos cada una) ---------- */
@@ -204,6 +266,44 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
     for (let x = -LLANO.x - 300; x < LLANO.x + 300; x += 9 + rnd() * 7) { if (Math.abs(x) < LLANO.x + 30 || rnd() < 0.2) continue; arbol('cipres', x, sendaZ(x) - 9, 1.15); }
     for (const t in arboles) { const m = St.staticInstances(t, arboles[t]); if (m) pon(m); }
   }
+
+  /* ---------- BT1: las matas de hierba de a pie (geoMata, mismas hojas y colores), solo alrededor de donde mira la cámara y solo
+     cuando está cerca (desde la altura de general no se verían: serían menos de un píxel). Una llamada; se recolocan al mover la vista.
+     Cada mata sale de su casilla del mundo con su propio azar: al volver a un sitio, las mismas matas en el mismo lugar ---------- */
+  const uT = { value: 0 }, matas = (() => {
+    const N = 5200, R = 58, CEL = 1.45, ESC = 0.62 * 1.25, CERCA = 150;   /* metros; ESC: la mata de a pie a la talla de las figuras de aquí (TALLA 1,25) */
+    let sm = 7; const azarM = () => { sm = (sm * 16807) % 2147483647; return (sm - 1) / 2147483646; };
+    const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    mat.onBeforeCompile = sh => {
+      sh.uniforms.uT = uT; sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('gl_FrontFacing ? 1.0 : - 1.0', '1.0'));   /* la cara de atrás, tan clara */
+      sh.vertexShader = 'uniform float uT;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+        { vec2 ip = vec2(instanceMatrix[3][0], instanceMatrix[3][2]); float h = transformed.y * transformed.y;
+          float w = sin(uT * 1.6 + ip.x * 0.31 + ip.y * 0.17) * 0.7 + sin(uT * 2.7 + ip.x * 0.8 - ip.y * 0.5) * 0.3;
+          transformed.x += w * h * 0.16; transformed.z += w * h * 0.07; }`);
+    };
+    mat.customProgramCacheKey = () => 'bt1-matas';
+    const im = new THREE.InstancedMesh(geoMata(THREE, 4, azarM), mat, N); im.count = 0; im.visible = false; im.frustumCulled = false; pon(im);
+    const SECA = MUNDO.seca.map(h => new THREE.Color(h)), VERDE = MUNDO.verde.map(h => new THREE.Color(h)), o = new THREE.Object3D(), c = new THREE.Color();
+    const hash = (i, j, k) => { let h = Math.imul(i, 374761393) + Math.imul(j, 668265263) + Math.imul(k, 1274126177) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+    let cx = 1e9, cz = 1e9;
+    function rellena(x0, z0) {
+      cx = x0; cz = z0; let n = 0;
+      for (let i = Math.floor((x0 - R) / CEL); i <= Math.ceil((x0 + R) / CEL) && n < N; i++) for (let j = Math.floor((z0 - R) / CEL); j <= Math.ceil((z0 + R) / CEL) && n < N; j++) {
+        const x = (i + hash(i, j, 1)) * CEL, z = (j + hash(i, j, 2)) * CEL; if ((x - x0) ** 2 + (z - z0) ** 2 > R * R) continue;
+        const d = (1 - masSenda(x, z) * 0.9) * (1 - masCalva(x, z) * 0.85) * (0.45 + 0.55 * ruido(x * 0.03, z * 0.03, 2) ** 0.7); if (hash(i, j, 3) > d) continue;
+        const pal = hash(i, j, 4) < masVerde(x, z) ? VERDE : SECA; c.copy(pal[Math.floor(hash(i, j, 5) * 3)]).multiplyScalar(0.85 + hash(i, j, 6) * 0.3);
+        const e = ESC * (0.6 + hash(i, j, 7) * hash(i, j, 8));
+        o.position.set(x, alt(x, z) - 0.02, z); o.rotation.set((hash(i, j, 9) - 0.5) * 0.25, hash(i, j, 10) * 6.28, (hash(i, j, 11) - 0.5) * 0.25); o.scale.set(e * (0.8 + hash(i, j, 12) * 0.5), e * (0.7 + hash(i, j, 13) * 0.6), e * (0.8 + hash(i, j, 14) * 0.5)); o.updateMatrix();
+        im.setMatrixAt(n, o.matrix); im.setColorAt(n, c); n++;
+      }
+      im.count = n; im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    }
+    return { im, mira(camara, D) {
+      im.visible = D < CERCA; if (!im.visible) return;
+      const e = camara.matrixWorld.elements, vy = -e[9], x = camara.position.x - e[8] * D, z = camara.position.z - e[10] * D;   /* el suelo que mira el centro de la pantalla */
+      if (vy < -0.05 && Math.hypot(x - cx, z - cz) > R * 0.3) rellena(x, z);
+    } };
+  })();
 
   /* ---------- sombra fija de árboles y peñascos, echada hacia donde cae la sombra del sol (una llamada) ---------- */
   const L2 = Math.hypot(SOL.x, SOL.z), DX = -SOL.x / L2, DZ = -SOL.z / L2, largoSol = L2 / SOL.y;   /* metros de sombra por metro de alto */
@@ -247,7 +347,10 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
     const n = Math.round(14 + 10 * fuerza), ca = Math.cos(a), sa = Math.sin(a);
     for (let k = 0; k < n; k++) { const l = (rnd() - 0.5) * ancho; soltarPolvo(x + ca * l + (rnd() - 0.5) * 4, z - sa * l + (rnd() - 0.5) * 4, (10 + rnd() * 9) * fuerza); const i = (sigP + NP - 1) % NP; pVel[i * 2] *= 3; pVel[i * 2 + 1] *= 3; pPos[i * 3 + 1] = 0.5 + rnd() * 2.5; }
   }
+  let reloj = 0, ultimaD = 400;
   function tick(dt, S, Sim, camara, altoPx) {
+    if (camara) { camara.updateMatrixWorld(); const D = ultimaD = distanciaVista(camara); escena.fog.density = brumaPara(D); matas.mira(camara, D); }   /* BT1: la bruma y la hierba, según lo cerca que mires */
+    if (dt > 0) { reloj += dt; uT.value = reloj; }
     if (camara && altoPx) POL_U.uEsc.value = altoPx / (2 * Math.tan(camara.fov * Math.PI / 360));
     if (!(dt > 0) || !S) return;
     for (let i = 0; i < NP; i++) if (pVida[i] < 1) { pVida[i] = Math.min(1, pVida[i] + dt / 3.2); pPos[i * 3] += pVel[i * 2] * dt; pPos[i * 3 + 2] += pVel[i * 2 + 1] * dt; pPos[i * 3 + 1] += dt * 0.9; }
@@ -262,9 +365,11 @@ export async function montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo, 
     gPol.attributes.position.needsUpdate = true; gPol.attributes.aVida.needsUpdate = true; gPol.attributes.aTam.needsUpdate = true;
   }
 
+  /* BT1: para las pruebas (test/graficos-bt1.mjs): el mismo mundo que a pie */
+  if (typeof window !== 'undefined') window.__mundo = { id: MUNDO.id, sol: sol.color.getHexString(), bruma: escena.fog.color.getHexString(), horiz: escena.background.getHexString(), suelo: SUELO_GLSL.length, exposicion: renderer ? renderer.toneMappingExposure : null, densidad: () => escena.fog.density, vista: () => ultimaD, matas: () => matas.im.visible ? matas.im.count : 0 };
   return { alt, sol, SOL, HORIZ, sombra: { dx: DX, dz: DZ, largo: largoSol }, tick, golpe,
     soltar() {
       for (const o of puestos) { escena.remove(o); if (o.geometry) o.geometry.dispose(); }   /* los árboles (grupos) comparten geometría con el resto del juego: no se sueltan */
-      for (const t of texs) t.dispose(); puestos.length = 0; texs.length = 0; escena.fog = null; escena.environment = null;
+      for (const t of texs) t.dispose(); puestos.length = 0; texs.length = 0; escena.fog = null; escena.environment = null; if (typeof window !== 'undefined') delete window.__mundo;
     } };
 }

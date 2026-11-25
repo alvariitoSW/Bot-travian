@@ -1,4 +1,5 @@
-/* ES2 · La tira de mando (ES1 §2): fichas «Todos · Falange · Man. I · Man. II» (y las que añada ES3, p. ej. «Honderos») encima de los cuatro botones.
+/* ES2 · La tira de mando (ES1 §2): fichas «Todos · Falange · Man. I · Man. II» (y las que añada ES3, p. ej. «Honderos») encima de la barra de órdenes
+   (BT1: la barra común de seis huecos; la orden propia, el primero, cambia con el cuerpo elegido; las demás, nunca).
    Cada ficha mide 52 px de alto, con su barra de vida (verde/ámbar/roja) y borde dorado si está elegida. Tocar una ficha, o el estandarte de un cuerpo,
    lo elige. Además: el botón ⏸ de arriba (pausa con órdenes) y los cuatro botones, que pasan a ser las órdenes del cuerpo elegido.
    Su propio DOM y CSS. En horizontal (844×390) la tira va en columna a la izquierda y las órdenes quedan en columna a la derecha (index.html).
@@ -6,10 +7,12 @@
      mando  js/mando-varios.js · hud  crearHud (usa hud.ordenes) · $ getElementById · dedos  para borrar la raya cuando ya no hace falta */
 const CSS = `
 #tira{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);bottom:calc(var(--abajoH,150px) + 6px);display:flex;gap:5px;pointer-events:none}
-.ficha{pointer-events:auto;flex:1 1 0;min-width:0;height:52px;padding:5px 4px 5px;border-radius:10px;background:var(--vidrio);border:2px solid var(--fil);display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;text-align:center;overflow:clip;box-shadow:0 3px 8px rgba(0,0,0,.4)}
-.ficha b{font:700 12.5px/1.1 system-ui,sans-serif;white-space:nowrap;overflow:clip;color:var(--marmol);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;flex:1}.ficha b svg{width:24px;height:24px;flex:none}.ficha b em{font-style:normal;font-size:10px;line-height:1;margin-top:-1px}
-.ficha small{font-size:10.5px;color:#cfc6b0;line-height:1}
-.ficha i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:clip}
+/* BT1: fichas finas (40 px, dibujo y número en una línea) para que la tira no tape el campo */
+.ficha{pointer-events:auto;flex:1 1 0;min-width:0;height:40px;padding:3px 4px 4px;border-radius:9px;background:rgba(18,15,11,.7);border:2px solid var(--fil);display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr 5px;column-gap:3px;align-items:center;text-align:center;overflow:clip;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.ficha b{grid-row:1;grid-column:1;font:700 12.5px/1 system-ui,sans-serif;white-space:nowrap;overflow:clip;color:var(--marmol);display:flex;align-items:center;justify-content:center;gap:1px}.ficha b svg{width:20px;height:20px;flex:none}.ficha b em{font-style:normal;font-size:10px;line-height:1}
+.ficha small{grid-row:1;grid-column:2;font-size:10.5px;color:#cfc6b0;line-height:1;white-space:nowrap;overflow:clip}
+.ficha i{grid-row:2;grid-column:1/-1}
+.ficha i{display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.18);overflow:clip}
 .ficha i s{display:block;height:100%;width:100%;background:var(--verde);text-decoration:none;transition:width .3s}
 .ficha.ambar i s{background:var(--ambar)}.ficha.rojo i s{background:var(--rojo)}
 .ficha.on{border-color:var(--oro);box-shadow:0 0 0 1px var(--oro),0 3px 8px rgba(0,0,0,.4)}
@@ -90,12 +93,13 @@ export function crearTira({ mando: M, hud, $, dedos }) {
     /* los botones del elegido: la orden vigente, la que conviene y las que no se pueden */
     const id = M.elegido, c = M.cuerpos.find(q => q.id === id), u = M.util(id), S = M.cuerpos[0].b;
     for (const el of document.querySelectorAll('.orden')) {
-      const o = el.dataset.o; let vig = false, apaga = false;
-      if (c && c.b && !c.alOrden) {
-        const b = c.b; vig = o === 'relevo' ? b.tRelevo > (hud.tiempo ? hud.tiempo() : 0) : (c.tipo === 'falange' && o === 'picas') ? b.orden === 'cargar' : b.orden === o;
-        apaga = !!(b.U.roto || b.estado === 'fuera' || (o === 'relevo' && b.relevos <= 0));
+      const o = el.dataset.o; let vig = false, no = o ? '' : (hud.interna ? hud.interna(el.dataset.h).no : 'Este cuerpo no tiene esa orden');   /* BT1: el hueco que el cuerpo no tiene, apagado */
+      if (o && c && c.b && !c.alOrden) {
+        const b = c.b, tr = b.contactos && b.contactos.length > 0;
+        vig = o === 'relevo' ? b.tRelevo > (hud.tiempo ? hud.tiempo() : 0) : (c.tipo === 'falange' && o === 'picas') ? b.orden === 'cargar' : o === 'retirada' ? b.estado === 'retira' : b.orden === o;
+        no = b.U.roto || b.estado === 'fuera' ? 'Ese cuerpo ya no obedece' : (o === 'relevo' && b.relevos <= 0) ? 'No quedan filas frescas' : (o === 'retirada' && !tr && b.estado !== 'retira') ? 'Retirada, solo trabados en el choque' : '';
       }
-      el.classList.toggle('vigente', vig); el.classList.toggle('luz', !!u && o === u && !vig); el.classList.toggle('apagada', apaga);
+      el.classList.toggle('vigente', vig); el.classList.toggle('luz', !!u && o === u && !vig && !no); el.classList.toggle('apagada', !!no); el.dataset.no = no;
     }
     if (c && c.b && c.tipo === 'manipulo') { const r = $('relevos'); if (r) r.textContent = c.b.relevos; }
     /* la raya dorada sobra cuando nadie va hacia ella */

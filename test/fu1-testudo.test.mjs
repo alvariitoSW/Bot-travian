@@ -58,7 +58,7 @@ t('sin escenario todo sigue como antes: cinco salvas de serie, sin S.escenario',
 });
 t('contrato de las formaciones y guardia de la física', () => {
   for (const [F, id, esc] of [[manipulo(), 'manipulo', null], [testudo(), 'testudo', 'testudo']]) {
-    assert.strictEqual(F.id, id); assert.strictEqual(F.escenario, esc); assert.deepStrictEqual(F.ordenes, ['testudo', 'cargar', 'relevo', 'alto']);
+    assert.strictEqual(F.id, id); assert.strictEqual(F.escenario, esc); assert.deepStrictEqual(F.ordenes, ['testudo', 'avanzar', 'cargar', 'alto', 'relevo', 'retirada']);   /* BT1: la barra común */
     for (const k of ['util', 'mods', 'guardia', 'monta', 'paso', 'alAviso']) assert.strictEqual(typeof F[k], 'function', id + '.' + k);
   }
   const S = { tuyo: { orden: 'testudo' } };

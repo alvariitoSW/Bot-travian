@@ -117,7 +117,7 @@ async function uno(nombre, o) {
   const mat = parche(new THREE.MeshStandardMaterial({ map: color || null, color: color ? '#ffffff' : '#b8926e', normalMap: normal || null, roughnessMap: orm || null, metalnessMap: orm || null, aoMap: orm || null,
     roughness: orm ? 1 : 0.75, metalness: orm ? 1 : 0, side: THREE.DoubleSide, alphaTest: 0.5 }), u);
   g.computeBoundingBox();
-  return { j, geo: g, mat, anim, mov, crudo, texs: [color, normal, orm, masc].filter(Boolean), alto: altoCuerpo(g.attributes.position, g.boundingBox.min.y) };
+  return { j, geo: g, idx0: g.index.array, mat, anim, mov, crudo, texs: [color, normal, orm, masc].filter(Boolean), alto: altoCuerpo(g.attributes.position, g.boundingBox.min.y) };
   } catch (e) { g.dispose(); if (mov) soltarMov(mov); else anim.dispose(); throw e; }
 }
 
@@ -153,7 +153,7 @@ export function tropa(s, cap) {
   const cu = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3), va = new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4), mu = new THREE.InstancedBufferAttribute(new Float32Array(cap), 1);
   cu.setUsage(THREE.DynamicDrawUsage); va.setUsage(THREE.DynamicDrawUsage); mu.setUsage(THREE.DynamicDrawUsage); g.setAttribute('aCuadro', cu); g.setAttribute('aVar', va); g.setAttribute('aMuestra', mu);
   const m = new THREE.InstancedMesh(g, s.mat, cap); m.castShadow = false; m.receiveShadow = false; m.frustumCulled = false; m.count = 0;
-  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.userData.nivel = s;   /* BT1: la medida de choques (bloque/fisica.js medirChoques) lee sus huesos */
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Vector3(1, 1, 1), p = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0);
   const T = { malla: m, s,
     limpiar() { m.count = 0; },

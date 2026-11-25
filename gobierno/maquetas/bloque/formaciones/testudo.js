@@ -33,7 +33,7 @@ export function crear() {
   let ctx = null, techo = null, aro = null, k = 0, cerrado = false, nSitios = 0;
   const bajo = v => { try { ctx && ctx.Son && ctx.Son.bajoTecho && ctx.Son.bajoTecho(v); } catch (e) { /* sin sonido */ } };
   return {
-    id: 'testudo', ordenes: ['testudo', 'cargar', 'relevo', 'alto'], objetivo: 'Cruza hasta la colina', escenario: 'testudo', muroDelante: true,
+    id: 'testudo', ordenes: ['testudo', 'avanzar', 'cargar', 'alto', 'relevo', 'retirada'], objetivo: 'Cruza hasta la colina', escenario: 'testudo', muroDelante: true,
     util: () => (ctx && ctx.C ? ctx.C.ordenUtil() : null),
     mods: () => null,
     guardia: guardiaDeSerie,   /* 1.ª fila 'muro', las demás 'alto' (ESCUDO_ALTO): donde se dibuja el techo */

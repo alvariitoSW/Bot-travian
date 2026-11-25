@@ -7,7 +7,7 @@
        (blanca si el tiro es directo, ámbar si es en parábola) y recuadro rojo. Todo en UNA malla de cintas (1 llamada);
      · las salvas con la física de bloque/fisica.js (ángulo bajo o alto de angulos(), 20 dibujados por salva de 40) y su estela
        (una sola malla para todas, 1 llamada: una cinta de cara a la cámara por proyectil en vuelo);
-     · botones: «Tirar» pasa a «Alto el fuego» mientras tiran; el que conviene se ilumina; los avisos de tiro.js, arriba.
+     · botones: «Tirar» rellena mientras tiran y, tocado otra vez, paran (BT1: ya no cambia de nombre); el que conviene se ilumina; los avisos de tiro.js, arriba.
    Contrato: crearVista({ ctx, M, X }) → { tick(dt), salva(s), aviso(t), quita() }
      ctx: lo que la escena da a FORM.monta (THREE, escena, H, C, TR, FS, camara, proyecta, suelo, lienzo, Son, $) · M: mando · X: montaTiradores */
 import { TIRADORES, eligeModo } from '../../../js/tiro.js';
@@ -156,9 +156,9 @@ export function crearVista({ ctx, M, X }) {
       for (const el of document.querySelectorAll('.orden')) {
         const o = el.dataset.o; if (!['tirar', 'hostigar', 'retirarse', 'alto'].includes(o)) continue;
         const vig = (o === 'tirar' && T.orden === 'tirar') || (o === 'hostigar' && T.orden === 'hostigar') || (o === 'retirarse' && T.orden === 'retirarse');
-        const apaga = T.roto || T.hombres <= 0 || (o === 'hostigar' && T.municion <= 0);
-        el.classList.toggle('vigente', vig && o !== 'tirar'); el.classList.toggle('luz', !!u && o === u); el.classList.toggle('apagada', apaga);
-        if (o === 'tirar') { const bt = el.querySelector('b'), t = T.orden === 'tirar' ? 'Alto el fuego' : 'Tirar'; if (bt && bt.textContent !== t) { bt.textContent = t; el.setAttribute('aria-label', t); } }
+        const no = T.roto || T.hombres <= 0 ? 'Tus tiradores ya no obedecen' : (o === 'hostigar' && T.municion <= 0) ? 'Sin munición no se hostiga' : '';
+        /* BT1: «Tirar» no cambia de nombre: rellena mientras tiran y, tocado otra vez, dejan de tirar (lo dice el aviso) */
+        el.classList.toggle('vigente', vig); el.classList.toggle('luz', !!u && o === u && !no); el.classList.toggle('apagada', !!no); el.dataset.no = no;
       }
     }
   }

@@ -22,7 +22,44 @@ import { centro, GRADO, D_CARGA } from './bloque-ia.js';
 const fr = a => ({ x: Math.sin(a), z: -Math.cos(a) }), de = a => ({ x: Math.cos(a), z: Math.sin(a) });
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
 export const HUECO = 8;
-export const ORDENES_DE = { falange: ['picas', 'cerrar', 'avanzar', 'alto'], manipulo: ['testudo', 'cargar', 'relevo', 'alto'], todos: ['avanzar', 'alto', 'cargar', 'retirada'] };
+/* BT1 · LA BARRA COMÚN («Lo común, una sola vez»; usuario, 25/11, «1A»). Una sola barra de órdenes en TODAS las batallas: seis huecos,
+   siempre los mismos, en el mismo orden y con el mismo nombre y dibujo. El primero es la orden PROPIA de cada tropa (marcada aparte).
+   Ningún botón cambia de nombre: lo que no vale en ese momento se ve apagado en su sitio. Esto es solo la tabla (sin pantalla):
+   la pintan gobierno/maquetas/bloque/hud.js (a pie) y js/ui-mando.js (batalla grande).
+     BARRA            los seis huecos, de izquierda a derecha
+     ROTULO, ICONO    la palabra y el dibujo (trazos SVG en una caja de 32) de cada hueco y de cada orden propia
+     HUECOS[tropa]    a qué orden de esa tropa va cada hueco (null: no existe en esa tropa, apagado)
+     NO_HAY[tropa]    la frase corta que sale al tocar un hueco que esa tropa no tiene
+     HUECO_DE[orden]  el hueco de cualquier orden de cualquier tropa · aSeis(lista) pone una lista de órdenes en los seis huecos */
+export const BARRA = ['propia', 'avanzar', 'cargar', 'alto', 'relevo', 'retirada'];
+export const ROTULO = { avanzar: 'Avanzar', cargar: 'Cargar', alto: 'Alto', relevo: 'Relevo', retirada: 'Retirada', testudo: 'Testudo', picas: 'Bajar picas', tirar: 'Tirar', formar: 'Formar…' };
+export const ICONO = {
+  avanzar: '<path d="M9 22l7-7 7 7"/><path d="M16 15v13"/><path d="M9 12l7-7 7 7"/>',
+  cargar: '<path d="M9 20l7-7 7 7"/><path d="M9 27l7-7 7 7"/><path d="M16 4v8"/><path d="M13 7l3-3 3 3"/>',
+  alto: '<path d="M7 11h18M7 16h18M7 21h18"/>',
+  relevo: '<path d="M10 25V9M6 13l4-4 4 4"/><path d="M22 7v16M18 19l4 4 4-4"/>',
+  retirada: '<path d="M16 6v16"/><path d="M10 16l6 6 6-6"/><path d="M7 27h18"/>',
+  testudo: '<path d="M5 19c0-6 5-11 11-11s11 5 11 11"/><path d="M5 19h22M10 19v6M16 19v6M22 19v6M8.5 13.5h15M16 8v11"/>',
+  picas: '<path d="M6 26L26 10"/><path d="M10 27L28 14"/><path d="M23 9l4 0-1 4"/>',
+  tirar: '<path d="M6 26C6 14 12 8 24 6"/><path d="M6 26L24 6"/><path d="M19 5l5 1-1 5"/>',
+  formar: '<rect x="5" y="6" width="9" height="9" rx="1"/><rect x="18" y="6" width="9" height="9" rx="1"/><rect x="5" y="19" width="9" height="7" rx="1"/><rect x="18" y="19" width="9" height="7" rx="1"/>'
+};
+/* manípulo (bloque-ia, también el testudo y los manípulos de Ásculo) · falange (a pie: js/falange.js; en Ásculo: bloque de js/bloque-ia.js)
+   · tiradores (js/tiro.js) · grande (js/simulador.js: mover, cargar, aguantar, relevar, retirar; «Formar…» abre las formas) */
+export const HUECOS = {
+  manipulo: { propia: 'testudo', avanzar: 'avanzar', cargar: 'cargar', alto: 'alto', relevo: 'relevo', retirada: 'retirada' },
+  falange: { propia: 'picas', avanzar: 'avanzar', cargar: 'cargar', alto: 'alto', relevo: 'cerrar', retirada: 'retirada' },
+  tiradores: { propia: 'tirar', avanzar: 'hostigar', cargar: null, alto: 'alto', relevo: null, retirada: 'retirarse' },
+  grande: { propia: 'formar', avanzar: 'mover', cargar: 'cargar', alto: 'aguantar', relevo: 'relevar', retirada: 'retirar' }
+};
+export const NO_HAY = {
+  falange: { retirada: 'La falange no se retira: aguanta con «Alto»', cargar: 'La falange no corre: «Cargar» empuja ya en el choque' },   /* la de js/falange.js, a pie */
+  tiradores: { cargar: 'Los tiradores no cargan: «Avanzar» sale a hostigar', relevo: 'Los tiradores no tienen relevo' }
+};
+export const HUECO_DE = { testudo: 'propia', picas: 'propia', tirar: 'propia', formar: 'propia', avanzar: 'avanzar', hostigar: 'avanzar', mover: 'avanzar', cargar: 'cargar', empujar: 'cargar',
+  alto: 'alto', aguantar: 'alto', relevo: 'relevo', cerrar: 'relevo', relevar: 'relevo', retirada: 'retirada', retirarse: 'retirada', retirar: 'retirada' };
+export const aSeis = lista => BARRA.map(h => (lista || []).find(o => HUECO_DE[o] === h) || null);
+export const ORDENES_DE = { falange: BARRA.map(h => HUECOS.falange[h]), manipulo: BARRA.map(h => HUECOS.manipulo[h]) };
 const T_CIERRA = 6;
 
 export function crearMando(C, { MO, avisa = () => {}, hueco = HUECO } = {}) {
@@ -47,7 +84,11 @@ export function crearMando(C, { MO, avisa = () => {}, hueco = HUECO } = {}) {
   }
   despliega();
 
-  M.ordenesDe = id => ((por(id) || {}).ordenes) || ORDENES_DE[(por(id) || {}).tipo || 'todos'] || ORDENES_DE.todos;
+  /* BT1: los seis huecos de la barra (BARRA), con la orden de ese cuerpo en cada uno o null. «Todos»: la propia es la del primer cuerpo */
+  M.ordenesDe = id => {
+    if (id === 'todos') { const p = M.ordenesDe(cuerpos[0].id)[0]; return [p, 'avanzar', 'cargar', 'alto', 'relevo', 'retirada']; }
+    const c = por(id) || {}; return c.ordenes ? (c.ordenes.length === BARRA.length ? c.ordenes : aSeis(c.ordenes)) : ORDENES_DE[c.tipo] || ORDENES_DE.manipulo;
+  };
   M.vida = id => {
     if (id === 'todos') { const L = cuerpos.filter(c => c.b), n = L.reduce((s, c) => s + c.b.U.enPie, 0), d = L.reduce((s, c) => s + c.b.U.hombres, 0); return { n, de: d, f: d ? n / d : 0 }; }
     const c = por(id); if (!c) return { n: 0, de: 0, f: 0 };
@@ -80,13 +121,14 @@ export function crearMando(C, { MO, avisa = () => {}, hueco = HUECO } = {}) {
   }
   function aplicaOrden(id, n) {
     if (id !== 'todos') return ordenA(por(id), n);
-    let ok = false;
-    for (const c of cuerpos) ok = ordenA(c, n === 'cargar' && c.tipo === 'falange' ? 'picas' : n) || ok;
+    /* «Todos»: a cada cuerpo, la orden de su mismo hueco (BT1; la propia, solo a los de su tipo). Los tiradores, la misma palabra (como antes) */
+    const h = M.ordenesDe('todos').indexOf(n); let ok = false;
+    for (const c of cuerpos) { const nc = c.alOrden ? n : M.ordenesDe(c.id)[h]; if (nc && (h > 0 || nc === n)) ok = ordenA(c, nc) || ok; }
     return ok;
   }
   M.orden = n => {
     const id = M.elegido;
-    if (!M.ordenesDe(id).includes(n)) return false;
+    if (!n || !M.ordenesDe(id).includes(n)) return false;
     if (M.pausa) { M.cola.push(() => aplicaOrden(id, n)); aviso('Orden dada: se cumple al reanudar'); avisaCambio(); return true; }
     return aplicaOrden(id, n);
   };

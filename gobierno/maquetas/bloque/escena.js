@@ -21,13 +21,14 @@
 import { THREE } from '../../../js/gfx/models.js';
 import { cargarSoldado, tropa, PUEBLOS, gama } from '../../../js/gfx/soldado.js';
 import { crearCampo } from '../falange/campo.js';
+import { MUNDO, SUELO_GLSL, prepararLuz, crearCielo, brumaPara, distanciaVista } from '../../../js/gfx/campo-mando.js';   /* BT1: la luz, la bruma y el cielo de la batalla grande: un solo mundo */
 import * as Son from '../a-pie/sonido.js';
 import * as BL from '../../../js/bloque.js';
 import { crearCombate, centro, NIVELES, SALVA_VUELO } from '../../../js/bloque-ia.js';
 import { crearTropas } from './tropas.js';
 import { crearLucha } from '../../../js/combate-tropas.js';   /* CB3: el motor de lucha decide los golpes y los caídos */
 import { crearFisica } from '../../../js/fisica-batalla.js';   /* FU4: con la falange, los cuerpos de verdad (hombres, jinetes, elefantes) no se atraviesan */
-import { crearFisicaBloque, PROY_MAX } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
+import { crearFisicaBloque, PROY_MAX, medirChoques } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
 import { crearHud } from './hud.js';
 import { crearAbanico } from './abanico.js';   /* FU5 */
 import { crearMuro } from './formaciones/muro.js';   /* FU5 */
@@ -47,12 +48,12 @@ import { crear as formacionFalange } from './formaciones/falange.js';   /* FU3: 
 import { acercaRival, resultadoLP7 as resultadoLP7F } from '../falange/acciones.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => document.getElementById(id);
-const TESTUDO = Q.get('formacion') === 'testudo' && !Q.get('lp7');   /* FU1: la formación de la escena (cada una, su archivo en formaciones/) */
+const TESTUDO = (Q.get('formacion') === 'testudo' || !Q.get('formacion')) && !Q.get('lp7');   /* FU1: la formación de la escena (cada una, su archivo en formaciones/). BT1: sin ?formacion= también (manípulo y testudo, una sola prueba: cruzas bajo las salvas y luego peleas con relevos); ?formacion=manipulo, el manípulo solo */
 const FALANGE = Q.get('formacion') === 'falange';   /* FU3: también con ?lp7= (bajar a pie con una falange) */
 const MU = crearMuro(), ABI = crearAbierto(); let AB = null;   /* FU5: muro de escudos, orden abierto y su abanico */
 const COMBINADA = Q.get('formacion') === 'combinada' && !Q.get('lp7');   /* ES2 */
 const FORM = COMBINADA ? formacionCombinada() : FALANGE ? formacionFalange() : TESTUDO ? formacionTestudo() : formacionManipulo();
-if (TESTUDO) document.title = 'AQVILA · Testudo a pie';
+if (TESTUDO) document.title = 'AQVILA · Manípulo y Testudo a pie';
 if (FALANGE) {   /* tus falangitas de FA2 (azules, su oficial con penacho) contra los hastati de siempre (rojos) */
   document.title = 'AQVILA · Falange a pie'; const pal = gama('#3a64a8', PUEBLOS.falangita);
   ponBandos({ modelo: 'falangita', oficial: 'oficial-falange', paleta: pal, palOficial: Object.assign({}, pal, { escudos: PUEBLOS.falangita.escudos }) }, { modelo: 'hastatus' });
@@ -84,15 +85,7 @@ let semillaV = 7; const azarV = () => { semillaV = (semillaV * 16807) % 21474836
 const H = (x, z) => 3.4 * suave(-70, -103, z) * (1 + 0.06 * Math.sin(x * 0.07)) + 0.22 * Math.sin(x * 0.11 + z * 0.07) * Math.sin(z * 0.045 + 1.3) + 0.6 * suave(30, 90, Math.abs(x)) * Math.sin(z * 0.03);
 
 /* ---------- luz de cine (copiada de ../falange/escena.js): gradación dentro del tonemapping y Lambert con borde de contraluz ---------- */
-THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace('vec3 CustomToneMapping( vec3 color ) { return color; }', `vec3 CustomToneMapping( vec3 color ) {
-  vec3 p = sqrt( ACESFilmicToneMapping( color ) );
-  float l = dot( p, vec3( 0.299, 0.587, 0.114 ) );
-  p = mix( vec3( l ), p, 1.18 );
-  p = mix( p, p * p * ( 3.0 - 2.0 * p ), 0.45 );
-  p += vec3( -0.012, 0.004, 0.022 ) * ( 1.0 - l ) * ( 1.0 - l ) + vec3( 0.03, 0.012, -0.03 ) * l * l;
-  p = clamp( p, 0.0, 1.0 );
-  return p * p;
-}`);
+/* BT1: la gradación dentro del tonemapping la pone prepararLuz (js/gfx/campo-mando.js), la misma que en la batalla grande */
 const LAMBERT_CINE = THREE.ShaderChunk.lights_lambert_pars_fragment
   .replace('varying vec3 vViewPosition;', 'varying vec3 vViewPosition;\nuniform float uBorde;\nuniform float uAmb;\nuniform float uTrasluz;')
   .replace('reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}', `reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
@@ -110,34 +103,21 @@ const sueloCine = sh => cine(sh, 0);
 const lienzo = $('lienzo');
 const renderer = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-renderer.toneMapping = THREE.CustomToneMapping; renderer.toneMappingExposure = 1.08;
-const HORIZ = '#dcb888';
-const escena = new THREE.Scene(); escena.background = new THREE.Color(HORIZ); escena.fog = new THREE.FogExp2('#c9a77a', 0.0042);
+prepararLuz(THREE, renderer);
+const HORIZ = MUNDO.horiz;
+const escena = new THREE.Scene(); escena.background = new THREE.Color(HORIZ); escena.fog = new THREE.FogExp2(MUNDO.bruma, brumaPara(55));   /* BT1: la densidad la ajusta el bucle (antes 0,0042 fija: en Ásculo, con la cámara abierta, tapaba las tropas) */
 const camara = new THREE.PerspectiveCamera(58, 1, 0.3, 12000);
-/* el sol: bajo, delante (detrás de los galos) y algo a la derecha: contraluz, como en la falange */
-const SOL = new THREE.Vector3(0.13, 0.33, -0.94).normalize();
-escena.add(new THREE.HemisphereLight(0xb9c8e0, 0x6e5a3e, 1.5));
-const luz = new THREE.DirectionalLight(0xffcb90, 3.0); luz.position.copy(SOL).multiplyScalar(40); escena.add(luz);
+/* el sol: bajo, delante (detrás de los galos) y a la derecha: contraluz dorado. BT1: el mismo que en la batalla grande (MUNDO; antes 0.13, 0.33, −0.94) */
+const SOL = new THREE.Vector3(...MUNDO.sol).normalize();
+escena.add(new THREE.HemisphereLight(...MUNDO.cielo));
+const luz = new THREE.DirectionalLight(MUNDO.colSol, MUNDO.fuerzaSol); luz.position.copy(SOL).multiplyScalar(40); escena.add(luz);
 /* relleno fuerte desde la cámara: a contraluz los hombres saldrían negros y no se distinguirían los bandos */
-const relleno = new THREE.DirectionalLight(0xfff0dc, 2.4); relleno.position.set(-0.4, 0.6, 1); escena.add(relleno);
+const relleno = new THREE.DirectionalLight(MUNDO.relleno[0], MUNDO.relleno[1]); relleno.position.set(MUNDO.relleno[2], MUNDO.relleno[3], MUNDO.relleno[4]); escena.add(relleno);
 const texCielo = new THREE.TextureLoader().load('gobierno/maquetas/testudo-luz-campo/arte/cielo.jpg'); texCielo.colorSpace = THREE.SRGBColorSpace; texCielo.wrapS = THREE.RepeatWrapping; texCielo.generateMipmaps = false; texCielo.minFilter = THREE.LinearFilter;
-const cielo = new THREE.Mesh(new THREE.SphereGeometry(9000, 48, 24), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
-  uniforms: { uCielo: { value: texCielo }, uSol: { value: SOL }, uH: { value: new THREE.Color(HORIZ) } },
-  vertexShader: 'varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-  fragmentShader: `varying vec3 vD; uniform sampler2D uCielo; uniform vec3 uSol, uH;
-  void main(){ vec3 d = normalize(vD); float e = asin(clamp(d.y, -1.0, 1.0));
-    vec3 c = texture2D(uCielo, vec2(fract((atan(d.z, d.x) - atan(uSol.z, uSol.x)) / 6.2831853 + 0.1), clamp((e + 0.0733) / 1.6441, 0.002, 0.998))).rgb; c = pow(c, vec3(1.25)) * 1.05;
-    float s = max(dot(d, uSol), 0.0);
-    c *= mix(vec3(0.82, 0.9, 1.04), vec3(1.22, 0.98, 0.72), pow(s, 2.0)) * mix(vec3(1.12, 0.95, 0.76), vec3(1.0), smoothstep(0.02, 0.4, e));
-    c = mix(c, c * vec3(0.6, 0.76, 1.0), smoothstep(0.06, 0.5, e) * (1.0 - pow(s, 2.0)));
-    c = mix(uH, c, smoothstep(-0.01, 0.1, e));
-    c += vec3(1.0, 0.72, 0.42) * (pow(s, 8.0) * 0.55 + pow(s, 90.0) * 1.2) + vec3(1.0, 0.95, 0.85) * smoothstep(0.9993, 0.9997, s) * 6.0;
-    gl_FragColor = vec4(c, 1.0);
- #include <tonemapping_fragment>
- #include <colorspace_fragment>
-  }` }));
-cielo.renderOrder = -10; escena.add(cielo);
+const cielo = crearCielo(THREE, texCielo, SOL); escena.add(cielo);   /* BT1: el mismo cielo que en la batalla grande */
 let vertical = true;
+/* BT1: para las pruebas (test/graficos-bt1.mjs): el mismo mundo que la batalla grande */
+window.__mundo = { id: MUNDO.id, sol: luz.color.getHexString(), bruma: escena.fog.color.getHexString(), horiz: escena.background.getHexString(), suelo: SUELO_GLSL.length, exposicion: renderer.toneMappingExposure, densidad: () => escena.fog.density, vista: () => distanciaVista(camara) };
 function medir() { const w = innerWidth, h = innerHeight; vertical = h >= w; renderer.setSize(w, h, false); camara.aspect = w / h; camara.updateProjectionMatrix(); }
 addEventListener('resize', medir); medir();
 
@@ -496,7 +476,7 @@ function bucle(ahora) {
     oficialPinta();
     camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt);
     if (sacude > 0) { sacude = Math.max(0, sacude - dt); const a = 0.25 * sacude; camara.position.x += (azarV() - 0.5) * a; camara.position.y += (azarV() - 0.5) * a; }
-    camara.updateMatrixWorld();
+    camara.updateMatrixWorld(); escena.fog.density = brumaPara(distanciaVista(camara));   /* BT1: nítido donde miras, bruma en el horizonte */
     if (FL) {   /* FU3b */
       const e = FL.estado(); FORM.vis && (FORM.vis.bajadas = e.bajadas);
       const fr0 = C.S.tuyo, pf = proyecta(fr0.x, 3.2, fr0.z), hh = e.hueco && FL.hueco ? (FL.hueco.h || null) : null, ph = e.hueco ? proyecta(hh ? hh.x : fr0.x, 0.1, hh ? hh.z : fr0.z) : null;
@@ -547,6 +527,7 @@ async function arranca() {
     yo: () => OF && OF.yo(), modo: () => { const e = OF && OF.estado(); return { duelo: !!(e && e.duelo && rivF), techo: !!(FORM.cerrado && FORM.cerrado()), rival: rivF ? { x: rivF.x, z: rivF.z } : null }; } }); window.__bloque.vista = cam1;
   /* FU4: medida de la física con la falange: picas dibujadas (ya retiradas) y cuerpos (Fi.medir); y el peso del dibujo del rival */
   window.__bloque.fisica = () => { if (!C || !C.S.fal) return null; const v = FORM.vis || {}; v.mide = true; const pz = v.picas || [], m = FI ? FI.medir(C.S.fal, pz) : {}; return { activa: !!FI, picas: pz.length, distMin: m.distMin, puntasDentro: m.puntasDentro, pisados: m.pisados, rival: RIVD ? RIVD.peso() : null }; };
+  window.__bloque.choques = o => medirChoques(escena, Object.assign({ figs: TR ? TR.figs.concat(TR.caidos) : [] }, o));   /* BT1: nada atraviesa nada (lo que se pinta: astas, brazos, escudos y caídos) */
   DH = crearDueloHud({ padre: $('hud') }); if (FALANGE) FH = crearFalangitaHud({ padre: $('hud') }); window.__bloque.pide = (g, d) => OF && OF.pide(g, d);
   escena.add(dedos.raya);
   creaSombras(); creaEfectos();
@@ -564,17 +545,17 @@ async function arranca() {
     for (const n of prestan(b)) { const s = cargados[b + ':' + n]; if (s) A[b][n] = NIV.map((nv, k) => { const t = tropa(soloArmas(s.niveles[nv]), TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Faltan armas de', n); }
   }
   if (TESTUDO) {   /* FU1: la tarjeta de entrada del testudo */
-    const ps = document.querySelectorAll('#inicio p'); $('inicio').querySelector('h1').textContent = 'Testudo a pie';
+    const ps = document.querySelectorAll('#inicio p'); $('inicio').querySelector('h1').textContent = 'Manípulo y Testudo a pie';
     ps[0].innerHTML = 'Cruza el campo hasta la <b>colina</b>. <b>Arrastra el dedo por el suelo</b>: ahí formará tu primera fila.';
     ps[1].innerHTML = 'Los tiradores galos lanzarán <b>dos salvas</b> mientras cruzas. Cuando se ilumine <b>«Testudo»</b>, tócalo: los escudos cierran un techo. Luego, tócalo otra vez para abrirlo.';
-    ps[2].innerHTML = 'Después, los galos cargan: se lucha hasta que queda el 15 %.';
+    ps[2].innerHTML = 'Después, los galos cargan: pelea y, cuando tu primera fila se canse, toca <b>«Relevo»</b> para que entre una fresca. Se lucha hasta que queda el 15 %.';
   }
   if (FALANGE && !Q.get('lp7')) {   /* CG4b (pase de UN2): la tarjeta de entrada de la falange; antes salía la del manípulo */
     const ps = document.querySelectorAll('#inicio p'), nomR = Q.get('rival') || 'manipulos', txtR = RIV_TXT[nomR];
     const enfrente = txtR ? 'Enfrente, ' + txtR.los + '. ' + txtR.obj + '.' : 'Enfrente, los manípulos romanos. Baja las picas y rómpelos.';
     $('inicio').querySelector('h1').textContent = 'Falange a pie';
     ps[0].innerHTML = 'Mandas tu falange, no a un hombre. <b>Arrastra el dedo por el suelo</b>: ahí formará tu primera fila. Un muro de sarisas gira despacio: piensa antes de mover.';
-    ps[1].innerHTML = 'Abajo tienes cuatro órdenes: <b>«Bajar picas»</b> (las cinco primeras filas apuntan al frente), «Cerrar filas», «Avanzar» y «Alto». La que conviene <b>se ilumina</b>. Alzadas, las picas paran los proyectiles.';
+    ps[1].innerHTML = 'Abajo, la barra de órdenes de todas las batallas. La primera es la de la falange: <b>«Bajar picas»</b> (las cinco primeras filas apuntan al frente). «Relevo» cierra filas; «Cargar» empuja en el choque. La que conviene <b>se ilumina</b>. Alzadas, las picas paran los proyectiles.';
     ps[2].textContent = enfrente;
   }
   if (ASC) {   /* UN3: la tarjeta de entrada de Ásculo (antes salía la del manípulo contra los galos) */

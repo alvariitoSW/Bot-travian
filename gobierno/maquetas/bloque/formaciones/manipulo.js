@@ -4,7 +4,7 @@
    delega todo en las reglas (js/bloque-ia.js) y en la física (fisica.js, guardiaDeSerie).
    Contrato (todas las formaciones; sin pantalla dentro salvo monta y paso):
      crear() → { id, ordenes, objetivo, escenario, muroDelante, util(S), mods(S), guardia(h, S), monta(ctx), paso(dt), alAviso(tipo, d) }
-     ordenes      los cuatro botones, en el orden de la pantalla
+     ordenes      los seis huecos de la barra común (BT1: js/mando-varios.js BARRA), cada uno con su orden o null
      objetivo     texto de arriba al empezar (null = el de siempre)
      escenario    opción de crearCombate (js/bloque-ia.js) o null
      muroDelante  true: en testudo la primera fila lleva el escudo de frente (tropas.js)
@@ -18,7 +18,7 @@ import { guardiaDeSerie } from '../fisica.js';
 export function crear() {
   let ctx = null;
   return {
-    id: 'manipulo', ordenes: ['testudo', 'cargar', 'relevo', 'alto'], objetivo: null, escenario: null, muroDelante: false,
+    id: 'manipulo', ordenes: ['testudo', 'avanzar', 'cargar', 'alto', 'relevo', 'retirada'], objetivo: null, escenario: null, muroDelante: false,
     util: () => (ctx && ctx.C ? ctx.C.ordenUtil() : null),
     mods: () => null,
     guardia: guardiaDeSerie,

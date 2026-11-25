@@ -5,6 +5,7 @@
    No cambia nada de lo que se juega: donde pisan los hombres la altura del suelo es la misma función H de la maqueta. */
 import { THREE } from '../../../js/gfx/models.js';
 import { loadStaticIndex, loadStatic, getStatic } from '../../../js/gfx/statics.js';
+import { MUNDO, SUELO_GLSL, geoMata } from '../../../js/gfx/campo-mando.js';   /* BT1: el color del suelo y las matas, los mismos que en la batalla grande */
 
 const ARTE = n => new URL('../testudo-luz-campo/arte/' + n, import.meta.url).href;
 const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -46,6 +47,8 @@ const GLSL = `
 uniform sampler2D uRuido;
 float sendaX(float z){ return 3.2 * sin(z * 0.034 + 0.6) + 1.1 * sin(z * 0.09) + 0.0004 * pow(max(0.0, -z - 110.0), 2.0); }
 float mascaraSenda(vec2 p, float n){ return (1.0 - smoothstep(0.5, 1.5, abs(p.x - sendaX(p.y)) + (n - 0.5) * 2.2)) * smoothstep(60.0, 25.0, p.y); }
+float orillaSenda(vec2 p, float n){ return mascaraSenda(p * vec2(0.5, 1.0) + vec2(sendaX(p.y) * 0.5, 0.0), n); }   /* hierba pisada a los lados */
+float lejania(vec2 p){ return smoothstep(80.0, 220.0, max(abs(p.x), -p.y - 60.0)); }
 `;
 /* lo mismo aquí, para no poner matas en la senda ni en las calvas (mismas escalas que el sombreador del suelo) */
 const masSenda = (x, z) => (1 - suave(0.5, 1.5, Math.abs(x - sendaX(z)) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 2) - 0.5) * 2.2)) * suave(60, 25, z);
@@ -99,29 +102,7 @@ export async function crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: BR })
   const sueloMat = lejos => { const matSuelo = new THREE.MeshLambertMaterial({ color: 0xffffff }); matSuelo.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, { uRuido, uSeca: { value: tSeca }, uVerde: { value: tVerde }, uTierra: { value: tTierra } });
     sh.vertexShader = 'varying vec3 vW; varying float vNy;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vW = (modelMatrix * vec4(transformed, 1.0)).xyz; vNy = objectNormal.y;');
-    sh.fragmentShader = 'varying vec3 vW; varying float vNy; uniform sampler2D uSeca, uVerde, uTierra;\n' + GLSL + sh.fragmentShader.replace('#include <map_fragment>', `
-      vec2 p = vW.xz; const mat2 GIRO = mat2(0.8, -0.6, 0.6, 0.8);
-      float n1 = texture2D(uRuido, p * 0.0031).r;
-      #ifdef LEJOS
-      vec3 seca = texture2D(uSeca, GIRO * p * 0.073 + 0.37).rgb * vec3(1.06, 1.1, 0.82), verde = texture2D(uVerde, p * 0.061 + 0.6).rgb * vec3(1.12, 1.18, 0.92);
-      vec3 c = mix(seca, verde, smoothstep(0.32, 0.62, n1) * 0.85);
-      #else
-      vec2 nn = texture2D(uRuido, p * 0.013 + 0.3).gb; float n2 = nn.x, n3 = nn.y;
-      vec3 seca = mix(texture2D(uSeca, p * 0.21).rgb, texture2D(uSeca, GIRO * p * 0.073 + 0.37).rgb, 0.45) * vec3(1.06, 1.1, 0.82);
-      vec3 verde = texture2D(uVerde, GIRO * p * 0.12).rgb * vec3(1.12, 1.18, 0.92);
-      vec3 tierra = texture2D(uTierra, p * 0.26).rgb;
-      float mV = smoothstep(0.32, 0.62, n1 + (n2 - 0.5) * 0.5);
-      vec3 c = mix(seca, verde, mV * 0.85);
-      float calva = smoothstep(0.72, 0.82, n2 + (n3 - 0.5) * 0.3), senda = mascaraSenda(p, n3);
-      float orilla = mascaraSenda(p * vec2(0.5, 1.0) + vec2(sendaX(p.y) * 0.5, 0.0), n2);   /* hierba pisada a los lados */
-      c = mix(c, tierra, max(max(senda * 0.85, calva * 0.6), orilla * 0.3));
-      #endif
-      c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.5);   /* laderas, más secas */
-      /* lejos, matorral mediterráneo: manchas de verde oscuro por las lomas */
-      { float mq = texture2D(uRuido, p * 0.0093 + 0.71).g, lj = smoothstep(80.0, 220.0, max(abs(p.x), -p.y - 60.0));
-        c = mix(c, vec3(0.2, 0.25, 0.12), smoothstep(0.52, 0.68, mq) * 0.65 * lj); }
-      c *= mix(0.84, 1.1, n1);
-      diffuseColor.rgb *= c * 1.08;`);
+    sh.fragmentShader = 'varying vec3 vW; varying float vNy; uniform sampler2D uSeca, uVerde, uTierra;\n' + GLSL + sh.fragmentShader.replace('#include <map_fragment>', SUELO_GLSL);   /* BT1: el mismo suelo que la batalla grande (js/gfx/campo-mando.js) */
     if (lejos) sh.fragmentShader = '#define LEJOS\n' + sh.fragmentShader;
     if (sueloCine) sueloCine(sh, false);   /* GM43e: luz de A y penumbra bajo la formación */
   }; matSuelo.customProgramCacheKey = () => 'campo-suelo-' + lejos; return matSuelo; };
@@ -150,22 +131,10 @@ export async function crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: BR })
   };
   {
     /* GM43e: las matas lejanas llevan 4 hojas en vez de 7 (de lejos no se cuentan) */
-    const mata = HOJAS => { const pos = [], col = [], nor = [], idx = []; let v = 0;
-    for (let b = 0; b < HOJAS; b++) {
-      const a = azar() * Math.PI * 2, r = Math.sqrt(azar()) * 0.17, bx = Math.cos(a) * r, bz = Math.sin(a) * r;
-      const h = 0.5 + azar() * 0.5, w = 0.018 + azar() * 0.014, cara = azar() * Math.PI, px = Math.cos(cara) * w, pz = Math.sin(cara) * w;
-      const dl = a + (azar() - 0.5) * 1.2, l = (0.12 + azar() * 0.4) * h, lx = Math.cos(dl) * l, lz = Math.sin(dl) * l;
-      const pt = t => [bx + lx * t * t, h * t * (1 - 0.15 * t * t * (l / h)), bz + lz * t * t];
-      const m = pt(0.5), tp = pt(1);
-      pos.push(bx - px, 0, bz - pz, bx + px, 0, bz + pz, m[0] - px * 0.7, m[1], m[2] - pz * 0.7, m[0] + px * 0.7, m[1], m[2] + pz * 0.7, tp[0], tp[1], tp[2]);
-      const g0 = 0.55, g1 = 0.85; col.push(g0, g0, g0, g0, g0, g0, g1, g1, g1, g1, g1, g1, 1, 1, 1);
-      for (let i = 0; i < 5; i++) nor.push(0, 1, 0);
-      idx.push(v, v + 1, v + 3, v, v + 3, v + 2, v + 2, v + 3, v + 4); v += 5;
-    }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setIndex(idx); return g; };
+    const mata = HOJAS => geoMata(THREE, HOJAS, azar);   /* BT1: la misma mata que en la batalla grande */
     const g = mata(7), gL = mata(4), LEJ = [];
     let lista = [], o = new THREE.Object3D(), c = new THREE.Color();
-    const SECA = [new THREE.Color('#c9b46c'), new THREE.Color('#b3a05a'), new THREE.Color('#a8a85a')], VERDE = [new THREE.Color('#7e9440'), new THREE.Color('#6b8436'), new THREE.Color('#94a050')];
+    const SECA = MUNDO.seca.map(h => new THREE.Color(h)), VERDE = MUNDO.verde.map(h => new THREE.Color(h));
     const pon = (x, z, esc) => {
       const mv = masVerde(x, z), pal = azar() < mv ? VERDE : SECA; c.copy(pal[Math.floor(azar() * 3)]).multiplyScalar(0.85 + azar() * 0.3);
       o.position.set(x, H(x, z) - 0.02, z); o.rotation.set((azar() - 0.5) * 0.25, azar() * 6.28, (azar() - 0.5) * 0.25);

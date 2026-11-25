@@ -1,0 +1,78 @@
+{
+ "vivo-inicio-v": {
+  "dibujo": {
+   "llamadas": 26,
+   "tri": 626279
+  }
+ },
+ "vivo-lucha-v": {
+  "dibujo": {
+   "llamadas": 26,
+   "tri": 626279
+  }
+ },
+ "vivo-cerca-v": {
+  "dibujo": {
+   "llamadas": 28,
+   "tri": 638415
+  }
+ },
+ "vivo-v": {
+  "errores": 0,
+  "ej": []
+ },
+ "vivo-inicio-h": {
+  "dibujo": {
+   "llamadas": 26,
+   "tri": 626279
+  }
+ },
+ "vivo-lucha-h": {
+  "dibujo": {
+   "llamadas": 26,
+   "tri": 626279
+  }
+ },
+ "vivo-cerca-h": {
+  "dibujo": {
+   "llamadas": 26,
+   "tri": 626279
+  }
+ },
+ "vivo-h": {
+  "errores": 0,
+  "ej": []
+ },
+ "testudo-v": {
+  "dibujo": {
+   "llamadas": 26,
+   "tri": 588236
+  },
+  "errores": 0,
+  "ej": []
+ },
+ "testudo-h": {
+  "dibujo": {
+   "llamadas": 27,
+   "tri": 795848
+  },
+  "errores": 0,
+  "ej": []
+ },
+ "asculo-v": {
+  "dibujo": {
+   "llamadas": 28,
+   "tri": 652970
+  },
+  "errores": 0,
+  "ej": []
+ },
+ "asculo-h": {
+  "dibujo": {
+   "llamadas": 28,
+   "tri": 624012
+  },
+  "errores": 0,
+  "ej": []
+ }
+}

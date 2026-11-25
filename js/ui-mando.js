@@ -28,8 +28,9 @@
   <div id="mn-cinta"></div>
   <div id="mn-aviso" hidden></div>
   <div id="mn-abajo">
-    <div id="mn-ficha"><div id="mn-ficha-t"></div><button id="mn-varios" type="button" aria-pressed="false">Varios</button></div>
-    <div id="mn-ordenes" hidden></div>
+    <div id="mn-ficha"><div id="mn-ficha-t"></div><div id="mn-ficha-b"><button id="mn-varios" class="mn-t" type="button" aria-pressed="false">Varios</button></div></div>
+    <div id="mn-ordenes" class="barra6"></div>
+    <div id="mn-formas" hidden></div>
   </div>
   <div id="mn-salir" class="velo" hidden>
     <h1>¿Retirarse?</h1>
@@ -59,11 +60,11 @@
     $('carga-no').addEventListener('click', sale); $('retirar').addEventListener('click', sale);
     window.__mn = { lista: false, cerrado: false, S };
     try {
-      const [M, U, Gr, St, C, FB] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js'), import('./gfx/campo-mando.js'), import('./fisica-batalla.js').catch(() => null)]);   /* FI4: la física de las figuras */
+      const [M, U, Gr, St, C, FB, MV, RO] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js'), import('./gfx/campo-mando.js'), import('./fisica-batalla.js').catch(() => null), import('./mando-varios.js'), import('../gobierno/maquetas/bloque/rotulos.js').catch(() => null)]);   /* FI4: la física de las figuras. BT1: la barra común y las etiquetas que no se pisan */
       if (activa !== a) return;
       const fin = r => { if (activa === a) { activa = null; el.remove(); } if (alTerminar) alTerminar(r); };
       $('retirar').removeEventListener('click', sale);
-      const P = pantalla({ M, U, Gr, St, C, FB }, el, $, cfg, S, fin); a.cerrar = P.cerrarTodo;
+      const P = pantalla({ M, U, Gr, St, C, FB, MV, RO }, el, $, cfg, S, fin); a.cerrar = P.cerrarTodo;
     } catch (e) { console.error(e); const p = $('carga-p'); if (p) p.textContent = 'No se ha podido cargar la batalla.'; const s = $('carga-s'); if (s) s.hidden = false; }
     return el;
   }
@@ -458,19 +459,32 @@
         pon(h, u.n / u.n0); { const w = Math.round(Math.max(0, Math.min(1, (u.her || 0) / u.n0)) * 100) + '%', hb = h.lastChild; if (hb.style.width !== w) hb.style.width = w; }   /* sanos blanco, heridos ámbar, muertos el hueco */
         pon(mo, u.moral); pon(fa, 1 - u.fatiga);
       }
+      /* BT1: las etiquetas no se pisan ni asoman encima de la ficha, la barra de órdenes, la de arriba o los avisos */
+      if (mods.RO) mods.RO.separaEstandartes($('capa'), { zonas: [$('abajo'), $('arriba'), $('formas')], fijos: [$('aviso'), $('cinta')] });
     }
 
-    /* ---------- ficha y botones de la selección ---------- */
-    const FORMAS = Sim.FORMAS, SABE = Sim.SABE;
-    const ORD = { cargar: ['Cargar', 'al más cercano'], relevar: ['Relevar', 'entra la fresca'], retirar: ['Retroceder', '80 m atrás'], aguantar: ['Aguantar', 'escudos juntos'], formar: ['Formar…', 'cambiar forma'], devolver: ['Al tribuno', 'que lo lleve él'] };
+    /* ---------- ficha y botones de la selección ----------
+       BT1: la barra común de seis (js/mando-varios.js, la misma que a pie): Formar… · Avanzar · Cargar · Alto · Relevo · Retirada, siempre
+       con el mismo nombre en el mismo sitio. Sin manípulo elegido, apagados (al tocarlos dicen qué hacer). «Formar…» abre las formas
+       encima de la barra, sin cambiarla. «Al tribuno» y «Bajar a pie» no son órdenes: van en la ficha, como botones de texto. */
+    const FORMAS = Sim.FORMAS, SABE = Sim.SABE, MV = mods.MV, RO = mods.RO;
+    const SUB_FORMA = { linea: 'la de siempre', columna: 'para marchar', cuna: 'rompe líneas', abierto: 'menos bajas al tiro', testudo: 'bajo los proyectiles', muro: 'para la carga', falange: 'picas de frente' };
+    const HUECO = MV.HUECOS.grande, AVANCE = 40;   /* «Avanzar»: 40 m de frente, como la falange a pie (licencia de juego) */
     let verFormas = false, hudClave = '';
+    $('ordenes').innerHTML = MV.BARRA.map(h => { const k = h === 'propia' ? HUECO.propia : h; return '<button type="button" class="orden mn-o' + (h === 'propia' ? ' propia' : '') + '" data-h="' + h + '" aria-label="' + MV.ROTULO[k] + '"><span class="aro"><svg viewBox="0 0 32 32">' + MV.ICONO[k] + '</svg></span><b>' + MV.ROTULO[k] + '</b></button>'; }).join('');
     function puedeYa(o) { return Sim.puede(S, Object.assign({ lado: 0, ids: sel, x: 0, y: 0 }, o)); }
+    /* la orden del simulador de cada hueco, para lo elegido ahora */
+    function ordenDe(h) {
+      const t = HUECO[h]; if (t === 'formar') return null;
+      if (t === 'mover') { const us = sel.map(i => S.man[i]); if (!us.length) return null; let cx = 0, cy = 0; for (const u of us) { cx += u.x / us.length; cy += u.y / us.length; } const a = us[0].a; return { tipo: 'mover', x: cx + Math.cos(a) * AVANCE, y: cy + Math.sin(a) * AVANCE, a }; }
+      return { tipo: t };
+    }
     function pintarHud(fuerza) {
       sel = sel.filter(i => S.man[i] && vivo(S.man[i]));
       const t = Math.floor(S.t), reloj = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); if ($('reloj').textContent !== reloj) $('reloj').textContent = reloj;
-      const ft = $('ficha-t'), od = $('ordenes');
-      let html = '', ords = '';
-      if (!sel.length) { html = '<span class="ayuda">Toca un manípulo tuyo (rojo) para mandarlo. Arrastra el campo para mirar; pellizca para acercar.</span>'; }
+      const ft = $('ficha-t');
+      let html = '', fb = '', formas = '';
+      if (!sel.length) { html = '<span class="ayuda">Toca un manípulo tuyo (rojo) para mandarlo. Arrastra el campo para mirar; pellizca para acercar.</span>'; verFormas = false; }
       else {
         const us = sel.map(i => S.man[i]);
         if (us.length === 1) {
@@ -478,20 +492,30 @@
           html = '<b>' + esc(u.nom) + '</b> <small>' + esc(FORMAS[u.forma].n) + (u.cambio > 0 ? ' (formando)' : '') + ' · ' + (u.mando === 'jugador' ? 'lo llevas tú' : 'lo lleva el tribuno') + '</small><br>' +
             '<span>' + Math.round(u.n) + ' en pie' + (u.her ? ' · ' + Math.round(u.her) + ' heridos' : '') + (u.muertos ? ' · ' + Math.round(u.muertos) + ' muertos' : '') + ' de ' + u.n0 + '</span> <em class="' + tono + '">' + esc(p.animo) + '</em> <em class="' + tc + '">' + esc(p.cansancio) + '</em>' + (p.combate ? ' <em class="' + tb + '">' + esc(p.combate) + '</em>' : '');
         } else html = '<b>' + us.length + ' manípulos</b><br><span>' + Math.round(us.reduce((s, u) => s + u.n, 0)) + ' hombres</span>';
-        const boton = (o, que, sub, on) => { const no = puedeYa(o); return '<button type="button" class="mn-o' + (no ? ' no' : '') + (on ? ' on' : '') + '" data-o="' + esc(JSON.stringify(o)) + '" data-no="' + esc(no) + '"><span>' + esc(que) + '</span><small>' + esc(sub) + '</small></button>'; };
+        if (us.some(u => u.mando === 'jugador')) { const no = puedeYa({ tipo: 'devolver' }); fb += '<button type="button" class="mn-t' + (no ? ' no' : '') + '" data-devolver="1" data-no="' + esc(no) + '">Al tribuno</button>'; }
+        if (us.length === 1) { const no = puedeBajar(us[0].id); fb += '<button type="button" class="mn-t' + (no ? ' no' : '') + '" data-bajar="1" data-no="' + esc(no) + '">Bajar a pie</button>'; }
         if (verFormas) {
-          const formas = []; for (const u of us) for (const f of (SABE[u.tropa] || ['linea', 'columna'])) if (!formas.includes(f)) formas.push(f);
-          ords = formas.map(f => boton({ tipo: 'formar', forma: f }, FORMAS[f].n, ({ linea: 'la de siempre', columna: 'para marchar', cuna: 'rompe líneas', abierto: 'menos bajas al tiro', testudo: 'bajo los proyectiles', muro: 'para la carga', falange: 'picas de frente' })[f] || '', us.every(u => u.forma === f))).join('') +
-            '<button type="button" class="mn-o b" data-volver="1"><span>Volver</span><small>a las órdenes</small></button>';
-        } else {
-          ords = ['cargar', 'relevar', 'retirar', 'aguantar'].map(k => boton({ tipo: k }, ORD[k][0], ORD[k][1])).join('') +
-            '<button type="button" class="mn-o" data-formas="1"><span>' + ORD.formar[0] + '</span><small>' + ORD.formar[1] + '</small></button>' +
-            (us.some(u => u.mando === 'jugador') ? boton({ tipo: 'devolver' }, ORD.devolver[0], ORD.devolver[1]) : '') +
-            (us.length === 1 ? (no => '<button type="button" class="mn-o' + (no ? ' no' : '') + '" data-bajar="1" data-no="' + esc(no) + '"><span>Bajar</span><small>a pie, con ellos</small></button>')(puedeBajar(us[0].id)) : '');
+          const fs = []; for (const u of us) for (const f of (SABE[u.tropa] || ['linea', 'columna'])) if (!fs.includes(f)) fs.push(f);
+          formas = fs.map(f => { const o = { tipo: 'formar', forma: f }, no = puedeYa(o); return '<button type="button" class="mn-f' + (no ? ' no' : '') + (us.every(u => u.forma === f) ? ' on' : '') + '" data-o="' + esc(JSON.stringify(o)) + '" data-no="' + esc(no) + '"><span>' + esc(FORMAS[f].n) + '</span><small>' + esc(SUB_FORMA[f] || '') + '</small></button>'; }).join('') +
+            '<button type="button" class="mn-f b" data-volver="1"><span>Cerrar</span><small>sin cambiar</small></button>';
         }
       }
-      const clave = html + '|' + ords + '|' + varios;
-      if (clave !== hudClave || fuerza) { hudClave = clave; ft.innerHTML = html; od.innerHTML = ords; od.hidden = !ords; $('varios').setAttribute('aria-pressed', varios ? 'true' : 'false'); $('varios').classList.toggle('on', varios); }
+      /* los seis: siempre los mismos; apagado el que ahora no vale (data-no dice por qué) */
+      let est = '';
+      for (const b of $('ordenes').children) {
+        const h = b.dataset.h, o = ordenDe(h), no = !sel.length ? 'Toca antes un manípulo tuyo' : o ? puedeYa(o) : '';
+        const vig = sel.length && (h === 'propia' ? verFormas : h === 'alto' ? sel.every(i => S.man[i].orden === 'aguantar') : h === 'retirada' ? sel.every(i => S.man[i].orden === 'retirar') : h === 'cargar' ? sel.every(i => S.man[i].orden === 'cargar') : h === 'avanzar' ? sel.every(i => S.man[i].orden === 'mover') : h === 'relevo' ? sel.every(i => S.man[i].relevo > 0) : false);
+        b.dataset.no = no; est += h + (no ? 0 : 1) + (vig ? 1 : 0);
+        b.classList.toggle('apagada', !!no); b.classList.toggle('no', !!no); b.classList.toggle('vigente', !!vig);
+      }
+      const clave = html + '|' + fb + '|' + formas + '|' + varios;
+      if (clave !== hudClave || fuerza) {
+        hudClave = clave; ft.innerHTML = html; $('formas').innerHTML = formas; $('formas').hidden = !formas;
+        for (const q of [...$('ficha-b').children]) if (q !== $('varios')) q.remove();
+        $('varios').insertAdjacentHTML('beforebegin', fb);
+        $('varios').setAttribute('aria-pressed', varios ? 'true' : 'false'); $('varios').classList.toggle('on', varios);
+      }
+      void est;
     }
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     let avisoHasta = 0;
@@ -503,11 +527,21 @@
     }
     $('ordenes').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b || !lista) return;
-      if (b.dataset.formas) { verFormas = true; pintarHud(true); return; }
+      if (b.dataset.no) { aviso(b.dataset.no); return; }
+      if (b.dataset.h === 'propia') { verFormas = !verFormas; pintarHud(true); return; }
+      const o = ordenDe(b.dataset.h); if (o) ordenar(o);
+    });
+    $('formas').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || !lista) return;
       if (b.dataset.volver) { verFormas = false; pintarHud(true); return; }
       if (b.dataset.no) { aviso(b.dataset.no); return; }
-      if (b.dataset.bajar) { bajar(sel[0]); return; }
       ordenar(JSON.parse(b.dataset.o));
+    });
+    $('ficha-b').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || !lista || b === $('varios')) return;
+      if (b.dataset.no) { aviso(b.dataset.no); return; }
+      if (b.dataset.bajar) { bajar(sel[0]); return; }
+      if (b.dataset.devolver) ordenar({ tipo: 'devolver' });
     });
     $('varios').addEventListener('click', () => { varios = !varios; pintarHud(true); });
     /* ---------- LP7: «Bajar a pie» con el control del bloque (LP0, «Sí, aprobado»). Mandas tu manípulo, no a un hombre: la escena

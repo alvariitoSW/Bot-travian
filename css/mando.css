@@ -57,19 +57,27 @@
 #mn-ficha-t em.mal{color:var(--rojo)}
 #mn-varios{flex:0 0 auto;min-width:64px;min-height:44px;border-radius:10px;background:rgba(255,255,255,.06);border:1.5px solid var(--fil);font-weight:700;font-size:13px}
 #mn-varios.on{border-color:var(--oro);color:var(--oro);background:rgba(233,192,99,.18)}
-#mn-ordenes{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px}
-#mn .mn-o{min-height:48px;padding:4px 6px;border-radius:11px;background:linear-gradient(#5e2118,#3b140f);border:1.5px solid var(--oro);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
-#mn .mn-o span{font-weight:800;font-size:14px}
-#mn .mn-o small{font-size:10.5px;color:#e4d3ab;white-space:nowrap;overflow:clip;max-width:100%}
-#mn .mn-o.on{background:linear-gradient(#7c6020,#4a3910)}
-#mn .mn-o.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
-#mn .mn-o.no{opacity:.42;border-color:#6d6150;background:#2a241c}
+/* BT1: los botones de texto de la ficha (no son órdenes): «Al tribuno» y «Bajar a pie» */
+#mn-ficha{flex-wrap:wrap}
+#mn-ficha-b{display:flex;gap:6px;flex:0 0 auto;margin-left:auto}
+#mn .mn-t{min-height:44px;padding:0 10px;border-radius:10px;background:rgba(255,255,255,.06);border:1.5px solid var(--fil);font-weight:700;font-size:13px;white-space:nowrap}
+#mn .mn-t.no{opacity:.45}
+/* BT1: la barra común de seis (estilo en .barra6, abajo); en la batalla grande va a la derecha de la ficha */
+#mn-ordenes{flex:0 0 auto;width:384px}
+/* «Formar…» abre las formas encima de la barra, sin cambiar sus botones */
+#mn-formas{position:absolute;right:8px;bottom:calc(100% + 6px);display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;max-width:calc(100% - 16px);padding:6px;border-radius:12px;background:var(--vidrio);border:1.5px solid var(--oro)}
+#mn .mn-f{min-height:46px;min-width:84px;padding:4px 8px;border-radius:11px;background:linear-gradient(#5e2118,#3b140f);border:1.5px solid var(--oro);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+#mn .mn-f span{font-weight:800;font-size:14px}
+#mn .mn-f small{font-size:10.5px;color:#e4d3ab;white-space:nowrap}
+#mn .mn-f.on{background:linear-gradient(#7c6020,#4a3910)}
+#mn .mn-f.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
+#mn .mn-f.no{opacity:.42;border-color:#6d6150;background:#2a241c}
 
 /* en vertical: la ficha a lo ancho y las órdenes debajo, de tres en tres */
 @media (max-aspect-ratio:1/1){
   #mn-abajo{flex-direction:column;align-items:stretch}
   #mn-ficha{flex:0 0 auto}
-  #mn-ordenes{grid-template-columns:repeat(3,1fr)}
+  #mn-ordenes{width:auto}
   #mn .mn-b1{min-width:64px;padding:0 9px}
   #mn-enpausa{display:none!important}
   #mn-cinta{max-width:calc(100% - 16px)}
@@ -106,3 +114,22 @@
 #hoja .esc-rv-b b{font:700 15px 'Cinzel',Georgia,serif;letter-spacing:.02em}
 #hoja .esc-rv-b small{margin-top:2px;font:400 12px/1.2 var(--libro,Georgia,serif);color:var(--tinta2)}
 @media (min-width:600px){#hoja .esc-rv-g{grid-template-columns:repeat(4,1fr)}}
+
+/* BT1 · LA BARRA COMÚN DE SEIS ÓRDENES (todas las batallas: a pie, gobierno/maquetas/bloque/hud.js; grande, js/ui-mando.js; la tabla de
+   huecos, nombres y dibujos, en js/mando-varios.js). Botones redondos con dibujo y palabra; el primero, la orden propia de la tropa,
+   con doble aro dorado. Vigente: relleno rojo. La que conviene: late en oro. La que no vale ahora: apagada en su sitio. */
+.barra6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
+.barra6 .orden{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;min-height:82px;margin:0;padding:2px 0 0;border:0;background:none;font:inherit;color:inherit;cursor:pointer;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.barra6 .aro{position:relative;flex:none;width:54px;height:54px;border-radius:50%;background:radial-gradient(#3a2c14,#1f170b);border:2.5px solid var(--bronce,#b8862b);display:flex;align-items:center;justify-content:center;color:var(--marmol,#f1ead9);box-shadow:0 3px 10px rgba(0,0,0,.55)}
+.barra6 .aro svg{display:block;width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.barra6 .orden b{display:block;max-width:100%;font:700 10.5px/1.05 Cinzel,Georgia,serif;letter-spacing:0;color:#fff3dc;text-shadow:0 1px 3px #000,0 0 6px #000;text-align:center;white-space:normal}
+.barra6 .propia .aro{border:4px double var(--oro,#e9c063)}
+.barra6 .propia::after{content:'';position:absolute;right:-2px;top:10px;height:44px;border-right:1px solid rgba(233,192,99,.45)}
+.barra6 .orden.vigente .aro{background:radial-gradient(#9a3024,#5c1b15);border-color:#f1ead9}
+.barra6 .orden.luz .aro{border-color:var(--oro,#e9c063);color:#fff3dc;animation:barraLuz .9s infinite}
+.barra6 .orden.luz b{color:var(--oro,#e9c063)}
+.barra6 .orden.apagada{opacity:.4}
+.barra6 .orden.apagada .aro{box-shadow:none}
+.barra6 .orden small{position:absolute;top:0;right:calc(50% - 34px);min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#1f170b;border:1.5px solid var(--bronce,#b8862b);font:700 11px/17px system-ui,sans-serif;color:#fff3dc;text-align:center}
+@keyframes barraLuz{0%,100%{box-shadow:0 0 0 2px rgba(233,192,99,.9),0 0 12px 3px rgba(233,192,99,.75)}50%{box-shadow:0 0 0 7px rgba(233,192,99,.25),0 0 26px 8px rgba(233,192,99,.55)}}
+@media (prefers-reduced-motion:reduce){.barra6 .orden.luz .aro{animation:none;box-shadow:0 0 0 4px rgba(233,192,99,.8)}}

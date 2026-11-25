@@ -334,3 +334,198 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
   }
   return { Fi, Pr, paso, salva, medir, proyectiles, dondeP, rayas: () => ultimas, activa, set alAviso(f) { avisos = f; }, reinicia() { Fi.reinicia(); Pr.reinicia(); proyectiles.length = 0; msPaso = 0; nPaso = 0; msMotor = 0; } };
 }
+
+/* ---------- BT1 · «Nada atraviesa nada»: la medida de choques con la geometría que SE PINTA ----------
+   medirChoques(escena, op) recorre las mallas de la escena y mide con lo mismo que usa la tarjeta gráfica:
+     · soldados (InstancedMesh de js/gfx/soldado.js, userData.nivel): la matriz de cada instancia, sus filas de huesos (aCuadro: A, B y la mezcla;
+       la textura de huesos del nivel o la tabla de gestos de la falange, material.userData.huesos) y su muestra (aMuestra: piezas ocultas).
+       De cada hombre: sus TRIÁNGULOS de cuerpo ya en pose (los mismos que se dibujan), unas cápsulas por hueso (el «núcleo» de cada parte:
+       radio = la mediana de la distancia de sus vértices al eje, en reposo), los vértices de su escudo y el segmento de cada arma de la malla.
+     · astas sueltas (userData.asta = { tipo, largo, radio, duenos }: las sarisas y los muñones de formaciones/falange.js): la matriz de cada
+       instancia (la contera en la posición, la punta a lo largo de +z).
+     · escudos sueltos (userData.escudoSuelto, con userData.duenos: el techo del testudo y el muro): su caja por la matriz de cada instancia.
+   op.figs: las figuras de tropas.js (vivos y caídos), para saber el bando y quién está caído (se casan por la posición de la matriz).
+   Choques (devuelve una lista; vacía = nada atraviesa nada):
+     'asta-companero' un asta (sarisa, muñón, lanza, pilum, espada) corta un triángulo del cuerpo de un compañero vivo (nunca el suyo)
+     'asta-caido'     un asta corta el cuerpo de un caído (de cualquier bando)
+     'asta-rival'     un asta ATRAVIESA a un rival vivo: lo corta lejos de la punta (la punta que llega a él es un golpe, no un cruce)
+     'brazo'          el núcleo de un brazo o una mano dentro del núcleo del tronco, los hombros o la cabeza de un compañero vivo
+     'escudo'         el escudo dentro del núcleo del tronco, los hombros o la cabeza de un compañero vivo
+     'caidos'         dos caídos cruzados (sus núcleos) · 'caido-vivo' un vivo metido en un caído
+   Márgenes (cuánto tiene que entrar para contar): licencia de medida, en MARGEN. Sin three.js: solo lee arreglos. */
+export const MARGEN = { brazo: 0.025, escudo: 0.025, escudoVerts: 3, caido: 0.04, puntaRival: 0.45 };
+const CADENAS = [   /* [nombre, hueso de un extremo, hueso del otro, huesos cuyos vértices dan el radio, parte] */
+  ['tronco', 'spine05', 'spine01', ['spine05', 'spine04', 'spine03', 'spine02', 'spine01'], 'tronco'],
+  ['hombros', 'shoulder01.L', 'shoulder01.R', ['clavicle.L', 'clavicle.R', 'shoulder01.L', 'shoulder01.R'], 'tronco'],
+  ['cabeza', 'neck02', 'head', ['neck01', 'neck02', 'neck03', 'head'], 'cabeza'],
+  ['brazoI', 'upperarm01.L', 'lowerarm01.L', ['upperarm01.L', 'upperarm02.L'], 'brazo'], ['antebrazoI', 'lowerarm01.L', 'wrist.L', ['lowerarm01.L', 'lowerarm02.L'], 'brazo'], ['manoI', 'wrist.L', 'finger3-1.L', ['wrist.L', 'metacarpal2.L', 'metacarpal3.L'], 'brazo'],
+  ['brazoD', 'upperarm01.R', 'lowerarm01.R', ['upperarm01.R', 'upperarm02.R'], 'brazo'], ['antebrazoD', 'lowerarm01.R', 'wrist.R', ['lowerarm01.R', 'lowerarm02.R'], 'brazo'], ['manoD', 'wrist.R', 'finger3-1.R', ['wrist.R', 'metacarpal2.R', 'metacarpal3.R'], 'brazo'],
+  ['musloI', 'upperleg01.L', 'lowerleg01.L', ['upperleg01.L', 'upperleg02.L'], 'pierna'], ['piernaI', 'lowerleg01.L', 'foot.L', ['lowerleg01.L', 'lowerleg02.L'], 'pierna'],
+  ['musloD', 'upperleg01.R', 'lowerleg01.R', ['upperleg01.R', 'upperleg02.R'], 'pierna'], ['piernaD', 'lowerleg01.R', 'foot.R', ['lowerleg01.R', 'lowerleg02.R'], 'pierna']];
+/* grupo de cada pieza del .json: 0 cuerpo, 1 escudo, 2 lanza, 3 pilum, 4 jabalina en mano, 5 espada en mano, 9 lo demás (vaina, correa, repuestos: no cuentan) */
+const GRUPO = nom => /^escudo/.test(nom) ? 1 : /^lanza|^sarisa/.test(nom) ? 2 : /^pilum/.test(nom) ? 3 : /^jabalina_(asta|punta)$/.test(nom) ? 4 : /^espada_(puno|guarda|hoja)$/.test(nom) ? 5
+  : /^(cuerpo|piel|ojo|melena|bigote|calzon|pernera|cota|manga|faldon|yelmo|hombrera|pteruges|greba|zorro|suela)/.test(nom) ? 0 : 9;
+const ARMA_N = { 2: 'lanza', 3: 'pilum', 4: 'jabalina', 5: 'espada' };
+function h2f(h) { const s = (h & 0x8000) ? -1 : 1, e = (h >> 10) & 0x1f, m = h & 0x3ff; return e === 0 ? s * Math.pow(2, -14) * (m / 1024) : e === 31 ? (m ? NaN : s * Infinity) : s * Math.pow(2, e - 15) * (1 + m / 1024); }
+/* lo que no cambia de un nivel de soldado: grupo de cada vértice, centros de los huesos en reposo y radios de las cápsulas */
+const PREP = new WeakMap();
+function prepara(nv) {
+  let P = PREP.get(nv); if (P) return P;
+  const j = nv.j, g = nv.geo, po = g.attributes.position.array, si = g.attributes.aSkinI.array, sw = g.attributes.aSkinW.array, n = po.length / 3, nb = j.huesos.length;
+  const grupo = new Uint8Array(n).fill(9), idx = nv.idx0 || g.index.array; let t = 0;
+  for (const [nom, k] of Object.entries(j.piezas || { cuerpo: idx.length / 3 })) { const gr = GRUPO(nom); for (let q = t * 3; q < (t + k) * 3 && q < idx.length; q++) if (gr < grupo[idx[q]]) grupo[idx[q]] = gr; t += k; }
+  const cen = new Float64Array(nb * 3), cnt = new Uint32Array(nb);
+  const pes = new Float64Array(nb);   /* el centro de cada hueso: la media de los vértices que mueve, por su peso */
+  for (let i = 0; i < n; i++) if (grupo[i] === 0) for (let q = 0; q < 4; q++) { const w = sw[i * 4 + q] / 255, b = si[i * 4 + q]; if (w <= 0.05) continue; cen[b * 3] += po[i * 3] * w; cen[b * 3 + 1] += po[i * 3 + 1] * w; cen[b * 3 + 2] += po[i * 3 + 2] * w; pes[b] += w; cnt[b]++; }
+  for (let b = 0; b < nb; b++) if (pes[b] > 0) for (let k = 0; k < 3; k++) cen[b * 3 + k] /= pes[b];
+  const hb = nom => j.huesos.indexOf(nom), cad = [];
+  for (const [nom, a, b, deq, parte] of CADENAS) {
+    const ia = hb(a), ib = hb(b); if (ia < 0 || ib < 0 || !cnt[ia] || !cnt[ib]) continue;
+    const set = new Set(deq.map(hb)), A = [cen[ia * 3], cen[ia * 3 + 1], cen[ia * 3 + 2]], B = [cen[ib * 3], cen[ib * 3 + 1], cen[ib * 3 + 2]], d = [];
+    for (let i = 0; i < n; i++) if (grupo[i] === 0 && set.has(si[i * 4])) d.push(distPS([po[i * 3], po[i * 3 + 1], po[i * 3 + 2]], A, B));
+    d.sort((x, y) => x - y); if (!d.length) continue;
+    cad.push({ nom, ia, ib, parte, r: Math.min(0.16, d[Math.floor(d.length * 0.5)]), rFuera: d[Math.floor(d.length * 0.95)] });
+  }
+  const esc = [], armas = {}; for (let i = 0; i < n; i++) { const gr = grupo[i]; if (gr === 1) esc.push(i); else if (gr >= 2 && gr <= 5) (armas[gr] = armas[gr] || []).push(i); }
+  P = { grupo, cen, cad, esc, armas, nb, n, clipMorir: j.clips && j.clips.morir }; PREP.set(nv, P); return P;
+}
+function distPS(p, a, b) { const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], ap = [p[0] - a[0], p[1] - a[1], p[2] - a[2]], L = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2; let t = L > 1e-12 ? (ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / L : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(ap[0] - ab[0] * t, ap[1] - ab[1] * t, ap[2] - ab[2] * t); }
+/* distancia entre los segmentos p1q1 y p2q2 → [d, s (en el 1), t (en el 2)] */
+function distSS(p1, q1, p2, q2) {
+  const d1 = [q1[0] - p1[0], q1[1] - p1[1], q1[2] - p1[2]], d2 = [q2[0] - p2[0], q2[1] - p2[1], q2[2] - p2[2]], r = [p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]];
+  const a = d1[0] ** 2 + d1[1] ** 2 + d1[2] ** 2, e = d2[0] ** 2 + d2[1] ** 2 + d2[2] ** 2, f = d2[0] * r[0] + d2[1] * r[1] + d2[2] * r[2]; let s, t;
+  if (a < 1e-12 && e < 1e-12) { s = t = 0; }
+  else if (a < 1e-12) { s = 0; t = Math.max(0, Math.min(1, f / e)); }
+  else { const c = d1[0] * r[0] + d1[1] * r[1] + d1[2] * r[2];
+    if (e < 1e-12) { t = 0; s = Math.max(0, Math.min(1, -c / a)); }
+    else { const b = d1[0] * d2[0] + d1[1] * d2[1] + d1[2] * d2[2], den = a * e - b * b; s = den > 1e-12 ? Math.max(0, Math.min(1, (b * f - c * e) / den)) : 0; t = (b * s + f) / e;
+      if (t < 0) { t = 0; s = Math.max(0, Math.min(1, -c / a)); } else if (t > 1) { t = 1; s = Math.max(0, Math.min(1, (b - c) / a)); } } }
+  return [Math.hypot(p1[0] + d1[0] * s - p2[0] - d2[0] * t, p1[1] + d1[1] * s - p2[1] - d2[1] * t, p1[2] + d1[2] * s - p2[2] - d2[2] * t), s, t];
+}
+/* los cortes del segmento P→Q con los triángulos de cuerpo del hombre H (ya en pose): fracciones s ∈ [0, 1] a lo largo del segmento */
+function cortes(H, P, Q) {
+  const C = H.cuerpo, v = pielDe(H), T = C.tris, o = [], dx = Q[0] - P[0], dy = Q[1] - P[1], dz = Q[2] - P[2];
+  for (let k = 0; k < T.length; k += 3) {
+    const a = T[k] * 3, b = T[k + 1] * 3, c = T[k + 2] * 3;
+    const e1x = v[b] - v[a], e1y = v[b + 1] - v[a + 1], e1z = v[b + 2] - v[a + 2], e2x = v[c] - v[a], e2y = v[c + 1] - v[a + 1], e2z = v[c + 2] - v[a + 2];
+    const px = dy * e2z - dz * e2y, py = dz * e2x - dx * e2z, pz = dx * e2y - dy * e2x, det = e1x * px + e1y * py + e1z * pz; if (Math.abs(det) < 1e-12) continue;
+    const inv = 1 / det, tx = P[0] - v[a], ty = P[1] - v[a + 1], tz = P[2] - v[a + 2], u = (tx * px + ty * py + tz * pz) * inv; if (u < 0 || u > 1) continue;
+    const qx = ty * e1z - tz * e1y, qy = tz * e1x - tx * e1z, qz = tx * e1y - ty * e1x, w = (dx * qx + dy * qy + dz * qz) * inv; if (w < 0 || u + w > 1) continue;
+    const s = (e2x * qx + e2y * qy + e2z * qz) * inv; if (s >= 0 && s <= 1) o.push(s);
+  }
+  return o;
+}
+/* los vértices de cuerpo del hombre H en el mundo (se calculan una vez por medida, solo si hace falta) */
+function pielDe(H) {
+  const C = H.cuerpo; if (C.v) return C.v;
+  const { nv, X, e, Pp } = C, po = nv.geo.attributes.position.array, si = nv.geo.attributes.aSkinI.array, sw = nv.geo.attributes.aSkinW.array, v = new Float32Array(po.length), usa = C.usa;
+  for (let i = 0; i < Pp.n; i++) {
+    if (!usa[i]) continue; const x = po[i * 3], y = po[i * 3 + 1], z = po[i * 3 + 2]; let ox = 0, oy = 0, oz = 0;
+    for (let q = 0; q < 4; q++) { const w = sw[i * 4 + q] / 255; if (w <= 0) continue; const m = si[i * 4 + q] * 12; ox += w * (X[m] * x + X[m + 1] * y + X[m + 2] * z + X[m + 3]); oy += w * (X[m + 4] * x + X[m + 5] * y + X[m + 6] * z + X[m + 7]); oz += w * (X[m + 8] * x + X[m + 9] * y + X[m + 10] * z + X[m + 11]); }
+    v[i * 3] = e[0] * ox + e[4] * oy + e[8] * oz + e[12]; v[i * 3 + 1] = e[1] * ox + e[5] * oy + e[9] * oz + e[13]; v[i * 3 + 2] = e[2] * ox + e[6] * oy + e[10] * oz + e[14];
+  }
+  return (C.v = v);
+}
+export function medirChoques(escena, op = {}) {
+  const figs = new Map(), clave = (x, z) => Math.round(x * 50) + ',' + Math.round(z * 50);
+  for (const f of op.figs || []) figs.set(clave(f.x, f.z), f);
+  const hombres = new Map(), astas = [], escSueltos = [];
+  const mallas = []; escena.traverse(o => { if (o.isInstancedMesh && o.visible !== false && o.count > 0) mallas.push(o); });
+  for (const m of mallas) {
+    const ud = m.userData || {}, A = m.instanceMatrix.array;
+    if (ud.asta) { for (let i = 0; i < m.count; i++) { const e = A.subarray(i * 16, i * 16 + 16), sz = Math.hypot(e[8], e[9], e[10]); if (sz < 1e-6) continue; const L = ud.asta.largo * sz, P = [e[12], e[13], e[14]], D = [e[8] / sz, e[9] / sz, e[10] / sz];
+      astas.push({ tipo: ud.asta.tipo || 'sarisa', P, Q: [P[0] + D[0] * L, P[1] + D[1] * L, P[2] + D[2] * L], L, r: ud.asta.radio * Math.hypot(e[0], e[1], e[2]), dueno: ud.asta.duenos ? ud.asta.duenos[i] : null }); } continue; }
+    if (ud.escudoSuelto) { const g = m.geometry; if (!g.boundingBox) g.computeBoundingBox(); const lo = g.boundingBox.min, hi = g.boundingBox.max;
+      for (let i = 0; i < m.count; i++) { const e = A.subarray(i * 16, i * 16 + 16), pts = []; if (Math.hypot(e[0], e[1], e[2]) < 1e-6) continue;
+        for (const u of [0, 0.5, 1]) for (const v of [0, 0.5, 1]) for (const w of [0, 0.5, 1]) { const x = lo.x + (hi.x - lo.x) * u, y = lo.y + (hi.y - lo.y) * v, z = lo.z + (hi.z - lo.z) * w; pts.push([e[0] * x + e[4] * y + e[8] * z + e[12], e[1] * x + e[5] * y + e[9] * z + e[13], e[2] * x + e[6] * y + e[10] * z + e[14]]); }
+        escSueltos.push({ pts, dueno: ud.duenos ? ud.duenos[i] : null }); } continue; }
+    const nv = ud.nivel; if (!nv || !m.geometry.attributes.aCuadro) continue;
+    const Pp = prepara(nv), cu = m.geometry.attributes.aCuadro.array, mu = m.geometry.attributes.aMuestra ? m.geometry.attributes.aMuestra.array : null;
+    const tab = m.material.userData && m.material.userData.huesos, src = tab || nv.crudo, half = !tab, nb = Pp.nb, aset = nv.geo.attributes.aSet ? nv.geo.attributes.aSet.array : null;
+    const po = nv.geo.attributes.position.array, si = nv.geo.attributes.aSkinI.array, sw = nv.geo.attributes.aSkinW.array, filas = src.length / (nb * 12);
+    /* lo que dibuja esta malla: sus vértices y sus triángulos de cuerpo (una vez por geometría) */
+    if (!ud.bt1 || ud.bt1.ix !== m.geometry.index) {
+      const ix = m.geometry.index.array, dib = new Uint8Array(Pp.n), tris = [];
+      for (let q = 0; q < ix.length; q += 3) { dib[ix[q]] = dib[ix[q + 1]] = dib[ix[q + 2]] = 1; if (Pp.grupo[ix[q]] === 0 && Pp.grupo[ix[q + 1]] === 0 && Pp.grupo[ix[q + 2]] === 0) tris.push(ix[q], ix[q + 1], ix[q + 2]); }
+      const usa = new Uint8Array(Pp.n); for (const q of tris) usa[q] = 1;
+      ud.bt1 = { ix: m.geometry.index, dib, tris: new Uint32Array(tris), usa };
+    }
+    const { dib, tris, usa } = ud.bt1;
+    for (let i = 0; i < m.count; i++) {
+      const e = Float64Array.from(A.subarray(i * 16, i * 16 + 16)); if (Math.hypot(e[0], e[1], e[2]) < 1e-6) continue;
+      const fa = Math.round(cu[i * 3]), fb = Math.round(cu[i * 3 + 1]), mz = cu[i * 3 + 2]; if (fa >= filas || fb >= filas) continue;
+      const k = clave(e[12], e[14]); let H = hombres.get(k);
+      const f = figs.get(k) || null, morir = Pp.clipMorir && fa >= Pp.clipMorir.ini && fa < Pp.clipMorir.ini + Pp.clipMorir.n;
+      if (!H) { H = { f, bando: f ? f.bando : null, caido: f ? f.clip === 'morir' || !!(f.h && f.h.vivo === false) : morir, x: e[12], z: e[14], caps: [], escudos: [], armas: [], cuerpo: null }; hombres.set(k, H); }
+      /* las matrices de sus huesos en este cuadro (la mezcla de las filas A y B, como el sombreador) */
+      const X = new Float64Array(nb * 12), base = fr => fr * nb * 12;
+      for (let q = 0; q < nb * 12; q++) { const a = half ? h2f(src[base(fa) + q]) : src[base(fa) + q], b = half ? h2f(src[base(fb) + q]) : src[base(fb) + q]; X[q] = a * (1 - mz) + b * mz; }
+      const mundo = p => [e[0] * p[0] + e[4] * p[1] + e[8] * p[2] + e[12], e[1] * p[0] + e[5] * p[1] + e[9] * p[2] + e[13], e[2] * p[0] + e[6] * p[1] + e[10] * p[2] + e[14]];
+      const huesoP = (b, p) => { const m0 = b * 12; return mundo([X[m0] * p[0] + X[m0 + 1] * p[1] + X[m0 + 2] * p[2] + X[m0 + 3], X[m0 + 4] * p[0] + X[m0 + 5] * p[1] + X[m0 + 6] * p[2] + X[m0 + 7], X[m0 + 8] * p[0] + X[m0 + 9] * p[1] + X[m0 + 10] * p[2] + X[m0 + 11]]); };
+      const vert = v => { const p = [po[v * 3], po[v * 3 + 1], po[v * 3 + 2]], o = [0, 0, 0]; for (let q = 0; q < 4; q++) { const w = sw[v * 4 + q] / 255; if (w <= 0) continue; const b = si[v * 4 + q] * 12;
+        o[0] += w * (X[b] * p[0] + X[b + 1] * p[1] + X[b + 2] * p[2] + X[b + 3]); o[1] += w * (X[b + 4] * p[0] + X[b + 5] * p[1] + X[b + 6] * p[2] + X[b + 7]); o[2] += w * (X[b + 8] * p[0] + X[b + 9] * p[1] + X[b + 10] * p[2] + X[b + 11]); } return mundo(o); };
+      const oculto = v => { if (!aset || !mu) return false; const s = aset[v]; return s > 0.5 && Math.floor(mu[i] / Math.pow(2, s - 1) + 0.001) % 2 < 0.5; };
+      const esc = Math.hypot(e[0], e[1], e[2]);
+      if (tris.length && !H.cuerpo) {
+        H.cuerpo = { nv, X, e, Pp, tris, usa, v: null };
+        const cen = b => [Pp.cen[b * 3], Pp.cen[b * 3 + 1], Pp.cen[b * 3 + 2]];
+        for (const c of Pp.cad) H.caps.push({ nom: c.nom, parte: c.parte, a: huesoP(c.ia, cen(c.ia)), b: huesoP(c.ib, cen(c.ib)), r: c.r * esc, rFuera: c.rFuera * esc });
+      }
+      /* escudo y armas: solo los vértices que esta malla dibuja y no oculta */
+      const paso = l => Math.max(1, Math.floor(l.length / 80));
+      if (Pp.esc.length) { const pts = []; for (let q = 0; q < Pp.esc.length; q += paso(Pp.esc)) { const v = Pp.esc[q]; if (dib[v] && !oculto(v)) pts.push(vert(v)); } if (pts.length > 4) H.escudos.push(pts); }
+      for (const gr in Pp.armas) {
+        const L = Pp.armas[gr], pts = []; for (let q = 0; q < L.length; q += paso(L)) { const v = L[q]; if (dib[v] && !oculto(v)) pts.push(vert(v)); } if (pts.length < 4) continue;
+        const lejos = a => pts.reduce((m0, p) => { const d = (p[0] - a[0]) ** 2 + (p[1] - a[1]) ** 2 + (p[2] - a[2]) ** 2; return d > m0[0] ? [d, p] : m0; }, [-1, null])[1];
+        const p1 = lejos(pts[0]), p2 = lejos(p1), L2 = Math.hypot(p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]); if (L2 < 0.3) continue;
+        H.armas.push({ tipo: ARMA_N[gr], P: p1, Q: p2, L: L2, r: 0.012 });
+      }
+    }
+  }
+  const L = [...hombres.values()].filter(H => H.caps.length && H.bando);
+  for (const H of L) for (const a of H.armas) astas.push(Object.assign(a, { duenoH: H }));
+  for (const a of astas) if (a.dueno && !a.duenoH) a.duenoH = hombres.get(clave(a.dueno.x, a.dueno.z)) || null;
+  for (const s of escSueltos) { if (s.dueno) { const H = hombres.get(clave(s.dueno.x, s.dueno.z)); if (H) H.escudos.push(s.pts); } }
+  /* rejilla de 1 m por el pie de cada hombre */
+  const G = new Map();
+  for (const H of L) { const k = Math.floor(H.x) + ',' + Math.floor(H.z); (G.get(k) || G.set(k, []).get(k)).push(H); }
+  const cerca = (x0, z0, x1, z1) => { const o = []; for (let x = Math.floor(Math.min(x0, x1)) - 2; x <= Math.floor(Math.max(x0, x1)) + 2; x++) for (let z = Math.floor(Math.min(z0, z1)) - 2; z <= Math.floor(Math.max(z0, z1)) + 2; z++) { const c = G.get(x + ',' + z); if (c) o.push(...c); } return o; };
+  const choques = [], r2 = v => Math.round(v * 100) / 100;
+  const quien = H => !H ? '?' : (H.f && H.f.h && H.f.h.r != null && H.f.h.f != null ? 'fila ' + H.f.h.r + ' col ' + H.f.h.f + ' ' : H.f && H.f.h && H.f.h.fila != null ? 'fila ' + H.f.h.fila + ' col ' + H.f.h.col + ' ' : '') + H.bando + '@' + r2(H.x) + ',' + r2(H.z) + (H.caido ? ' (caído)' : '');
+  const apunta = (tipo, a, b, cuanto, extra) => choques.push(Object.assign({ tipo, de: quien(a), en: quien(b), cuanto: r2(cuanto) }, extra));
+  /* 1. astas: cortan triángulos del cuerpo de otro */
+  for (const a of astas) {
+    const dH = a.duenoH, vistos = new Set();
+    if (a.dueno && !dH) continue;   /* su dueño no se pinta (fuera de cámara): su asta tampoco cuenta */
+    for (const H of cerca(a.P[0], a.P[2], a.Q[0], a.Q[2])) {
+      if (H === dH || vistos.has(H)) continue; vistos.add(H);
+      let cerca0 = false; for (const c of H.caps) if (distSS(a.P, a.Q, c.a, c.b)[0] < c.rFuera + 0.12) { cerca0 = true; break; }
+      if (!cerca0) continue;
+      const S = cortes(H, a.P, a.Q); if (!S.length) continue;
+      const smin = Math.min(...S), smax = Math.max(...S), dePunta = (1 - smin) * a.L, dentro = (smax - smin) * a.L;
+      const comp = dH ? H.bando === dH.bando : false, extra = { arma: a.tipo, cortes: S.length, dePunta: r2(dePunta) };
+      if (H.caido) apunta('asta-caido', dH, H, dentro, extra);
+      else if (comp) apunta('asta-companero', dH, H, dentro, extra);
+      else if (dePunta > MARGEN.puntaRival) apunta('asta-rival', dH, H, dentro, extra);
+    }
+  }
+  /* 2. brazos y escudos contra el tronco, los hombros y la cabeza de un compañero; 3. caídos */
+  for (const A of L) for (const B of cerca(A.x, A.z, A.x, A.z)) {
+    if (A === B || Math.hypot(A.x - B.x, A.z - B.z) > 2.6) continue;
+    const nucleo = B.caps.filter(c => c.parte === 'tronco' || c.parte === 'cabeza');
+    if (!A.caido && !B.caido && A.bando === B.bando) {
+      let peor = null; for (const ca of A.caps) if (ca.parte === 'brazo') for (const cb of nucleo) { const [d] = distSS(ca.a, ca.b, cb.a, cb.b), pen = ca.r + cb.r - d; if (pen > MARGEN.brazo && (!peor || pen > peor.pen)) peor = { pen, ca, cb }; }
+      if (peor) apunta('brazo', A, B, peor.pen, { parte: peor.ca.nom + '→' + peor.cb.nom });
+      for (const pts of A.escudos) { let n = 0, pm = 0; for (const p of pts) for (const cb of nucleo) { const pen = cb.r - distPS(p, cb.a, cb.b); if (pen > MARGEN.escudo) { n++; pm = Math.max(pm, pen); break; } } if (n >= MARGEN.escudoVerts) apunta('escudo', A, B, pm, { vertices: n }); }
+    }
+    if (A.caido && (B.caido ? A.x < B.x || (A.x === B.x && A.z < B.z) : true)) {
+      let peor = null; const cuerpoB = B.caido ? nucleo : B.caps;
+      for (const ca of A.caps) if (ca.parte !== 'brazo') for (const cb of cuerpoB) { const [d] = distSS(ca.a, ca.b, cb.a, cb.b), pen = ca.r + cb.r - d; if (pen > MARGEN.caido && (!peor || pen > peor.pen)) peor = { pen, ca, cb }; }
+      if (peor) apunta(B.caido ? 'caidos' : 'caido-vivo', A, B, peor.pen, { parte: peor.ca.nom + '→' + peor.cb.nom });
+    }
+  }
+  const cuenta = {}; for (const c of choques) cuenta[c.tipo] = (cuenta[c.tipo] || 0) + 1;
+  const R = { hombres: L.length, astas: astas.length, caidos: L.filter(H => H.caido).length, total: choques.length, cuenta, choques };
+  if (op.depura) R.depura = { L, astas };   /* para mirar a mano (no es JSON) */
+  return R;
+}
