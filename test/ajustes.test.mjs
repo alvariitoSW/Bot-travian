@@ -80,7 +80,8 @@ try {
 // Asesor y dificultades: lecciones, separación, reinicio y copia de reserva idéntica a D.DIFICULTAD
 try {
   const A = require('../js/asesor.js'), Ci = await import('../js/ciudad.js');
-  assert.strictEqual(A.LECCIONES.length, 7); assert.strictEqual(new Set(A.LECCIONES.map(l => l.id)).size, 7);
+  assert.strictEqual(A.LECCIONES.length, 8); assert.strictEqual(new Set(A.LECCIONES.map(l => l.id)).size, 8);   // PN3e: + hierro (solo en la polis sin veta)
+  assert.strictEqual(A.siguiente({ asesor: true, vistos: [] }, { hierroPolis: true, cifra: true }).id, 'hierro', 'en la polis sin veta, el hierro va primero');
   assert(A.LECCIONES.every(l => l.texto.length <= 110 && typeof l.cuando === 'function'), 'texto de lección > 110 o sin cuando');
   const todo = { cifra: true, cuotas: true, riesgo: true, barrioSube: true, almacenLleno: true, arrabal: true, turnos: 2 };
   assert.strictEqual(A.siguiente({ asesor: false }, todo), null); assert.strictEqual(A.siguiente(null, todo), null);

@@ -97,4 +97,19 @@ t('élite 2 estaciones; las griegas siguen la misma regla', () => {
   nueva(null); const L = { triarii: 2, equites: 2, hastati: 1, hoplitas: 1, peltastas: 1, jinetes: 2 };
   for (const k in L) assert.strictEqual(G.loteEstaciones(k), L[k], k);
 });
+t('PN3e: Calcis tiene veta de hierro (tuya o rival); las otras polis y Roma, no; sus Minas de Eubea producen', () => {
+  let s = nueva('calcis'); assert.ok(G.vetaHierro('roma'), 'tu Calcis'); assert.strictEqual(G.minaMotivo('roma'), null);
+  s.cities.roma.b.mina = 1; const h0 = G.prod().hierro; assert.ok(h0 > 0, 'la mina produce: ' + h0);
+  nueva('atenas'); assert.ok(!G.vetaHierro('roma'), 'Atenas no'); assert.ok(G.vetaHierro('calcis'), 'la Calcis rival sí'); assert.ok(/Calcis/.test(G.minaMotivo('roma')), 'el motivo dice dónde hay');
+  nueva(null); assert.ok(!G.vetaHierro('roma') && !G.vetaHierro('calcis') && G.vetaHierro('volsinii'), 'Roma: las vetas de siempre');
+  assert.ok(R.fichas.vetaGr.calcis.historia.fuente.indexOf('Estrabón 10.1.9') >= 0, 'ficha con Estrabón 10.1.9');
+});
+t('PN3e: si cae tu polis, el final dice su nombre y no «Roma»', () => {
+  const s = nueva('megara'); const c = s.cities.roma; c.units = {}; c.pop = 60;
+  const rival = s.cities.corinto; rival.units = { hoplitas: 400 };
+  assert.ok(G.send('corinto', 'roma', { hoplitas: 400 }, false) || (s.marches.push({ owner: 'corinto', from: 'corinto', to: 'roma', units: { hoplitas: 400 }, t0: s.t, t1: s.t, hero: false }), true));
+  for (let i = 0; i < 12 && !s.over; i++) { G.pasarEstacion(); while (s.pending.length && !s.over) G.resolverPendiente(); }
+  assert.ok(s.over && !s.over.win, 'cae');
+  const txt = JSON.stringify(s.over); assert.ok(/Mégara ha caído/.test(txt) && !/Roma ha caído/.test(txt), txt);
+});
 console.log(mal ? '\n' + mal + ' fallos de ' + (n + mal) : '\nPOLIS: APTO (' + n + ' pruebas)'); process.exit(mal ? 1 : 0);

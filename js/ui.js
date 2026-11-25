@@ -1162,7 +1162,7 @@ function leccionHoy() {
   try { arrabal = !!avisoArrabal(G.ciudadE(UI.city)); } catch (e) { }
   try { cuotas = !!(c && c.obras && c.obras.some(o => o.q)); } catch (e) { }
   try { const cap = G.cap(); lleno = !!cap && D.RES.filter(r => r !== 'denarios').some(r => G.reserva(r) / G.capDe(r) >= 0.9); } catch (e) { }
-  const ctx = { mes: Math.floor(s.t + 1e-9), ahora: Date.now(), colocando: (UI.modo3 || 'mirar') !== 'mirar', cifra: !!$('l-cifra').textContent, cuotas, riesgo, barrioSube: false, almacenLleno: lleno, arrabal, turnos: !!s.turnos };
+  const ctx = { mes: Math.floor(s.t + 1e-9), ahora: Date.now(), colocando: (UI.modo3 || 'mirar') !== 'mirar', cifra: !!$('l-cifra').textContent, cuotas, riesgo, barrioSube: false, almacenLleno: lleno, arrabal, turnos: !!s.turnos, hierroPolis: !!(G.polis() && !G.vetaHierro(G.capital())) };   // PN3e: la polis sin veta aprende a comprar hierro
   const r = ASESOR.siguiente(s.ajustes, ctx); return r || null;
 }
 const conSigno = n => (n < 0 ? '\u2212' : '+') + Math.abs(n);
