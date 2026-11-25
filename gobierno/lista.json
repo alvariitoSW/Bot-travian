@@ -480,6 +480,12 @@
       },
       {
         "tareas": [
+          "SUP1"
+        ],
+        "nota": "Modo supervivencia: carril aparte (usuario 25/11), mesa de diseño en marcha."
+      },
+      {
+        "tareas": [
           "RM1",
           "RM2",
           "RM3",

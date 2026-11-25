@@ -661,3 +661,7 @@ Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cereb
   - 🔶 AM2 **Mapa vivo construido**: Grecia con sus polis, estilos A y B elegibles, mapa grande con zoom de dos dedos «casi como Google Maps» (**Fable**; en obra desde el 25/11; sesión `session_01QiKC3ACuzujJ2ZEsE5aUwr`, rama `am2-mapa-vivo`).
   - ⬜ AM3 **Recursos por zonas y lujo en algunas ciudades** (por comercio o conquista; tras AM2 y PN2).
   - ⬜ CR20 **Críticas a la 1.0** cuando el usuario juegue la v171 (las recoge la sesión de debate).
+
+## Carril SUP · Modo supervivencia (carril aparte, fuera de las 5 metas; usuario 25/11 «Carril aparte», «Sí, ya»; diseño en `diseno-supervivencia`, `SUP0-modo-supervivencia.md`)
+  - 🔶 SUP1 **Mesa de diseño** con Batallas, Combate, Músculo, Arte, Sonido e Historia: tiempo, oleadas y campamento (otro juego); primero «Mantener la posición» con guarnición de hoplitas; ficha de objetivo y aspecto ≥ 8,5; no fija motor de batalla nuevo (rediseño en debate). Sesión `session_01QiKC36Sf8RZgvbyrwhY4GL`, rama `sup1-diseno`.
+  - ⬜ SUP2–SUP5: según el reparto que apruebe el usuario tras SUP1.
