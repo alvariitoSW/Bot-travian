@@ -6,11 +6,14 @@ sin tope de gasto para montarlo, pero midiendo. El código del juego no se ha to
 
 | Área | Guía (skill) | Juez de área (medido el 23/11) | Entorno |
 |---|---|---|---|
-| **Corazón · Combate** (24/11): motor de lucha, físicas, soldados y movimientos, con el taller de arte de soldados | `ministerio-combate` | lógica de física, falange, bloque y guerra + `juez-guerra` en navegador | «AQVILA Batallas taller» |
-| **Corazón · Batallas** (ejércitos, mando, campo, pantallas) | `ministerio-batallas` | lógica 48 s + navegador 12 min (`juez-guerra`) + 5,5 min (sus pasos de `jueces.mjs`, MIN4) | «AQVILA Batallas taller» |
+| **Corazón · Motor de guerra** (antes Combate, 24/11; DB0 25/11): lucha, física, proyectiles, falange y testudo; fluido con 1.000–2.000 por bando | `ministerio-combate` | lógica de física, falange, bloque y guerra + `juez-guerra` en navegador | «AQVILA Batallas taller» |
+| **Corazón · Animación** (nuevo, DB0 25/11): movimientos de soldados, jinetes, elefantes y barcos | `ministerio-animacion` | `combate-poses` + `juez-aspecto.mjs animacion` (ficha y nota ≥ 8,5) + `juez-guerra` | «AQVILA Batallas taller» |
+| **Corazón · Gráficos** (nuevo, DB0 25/11): luz, cielo, campo, polvo, sangre, cámara de cine, fluidez de la escena | `ministerio-graficos` | `juez-aspecto.mjs graficos` (ficha y nota ≥ 8,5) + `juez-guerra` | el de siempre |
+| **Corazón · Jugabilidad y mando** (antes Batallas): qué haces y cómo mandas, ritmo, IA rival, equilibrio, pantallas; examen de jugabilidad | `ministerio-batallas` | lógica 48 s + navegador 12 min (`juez-guerra`) + 5,5 min (sus pasos de `jueces.mjs`, MIN4) | «AQVILA Batallas taller» |
 | **Cerebro** (ramas Ciudades y Política) | `ministerio-cerebro` | lógica 63 s + navegador 2 min (MIN4): **3,6 min en total** | el de siempre |
 | **Músculo** (mapa, menús, manejo, fluidez) | `ministerio-musculo` | lógica 10 s + navegador 8 min (MIN4, con la batalla de preparación) | el de siempre |
-| **Taller de Arte** común | `arte` | `arte.mjs` y `fichas.mjs`, segundos | «AQVILA Batallas taller» |
+| **Departamento de Arte de Mapas** (25/11, dentro del Músculo, con el taller de Arte): mapa vivo, Grecia y sus polis, recursos en el mapa; AM1–AM2 con Fable | `arte-mapas` | `mapa.test` + `juez-mapas.mjs` (navegador, 2 capturas) | el de siempre |
+| **Taller de Arte** común, con el **Arte de soldados** (DB0 25/11: modelos, telas, escudos, estandartes, pueblos) | `arte` | `arte.mjs` y `fichas.mjs`, segundos | «AQVILA Batallas taller» |
 | **Taller de Sonido** (director de sonido, 23/11) | `sonido` (+ `sonido-efectos`, `sonido-musica`) | `juez-sonido.mjs`, 3 s | «AQVILA Batallas taller» (OpenGameArt abierto) |
 
 ## 1. Lo medido antes de cambiar nada
@@ -91,7 +94,7 @@ cuál prepara: Músculo pasa la batalla del recorrido como preparación porque �
 antes de cada commit. Cuatro clases:
 | Clase | Quién lo toca | Ejemplos |
 |---|---|---|
-| Propio de un área | Solo las sesiones de esa área | `js/guerra.js` (Batallas), `js/gfx/city3d.js` (Cerebro), `js/gfx/map3d.js` (Músculo) |
+| Propio de un área | Solo las sesiones de esa área | `js/guerra.js` (Batallas), `js/gfx/city3d.js` (Cerebro), `js/gfx/map3d.js` (Arte de Mapas, desde el 25/11) |
 | **Común** | Una sola sesión a la vez, la que el vigía nombre «de paso» | `js/ui.js`, `js/game.js`, `js/data.js`, `js/registro.js`, `sw.js`, `index.html` |
 | Solo el vigía | El vigía | `BITACORA.md`, `TABLERO.md`, `lista.json`, `cuadro.json` |
 | Libre | Cualquiera, solo archivos nuevos con su ID | `partes/`, `capturas-tarea/`, `estudios/` |
@@ -140,6 +143,25 @@ dependa del arma que lleves, de la lucha de manípulos». Guía: skill `minister
 - **Por qué no se juntó todo en un único ministerio**: Batallas quedaría con la mitad del juego en una sola cola; partido
   por «golpe» y «ejército», dos sesiones trabajan a la vez sin pisarse.
 - **Primera tarea propuesta**: P186 en la bitácora (motor de lucha con escudo, mano del arma, armas y relevo de manípulos).
+
+## 4d. Los seis departamentos de batalla y el examen de jugabilidad (usuario, 25/11; DB0)
+Decisión literal: «¿Te vale este reparto de departamentos de batalla?» → «Sí, los seis (Recomendado)»; «¿Cuándo se
+montan?» → «Ya, antes de M5 y de las oleadas (Recomendado)». Fuente: `estudios/PLAN-2.0.md`, «Departamentos de batalla».
+**Los seis**: Jugabilidad y mando (`ministerio-batallas`) · Motor de guerra (`ministerio-combate`) · Animación
+(`ministerio-animacion`) · Gráficos (`ministerio-graficos`) · Arte de soldados (`arte`) · Sonido (`sonido`).
+- **Qué pasó de dónde** (archivo por archivo en `partes/2026-11-25-DB0.md`): de Combate a Animación, `js/gfx/soldado.js`,
+  `units.js`, `models.js`, `js/combate-poses.js` y su prueba, las piezas de movimiento de la maqueta de falange y los
+  guiones de movimiento de Blender; de Batallas a Gráficos, `js/gfx/campo-mando.js`, `cine-mando.js`, `estandartes.js` y
+  la maqueta `testudo-luz-campo/`; de Combate a Gráficos, `js/gfx/golpes.js`; de Combate al taller de Arte (Arte de
+  soldados), `assets/soldados/`, `assets/units/`, `tools/blender/`, las herramientas de unidades, el entorno del taller y
+  las maquetas `soldado-*/`. Ningún archivo queda sin dueño ni con dos.
+- **Juez de aspecto** (Animación y Gráficos): `node gobierno/juez-aspecto.mjs <área>` lee la **ficha de objetivo**
+  `aspecto/<área>.md` (8–12 cosas concretas que se tienen que ver, referencias, captura de partida y exámenes) y da NO APTO
+  si una tarea cierra con nota **< 8,5**. Línea de partida (DB0): Animación 5,0; Gráficos 4,5.
+- **Examen de jugabilidad** (regla para todas las tareas de batalla): antes de enseñarle nada al usuario, una sesión que
+  **no construyó** (el `verificador` u otra) la juega a 390×844 y 844×390, la compara con `estudios/REF-batallas-referencias.md`
+  y deja `partes/<fecha>-<ID>-examen.md`: qué se entiende y qué no, si se gana y se pierde jugando bien, ritmo, críticas y
+  «se puede enseñar: sí/no». Si toca Animación o Gráficos, pone su nota en la ficha. Sin examen, no se enseña.
 
 ## 5. Lo que NO cambia
 `OBJETIVOS.md` y la lista de la 1.0; «una sesión, una tarea»; el plan socialista (presupuesto, constructor, verificador,

@@ -16,7 +16,7 @@ const page = await ctx.newPage(), errores = [];
 page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|GPU stall|GL Driver/.test(m.text())) errores.push(m.text().slice(0, 300)); });
 page.on('pageerror', e => errores.push('EXCEPCIÓN: ' + String(e.message).slice(0, 300)));
 await page.goto('http://127.0.0.1:' + srv.address().port + '/', { waitUntil: 'load' });
-await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+await page.evaluate(() => window.PORTADA && PORTADA.vista('campana'));   /* PN1: «Empezar la campaña» vive ahora en Partida nueva → Campaña */ await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
 await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 120000 });
 await page.click('#menu [data-act="new"]'); await page.waitForTimeout(3000);
 const cierra = () => page.evaluate(() => { Game.state.speed = 0; const m = document.getElementById('modal'); if (m) m.hidden = true; });

@@ -1,6 +1,6 @@
 {
   "_ayuda": "Camino a la 1.0 (CM5, pedido del usuario del 24/11). Lo pinta el cuadro de mando arriba del todo, en «Juego». Lo pone al día el vigía en cada subida: cambia «actualizado» (hora ISO en UTC), el «estado» de cada paso (hecho, prueba = en prueba, esperando) y, si cambia el plan, las horas y los %. Las horas van en UTC (terminan en Z); el cuadro las enseña en hora de España. «hasta» es opcional (una franja: de «hora» a «hasta»); sin «hora», «cuando» dice el texto que sale. «pct» es el % del cuadro al acabar ese paso. El % actual no se escribe aquí: sale de lista.json, (hechas + ½ a medias) / total, el mismo del menú del juego.",
-  "actualizado": "2026-11-25T10:12:00Z",
+  "actualizado": "2026-11-25T11:25:00Z",
   "pasos": [
     {
       "que": "Ciudad CDe4: subida a tu móvil (v165)",
@@ -27,11 +27,10 @@
       "estado": "hecho"
     },
     {
-      "que": "Subida final SB7: jueces completos 42/43 (solo un plazo de tiempo, subido a 30 min por el usuario); se repite ese juez sobre 594f868 y se sube a tu móvil",
-      "hora": "2026-11-25T10:30:00Z",
-      "hasta": "2026-11-25T11:00:00Z",
+      "que": "Subida final de la 1.0 a tu móvil (v171): jueces completos 43/43",
+      "hora": "2026-11-25T11:25:00Z",
       "pct": 100,
-      "estado": "prueba"
+      "estado": "hecho"
     }
   ],
   "riesgos": [

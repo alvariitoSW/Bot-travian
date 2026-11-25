@@ -462,6 +462,32 @@
     "despues": [
       {
         "tareas": [
+          "J20a",
+          "J20b",
+          "ES20",
+          "PN1",
+          "PN2",
+          "PN3",
+          "VI1",
+          "VI2",
+          "AM0",
+          "AM1",
+          "AM2",
+          "AM3",
+          "CR20",
+          "DB0",
+          "AM2b"
+        ],
+        "nota": "2.0 · M1 Empezar de cero (aprobada por el usuario el 25/11, en obra). Su lista propia llega con la 2.0."
+      },
+      {
+        "tareas": [
+          "SUP1"
+        ],
+        "nota": "Modo supervivencia: carril aparte (usuario 25/11), mesa de diseño en marcha."
+      },
+      {
+        "tareas": [
           "RM1",
           "RM2",
           "RM3",

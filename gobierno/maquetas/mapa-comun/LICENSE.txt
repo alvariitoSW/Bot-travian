@@ -1,0 +1,17 @@
+AQVILA · maquetas del mapa vivo (AM1) — de dónde sale cada cosa
+
+grecia-alturas.png: relieve y fondo marino de Grecia y el Egeo (lon 19,3..28,3; lat 34,7..41,0; 720x640 casillas de ~1,1 km).
+  Remuestreado de las Terrain Tiles (formato Terrarium, nivel 8) de Mapzen/Tilezen, alojadas en AWS Open Data
+  (https://registry.opendata.aws/terrain-tiles/; atribución: https://github.com/tilezen/joerd/blob/master/docs/attribution.md).
+  Fuentes que declaran las cabeceras x-amz-meta-x-imagery-sources de las teselas usadas (y solo estas):
+  - SRTM (NASA Shuttle Radar Topography Mission, NASA/JPL y USGS). Dominio público; se pide citar la fuente.
+  - GMTED2010 (U.S. Geological Survey y National Geospatial-Intelligence Agency). Dominio público; se pide citar la fuente.
+  - ETOPO1 (NOAA National Centers for Environmental Information; Amante y Eakins, 2009). Dominio público; se pide citar la fuente.
+  Se genera con generar-grecia.py.
+rutas.js: rutas de barcos calculadas por nosotros sobre ese relieve (generar-rutas.py). Propio.
+Ríos: assets/mapa/agua.js del juego (Natural Earth, dominio público; ver assets/mapa/LICENSE.txt).
+Ciudades, barcos, olivos y cipreses de las maquetas A y C: modelos de 0 A.D. (Wildfire Games, CC BY-SA 3.0,
+  https://creativecommons.org/licenses/by-sa/3.0/), los mismos de assets/static/ (ver su LICENSE.txt). No se copian aquí.
+Todo lo demás (pintura del suelo, mar, nubes, humo, árboles de cono, ovejas, iconos de recursos, dibujos de la carta B,
+  fichas del tablero C): hecho aquí desde cero para AQVILA. Si pasa al juego, se publica con el resto del arte propio.
+Nada procede de juegos comerciales. Las referencias «tipo Total War» son solo de idea (mapa en relieve con ciudades vivas).

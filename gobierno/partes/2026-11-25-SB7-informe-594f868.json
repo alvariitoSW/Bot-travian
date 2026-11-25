@@ -1,0 +1,270 @@
+{
+ "fecha": "2026-11-25T11:21:46.577Z",
+ "segundos": 898,
+ "ok": true,
+ "rapido": false,
+ "area": null,
+ "todo": false,
+ "saltadas": 17,
+ "pasos": [
+  {
+   "nombre": "Pruebas de lógica",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:29 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Pausas del reloj con motivo",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:10 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Encargos del Senado e hitos",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:10 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Copia de la partida, nota y parada",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:10 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Reglas de la ciudad nueva",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:13 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Senado nuevo (sala de votos)",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:14 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Toparse en el camino (campaña, sin pantalla)",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:14 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Guerra nueva (motor sin pantalla)",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:14 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Guerra en el juego (bot y guardar a mitad)",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:15 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Fichas de las piezas",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:15 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Alturas reales del mapa",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:15 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Reglas del Saber",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:16 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Bot investigador",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:35 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Ajustes y dificultades (bot por nivel)",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:53 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Diplomacia (alianza, tributo, IA construye)",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:35 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "Sonido de la ciudad",
+   "ok": true,
+   "detalle": "sin cambios en sus archivos desde su APTO del 2026-11-25 10:35 (memoria; --todo la repite)",
+   "captura": null
+  },
+  {
+   "nombre": "El juego carga y aparecen los modelos",
+   "ok": true,
+   "detalle": "modelos listos en 2 s",
+   "captura": "01-menu.jpg"
+  },
+  {
+   "nombre": "Simulador de batallas (manípulos)",
+   "ok": true,
+   "detalle": "22 comprobaciones bien (10 s)",
+   "captura": null
+  },
+  {
+   "nombre": "Escaramuzas: «Testudo a pie» abre la escena y vuelve",
+   "ok": true,
+   "detalle": "entrada de 117 px; escena «AQVILA · Testudo a pie»; «Salir» vuelve al menú",
+   "captura": "02-escaramuzas-testudo.jpg"
+  },
+  {
+   "nombre": "Escaramuzas: «Falange a pie» abre la escena y vuelve",
+   "ok": true,
+   "detalle": "botón de 117 px; 4 rivales; abre «AQVILA · Falange a pie» con ?rival=caballeria&formacion=falange; sin errores; «Salir» vuelve al menú",
+   "captura": "04-falange-escena.jpg"
+  },
+  {
+   "nombre": "Escaramuzas: batalla nueva con mando en vivo",
+   "ok": true,
+   "detalle": "manípulo 0 en marcha y en testudo; «Derrota»; 626281 triángulos, 27 llamadas; partida guardada intacta",
+   "captura": "05-escaramuza-mando.jpg"
+  },
+  {
+   "nombre": "Escaramuzas: bajar a pie y volver al mando",
+   "ok": true,
+   "detalle": "a pie, el bloque marcha 3.7 m hacia el frente dibujado en 4.4 s; la batalla grande espera (0.4 s); arriba de nuevo a 706 m",
+   "captura": "07-escaramuza-apie.jpg"
+  },
+  {
+   "nombre": "Nueva partida: se ve el mapa",
+   "ok": true,
+   "detalle": "Ianuarius · 280 a.C.",
+   "captura": "08-ciudad-inicio.jpg"
+  },
+  {
+   "nombre": "Ciudad en 3D",
+   "ok": true,
+   "detalle": "",
+   "captura": "09-ciudad.jpg"
+  },
+  {
+   "nombre": "Ajustes y asesor: dificultad en Ajustes (☰)",
+   "ok": true,
+   "detalle": "bloque Ajustes presente; «Dura» se guarda; vuelve a Normal",
+   "captura": null
+  },
+  {
+   "nombre": "Construir un edificio",
+   "ok": true,
+   "detalle": "en obras: Granja · fantasma «Mal sitioYa hay un edificioEntendido» · ficha con mejorar · ficha de ROMA ▾ limpia (sin texto de obra en la ficha de ROMA ▾)",
+   "captura": "10-construir.jpg"
+  },
+  {
+   "nombre": "Reclutar tropas",
+   "ok": true,
+   "detalle": "en instrucción: 20 Hastati",
+   "captura": "12-reclutar.jpg"
+  },
+  {
+   "nombre": "Abrir el Códice",
+   "ok": true,
+   "detalle": "20 fichas, 13 históricas",
+   "captura": "13-codice.jpg"
+  },
+  {
+   "nombre": "Atacar una ciudad vecina",
+   "ok": true,
+   "detalle": "el ejército marcha hacia Volsinii",
+   "captura": "14-atacar.jpg"
+  },
+  {
+   "nombre": "Llega la batalla",
+   "ok": true,
+   "detalle": "Asalto a Volsinii",
+   "captura": "15-aviso-batalla.jpg"
+  },
+  {
+   "nombre": "Dirigir la batalla (horizontal): una orden con el dedo",
+   "ok": true,
+   "detalle": "hoja de tres opciones; en vivo, «Retirarse» y un manípulo que obedece «Aguantar» dado con el dedo",
+   "captura": "16-batalla.jpg"
+  },
+  {
+   "nombre": "La batalla termina y se aplica el resultado",
+   "ok": true,
+   "detalle": "¡Victoria!",
+   "captura": "17-resultado.jpg"
+  },
+  {
+   "nombre": "Recargar sin red: la partida sigue",
+   "ok": true,
+   "detalle": "partida y modelos disponibles sin conexión",
+   "captura": "18-sin-red.jpg"
+  },
+  {
+   "nombre": "Mapa por escalones: tocar Italia acerca y «← volver» devuelve",
+   "ok": true,
+   "detalle": "ocho zonas; Italia acerca la cámara (125 a 70) y «← volver» la devuelve",
+   "captura": "20-escalon-italia.jpg"
+  },
+  {
+   "nombre": "C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)",
+   "ok": true,
+   "detalle": "en el mapa: tira, ☰, «Pasar turno» y la barra de seis (en horizontal, columna de 56 px a la izquierda); la ficha dice «Entrar en Roma»; tocar Roma entra y la pestaña Mapa vuelve al mapa",
+   "captura": null
+  },
+  {
+   "nombre": "Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)",
+   "ok": true,
+   "detalle": "seis botones de 56 px o más, palabras enteras (Ciudad · Senado · Saber · Tropas · Mapa · Imperio); cada toque abre su vista y se marca",
+   "captura": "24-barra-seis.jpg"
+  },
+  {
+   "nombre": "CN22 avisos: máx. 2 avisos y tarjeta de estación baja",
+   "ok": true,
+   "detalle": "avisos=1 #inf=173 px; «Ver más»=58 «Seguir»=58 px; detalle dentro de pantalla",
+   "captura": "25-inf-detalle.jpg"
+  },
+  {
+   "nombre": "R3 pausas: la obra que termina para el reloj con su motivo; el ajuste cambia",
+   "ok": true,
+   "detalle": "la obra para el reloj («Obra terminada en Roma: Almacén nivel 2.»); «Continuar» lo reanuda; el ajuste cambia a «graves» y vuelve a «todas»",
+   "captura": "R3-pausa.jpg"
+  },
+  {
+   "nombre": "R4 aviso del asesor: una frase corta que se lee entera",
+   "ok": true,
+   "detalle": "«El tiempo solo avanza al pulsar «Pasar turno»: piensa antes de pulsarlo.» (72 caracteres, 86 px de alto)",
+   "captura": "R4-aviso-asesor.jpg"
+  },
+  {
+   "nombre": "Región de Italia: mapa con 7 ciudades",
+   "ok": true,
+   "detalle": "7 ciudades visibles, 7 rutas",
+   "captura": "26-italia.jpg"
+  },
+  {
+   "nombre": "I8 partida corta: menú, en pie, fundar, continuar y final con resumen",
+   "ok": true,
+   "detalle": "menú con 2 botones; en pie: Italia, 2 ciudades, 7 en el mapa; fundar: reloj parado, continuar reabre, ciudad beneventum es tuya; final con 9 filas",
+   "captura": "29-i8-final.jpg"
+  },
+  {
+   "nombre": "Sin errores de consola",
+   "ok": true,
+   "detalle": "",
+   "captura": null
+  },
+  {
+   "nombre": "Guerra jugada de verdad",
+   "ok": true,
+   "detalle": "sin cambios en lo que ve el navegador desde su APTO del 2026-11-25 11:06 (memoria; capturas de entonces; --todo lo repite)",
+   "captura": null
+  }
+ ],
+ "errores": []
+}
