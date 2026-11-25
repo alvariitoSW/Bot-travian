@@ -409,8 +409,6 @@
       "propios": [
         "js/fisica-batalla.js",
         "test/fisica-batalla.test.mjs",
-        "gobierno/maquetas/a-pie/fisica.js",
-        "gobierno/maquetas/falange/fisica.js",
         "js/gfx/soldado.js",
         "js/gfx/units.js",
         "js/gfx/models.js",
@@ -419,11 +417,6 @@
         "js/combate-*.js",
         "test/combate*.test.mjs",
         "js/gfx/golpes.js",
-        "gobierno/maquetas/a-pie/acciones.js",
-        "gobierno/maquetas/a-pie/esqueleto.js",
-        "gobierno/maquetas/a-pie/soldado.js",
-        "gobierno/maquetas/a-pie/locomocion.js",
-        "gobierno/maquetas/a-pie/proyectiles.js",
         "gobierno/maquetas/combate-*/",
         "gobierno/juez-combate.mjs",
         "gobierno/captura-combate*.mjs",
@@ -461,7 +454,6 @@
           "js/falange-rivales.js",
           "js/bloque.js",
           "js/bloque-ia.js",
-          "gobierno/maquetas/a-pie/escena.js",
           "js/guerra.js",
           "js/battle.js"
         ]
