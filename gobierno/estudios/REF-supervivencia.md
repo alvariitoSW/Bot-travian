@@ -32,3 +32,9 @@ aquí solo las ideas. Ni su código ni su arte.
 - Reutiliza el control a pie («Manípulo a pie», el bloque), los soldados de Meshy, la ciudad con andamios y obreros (M1)
   y las estaciones.
 - Diferencias con lo nuestro: la cámara va detrás de un solo personaje y los grupos son pequeños.
+
+## Respuestas del usuario (25/11, sesión de diseño de supervivencia)
+- «Batallas de sguaz» = **batallas de agua** (navales), «otra cosa diferente a la supervivencia». La idea 6 queda descartada.
+- De las ideas: se toman la **rueda de órdenes**, el **oficial a pie con su grupo** (y además la vista desde arriba) y el
+  **campamento que crece**, pero con mecánicas propias, «nada que ver con lo creado de la ciudad».
+- Diseño completo: `SUP0-modo-supervivencia.md`.
