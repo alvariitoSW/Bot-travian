@@ -1,68 +1,68 @@
 {
  "pausas": {
-  "huella": "959c9b624343bd7a",
+  "huella": "54a5179af4697c10",
   "ok": true,
-  "fecha": "2026-11-25T02:30:33.337Z"
+  "fecha": "2026-11-25T04:17:37.476Z"
  },
  "encargos": {
-  "huella": "a77910042383e8b0",
+  "huella": "37a1482841a46200",
   "ok": true,
-  "fecha": "2026-11-25T02:30:45.943Z"
+  "fecha": "2026-11-25T04:17:43.974Z"
  },
  "movil": {
-  "huella": "93221722e79c5d46",
+  "huella": "fbe3588b6af97f46",
   "ok": true,
-  "fecha": "2026-11-25T02:31:03.610Z"
+  "fecha": "2026-11-25T04:17:53.167Z"
  },
  "ciudad": {
-  "huella": "53178134cccc4940",
+  "huella": "18264509e9f9b14c",
   "ok": true,
-  "fecha": "2026-11-25T02:34:13.116Z"
+  "fecha": "2026-11-25T04:19:12.907Z"
  },
  "senado": {
-  "huella": "37f15d883149d11d",
+  "huella": "f68bd5d256c2c8c3",
   "ok": true,
-  "fecha": "2026-11-25T02:34:40.848Z"
+  "fecha": "2026-11-25T04:19:25.899Z"
  },
  "campo": {
-  "huella": "72cf82cee61e4a83",
+  "huella": "23242822affea7b9",
   "ok": true,
-  "fecha": "2026-11-25T02:34:57.541Z"
+  "fecha": "2026-11-25T04:19:33.695Z"
  },
  "guerra": {
-  "huella": "665c2eaaa6feadd1",
+  "huella": "5c897b578263332b",
   "ok": true,
-  "fecha": "2026-11-25T01:37:51.020Z"
+  "fecha": "2026-11-25T04:19:33.978Z"
  },
  "simulador": {
-  "huella": "a7e468099e318a85",
+  "huella": "b550f27f72dc6fc3",
   "ok": true,
-  "fecha": "2026-11-25T01:38:01.730Z"
+  "fecha": "2026-11-25T04:19:46.219Z"
  },
  "guerra-juego": {
-  "huella": "c82c866f46879bf1",
+  "huella": "e7e9fc75f19dbdca",
   "ok": true,
-  "fecha": "2026-11-25T02:35:16.725Z"
+  "fecha": "2026-11-25T04:19:56.944Z"
  },
  "fichas": {
-  "huella": "cf5b019facb9c0dd",
+  "huella": "ddb53fc5a8b275dc",
   "ok": true,
-  "fecha": "2026-11-25T02:35:17.060Z"
+  "fecha": "2026-11-25T04:19:57.041Z"
  },
  "mapa": {
-  "huella": "c7fcc9f981e50cbb",
+  "huella": "78bda7e37da5963d",
   "ok": true,
-  "fecha": "2026-11-25T02:35:17.263Z"
+  "fecha": "2026-11-25T04:19:57.150Z"
  },
  "saber": {
-  "huella": "eac8dbca0b2e2a1a",
+  "huella": "e8b3e4220d0f78bb",
   "ok": true,
-  "fecha": "2026-11-25T02:36:19.414Z"
+  "fecha": "2026-11-25T04:20:23.059Z"
  },
  "sim": {
-  "huella": "1d69cde1346e40c7",
+  "huella": "8ac60e8e2f88d6e9",
   "ok": true,
-  "fecha": "2026-11-25T02:47:32.582Z"
+  "fecha": "2026-11-25T04:26:02.109Z"
  },
  "investigador": {
   "huella": "02a337f0b4874454",
@@ -70,9 +70,9 @@
   "fecha": "2026-11-24T23:39:16.509Z"
  },
  "diplomacia": {
-  "huella": "ce9e1f4c768fc964",
+  "huella": "cb0f0cbe75347834",
   "ok": true,
-  "fecha": "2026-11-25T02:47:39.404Z"
+  "fecha": "2026-11-25T04:26:07.046Z"
  },
  "sonido-ciudad": {
   "huella": "d6835c42699fc1af",
@@ -80,9 +80,9 @@
   "fecha": "2026-11-25T01:43:01.669Z"
  },
  "ajustes": {
-  "huella": "7b3a4d1a111db9a5",
+  "huella": "c9b78ecd62395e3c",
   "ok": true,
-  "fecha": "2026-11-25T02:56:09.297Z"
+  "fecha": "2026-11-25T04:39:35.909Z"
  },
  "guerra-jugada": {
   "huella": "25ca1010e0c8707b",
