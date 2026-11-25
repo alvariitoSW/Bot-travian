@@ -144,9 +144,10 @@ const CON_ESPADA = { guardia: 1, golpear: 1, encajar: 1 }, DUR_GOLPE = 1.55;
 export function marcaApretados(figs) {
   const G = new Map(), k = (x, z) => Math.floor(x) + ',' + Math.floor(z);
   for (const f of figs) { const q = k(f.x, f.z); (G.get(q) || G.set(q, []).get(q)).push(f); }
-  for (const f of figs) { let d = 9; const cx = Math.floor(f.x), cz = Math.floor(f.z);
-    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const g of G.get((cx + a) + ',' + (cz + b)) || []) if (g !== f && g.bando === f.bando) d = Math.min(d, Math.hypot(g.x - f.x, g.z - f.z));
-    f.apretado = d; }
+  for (const f of figs) { let d = 9, dd = 9; const cx = Math.floor(f.x), cz = Math.floor(f.z), rx = -Math.cos(f.yaw), rz = Math.sin(f.yaw);
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const g of G.get((cx + a) + ',' + (cz + b)) || []) if (g !== f && g.bando === f.bando) {
+      const vx = g.x - f.x, vz = g.z - f.z, e = Math.hypot(vx, vz); d = Math.min(d, e); if (vx * rx + vz * rz > 0.3) dd = Math.min(dd, e); }
+    f.apretado = d; f.apretadoDer = dd; }   /* apretadoDer: el más cerca de los que tiene a su derecha (por donde asoma el regatón de la lanza) */
 }
 /* BT1: en la lucha (su bloque trabado), el que espera quieto con la lanza la deja y está en guardia con la espada: la lanza del modelo va
    cruzada por delante del cuerpo, con el regatón a 1 m a su derecha, y entraba en el vecino y en los caídos del suelo. Licencia de juego */
@@ -159,8 +160,8 @@ export function gestoEspada(f, t, i, prestadas = false) {   /* prestadas: el cue
     if (!prestadas) { const mu = t.malla.geometry.attributes.aMuestra; mu.setX(i, clip === 'guardia' ? 2 : 4); mu.needsUpdate = true; }   /* andando, la espada envainada y sin lanza */
   }
   /* apretados (otro de su bando a menos de 0,85 m), nadie lleva la lanza ni el pilum en la mano: va cruzada por delante con el regatón a 1 m a su
-     derecha y entraba en el vecino; queda la espada envainada (el pilum se ve al lanzarlo) */
-  if (!prestadas && f.apretado < 0.85 && clip !== 'lanzar' && clip !== 'lanzar2' && (pz.lanza_asta || pz.pilum_asta)) { const mu = t.malla.geometry.attributes.aMuestra; const v = mu.getX(i); if (v % 2 === 1) { mu.setX(i, v - 1); mu.needsUpdate = true; } }
+     derecha y entraba en el vecino (también al echar el brazo atrás para lanzarlo); queda la espada envainada. El pilum que vuela se ve igual */
+  if (!prestadas && (f.apretado < 0.85 || f.apretadoDer < 1.25 || ((clip === 'correr' || clip === 'andar') && f.apretado < 1.1)) && (pz.lanza_asta || pz.pilum_asta)) {   /* corriendo o andando la llevan baja y al frente: a 1,1 m ya llega al de delante */ const mu = t.malla.geometry.attributes.aMuestra; const v = mu.getX(i); if (v % 2 === 1) { mu.setX(i, v - 1); mu.needsUpdate = true; } }
   if (!CON_ESPADA[clip] || (!prestadas && !pz.espada_hoja)) return;   /* en testudo, la 1.ª fila (el muro) va en guardia: también; los de debajo del techo, «cubrirse», no */
   /* las filas de atrás (de la 3.ª en adelante, y la 2.ª si está apretada a menos de 0,6 m) esperan con la espada envainada: la hoja desnuda entraba en el vecino */
   const fila = f.h ? (f.h.fila ?? f.h.r ?? 0) : f.b && f.b.vis && f.slot !== undefined ? Math.floor(f.slot / f.b.vis.cols) : 0;
