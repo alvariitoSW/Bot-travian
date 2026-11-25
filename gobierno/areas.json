@@ -132,7 +132,9 @@
         "test/fu4-rivales.test.mjs",
         "test/tropas.test.mjs",
         "test/tropas-sim.test.mjs",
-        "test/tropas-precios.test.mjs"
+        "test/tropas-precios.test.mjs",
+        "test/es3-combinada.test.mjs",
+        "test/es4-asculo.test.mjs"
       ],
       "taller": [],
       "juez": {
@@ -157,7 +159,11 @@
           "test/tacticas.test.mjs",
           "test/fu4-rivales.test.mjs",
           "test/tropas.test.mjs",
-          "test/tropas-sim.test.mjs"
+          "test/tropas-sim.test.mjs",
+          "test/es2-mando.test.mjs",
+          "test/es3-tiro.test.mjs",
+          "test/es3-combinada.test.mjs",
+          "test/es4-asculo.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",
