@@ -39,15 +39,15 @@ export function separaEstandartes(contenedor, { zonas = ZONAS, fijos = FIJOS } =
   const mueve = (a, dy) => ({ left: a.r.left, right: a.r.right, top: a.r.top + dy, bottom: a.r.bottom + dy });
   for (let i = 0; i < R.length; i++) for (let vuelta = 0; vuelta < 4; vuelta++) {
     let movido = false; const yo = mueve(R[i], R[i].dy);
-    for (let j = 0; j < i; j++) { const otro = mueve(R[j], R[j].dy); if (!R[j].oculto && pisan(yo, otro, 4)) { R[i].dy = otro.top - R[i].r.bottom - 2; movido = true; break; } }
-    if (!movido) for (const f of F) if (pisan(yo, f, 2)) { R[i].dy = f.top - R[i].r.bottom - 2; movido = true; break; }
+    for (let j = 0; j < i; j++) { const otro = mueve(R[j], R[j].dy); if (!R[j].oculto && pisan(yo, otro, 1)) { R[i].dy = otro.top - R[i].r.bottom - 2; movido = true; break; } }
+    if (!movido) for (const f of F) if (pisan(yo, f, 1)) { R[i].dy = f.top - R[i].r.bottom - 2; movido = true; break; }
     if (!movido) break;
     if (vuelta === 3) R[i].oculto = true;
   }
   /* 4) lo que cae (o queda tras subir) encima de una zona de mando o de un aviso, oculto */
   for (const a of R) {
     const r = mueve(a, a.dy);
-    if (a.oculto || r.top < 0 || Z.some(z => pisan(r, z, 0)) || F.some(f => pisan(r, f, 2))) { a.e.style.visibility = 'hidden'; a.dy = 0; }
+    if (a.oculto || r.top < 0 || Z.some(z => pisan(r, z, 0)) || F.some(f => pisan(r, f, 1))) { a.e.style.visibility = 'hidden'; a.dy = 0; }
     a.e.style.translate = a.dy ? '0 ' + a.dy.toFixed(1) + 'px' : '';
   }
 }

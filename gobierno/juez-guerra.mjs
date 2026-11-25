@@ -82,7 +82,7 @@ async function verResultado(sel) {
 }
 const cierraResultado = async () => { const b = page.locator('#modal:not([hidden]) [data-act="bdone"]'); if (await b.count()) { await b.evaluate(e => e.click()); await esp(600); } };
 /* botones del mando: caben enteros y miden al menos 40 px (los de pantalla; los velos ocultos no cuentan) */
-const dentro = () => page.evaluate(() => [...document.querySelectorAll('#mn .mn-o, #mn .mn-b1, #mn-varios')].filter(b => b.offsetParent !== null).every(b => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 0.5 && r.top >= 0 && r.bottom <= innerHeight + 0.5 && r.height >= 40; }));
+const dentro = () => page.evaluate(() => [...document.querySelectorAll('#mn .mn-o, #mn .mn-b1, #mn-varios, #mn .mn-t, #mn .mn-f')].filter(b => b.offsetParent !== null).every(b => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 0.5 && r.top >= 0 && r.bottom <= innerHeight + 0.5 && r.height >= 40; }));
 
 await page.goto('http://127.0.0.1:' + srv.address().port + '/'); await esp(1500);
 await clic('#menu [data-act="new"]'); await esp(10000);
@@ -117,7 +117,7 @@ if (!cartelVisto) console.log('  (no se pilló el cartel: la carga fue más ráp
 else bien(!retirarTapado, '«Retirarse» se puede pulsar mientras carga la pantalla');
 bien(await page.evaluate(() => { const S = window.__mn.S; return S.man.some(u => u.lado === 0) && S.man.some(u => u.lado === 1) && !!window.__mn.S.reg; }), 'la batalla de la campaña es la del simulador: manípulos de los dos bandos');
 
-/* primer toque útil, con el dedo: tocar un manípulo tuyo y luego «Aguantar». Se espera a que acabe el plano de apertura */
+/* primer toque útil, con el dedo: tocar un manípulo tuyo y luego «Alto» (BT1: la barra común; en el simulador, «aguantar»). Se espera a que acabe el plano de apertura */
 await page.waitForFunction(() => window.__mn.cine() !== 'apertura', null, { timeout: 60000 }).catch(() => {});
 const btLista = await page.evaluate(() => window.__mn.S.t);
 const id = await page.evaluate(() => { const S = window.__mn.S, u = S.man.find(m => m.lado === 0 && m.tropa === 'hastati' && m.estado === 'firme') || S.man.find(m => m.lado === 0); return u.id; });
@@ -127,11 +127,11 @@ for (let k = 0; k < 3 && !elegido; k++) {
   elegido = (await mn('estado')).sel.includes(id);
 }
 bien(elegido, 'tocar con el dedo un manípulo tuyo lo elige (' + toques + ' toque(s))');
-const boton = page.locator('#mn-ordenes .mn-o').filter({ hasText: 'Aguantar' }).first();
+const boton = page.locator('#mn-ordenes .mn-o').filter({ hasText: /^Alto$/ }).first();
 let obedece = false;
 if (elegido && await boton.count()) { await boton.tap({ noWaitAfter: true, timeout: 45000 }).catch(() => boton.evaluate(e => e.click())); toques++; await esp(600); obedece = await page.evaluate(i => { const u = window.__mn.S.man[i]; return u.orden === 'aguantar' && u.mando === 'jugador'; }, id); }
 const tEfecto = (await page.evaluate(() => window.__mn.S.t)) - btLista;
-bien(obedece, 'el manípulo obedece la orden dada con el dedo («Aguantar»: aguanta y lo llevas tú)');
+bien(obedece, 'el manípulo obedece la orden dada con el dedo («Alto»: aguanta y lo llevas tú)');
 console.log('  CIFRA primer toque útil: ' + toques + ' toques, ' + tEfecto.toFixed(1) + ' s de batalla desde que la pantalla está lista, sin leer nada');
 bien(toques <= 3 && tEfecto <= 15, 'el primer efecto llega con pocos toques y pronto (límite razonable: elegir y mandar, 15 s)');
 bien(await dentro(), 'todos los botones del mando caben enteros y miden al menos 40 px (vertical)');
@@ -207,7 +207,14 @@ if (hayCont) {
   await page.waitForFunction('window.__mn && window.__mn.lista === true && !window.__mn.cerrado', null, { timeout: 180000 }); await esp(1200);
   const despues = await page.evaluate(() => { const S = window.__mn.S; return { t: S.t, n: S.man.map(u => Math.round(u.n)).join(','), fin: S.fase === 'fin' }; });
   bien(!despues.fin && Math.abs(despues.t - antes.t) < 0.6 && despues.n === antes.n, 'la batalla sigue donde iba (segundo ' + Math.round(despues.t) + ', los mismos hombres en pie)');
+  /* BT1: la foto, cuando ya se ha pintado al menos un cuadro (con el render por software y otros navegadores a la vez, el primero tarda) */
+  await page.waitForFunction(() => { const e = window.__mn.estado(); return e.llamadas > 0 && e.tri > 0; }, null, { timeout: 90000 }).catch(() => {});
   await foto('R1-retomada');
+  /* BT1 (pase del vigía, de JG2): al retomar, el campo se pinta (antes salió en negro en dos pasadas). Color medio de la franja del medio */
+  { const png = (await page.screenshot({ type: 'png' })).toString('base64');
+    const c = await page.evaluate(async b => { const im = new Image(); im.src = 'data:image/png;base64,' + b; await im.decode(); const cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height; const g = cv.getContext('2d'); g.drawImage(im, 0, 0);
+      const y0 = Math.round(im.height * 0.3), d = g.getImageData(0, y0, im.width, Math.round(im.height * 0.3)).data; let r = 0, v = 0, a = 0; for (let i = 0; i < d.length; i += 4) { r += d[i]; v += d[i + 1]; a += d[i + 2]; } const k = d.length / 4; return [r / k, v / k, a / k].map(Math.round); }, png);
+    bien(Math.max(...c) > 45, 'al retomar, el campo se pinta y no sale negro (color medio del centro ' + c.join(', ') + ')'); }
   await acabaVivo('resultado-mando');
   const titulo = await page.evaluate(() => (document.querySelector('#modal:not([hidden]) h2') || {}).textContent || '');
   await foto('resultado');

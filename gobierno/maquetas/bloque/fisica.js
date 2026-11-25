@@ -467,7 +467,7 @@ export function medirChoques(escena, op = {}) {
       const oculto = v => { if (!aset || !mu) return false; const s = aset[v]; return s > 0.5 && Math.floor(mu[i] / Math.pow(2, s - 1) + 0.001) % 2 < 0.5; };
       const esc = Math.hypot(e[0], e[1], e[2]);
       if (tris.length && !H.cuerpo) {
-        H.cuerpo = { nv, X, e, Pp, tris, usa, v: null };
+        H.cuerpo = { nv, X, e, Pp, tris, usa, v: null, fuente: tab ? 'tabla' : 'crudo', fa, fb, filas };
         const cen = b => [Pp.cen[b * 3], Pp.cen[b * 3 + 1], Pp.cen[b * 3 + 2]];
         for (const c of Pp.cad) H.caps.push({ nom: c.nom, parte: c.parte, a: huesoP(c.ia, cen(c.ia)), b: huesoP(c.ib, cen(c.ib)), r: c.r * esc, rFuera: c.rFuera * esc });
       }

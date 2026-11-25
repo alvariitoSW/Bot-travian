@@ -8,7 +8,7 @@
      M.cuerpos          [{ id, nombre, corto, tipo: 'falange'|'manipulo'|'extra', b }] (sin «todos»; «todos» es un id más)
      M.elegido          id del cuerpo elegido ('todos' al empezar)
      M.elige(id)        true si existe. Avisa a los que escuchan (M.escucha(f))
-     M.ordenesDe(id)    los cuatro botones del cuerpo: ids de js/../hud.js (picas, cerrar, avanzar, alto, testudo, cargar, relevo, retirada)
+     M.ordenesDe(id)    BT1: los seis huecos de la barra común (BARRA) con la orden de ese cuerpo en cada uno, o null (apagado)
      M.orden(n)         orden del cuerpo elegido (en pausa, se guarda y se cumple al reanudar). Devuelve true si la acepta
      M.dibujaFrente(a,b) frente del elegido: un cuerpo se coloca en la raya; «todos», la línea entera (falange al centro,
                         manípulos a sus lados con el hueco, los que ya estaban a esa mano)

@@ -148,6 +148,7 @@ export function soltarSoldado(S) { if (!S) return; for (const s of S.niveles) { 
 
 /* Una tropa: hasta cap hombres de un mismo soldado (un nivel) en una llamada. Cada cuadro: limpiar() y luego, por hombre,
    i = sig(), matriz en malla.instanceMatrix.array[i*16..], vars(i, [4 números 0–1]) y pose(i, clip, t, muestra). */
+const SUELTA = 1.1;   /* BT1: s del clip «morir» en que el arma de la mano deja de verse */
 export function tropa(s, cap) {
   const g = new THREE.BufferGeometry(); for (const k in s.geo.attributes) g.setAttribute(k, s.geo.attributes[k]); g.setIndex(s.geo.index);
   const cu = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3), va = new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4), mu = new THREE.InstancedBufferAttribute(new Float32Array(cap), 1);
@@ -168,7 +169,7 @@ export function tropa(s, cap) {
     pose(i, clip, t, muestra = 0) { const c = s.j.clips[clip] || s.j.clips.quieto; let f = t * c.fps; f = c.bucle ? f % (c.n - 1) : Math.min(f, c.n - 1); if (f < 0) f += c.n - 1; const a = Math.floor(f), b = Math.min(a + 1, c.n - 1);
       cu.setXYZ(i, c.ini + a, c.ini + b, f - a); cu.needsUpdate = true; mu.setX(i, muestra); mu.needsUpdate = true; },
     /* la muestra que toca a un clip en el instante t (s) */
-    muestra(clip, t) { let v = 0; for (const [t1, k] of (s.j.muestra || {})[clip] || []) if (t >= t1) v = k; return v; },
+    muestra(clip, t) { let v = 0; for (const [t1, k] of (s.j.muestra || {})[clip] || []) if (t >= t1) v = k; return clip === 'morir' && t > SUELTA ? v & ~3 : v; },   /* BT1: el caído suelta lo que lleva en la mano (lanza, pilum, espada) al llegar al suelo: no cruza a otros caídos */
     dispose() { g.dispose(); } };
   return T;
 }

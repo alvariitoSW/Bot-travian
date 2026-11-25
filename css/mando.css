@@ -59,6 +59,7 @@
 #mn-varios.on{border-color:var(--oro);color:var(--oro);background:rgba(233,192,99,.18)}
 /* BT1: los botones de texto de la ficha (no son órdenes): «Al tribuno» y «Bajar a pie» */
 #mn-ficha{flex-wrap:wrap}
+#mn-ficha-t{flex:1 1 150px}
 #mn-ficha-b{display:flex;gap:6px;flex:0 0 auto;margin-left:auto}
 #mn .mn-t{min-height:44px;padding:0 10px;border-radius:10px;background:rgba(255,255,255,.06);border:1.5px solid var(--fil);font-weight:700;font-size:13px;white-space:nowrap}
 #mn .mn-t.no{opacity:.45}

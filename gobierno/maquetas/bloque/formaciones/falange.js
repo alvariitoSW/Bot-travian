@@ -111,12 +111,17 @@ export function combate(m = {}) {
 /* FU3c: el carril de cada sarisa en ESTA escena: la 1.ª fila, a la cadera como siempre; las de detrás, todas en el mismo pasillo (a 33 cm a la derecha de su hombre: justo fuera
    de su hombro y entre el hombro y el escudo del vecino de la derecha, que cuelga al pecho) y a la altura de su fila, sin cruzar cascos ni escudos. Solo dibujo */
 const CARRIL_FU3C = r => { const c = CARRIL_VIEJO(r); return r === 0 ? c : { x: 0.33, y: c.y }; };
-/* BT1 (F0, «las sarisas atraviesan a los compañeros»): las filas 2.ª a 5.ª llevan la sarisa POR ENCIMA de los hombros de los de delante,
-   cada fila algo más alta, y alternando dos pasillos (más cerca o más lejos de su hombro) para no tocar las manos de la fila de delante.
+/* BT1 (F0, «las sarisas atraviesan a los compañeros»): las filas 2.ª a 5.ª llevan la sarisa POR ENCIMA de los hombros de los de delante y del
+   escudo del vecino (su borde de arriba va a 1,57 m), en dos pasillos que se alternan fila a fila: A, a 48 cm de su hombre (entre su brazo y la
+   cabeza del vecino), y B, a 28 cm (entre su cabeza y el brazo del de delante). Así el asta de una fila nunca pasa por el antebrazo de la de al
+   lado; en el pasillo B se va por encima del brazo izquierdo que los del pasillo A cruzan hasta su asta, y en un mismo pasillo cada fila va
+   12 cm más alta que la de delante (por encima de sus manos). La 1.ª fila, a la cadera, a 30 cm (su regatón pasa junto a la cadera del de
+   detrás). Alturas a talla 1. Medido con __bloque.choques (bloque/fisica.js).
    ?carril=viejo vuelve al de FU3c (para la prueba test/combate-atraviesa.test.mjs, que debe fallar con él). Solo dibujo */
 const Qc = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
-const CARRIL_BT1 = (() => { try { const v = Qc && Qc.get('carrilxy'); if (v) return JSON.parse(v); } catch (e) { /* el de serie */ } return [null, [0.33, 1.62], [0.45, 1.68], [0.33, 1.76], [0.45, 1.82]]; })();
-const CARRIL = Qc && Qc.get('carril') === 'viejo' ? CARRIL_FU3C : r => { const c = CARRIL_VIEJO(r), k = Math.min(4, r); return r === 0 ? c : { x: CARRIL_BT1[k][0], y: CARRIL_BT1[k][1] }; };
+const CARRIL_BT1 = (() => { try { const v = Qc && Qc.get('carrilxy'); if (v) return JSON.parse(v); } catch (e) { /* el de serie */ } return [[0.3, 1.0], [0.48, 1.64], [0.28, 1.72], [0.48, 1.76], [0.28, 1.84]]; })();
+const SIN_APARTAR = !!(Qc && Qc.get('carril') === 'viejo');   /* con el carril viejo, tampoco se apartan (el «antes») */
+const CARRIL = Qc && Qc.get('carril') === 'viejo' ? CARRIL_FU3C : r => { const c = CARRIL_VIEJO(r), k = Math.min(4, r); return CARRIL_BT1[k] ? { x: CARRIL_BT1[k][0], y: CARRIL_BT1[k][1] } : c; };
 const PIEZAS_SARISA = (() => {
   /* FU3c: sarisa fina (≈3,6 cm de diámetro), fresno con veta (color por vértice que varía a lo largo), regatón de bronce atrás, manguito fino de bronce y punta de hierro clara y estrecha */
   const pz = [[0.004, 0.02, 0, 0.22, '#8a6a3c']], N = 24, ruido = i => { const v = Math.sin(i * 12.9898) * 43758.5453; return v - Math.floor(v); };
@@ -149,8 +154,41 @@ function geoPalo(T, piezas, lados, plana) {
 const PIEZAS_PILUM = [[0.016, 0.016, 0, 1.2, '#b48a5a'], [0.019, 0.019, 1.2, 1.26, '#58585a'], [0.006, 0.006, 1.26, 1.95, '#505052'], [0.013, 0.001, 1.95, 2.06, '#6a6a6c']];
 const suave = x => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 
+/* BT1: el cuerpo de un falangita para APARTAR las astas de los compañeros (marco del modelo: izquierda +x, arriba y, frente +z; m, a talla 1).
+   Cápsulas [ax, ay, az, bx, by, bz, radio] algo más gordas que la malla (medidas con __bloque.choques en lucha), y el escudo al pecho
+   (soldados.js paraFalange) como una caja fina: centro, eje a lo ancho (u), medio ancho, medio alto y medio grueso. Solo dibujo */
+const CUERPO_FAL = [[0, 0.12, 0, 0, 0.9, 0, 0.2], [0, 0.9, 0, 0, 1.36, 0, 0.21], [0.18, 1.36, 0, -0.18, 1.36, 0, 0.11], [0, 1.42, 0.04, 0, 1.6, 0.03, 0.13]];
+const ESCUDO_FAL = { c: [0.205, 1.25, 0.17], n: [-0.64, 0, 0.77], R: 0.29, g: 0.03 };   /* el disco: centro, normal, radio y medio grueso */
+const R_ASTA = 0.02, HOLGURA = 0.01;
+/* desvíos que se prueban (giro sobre la mano: de lado, arriba/abajo), del más pequeño al más grande */
+const DESVIOS = (() => { const o = [[0, 0]]; for (const a of [0.015, 0.03, 0.05, 0.08, 0.11, 0.15]) for (const p of [0, 0.02, -0.02, 0.04]) for (const sg of [1, -1]) o.push([a * sg, p]); for (const p of [0.02, 0.04, 0.06, -0.02]) o.push([0, p]);
+  return o.sort((x, y) => Math.hypot(x[0], x[1] * 1.4) - Math.hypot(y[0], y[1] * 1.4)); })();
+function dSS(p1, d1, L1, p2, q2) {   /* distancia del segmento p1 + d1·[0, L1] (d1 unitario) al segmento p2q2 */
+  const ux = d1[0] * L1, uy = d1[1] * L1, uz = d1[2] * L1, vx = q2[0] - p2[0], vy = q2[1] - p2[1], vz = q2[2] - p2[2], wx = p1[0] - p2[0], wy = p1[1] - p2[1], wz = p1[2] - p2[2];
+  const a = ux * ux + uy * uy + uz * uz, b = ux * vx + uy * vy + uz * vz, c = vx * vx + vy * vy + vz * vz, d = ux * wx + uy * wy + uz * wz, e = vx * wx + vy * wy + vz * wz, den = a * c - b * b;
+  let sN = den > 1e-12 ? (b * e - c * d) / den : 0; sN = Math.max(0, Math.min(1, sN)); let tN = c > 1e-12 ? (b * sN + e) / c : 0;
+  if (tN < 0) { tN = 0; sN = Math.max(0, Math.min(1, -d / a)); } else if (tN > 1) { tN = 1; sN = Math.max(0, Math.min(1, (b - d) / a)); }
+  return Math.hypot(wx + ux * sN - vx * tN, wy + uy * sN - vy * tN, wz + uz * sN - vz * tN);
+}
+/* ¿el asta (P, D, L en el mundo) toca a este compañero c = { x, y, z, co, se, t, brazos }? */
+function tocaCompanero(P, D, L, c) {
+  const rx = (P[0] - c.x) / c.t, ry = (P[1] - c.y) / c.t, rz = (P[2] - c.z) / c.t, Lm = L / c.t;
+  const p = [rx * c.co - rz * c.se, ry, rx * c.se + rz * c.co], d = [D[0] * c.co - D[2] * c.se, D[1], D[0] * c.se + D[2] * c.co];
+  for (let q = 0; q < CUERPO_FAL.length; q++) { const k = CUERPO_FAL[q]; if (dSS(p, d, Lm, [k[0], k[1], k[2]], [k[3], k[4], k[5]]) < k[6] + R_ASTA + HOLGURA) return 'c' + q; }
+  for (let q = 0; q < c.brazos.length; q++) { const k = c.brazos[q]; if (dSS(p, d, Lm, [k[0], k[1], k[2]], [k[3], k[4], k[5]]) < k[6] + R_ASTA + HOLGURA) return 'b' + q; }
+  /* el escudo (un disco): el tramo del asta dentro de su grosor (agrandado por el del asta) y, en él, lo más cerca de su eje */
+  const E = ESCUDO_FAL, o = [p[0] - E.c[0], p[1] - E.c[1], p[2] - E.c[2]], on = o[0] * E.n[0] + o[1] * E.n[1] + o[2] * E.n[2], dn = d[0] * E.n[0] + d[1] * E.n[1] + d[2] * E.n[2], m = E.g + R_ASTA + HOLGURA;
+  let t0 = 0, t1 = Lm;
+  if (Math.abs(dn) < 1e-9) { if (Math.abs(on) > m) return false; } else { let a = (-m - on) / dn, b = (m - on) / dn; if (a > b) [a, b] = [b, a]; t0 = Math.max(t0, a); t1 = Math.min(t1, b); if (t0 > t1) return false; }
+  /* radio al eje: |o + d·t − n·(on + dn·t)|², cuadrática en t; su mínimo en [t0, t1] */
+  const ux = o[0] - E.n[0] * on, uy = o[1] - E.n[1] * on, uz = o[2] - E.n[2] * on, vx = d[0] - E.n[0] * dn, vy = d[1] - E.n[1] * dn, vz = d[2] - E.n[2] * dn, vv = vx * vx + vy * vy + vz * vz;
+  const t = Math.max(t0, Math.min(t1, vv > 1e-12 ? -(ux * vx + uy * vy + uz * vz) / vv : t0)), R2 = (ux + vx * t) ** 2 + (uy + vy * t) ** 2 + (uz + vz * t) ** 2, Rm = E.R + R_ASTA + HOLGURA;
+  return R2 < Rm * Rm ? 'escudo' : false;
+}
+
 export function crear() {
   let ctx = null, sar = null, mun = null, pil = null, V = null, rotas = new WeakMap(), tB = -9, bajadasAntes = false;
+  const desvios = new WeakMap();   /* BT1: el desvío de cada asta (giro sobre la mano) que la deja pasar limpia */
   const forma = { bajadas: false };   /* FU3b: lo pone la escena cada fotograma (falangita.js estado().bajadas): las sarisas de la 1.ª fila bajan de golpe y estocan. Solo dibujo */
   /* FU3c: brazos de FA2. Los hombres de cerca (nivel 0 de tropas) usan una tabla de huesos con las filas «sarisa bajada en el carril de la fila r»
      (soldados.js de la maqueta de la falange); aquí solo se elige la fila de cada uno. Los de lejos siguen con su clip */
@@ -210,16 +248,29 @@ export function crear() {
       V.camP = null; sar.onBeforeRender = (r, sc, cam) => { V.camP = cam.position; };   /* FU3c: dónde está la cámara (para no pintar tu propia sarisa ante ella) */
       sar.userData.asta = { tipo: 'sarisa', largo: SARISA, radio: 0.0195, duenos: [] }; mun.userData.asta = { tipo: 'muñón', largo: 2.86, radio: 0.031, duenos: [] };   /* BT1: medirChoques (bloque/fisica.js) */
       for (const m of [sar, mun, pil]) { m.frustumCulled = false; m.count = m === pil ? NPILA : n; c.escena.add(m); }
-      if (typeof window !== 'undefined' && window.__bloque) window.__bloque.mallas = { sar, mun, pil, V };   /* FU3c: gancho de captura */
+      if (typeof window !== 'undefined' && window.__bloque) window.__bloque.mallas = { sar, mun, pil, V, forma };   /* FU3c: gancho de captura */
     },
     paso() {
       if (!ctx || !sar) return;
       const F = ctx.S.fal, H = ctx.H, figs = new Map(), Tm = ctx.S.T;
-      for (const f of ctx.TR.figs) if (f.h) figs.set(f.h, f);
+      for (const f of ctx.TR.figs) if (f.h) { figs.set(f.h, f); if (!f.tallaBT1) { f.talla = 1 + ((f.talla || 1) - 1) * 0.2; f.tallaBT1 = true; } }   /* BT1: en la falange, todos de una talla (±1 %): las manos de cada fila, a su altura (los carriles van a 10–12 cm) */
       if (forma.bajadas && !bajadasAntes) tB = Tm; bajadasAntes = forma.bajadas;
       const uB = (Tm - tB) / T_BAJADAS, estoca = uB >= 0 && uB < 1 ? Math.sin(Math.PI * uB) : 0;
       let ns = 0, nm = 0; const yo = ctx.ocultaYo ? ctx.ocultaYo() : null, FI = ctx.FI;   /* FU4 */
       if (forma.mide) forma.picas = [];
+      forma.desviadas = 0;   /* BT1: cuántas astas van desviadas (y ×1000 las que no encuentran paso limpio) */
+      /* BT1: los compañeros que se pintan (para apartar las astas): posición, giro, talla y sus brazos según su sarisa (bajada: en su carril) */
+      const comp = [], rejilla = new Map(), cel = (x, z) => Math.floor(x / 2) + ',' + Math.floor(z / 2);
+      if (!SIN_APARTAR) for (const h of F.fal) {
+        const f = figs.get(h); if (!f || !h.vivo) continue;
+        const kb = h.huye || h.r >= BAJAN ? 0 : kBde(h, primera0(h)), cr = CARRIL(h.r), hx = -(0.2 + (cr.x - 0.2) * kb), hy = 1.05 + (cr.y - 1.05) * kb;
+        const c = { h, x: f.x, y: H(f.x, f.z), z: f.z, co: Math.cos(f.yaw), se: Math.sin(f.yaw), t: f.talla || 1,
+          brazos: [[-0.17, 1.36, 0, hx + 0.05, hy - 0.14, -0.19 * kb + 0.1 * (1 - kb), 0.06], [hx + 0.05, hy - 0.14, -0.19 * kb + 0.1 * (1 - kb), hx - 0.04, hy + 0.06, -0.21 * kb + 0.15 * (1 - kb), 0.05],
+            [0.15, 1.34, 0, hx + 0.03, hy - 0.01, 0.3, 0.05]] };
+        comp.push(c); const k = cel(c.x, c.z); (rejilla.get(k) || rejilla.set(k, []).get(k)).push(c);
+      }
+      const cerca = (P, Q) => { const o = []; for (let x = Math.floor(Math.min(P[0], Q[0]) / 2) - 1; x <= Math.floor(Math.max(P[0], Q[0]) / 2) + 1; x++) for (let z = Math.floor(Math.min(P[2], Q[2]) / 2) - 1; z <= Math.floor(Math.max(P[2], Q[2]) / 2) + 1; z++) { const l = rejilla.get(x + ',' + z); if (l) o.push(...l); } return o; };
+      const Pa = [0, 0, 0], Da = [0, 0, 0], Qa = [0, 0, 0];
       for (const h of F.fal) {
         const f = figs.get(h); if (!f || !h.vivo || h === yo) continue;   /* FU4: en la vista del oficial su propia sarisa (o muñón) no tapa la cámara */
         if (V.camP && F.yo && h === F.fal[F.yo.i] && !h.picaRota && Math.hypot(V.camP.x - f.x, V.camP.z - f.z) < 1.7 && V.camP.y < 3.4) continue;   /* FU3c: en la vista del oficial su sarisa no se pinta (salía como una tabla ante la cámara) */
@@ -229,7 +280,12 @@ export function crear() {
         /* la mano: junto al cuerpo con la pica alzada; en el carril de su fila con la pica bajada (marco del hombre: derecha +x, frente −z) */
         const cr = CARRIL(h.r), s = h.r < BAJAN ? kB : 0, t = f.talla || 1;
         V.Mn.set(0.2 + (cr.x - 0.2) * s, (1.05 + (cr.y - 1.05) * s) * t, -0.15 - 0.05 * s).applyAxisAngle(V.Y, giro);
-        V.P.set(f.x + V.Mn.x, H(f.x, f.z) + V.Mn.y, f.z + V.Mn.z).addScaledVector(V.D, -AGARRE + (primera ? 0.6 * estoca : 0));
+        /* BT1: cuánto asta queda detrás de la mano. Bajada, AGARRE (el contrapeso); alzada, el regatón se apoya en el suelo (no lo atraviesa ni llega
+           a los pies del de detrás); al bajarla o alzarla, el asta corre entre las manos y el regatón se queda junto a su hombre (al girar sobre la
+           mano barría el cuerpo del de detrás). Solo dibujo: la punta de las reglas (bajada) no cambia */
+        let atras = AGARRE - (primera ? 0.6 * estoca : 0);
+        if (!SIN_APARTAR) { const ymano = V.Mn.y; if (V.D.y > 0.05) atras = Math.min(atras, (ymano - 0.06) / V.D.y); if (kB > 0.02 && kB < 0.98) atras = Math.min(atras, AGARRE * (1 - 0.72 * Math.sin(Math.PI * kB))); atras = Math.max(0.35, atras); }
+        V.P.set(f.x + V.Mn.x, H(f.x, f.z) + V.Mn.y, f.z + V.Mn.z).addScaledVector(V.D, -atras);
         if (h.picaRota) {
           /* FU3b: el muñón se suelta y cae junto al hombre, inclinado, apoyado en el suelo (0,45 s) */
           let r = rotas.get(h); if (!r) { r = { t0: Tm, P: V.P.clone(), D: V.D.clone() }; rotas.set(h, r); }
@@ -239,6 +295,22 @@ export function crear() {
           V.Pg.set(f.x + Math.cos(giro) * lado * (ade ? 0.4 : 1) + fx * ade, 0, f.z + Math.sin(giro) * lado * (ade ? 0.4 : 1) + fz * ade); V.Pg.y = H(V.Pg.x, V.Pg.z) + 0.05;
           V.G.set(Math.sin(a), 0.1, -Math.cos(a)).normalize();
           V.P.copy(r.P).lerp(V.Pg, g); V.D.copy(r.D).lerp(V.G, g).normalize();
+        }
+        if (!h.picaRota && !SIN_APARTAR) {
+          /* BT1: si el asta tocaría a un compañero, gira un poco sobre la mano (de lado o arriba) hasta que pasa limpia; se queda con el último desvío que valía */
+          const W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras];
+          Pa[0] = V.P.x; Pa[1] = V.P.y; Pa[2] = V.P.z; Qa[0] = V.P.x + V.D.x * SARISA; Qa[1] = V.P.y + V.D.y * SARISA; Qa[2] = V.P.z + V.D.z * SARISA;
+          const vecinos = cerca(Pa, Qa).filter(c => c.h !== h), libre = (dy, dp) => {
+            const cy = Math.cos(dy), sy = Math.sin(dy), x = V.D.x * cy + V.D.z * sy, z = -V.D.x * sy + V.D.z * cy, hz = Math.hypot(x, z) || 1, yy = V.D.y * Math.cos(dp) + hz * Math.sin(dp), hz2 = hz * Math.cos(dp) - V.D.y * Math.sin(dp);
+            Da[0] = x / hz * hz2; Da[1] = yy; Da[2] = z / hz * hz2; const nd = Math.hypot(Da[0], Da[1], Da[2]); Da[0] /= nd; Da[1] /= nd; Da[2] /= nd;
+            Pa[0] = W[0] - Da[0] * atras; Pa[1] = W[1] - Da[1] * atras; Pa[2] = W[2] - Da[2] * atras;
+            let n = 0; for (const c of vecinos) if (tocaCompanero(Pa, Da, SARISA, c) && ++n > peor) return false; return n === 0; };
+          let peor = 0;   /* con todos tocando, se queda el desvío que toca a menos */
+          let d0 = desvios.get(h) || DESVIOS[0], hecho = vecinos.length === 0 || libre(d0[0], d0[1]);
+          if (!hecho && d0 !== DESVIOS[0]) { d0 = DESVIOS[0]; hecho = libre(0, 0); }
+          if (!hecho) for (const d of DESVIOS) if (libre(d[0], d[1])) { d0 = d; hecho = true; break; }
+          if (!hecho) { let mejor = Infinity; peor = 99; for (const d of DESVIOS) { libre(d[0], d[1]); const n = vecinos.reduce((a, c) => a + (tocaCompanero(Pa, Da, SARISA, c) ? 1 : 0), 0); if (n < mejor) { mejor = n; d0 = d; } } peor = 0; }
+          desvios.set(h, d0); forma.desviadas = (forma.desviadas || 0) + (d0 !== DESVIOS[0] ? 1 : 0) + (hecho ? 0 : 1000); if (d0 !== DESVIOS[0]) { libre(d0[0], d0[1]); V.D.set(Da[0], Da[1], Da[2]); V.P.set(Pa[0], Pa[1], Pa[2]); }
         }
         if (!h.picaRota && FI) { const r = FI.pica(h, V.P, V.D, SARISA); if (r && r.ret) V.P.addScaledVector(V.D, -r.ret); }   /* FU4: la punta se para en el cuerpo o el escudo que toca (js/fisica-batalla.js) */
         if (forma.mide && !h.picaRota && kB > 0.5) forma.picas.push({ h, P: V.P.toArray(), D: V.D.toArray(), L: SARISA });

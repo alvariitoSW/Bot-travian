@@ -19,9 +19,17 @@ const HUECO = { falange: [0.78, 0.95, 0.08], manipulo: [1.0, 1.2, 0.08], galos: 
 const DUR = { golpear: 1.55, lanzar: 1.85, cubrirse: 1.25, morir: 2.4, encajar: 0.35 };
 const CAIDOS_MAX = 700;
 const FRENA = 0.88;   /* LP5a: el que va contra alguien afloja hasta 1 − FRENA de su paso (lo mismo que fisica.js FRENA) */
+/* BT1: en guardia y golpeando con la espada, el hombre se planta de lado (hombro derecho atrás, escudo delante): en el movimiento de guardia la
+   punta le queda a 0,8 m a su derecha y, de frente, entraba en el cuerpo del de su derecha (a 0,9–1 m). Así se plantaba el legionario (escudo y
+   pie izquierdos delante). Licencia de juego: 23°. Medido: con −23° quedan menos choques de espada que con +23° (test/combate-atraviesa) */
+export const GIRO_GUARDIA = -0.4;
+const CON_ESPADA = new Set(['guardia', 'golpear', 'encajar']);
+let FALANGITAS = null;   /* los de la falange (sus sarisas las coloca formaciones/falange.js): no se giran */
+const pie = f => CON_ESPADA.has(f.clip) && !(f.b && f.b.tipo === 'falange') && !(f.h && FALANGITAS && FALANGITAS.has(f.h)) ? GIRO_GUARDIA : 0;
 
 export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3: reales = [{ b, hombres }]: bloques que se pintan con sus hombres de verdad (x, z, yaw, vivo), no con huecos */   /* FU1: muroDelante: en testudo la 1.ª fila no se cubre arriba, lleva el escudo de frente (guardia) */
   const figs = [], caidos = [];
+  FALANGITAS = S.fal && S.fal.fal ? new Set(S.fal.fal) : null;
   /* LP5a: cuánto se dibuja apartado cada bloque entero (lo pone la física cuando las reglas meten un bloque en otro):
      sus hombres van a su sitio más esto, y las filas no se deforman */
   const ofs = new Map(), CERO = { x: 0, z: 0 }, ofsDe = b => ofs.get(b) || CERO;
@@ -54,6 +62,14 @@ export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3:
 
   function cae(f, T) {
     f.vivo = false; f.clip = 'morir'; f.t = 0; f.yawCae = f.yaw + (hash(f.semilla) - 0.5) * 1.2;   /* LP5a: gira hacia ahí mientras cae (sin salto) */
+    /* BT1: el muñeco de morir cae de espaldas (la cabeza, TENDIDO detrás de los pies): si ahí ya hay otro caído, cae hacia el lado más libre */
+    let mejor = -1, yMejor = f.yawCae;
+    for (const d of [0, 0.5, -0.5, 1.0, -1.0, 1.6, -1.6, Math.PI]) {
+      const y = f.yawCae + d, hx = f.x - Math.sin(y) * 0.7, hz = f.z - Math.cos(y) * 0.7;   /* el pecho del caído */
+      let libre = 9; for (const c of caidos) { if (c.t === undefined) continue; const cy = c.yawCae ?? c.yaw; libre = Math.min(libre, Math.hypot(hx - (c.x - Math.sin(cy) * 0.7), hz - (c.z - Math.cos(cy) * 0.7))); }
+      if (libre > 1.0) { yMejor = y; break; } if (libre > mejor) { mejor = libre; yMejor = y; }
+    }
+    f.yawCae = yMejor;
     const i = figs.indexOf(f); if (i >= 0) figs.splice(i, 1);
     caidos.push(f); if (caidos.length > CAIDOS_MAX) caidos.shift();
   }
@@ -134,7 +150,7 @@ export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3:
       const dx = f.tx + o.x - f.x, dz = f.tz + o.z - f.z, d = Math.hypot(dx, dz), m0 = Math.min(d, Math.min(5, hv + 0.6 + d * 2.5) * dt);
       const m = d > 1e-4 ? anda(f, dx / d, dz / d, m0) : (f.px = f.pz = 0);
       const v = m / Math.max(dt, 1e-3); f.v += (v - f.v) * Math.min(1, dt * 6);
-      giraA(f, h.yaw, 4, dt);
+      giraA(f, h.yaw + pie(f), 4, dt);
       animacion(f, bf, h.fila ?? h.r ?? 0, dt, T);
     }
     /* los demás bloques */
@@ -157,7 +173,7 @@ export function crearTropas({ S, muroDelante = false, reales = [] }) {   /* FU3:
         f.v += (quiere - f.v) * Math.min(1, dt * 4);
         const m = Math.min(d, f.v * dt); if (d > 1e-4) anda(f, dx / d, dz / d, m); else f.px = f.pz = 0;
         const mira = huye ? Math.atan2(dx, dz) : (d > 1.0 && f.v > 0.8 ? Math.atan2(dx, dz) : Math.PI - b.ang);
-        giraA(f, mira, 3.5, dt);
+        giraA(f, mira + (huye ? 0 : pie(f)), 3.5, dt);
         animacion(f, b, p.fila, dt, T);
       }
     }

@@ -133,7 +133,8 @@ if (quiere('asculo')) {
     const propia = bando === 'pirro' ? 'Bajar picas' : 'Testudo';
     await examina(`Ásculo, ${bando}, «Todos» (${o})`, page, propia, { muestras: 3, accion: async k => { if (k === 1) await salta('lucha'); } });
     /* elegir otro cuerpo: solo cambia la propia (los tiradores: «Tirar») */
-    await page.locator('#tira .ficha[data-id="tiradores"]').click({ timeout: 5000 }).catch(() => {}); await esp(800);
+    /* con el dedo; si Playwright no recibe el acuse (render por software, la escena repinta sin parar), el toque va por el DOM */
+    await page.locator('#tira .ficha[data-id="tiradores"]').tap({ force: true, timeout: 20000 }).catch(() => page.evaluate(() => document.querySelector('#tira .ficha[data-id="tiradores"]').click())); await esp(800);
     await examina(`Ásculo, ${bando}, tiradores elegidos (${o})`, page, 'Tirar', { muestras: 2 });
     await foto(page, 'asculo-' + bando + '-' + o);
   }

@@ -68,7 +68,8 @@ export const SUELO_GLSL = `
       float n1 = texture2D(uRuido, p * 0.0031).r;
       #ifdef LEJOS
       vec3 seca = texture2D(uSeca, GIRO * p * 0.073 + 0.37).rgb * vec3(1.06, 1.1, 0.82), verde = texture2D(uVerde, p * 0.061 + 0.6).rgb * vec3(1.12, 1.18, 0.92);
-      vec3 c = mix(seca, verde, smoothstep(0.32, 0.62, n1) * 0.85);
+      float mV = smoothstep(0.32, 0.62, n1), calva = 0.0, senda = 0.0;
+      vec3 c = mix(seca, verde, mV * 0.85);
       #else
       vec2 nn = texture2D(uRuido, p * 0.013 + 0.3).gb; float n2 = nn.x, n3 = nn.y;
       vec3 seca = mix(texture2D(uSeca, p * 0.21).rgb, texture2D(uSeca, GIRO * p * 0.073 + 0.37).rgb, 0.45) * vec3(1.06, 1.1, 0.82);
@@ -79,6 +80,10 @@ export const SUELO_GLSL = `
       float calva = smoothstep(0.72, 0.82, n2 + (n3 - 0.5) * 0.3), senda = mascaraSenda(p, n3), orilla = orillaSenda(p, n2);
       c = mix(c, tierra, max(max(senda * 0.85, calva * 0.6), orilla * 0.3));
       #endif
+      /* lejos, las matas ya no se dibujan una a una (o no se distinguirían): su color medio cubre el suelo donde crecerían, fuera de
+         calvas y senda. Así el campo visto desde arriba es el mismo que a pie, con su hierba amarilla y verde */
+      { float lm = smoothstep(30.0, 140.0, distance(vW, cameraPosition)) * (1.0 - calva * 0.85) * (1.0 - senda * 0.9);
+        c = mix(c, mix(vec3(0.26, 0.21, 0.085), vec3(0.13, 0.17, 0.045), mV * 0.85), lm * 0.45); }
       c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.5);   /* laderas, más secas */
       { float mq = texture2D(uRuido, p * 0.0093 + 0.71).g; c = mix(c, vec3(0.2, 0.25, 0.12), smoothstep(0.52, 0.68, mq) * 0.65 * lejania(p)); }   /* lejos, matorral mediterráneo */
       c *= mix(0.84, 1.1, n1);

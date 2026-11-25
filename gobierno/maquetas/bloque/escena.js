@@ -259,6 +259,7 @@ function pintaVuelos(dt) {
 }
 
 /* ---------- partida ---------- */
+const PAR_FAL = 0.7;   /* BT1: m entre dos falangitas dibujados (en la regla, 0,78 de lado y 0,95 de fondo) */
 let C = null, TR = null, FS = null, hud = null, dedos = null, cam1 = null, congelado = false, nivel = NIVELES.includes(Q.get('nivel')) ? Q.get('nivel') : LP7 ? (NIVELES.includes(LP7.nivel) ? LP7.nivel : 'normal') : null;
 const semilla = +(Q.get('semilla') || (LP7 && LP7.semilla) || (1 + Math.floor(Math.random() * 999)));
 let oyente = null;
@@ -331,7 +332,8 @@ function nuevaFormacion() {
   const F = C.S.fal; if (LP7 && LP7.lejos) { acercaRival(F, LP7.lejos); C.paso(0); } P0F = { x: F.xF, z: F.zF, giro: F.giro };
   TR = crearTropas({ S: C.S, muroDelante: false, reales: [{ b: C.S.ene.centro, hombres: txtR ? [] : F.ene }] });   /* FU4: a los demás rivales los pinta entero rival.js */
   FS = crearFisicaBloque({ S: C.S, TR, H, activa: false, semilla, guardia: FORM.guardia });
-  FI = FISICA ? crearFisica({ H }) : null; if (RIVD) { try { RIVD.quita(); } catch (e) { /* ya no estaba */ } RIVD = null; window.__bloque.rival = null; } montaRivalBloque(nomR);   /* FU4 */
+  { const mios = new WeakSet(F.fal); FI = FISICA ? crearFisica({ H, parMax: PAR_FAL, parMin: (a, b) => mios.has(a) && mios.has(b) ? PAR_FAL : undefined }) : null; }   /* BT1: dos falangitas, nunca a menos de PAR_FAL (si no, las sarisas no caben entre ellos) */
+  if (RIVD) { try { RIVD.quita(); } catch (e) { /* ya no estaba */ } RIVD = null; window.__bloque.rival = null; } montaRivalBloque(nomR);   /* FU4 */
   OF = { yo: () => { const h = F.fal[F.yo.i]; return h && h.vivo ? h : null; }, pide() {}, paso() {}, rival: null,
     estado: () => ({ duelo: false, yo: null, rival: null, heridas: 0, aliento: 1, parando: false, pilum: 0, carga: 0, eco: {}, caidas: 0, muertes: 0 }) };
   oficial = TR.figs.find(f => f.h === OF.yo()) || null; hud.pon(C); if (FORM.hud) hud.ordenes(FORM.ordenes, FORM.hud);
