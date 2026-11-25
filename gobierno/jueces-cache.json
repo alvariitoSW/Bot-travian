@@ -45,14 +45,14 @@
   "fecha": "2026-11-25T04:19:56.944Z"
  },
  "fichas": {
-  "huella": "ddb53fc5a8b275dc",
+  "huella": "4708d125890ec9b8",
   "ok": true,
-  "fecha": "2026-11-25T04:19:57.041Z"
+  "fecha": "2026-11-25T04:47:16.701Z"
  },
  "mapa": {
-  "huella": "78bda7e37da5963d",
+  "huella": "a2d8214f159e5fbd",
   "ok": true,
-  "fecha": "2026-11-25T04:19:57.150Z"
+  "fecha": "2026-11-25T04:47:16.689Z"
  },
  "saber": {
   "huella": "e8b3e4220d0f78bb",
@@ -95,34 +95,34 @@
   "fecha": "2026-11-25T00:06:20.260Z"
  },
  "area:test/guerra.test.mjs": {
-  "huella": "57327d369be891ca",
+  "huella": "87ae1c6c6ee021ba",
   "ok": true,
-  "fecha": "2026-11-25T01:05:38.967Z"
+  "fecha": "2026-11-25T04:45:55.294Z"
  },
  "area:test/guerra-juego.test.mjs": {
-  "huella": "daae6acc61c77061",
+  "huella": "80348fa5ac5e7f4e",
   "ok": true,
-  "fecha": "2026-11-25T02:59:36.015Z"
+  "fecha": "2026-11-25T04:47:16.235Z"
  },
  "area:test/simulador.test.mjs": {
-  "huella": "561a60bf4865a326",
+  "huella": "d4c61404f9983bbd",
   "ok": true,
-  "fecha": "2026-11-25T01:05:50.937Z"
+  "fecha": "2026-11-25T04:47:23.778Z"
  },
  "area:test/maniobra.test.mjs": {
-  "huella": "d8d573f04517c9e4",
+  "huella": "8ff0a337a2a70c53",
   "ok": true,
-  "fecha": "2026-11-24T22:47:48.851Z"
+  "fecha": "2026-11-25T04:47:23.857Z"
  },
  "area:test/campo.test.mjs": {
-  "huella": "ed2f8a52100a6c9d",
+  "huella": "fa9c77e95062e2b1",
   "ok": true,
-  "fecha": "2026-11-25T02:59:41.055Z"
+  "fecha": "2026-11-25T04:47:28.136Z"
  },
  "area:test/nb7.test.mjs": {
-  "huella": "d20c99de9bf85cae",
+  "huella": "58d60db63b5ebc0b",
   "ok": true,
-  "fecha": "2026-11-25T02:59:51.510Z"
+  "fecha": "2026-11-25T04:48:12.835Z"
  },
  "area:test/falange.test.mjs": {
   "huella": "9417151d052bc418",
@@ -150,14 +150,14 @@
   "fecha": "2026-11-25T03:56:58.377Z"
  },
  "area:test/batalla-rapida.test.mjs": {
-  "huella": "f5bda0867752a22d",
+  "huella": "f11ec6a960bdf5da",
   "ok": true,
-  "fecha": "2026-11-25T01:09:15.261Z"
+  "fecha": "2026-11-25T04:48:13.727Z"
  },
  "area:test/dialogos.test.mjs": {
-  "huella": "7f090aedb52b9825",
+  "huella": "0832e6cff72b55bf",
   "ok": true,
-  "fecha": "2026-11-25T03:56:59.939Z"
+  "fecha": "2026-11-25T04:48:15.005Z"
  },
  "navegador-batallas": {
   "huella": "dd76c728866cc795",
@@ -195,9 +195,9 @@
   "fecha": "2026-11-25T03:57:04.415Z"
  },
  "area:test/tacticas.test.mjs": {
-  "huella": "320d18b36db9a577",
+  "huella": "da701457b401252a",
   "ok": true,
-  "fecha": "2026-11-25T01:09:17.599Z"
+  "fecha": "2026-11-25T04:48:15.268Z"
  },
  "area:test/fu4-rivales.test.mjs": {
   "huella": "3312c11de5d59eb8",
@@ -210,9 +210,9 @@
   "fecha": "2026-11-25T01:09:17.649Z"
  },
  "area:test/tropas-sim.test.mjs": {
-  "huella": "75767251de5c6c29",
+  "huella": "ee88440c1f977446",
   "ok": true,
-  "fecha": "2026-11-25T01:09:18.955Z"
+  "fecha": "2026-11-25T04:48:16.573Z"
  },
  "area:test/es2-mando.test.mjs": {
   "huella": "bff3c034e744069e",
@@ -235,8 +235,23 @@
   "fecha": "2026-11-25T03:57:05.844Z"
  },
  "area:test/registro-lleva.test.mjs": {
-  "huella": "efd8718a4a03ad4c",
+  "huella": "999a8f5f54c30258",
   "ok": true,
-  "fecha": "2026-11-25T03:57:05.895Z"
+  "fecha": "2026-11-25T04:48:16.650Z"
+ },
+ "area:test/combate-bloque.test.mjs": {
+  "huella": "4b01ffc743948385",
+  "ok": true,
+  "fecha": "2026-11-25T04:45:53.841Z"
+ },
+ "area:test/combate-poses.test.mjs": {
+  "huella": "e665d4acc977ce06",
+  "ok": true,
+  "fecha": "2026-11-25T04:45:53.882Z"
+ },
+ "area:test/combate.test.mjs": {
+  "huella": "e29385211d8f2c4c",
+  "ok": true,
+  "fecha": "2026-11-25T04:45:55.093Z"
  }
 }

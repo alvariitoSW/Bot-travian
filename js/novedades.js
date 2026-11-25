@@ -4,6 +4,8 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 171, fecha: '25/11/2026', cosas: [
+      'Limpieza: fuera las escenas viejas del testudo y la falange a pie; el juego pesa menos y se ve igual.'] },
     { v: 170, fecha: '25/11/2026', cosas: [
       'Escaramuza nueva: Ásculo, 279 a.C. Está en Escaramuzas, «Pruebas rápidas».',
       'Eliges bando: ser Pirro, con su falange, o ser Roma, con tres manípulos que forman el testudo.',
