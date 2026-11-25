@@ -43,7 +43,7 @@ export function cierre(inicio) {
 }
 
 /* lo que ve el navegador: todo menos documentos, partes, estudios, capturas, pruebas de Node y la propia memoria */
-const FUERA = [/\.md$/, /^gobierno\/(partes|estudios|capturas|capturas-area|capturas-tarea)\//, /^gobierno\/cuadro\.json$/, /^gobierno\/jueces-cache\.json$/, /^test\//, /^\.claude\//, /^\.github\//];
+const FUERA = [/\.md$/, /^gobierno\/(partes|estudios|capturas|capturas-area|capturas-tarea)\//, /^gobierno\/cuadro\.json$/, /^gobierno\/jueces-cache\.json$/, /^test\//, /^\.claude\//, /^\.github\//, /^gobierno\/liga\//];
 export function servido() { return [...blobs().keys()].filter(r => !FUERA.some(x => x.test(r))).sort(); }
 
 export function huella(archivos) {

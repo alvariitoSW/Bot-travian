@@ -1,0 +1,311 @@
+{
+ "modo": "completo",
+ "dpr": 2,
+ "capturas": [
+  {
+   "archivo": "AM2b-a-lejos-v.jpg",
+   "tri": 148392,
+   "llamadas": 82,
+   "ancho": 54.34,
+   "arranqueMs": 589
+  },
+  {
+   "archivo": "AM2b-a-comarca-v.jpg",
+   "tri": 135839,
+   "llamadas": 48,
+   "ancho": 3.2,
+   "arranqueMs": 589
+  },
+  {
+   "archivo": "AM2b-a-polis-v.jpg",
+   "tri": 132234,
+   "llamadas": 31,
+   "ancho": 0.2,
+   "arranqueMs": 589
+  },
+  {
+   "archivo": "AM2b-a-recursos-v.jpg",
+   "tri": 145901,
+   "llamadas": 84,
+   "ancho": 21,
+   "arranqueMs": 589
+  },
+  {
+   "archivo": "AM2b-a-puerto-v.jpg",
+   "tri": 125539,
+   "llamadas": 14,
+   "ancho": 0.16,
+   "arranqueMs": 589
+  },
+  {
+   "archivo": "AM2b-b-lejos-v.jpg",
+   "tri": 109886,
+   "llamadas": 59,
+   "ancho": 54.34,
+   "arranqueMs": 488
+  },
+  {
+   "archivo": "AM2b-b-comarca-v.jpg",
+   "tri": 120610,
+   "llamadas": 36,
+   "ancho": 3.2,
+   "arranqueMs": 488
+  },
+  {
+   "archivo": "AM2b-b-polis-v.jpg",
+   "tri": 110946,
+   "llamadas": 14,
+   "ancho": 0.2,
+   "arranqueMs": 488
+  },
+  {
+   "archivo": "AM2b-b-recursos-v.jpg",
+   "tri": 112568,
+   "llamadas": 60,
+   "ancho": 21,
+   "arranqueMs": 488
+  },
+  {
+   "archivo": "AM2b-b-puerto-v.jpg",
+   "tri": 110934,
+   "llamadas": 8,
+   "ancho": 0.16,
+   "arranqueMs": 488
+  },
+  {
+   "archivo": "AM2b-a-lejos-h.jpg",
+   "tri": 148068,
+   "llamadas": 89,
+   "ancho": 36.47,
+   "arranqueMs": 465
+  },
+  {
+   "archivo": "AM2b-a-comarca-h.jpg",
+   "tri": 130863,
+   "llamadas": 36,
+   "ancho": 3.2,
+   "arranqueMs": 465
+  },
+  {
+   "archivo": "AM2b-a-polis-h.jpg",
+   "tri": 134711,
+   "llamadas": 31,
+   "ancho": 0.2,
+   "arranqueMs": 465
+  },
+  {
+   "archivo": "AM2b-b-lejos-h.jpg",
+   "tri": 109538,
+   "llamadas": 65,
+   "ancho": 36.47,
+   "arranqueMs": 504
+  },
+  {
+   "archivo": "AM2b-b-comarca-h.jpg",
+   "tri": 116568,
+   "llamadas": 25,
+   "ancho": 3.2,
+   "arranqueMs": 504
+  },
+  {
+   "archivo": "AM2b-b-polis-h.jpg",
+   "tri": 110586,
+   "llamadas": 14,
+   "ancho": 0.2,
+   "arranqueMs": 504
+  }
+ ],
+ "fluidez": [
+  {
+   "estilo": "a",
+   "altura": "lejos",
+   "dpr": 1,
+   "fps": 1.8,
+   "peorMs": 600,
+   "triangulos": 148392,
+   "llamadas": 82,
+   "msPorCuadro": 56.9
+  },
+  {
+   "estilo": "a",
+   "altura": "comarca",
+   "dpr": 1,
+   "fps": 2,
+   "peorMs": 533,
+   "triangulos": 135839,
+   "llamadas": 48,
+   "msPorCuadro": 43.2
+  },
+  {
+   "estilo": "a",
+   "altura": "polis",
+   "dpr": 1,
+   "fps": 1.8,
+   "peorMs": 583,
+   "triangulos": 132234,
+   "llamadas": 31,
+   "msPorCuadro": 34.5
+  },
+  {
+   "estilo": "b",
+   "altura": "lejos",
+   "dpr": 1,
+   "fps": 1.8,
+   "peorMs": 617,
+   "triangulos": 109886,
+   "llamadas": 59,
+   "msPorCuadro": 53.6
+  },
+  {
+   "estilo": "b",
+   "altura": "comarca",
+   "dpr": 1,
+   "fps": 2.7,
+   "peorMs": 433,
+   "triangulos": 120610,
+   "llamadas": 36,
+   "msPorCuadro": 52.8
+  },
+  {
+   "estilo": "b",
+   "altura": "polis",
+   "dpr": 1,
+   "fps": 2.5,
+   "peorMs": 450,
+   "triangulos": 110946,
+   "llamadas": 14,
+   "msPorCuadro": 33.8
+  },
+  {
+   "estilo": "a",
+   "altura": "lejos",
+   "dpr": 2,
+   "fps": 0.8,
+   "peorMs": 1383,
+   "triangulos": 148392,
+   "llamadas": 82,
+   "msPorCuadro": 91.3
+  },
+  {
+   "estilo": "a",
+   "altura": "comarca",
+   "dpr": 2,
+   "fps": 0.9,
+   "peorMs": 1217,
+   "triangulos": 135839,
+   "llamadas": 48,
+   "msPorCuadro": 70.4
+  },
+  {
+   "estilo": "a",
+   "altura": "polis",
+   "dpr": 2,
+   "fps": 0.9,
+   "peorMs": 1300,
+   "triangulos": 132234,
+   "llamadas": 31,
+   "msPorCuadro": 55.4
+  },
+  {
+   "estilo": "b",
+   "altura": "lejos",
+   "dpr": 2,
+   "fps": 0.9,
+   "peorMs": 1183,
+   "triangulos": 109886,
+   "llamadas": 59,
+   "msPorCuadro": 69.4
+  },
+  {
+   "estilo": "b",
+   "altura": "comarca",
+   "dpr": 2,
+   "fps": 1.1,
+   "peorMs": 983,
+   "triangulos": 120610,
+   "llamadas": 36,
+   "msPorCuadro": 88
+  },
+  {
+   "estilo": "b",
+   "altura": "polis",
+   "dpr": 2,
+   "fps": 0.9,
+   "peorMs": 1150,
+   "triangulos": 110946,
+   "llamadas": 14,
+   "msPorCuadro": 60.5
+  }
+ ],
+ "gestos": {
+  "pellizco": {
+   "bien": true,
+   "dato": "upx 21.00→6.04 (ancho), salto máx ×1.19, baja en cada paso, el punto bajo los dedos se movió 21.6 px"
+  },
+  "arrastre": {
+   "bien": true,
+   "dato": "V.x bajó 6.8328, esperado 6.4615 (±20 %)"
+  },
+  "dobleToque": {
+   "bien": true,
+   "dato": "upx ×0.45 en 600 ms (debe ser < 0,6)"
+  },
+  "topeCerca": {
+   "bien": true,
+   "dato": "upx mínimo 0.120 (ancho) ≥ 0.120, queda en 0.120"
+  },
+  "topeLejos": {
+   "bien": true,
+   "dato": "upx máx 0.13934 ≤ _upxMax 0.13934, queda en 0.13934"
+  }
+ },
+ "pantalla": {
+  "v": {
+   "botones": {
+    "bien": true,
+    "dato": "6 botones"
+   },
+   "polisExisten": {
+    "bien": true,
+    "dato": "8 existen"
+   },
+   "polisVistas": {
+    "bien": true,
+    "dato": "6 de 8 (≥ 6)"
+   },
+   "zonasv": {
+    "bien": true,
+    "dato": "10 visibles (≥ 8)"
+   },
+   "solapes": {
+    "bien": true,
+    "dato": "ninguno"
+   },
+   "estilo": {
+    "bien": true,
+    "dato": "V antes -6.577,1.113,21.00 · después -6.577,1.113,21.00 (estilo b)"
+   }
+  },
+  "h": {
+   "botones": {
+    "bien": true,
+    "dato": "6 botones"
+   },
+   "polisExisten": {
+    "bien": true,
+    "dato": "8 existen"
+   },
+   "zonash": {
+    "dato": 6
+   },
+   "solapes": {
+    "bien": true,
+    "dato": "ninguno"
+   }
+  }
+ },
+ "aviso": "render por software (sin GPU): vale para comparar alturas, no como cifra del móvil",
+ "arranqueMs": 589,
+ "errores": [],
+ "fallos": 0
+}

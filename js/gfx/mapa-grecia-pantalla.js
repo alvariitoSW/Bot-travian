@@ -66,7 +66,7 @@ export async function montarMapaGrecia(caja, opts) {
     if (m.est !== estVisto) pintaEstilo(); const km100 = m.kmPor100px(); if (Math.abs(km100 - kmPrev) / km100 < 0.02) return; kmPrev = km100;
     const pasos = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]; let k = pasos[0]; for (const q of pasos) if (q <= km100 * 0.9) k = q;
     regla.firstChild.textContent = k < 1 ? (k * 1000) + ' m' : k + ' km'; regla.lastChild.style.width = Math.round(k / km100 * 100) + 'px';
-    lema.textContent = m.ancho > 30 ? 'Las polis y sus mares' : m.ancho > 4 ? 'Comarcas, caminos y puertos' : 'La polis, de cerca'; } })); } catch (e) { raiz.remove(); throw e; }
+    lema.textContent = m.ancho > 30 ? 'Las polis y sus mares' : m.ancho > 1.4 ? 'Comarcas, caminos y puertos' : 'La polis, de cerca'; } })); } catch (e) { raiz.remove(); throw e; }
   function pintaEstilo() { estVisto = mapa.est; bEst.textContent = 'Estilo: ' + NOMBRE[mapa.est]; raiz.classList.toggle('mgp-b', mapa.est === 'b'); }
   function ficha(p) {
     if (!p) { hoja.hidden = true; return; }

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /* AQVILA — juez de aspecto de los departamentos de batalla (DB0, 25/11; PLAN-2.0 «Departamentos de batalla»).
    Uso: node gobierno/juez-aspecto.mjs animacion|graficos     (lo lanza `node gobierno/juez-area.mjs <área>`)
-   Lee la ficha de objetivo gobierno/aspecto/<área>.md y comprueba, sin navegador (segundos):
+        node gobierno/juez-aspecto.mjs <id>                   (J20b: cualquier ficha gobierno/aspecto/<id>.md, p. ej. m2-ciudad)
+        node gobierno/juez-aspecto.mjs --todas                (J20b: todas las fichas del directorio; lo pasa la subida, gobierno/jueces.mjs)
+   Lee la ficha de objetivo gobierno/aspecto/<id>.md y comprueba, sin navegador (segundos):
      · «Lo que se tiene que ver»: entre 8 y 12 cosas concretas, numeradas.
      · «Referencias»: al menos dos; cada ruta `gobierno/...` que cite existe.
      · «Captura de partida»: al menos una captura y existe en el repositorio.
@@ -9,17 +11,28 @@
        escrito y sus capturas presentes. Sin examen que cierre, el juez da APTO y dice la última nota y lo que falta.
    La nota la pone una sesión que NO construyó (examen), mirando capturas contra la ficha. Este juez no mira píxeles:
    comprueba que la ficha está completa y que nadie cierra por debajo de la nota. */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
-const AREAS = ['animacion', 'graficos'], id = process.argv[2];
-if (!AREAS.includes(id)) { console.error('Uso: node gobierno/juez-aspecto.mjs ' + AREAS.join('|')); process.exit(2); }
+const DIR = join(RAIZ, 'gobierno', 'aspecto');
+const FICHAS = existsSync(DIR) ? readdirSync(DIR).filter(f => /^[\w-]+\.md$/.test(f)).map(f => f.slice(0, -3)).sort() : [];
+const arg = process.argv[2], TODAS = arg === '--todas';
+const VALEN = [...new Set(['animacion', 'graficos', ...FICHAS])];   // las dos de batalla valen siempre (si falta su ficha, el juez lo dice)
+if (!TODAS && !VALEN.includes(arg)) { console.error('Uso: node gobierno/juez-aspecto.mjs ' + VALEN.join('|') + '|--todas'); process.exit(2); }
+if (TODAS && !FICHAS.length) { console.error('No hay fichas en gobierno/aspecto/.'); process.exit(2); }
+let malas = 0;
+for (const id of TODAS ? FICHAS : [arg]) { if (TODAS) console.log('· ficha ' + id); if (juzga(id)) malas++; }
+if (TODAS) console.log(`${malas ? 'NO APTO' : 'APTO'} · juez de aspecto · ${FICHAS.length} fichas (${FICHAS.join(', ')})${malas ? ' · ' + malas + ' con fallos' : ''}`);
+process.exit(malas ? 1 : 0);
+
+/* comprueba una ficha con las varas de siempre; devuelve el número de fallos */
+function juzga(id) {
 const RUTA = `gobierno/aspecto/${id}.md`;
 let fallos = 0;
 const ok = (c, msg) => { console.log((c ? '  ok    ' : '  FALLA ') + msg); if (!c) fallos++; return c; };
-if (!ok(existsSync(join(RAIZ, RUTA)), 'ficha de objetivo ' + RUTA)) { console.log('NO APTO · juez de aspecto · ' + id); process.exit(1); }
+if (!ok(existsSync(join(RAIZ, RUTA)), 'ficha de objetivo ' + RUTA)) { console.log('NO APTO · juez de aspecto · ' + id); return fallos; }
 
 const txt = readFileSync(join(RAIZ, RUTA), 'utf8');
 const seccion = t => { const m = new RegExp('^## ' + t + '\\s*$([\\s\\S]*?)(?=^## |$(?![\\s\\S]))', 'm').exec(txt); return m ? m[1] : ''; };
@@ -54,4 +67,5 @@ for (const [fecha, tarea, quien, nota, cierra, capturas] of filas) {
 const ult = filas[filas.length - 1];
 if (ult) console.log(`  nota  última: ${ult[3]} (${ult[1]}, ${ult[0]}). Para cerrar una tarea hace falta ≥ ${String(minima).replace('.', ',')}.`);
 console.log(`${fallos ? 'NO APTO' : 'APTO'} · juez de aspecto · ${id}`);
-process.exit(fallos ? 1 : 0);
+return fallos;
+}
