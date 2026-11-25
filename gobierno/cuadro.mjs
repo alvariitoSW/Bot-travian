@@ -47,14 +47,10 @@ const libre = id => { const t = porId.get(id); return t && t.est !== '✅' && !t
 function tareaHtml(t, c) {
   const [cls, rot] = ESTADO[t.est], ok = t.est === '✅', titulo = corto(t.texto), id = esc(t.id), tit = esc(titulo);
   return '<details class="tarea' + (ok ? ' hecha' : '') + '" data-ref="' + id + '"' + (ok ? '' : ' data-carril="' + esc(c.letra) + '" data-pausa="' + (t.pausa ? 1 : 0) + '" data-busca="' + esc((t.id + ' ' + plano(t.texto) + ' ' + c.corto).toLowerCase()) + '"') + '><summary>' +
-    (ok ? '' : '<input type="checkbox" class="sel" data-sel="' + id + '" data-titulo="' + tit + '" aria-label="Elegir ' + id + '">') +
     '<span class="id">' + id + '</span><span class="que">' + esc(titulo) + (ok ? '' : '<small>' + esc(c.letra) + ' · ' + esc(c.corto) + (t.pausa ? ' · ' + esc(t.pausa) : '') + '</small>') + '</span>' +
     '<span class="estado ' + (t.pausa ? 'pausa' : cls) + '">' + (t.pausa ? 'en pausa' : rot) + '</span></summary>' +
     '<div class="cuerpo"><p>' + md(t.texto) + '</p>' +
-    '<div class="fila">' + (ok ? '' : '<button class="boton lleno" data-pedir="abrir" data-ref="' + id + '" data-titulo="' + tit + '">Abrir sesión</button><button class="boton" data-pedir="priorizar" data-ref="' + id + '" data-titulo="' + tit + '">Dar prioridad</button><button class="boton" data-pedir="orden" data-ref="' + (t.pausa ? 'reanudar:' : 'pausar:') + id + '" data-titulo="' + tit + '">' + (t.pausa ? 'Quitar la pausa' : 'Dejar en pausa') + '</button>') +
-    '<button class="boton" data-abrir="c-' + id + '">Pedir un cambio</button></div>' +
-    '<div class="cambio" id="c-' + id + '" hidden><label class="quien" for="tx-' + id + '">Qué cambiarías en ' + id + '</label><textarea id="tx-' + id + '"></textarea>' +
-    '<div class="fila"><button class="boton lleno" data-pedir="cambio" data-ref="' + id + '" data-titulo="' + tit + '" data-texto="tx-' + id + '">Enviar cambio</button></div></div></div></details>';
+    (ok ? '' : '<div class="fila"><button class="boton lleno" data-pedir="abrir" data-ref="' + id + '" data-titulo="' + tit + '">Encárgala</button></div>') + '</div></details>';
 }
 // archivo: todo lo pendiente en una sola lista (lo activo primero, lo que está en pausa al final) y lo hecho por carril
 const listaPend = [];
@@ -395,10 +391,13 @@ else avisa('CM5: camino.json sin «actualizado»');
 const FASE = faseActual(tablero, porId, camino), METAc = { hecha: ['si', '✔', 'hecha'], obra: ['medias', '◐', 'en obra'], pendiente: ['falta', '○', 'falta'], aparte: ['falta', '‖', 'en pausa'] };
 const marcaT = c => { const [k, sim, t] = METAc[c]; return '<span class="marca ' + k + '"><i aria-hidden="true">' + sim + '</i>' + t + '</span>'; };
 let htmlFase = '', caminoTitulo = 'Camino a la 1.0', caminoAbre = '', caminoCierra = '', v10Abre = '', v10Cierra = '', organosTitulo = 'Cómo va el juego';
+let v10Titulo = 'La 1.0 · ' + pct10 + ' %';
 let juzgarAviso = 'Se juzga cuando la barra llegue al 100 %. Puedes adelantarte: los botones ya guardan.', hacia2Titulo = 'Hacia la 2.0';
 if (FASE.meta) {
   const M = FASE.meta, orden = ['obra', 'pendiente', 'hecha', 'aparte'];
-  const filas = [...M.tareas].sort((a, b) => orden.indexOf(a.clase) - orden.indexOf(b.clase)).map(t => '<li><b>' + esc(t.id) + '</b><span>' + md(t.titulo) + '</span>' + marcaT(t.clase) + '</li>').join('');
+  const fila = t => '<li><b>' + esc(t.id) + '</b><span>' + md(t.titulo) + '</span>' + (t.clase === 'pendiente' ? '<button class="boton fino lleno" data-pedir="abrir" data-ref="' + esc(t.id) + '" data-titulo="' + esc(t.id + ' · ' + plano(t.titulo)) + '">Encárgala</button>' : marcaT(t.clase)) + '</li>';
+  const ts = [...M.tareas].sort((a, b) => orden.indexOf(a.clase) - orden.indexOf(b.clase)), hh = ts.filter(t => t.clase === 'hecha');
+  const filas = ts.filter(t => t.clase !== 'hecha').map(fila).join('') + (hh.length ? '</ul><details class="plegable"><summary>' + hh.length + ' hechas</summary><ul class="meta-t">' + hh.map(fila).join('') + '</ul></details><ul class="meta-t">' : '');
   const otras = FASE.metas.filter(x => x !== M).map(x => esc(x.meta + ' ' + x.nombre + ': ' + x.pct + ' %')).join(' · ');
   const ap = FASE.aparte.map(a => '<p class="nota">Carril aparte: <b>' + esc(a.nombre) + '</b>, ' + a.pct + ' % (' + a.tareas.map(t => esc(t.id) + ' ' + METAc[t.clase][2]).join(', ') + ').</p>').join('');
   htmlFase = '<section class="ficha camino" aria-labelledby="t-fase"><h2 id="t-fase">Ahora: ' + esc(FASE.version) + ' · ' + esc(M.meta) + ' ' + esc(M.nombre) + '</h2>' +
@@ -406,13 +405,16 @@ if (FASE.meta) {
     '<div class="cbarra" role="img" aria-label="' + M.pct + ' % hecho de ' + esc(M.meta) + '"><span style="width:' + M.pct + '%"></span></div>' +
     '<p class="nota">De sus ' + M.total + ' tareas en el tablero: ' + M.hechas + ' hechas, ' + M.obra + ' en obra y ' + M.pendientes + ' sin empezar (las en obra cuentan la mitad).' + (M.plan ? ' Plan: <code>' + esc(M.plan) + '</code>.' : '') + (otras ? ' Otras metas: ' + otras + '.' : '') + '</p>' +
     '<ul class="meta-t">' + filas + '</ul>' + ap + '</section>';
-  caminoTitulo = 'Cómo se llegó a la 1.0';
+  caminoTitulo = 'Cómo se llegó a la 1.0'; v10Titulo = 'La 1.0 · ' + (FASE.v10.terminada ? 'terminada' : FASE.v10.pct + ' %');
   const v = FASE.v10.terminada ? 'terminada' : 'sin terminar (' + FASE.v10.pct + ' %)';
   caminoAbre = '<details class="plegable v10"><summary>La 1.0: ' + v + '. Toca para ver su camino</summary>'; caminoCierra = '</details>';
   v10Abre = '<details class="plegable v10"><summary>Cómo quedó la 1.0, por órganos</summary>'; v10Cierra = '</details>'; organosTitulo = 'Cómo quedó la 1.0';
   juzgarAviso = FASE.v10.terminada ? 'La 1.0 ya está terminada: júzgala en tu móvil. Tus «Mal» van a CR20, las críticas a la 1.0.' : juzgarAviso;
   hacia2Titulo = 'Ideas para la ' + esc(FASE.version);
 }
+if (!FASE.meta) htmlFase = '<section class="ficha camino" aria-labelledby="t-fase"><h2 id="t-fase">Camino a la 1.0</h2><div class="cpct"><b>' + pct10 + ' %</b><span>hecho · queda ' + (100 - pct10) + ' %</span></div><div class="cbarra"><span style="width:' + pct10 + '%"></span></div><p class="nota"><a href="#lista">Ver el camino paso a paso</a>.</p></section>';
+// CM6 (1A): «Mejorar un equipo»: un chip por equipo y un solo botón
+const htmlEqChips = EQ.map((e, i) => '<button class="chip" data-mejora-eq="' + esc(e.id) + '" data-nombre="' + esc(e.nombre) + '" aria-pressed="' + (i ? 'false' : 'true') + '">' + esc(e.nombre) + '</button>').join('');
 const htmlRiesgos = (camino.riesgos || []).length ? '<p class="riesgos"><b>Riesgos:</b> ' + (camino.riesgos || []).map(md).join(' · ') + '</p>' : '';
 // juzgar: una prueba por línea de la lista, en el orden de los órganos
 const htmlJuicio = organos.map(o => {
@@ -426,11 +428,14 @@ const htmlJuicio = organos.map(o => {
 }).join('');
 if (!lineas.length) avisa('CM5: no hay líneas que juzgar en lista.json');
 
+// CM6: la frase del estandarte es la de la fase en curso: «En una frase: *…*» del plan de la meta; si no hay, la de la lista de la 1.0
+let frase = lista.frase || '';
+if (FASE.meta && FASE.meta.plan) { try { const m = (await readFile(join(RAIZ, FASE.meta.plan), 'utf8')).match(/En una frase:\s*\*([^*]+)\*/); if (m) { const t = m[1].replace(/\s+/g, ' ').trim(); frase = t.charAt(0).toUpperCase() + t.slice(1); } } catch (e) { avisa('CM6: no se lee el plan ' + FASE.meta.plan); } }
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
-  FASE: htmlFase, CAMINO_TITULO: caminoTitulo, CAMINO_ABRE: caminoAbre, CAMINO_CIERRA: caminoCierra, V10_ABRE: v10Abre, V10_CIERRA: v10Cierra, ORGANOS_TITULO: organosTitulo, JUZGAR_AVISO: juzgarAviso, HACIA2_TITULO: hacia2Titulo,
+  FASE: htmlFase, V10_TITULO: esc(v10Titulo), EQUIPOS_CHIPS: htmlEqChips, EQUIPO_1: esc((EQ[0] || {}).id || ''), EQUIPO_1_NOMBRE: esc((EQ[0] || {}).nombre || ''), CAMINO_TITULO: caminoTitulo, CAMINO_ABRE: caminoAbre, CAMINO_CIERRA: caminoCierra, V10_ABRE: v10Abre, V10_CIERRA: v10Cierra, ORGANOS_TITULO: organosTitulo, JUZGAR_AVISO: juzgarAviso, HACIA2_TITULO: hacia2Titulo,
   PCT10: pct10, PCT10_QUEDA: 100 - pct10, PCT_LISTA: pctLista, PCT_LISTA_NOTA: lineas.filter(l => l.estado === 'hecha').length + ' hechas, ' + lineas.filter(l => l.estado === 'medias').length + ' a medias y ' + lineas.filter(l => l.estado === 'falta').length + ' por hacer, de ' + lineas.length + ' líneas', CAMINO: htmlCamino, CAMINO_MARCAS: htmlMarcasCamino, CAMINO_CUANDO: caminoCuando, RIESGOS: htmlRiesgos, JUICIO: htmlJuicio,
-  FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(lista.frase || ''), VIGIA: esc(config.vigia || ''),
+  FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(frase), VIGIA: esc(config.vigia || ''),
   ORGANOS: htmlOrganos, COMPROBACIONES: htmlComprob, TE_ESPERAN: htmlTeEsperan,
   N_LINEAS: lineas.length, LISTA_PROPUESTA: htmlPropuesta, LISTA: htmlLista, RESTO: htmlResto, RESTO_RESUMEN: esc(resumenResto), N_NEVERA: nevera.length, NEVERA: htmlNevera,
   ESPERA: htmlEspera, COLA: htmlCola, N_ESP: vistas.length, TAB_DECIDIR_OCULTO: vistas.length ? '' : 'hidden',

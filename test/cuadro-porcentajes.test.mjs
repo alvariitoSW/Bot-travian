@@ -68,7 +68,8 @@ if (F.meta) {
   const cf = html.match(/<h2 id="t-fase">Ahora: ([^<]+)<\/h2><div class="cpct"><b>(\d+) %<\/b>/), bf = html.match(/aria-label="(\d+) % hecho de [^"]+"><span style="width:(\d+)%"><\/span><\/div><p class="nota">De sus/);
   ok(cf && cf[1].includes(F.version + ' · ' + F.meta.meta) && +cf[2] === F.meta.pct, 'arriba sale «Ahora: ' + F.version + ' · ' + F.meta.meta + '» con ' + F.meta.pct + ' % (el cuadro: ' + (cf ? cf[1] + ', ' + cf[2] + ' %' : '¿?') + ')');
   ok(bf && +bf[1] === F.meta.pct && +bf[2] === F.meta.pct, 'la barra de la meta va al ' + F.meta.pct + ' %');
-  ok(!/<h2 id="t-camino">Camino a la 1\.0<\/h2>/.test(html) && /<details class="plegable v10"><summary>La 1\.0: /.test(html), 'la 1.0 ya no es lo principal: su camino va plegado');
+  const plegado = html.match(/<details class="plegable" id="lista"><summary>La 1\.0 · [^<]*<span[\s\S]*?<section class="ficha camino" aria-labelledby="t-camino">/);
+  ok(!/<h2 id="t-camino">Camino a la 1\.0<\/h2>/.test(html) && !!plegado && html.indexOf('id="t-fase"') < html.indexOf('id="t-camino"'), 'la 1.0 ya no es lo principal: su camino va plegado en «Más»');
 }
 const CLASE = { hecha: 'si', medias: 'medias', falta: 'falta' };
 const malMarcadas = EL.lineas.filter(l => { const m = html.match(new RegExp('class="linea" data-ref="' + l.id + '"><summary><span class="marca (\\w+)"')); return !m || m[1] !== CLASE[l.estado]; });
