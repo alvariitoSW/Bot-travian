@@ -1,0 +1,22 @@
+{
+ "falange-manipulos-inicio-v": {
+  "errores": 0,
+  "ej": []
+ },
+ "falange-manipulos-estado-v": {
+  "T": 49.000000000000426,
+  "nivel": "normal",
+  "ganador": null,
+  "util": null,
+  "orden": null,
+  "llamadas": 22,
+  "triangulos": 650060,
+  "figs": 213,
+  "caidos": 27
+ },
+ "falange-manipulos-lucha-v": {
+  "errores": 0,
+  "ej": []
+ },
+ "fallo": "locator.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('#inicio:not([hidden]) [data-nivel=\"normal\"]').first()\u001b[22m\n"
+}
