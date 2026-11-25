@@ -369,6 +369,15 @@ vivo `ui-mando.js`, batalla rápida, tácticas, maniobra; lo usan campaña y Esc
 Batallas (mando, campo, pantallas), Combate (motor de lucha, física, soldados y movimientos), Arte, Sonido. No hay
 departamento de animación, de gráficos ni de jugabilidad.
 
+### Batallas: primeras respuestas (25/11)
+- Motor, literal: «De momento hay que mantener lo que tenemos, pero habrá cambios por qué vamos a meter batallas de
+  sguaz y a parte quiero meter un nuevo modo de juego rollo de supervivencia que no se aún como meterlo que será un propio
+  juego dentro del juego en el que básicamente seas como un campamento o un regimiento apostado en alguna región del mapa
+  y te tengo que mandar videos para que entiendas como hacer esto asique abre otra sesión y te lo mando».
+  → Se mantienen los motores de hoy. Pendiente: «batallas de sguaz» (por aclarar) y un **modo supervivencia** (un
+  campamento o regimiento apostado en una región). Se abre una sesión de diseño aparte para recibir sus vídeos.
+- Tamaño: **«1.000–2.000 (Recomendado)»** hombres por bando en una batalla grande, a medir en su móvil.
+
 ## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
 Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
 ayudar fable a hacerlo». Modelo: Opus en todo (regla del 23/11), salvo lo que el usuario decida para el mapa vivo.
