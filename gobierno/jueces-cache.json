@@ -95,29 +95,29 @@
   "fecha": "2026-11-25T21:36:08.971Z"
  },
  "area:test/guerra.test.mjs": {
-  "huella": "e2013d06a0cb2b4b",
+  "huella": "9ca648afa6cccf16",
   "ok": true,
-  "fecha": "2026-11-25T19:32:48.265Z"
+  "fecha": "2026-11-25T22:14:03.380Z"
  },
  "area:test/guerra-juego.test.mjs": {
-  "huella": "53715179d70cfcda",
+  "huella": "d63eea6f993ddafd",
   "ok": true,
-  "fecha": "2026-11-25T19:32:55.083Z"
+  "fecha": "2026-11-25T22:14:10.446Z"
  },
  "area:test/simulador.test.mjs": {
-  "huella": "73b6376c055fb752",
+  "huella": "4e0eaae862debf38",
   "ok": true,
-  "fecha": "2026-11-25T19:33:03.967Z"
+  "fecha": "2026-11-25T22:14:18.967Z"
  },
  "area:test/maniobra.test.mjs": {
-  "huella": "043a702c338a6559",
+  "huella": "d26c820e94694d86",
   "ok": true,
-  "fecha": "2026-11-25T19:33:04.078Z"
+  "fecha": "2026-11-25T22:14:19.050Z"
  },
  "area:test/campo.test.mjs": {
-  "huella": "de258340e7f3a5f9",
+  "huella": "915268496c999897",
   "ok": true,
-  "fecha": "2026-11-25T19:33:10.365Z"
+  "fecha": "2026-11-25T22:14:24.392Z"
  },
  "area:test/nb7.test.mjs": {
   "huella": "11297310738c14e2",
