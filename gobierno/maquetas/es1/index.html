@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escaramuza combinada · boceto</title>
+<!-- ES1 · Boceto estático (no es el juego): cómo se vería mandar falange + 2 manípulos + tiradores a 390 px.
+     Solo dibujo plano para enseñar al usuario dónde va cada cosa. Diseño: gobierno/estudios/ES1-escaramuza-combinada.md -->
+<style>
+  :root { --papiro: #efe2c2; --tinta: #3a2a16; --oro: #e0b040; --rojo: #b8322a; --azul: #3a64a8; --verde: #4f8a3a; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font: 14px/1.2 Georgia, serif; color: var(--tinta); background: #24301c; height: 100vh; overflow: hidden; }
+  .app { position: relative; width: 100vw; height: 100vh; }
+  svg.campo { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .arriba { position: absolute; top: 8px; left: 12px; right: 12px; display: flex; gap: 8px; align-items: center; }
+  .obj { flex: 1; background: rgba(239,226,194,.92); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+  .obj b { color: var(--rojo); }
+  .pausa, .datos { background: rgba(239,226,194,.92); border-radius: 8px; padding: 8px 10px; font-size: 13px; min-height: 36px; }
+  .aviso { position: absolute; left: 12px; top: 58px; background: rgba(40,30,15,.85); color: #fff; padding: 5px 9px; border-radius: 6px; font-size: 12px; }
+  .abajo { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 8px 12px; background: linear-gradient(transparent, rgba(20,16,8,.75) 30%); }
+  .mando { display: flex; gap: 5px; margin-bottom: 8px; }
+  .chip { flex: 1; min-width: 0; min-height: 52px; background: var(--papiro); border-radius: 8px; padding: 4px 4px 5px; text-align: center; font-size: 11.5px; border: 2px solid transparent; position: relative; }
+  .chip .ico { font-size: 17px; display: block; line-height: 20px; }
+  .chip .barra { height: 4px; border-radius: 2px; background: #c9b78f; margin-top: 3px; overflow: clip; }
+  .chip .barra i { display: block; height: 100%; background: var(--verde); }
+  .chip .mun { position: absolute; top: 2px; right: 4px; font-size: 10px; color: #6b5330; }
+  .chip.sel { border-color: var(--oro); box-shadow: 0 0 0 2px rgba(224,176,64,.5); background: #fff4d6; }
+  .ordenes { display: flex; gap: 6px; }
+  .ord { flex: 1; min-height: 48px; background: var(--papiro); border-radius: 10px; text-align: center; padding: 6px 2px; font-size: 12.5px; }
+  .ord.luz { background: #ffe08a; box-shadow: 0 0 10px #ffd04a; }
+  .ord small { display: block; font-size: 10.5px; color: #6b5330; }
+  .nota { position: absolute; right: 10px; font: 11px/1.25 sans-serif; color: #fff; background: rgba(0,0,0,.55); padding: 4px 6px; border-radius: 5px; max-width: 150px; }
+  /* horizontal: la tira de mando a la izquierda, las órdenes a la derecha, el campo en medio */
+  @media (orientation: landscape) {
+    .abajo { top: 54px; bottom: 0; left: 0; right: 0; background: none; padding: 0; pointer-events: none; }
+    .mando { position: absolute; left: 8px; top: 0; bottom: 10px; width: 92px; flex-direction: column; margin: 0; }
+    .chip { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+    .ordenes { position: absolute; right: 8px; top: 0; bottom: 10px; width: 96px; flex-direction: column; }
+    .ord { display: flex; flex-direction: column; justify-content: center; }
+    .arriba { left: 108px; right: 112px; }
+    .aviso { left: 108px; top: 54px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <svg class="campo" viewBox="0 0 390 600" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="hierba" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8aa060"/><stop offset="1" stop-color="#4c6a30"/></linearGradient>
+      <pattern id="rojos" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#7a2620"/><circle cx="2.5" cy="2.5" r="1.7" fill="#c8402f"/></pattern>
+      <pattern id="azules" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="#24406e"/><circle cx="2" cy="2" r="1.4" fill="#5b84c8"/></pattern>
+      <pattern id="itala" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#5e4a24"/><circle cx="2.5" cy="2.5" r="1.7" fill="#b89a52"/></pattern>
+      <pattern id="ligeros" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="none"/><circle cx="3.5" cy="3.5" r="1.6" fill="#d9c79a"/></pattern>
+      <pattern id="velites" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.6" fill="#e08a6a"/></pattern>
+      <marker id="punta" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#fff"/></marker>
+    </defs>
+    <rect width="390" height="600" fill="url(#hierba)"/>
+    <!-- rival: legión romana (manípulos con huecos) y sus vélites delante -->
+    <g opacity=".95">
+      <rect x="40" y="150" width="62" height="22" fill="url(#rojos)"/><rect x="126" y="150" width="62" height="22" fill="url(#rojos)"/>
+      <rect x="212" y="150" width="62" height="22" fill="url(#rojos)"/><rect x="298" y="150" width="62" height="22" fill="url(#rojos)"/>
+      <rect x="70" y="188" width="250" height="10" fill="url(#velites)"/>
+      <text x="120" y="214" font-size="10" text-anchor="middle" fill="#fff">vélites romanos</text><text x="70" y="142" font-size="10" text-anchor="middle" fill="#fff">hastati</text>
+    </g>
+    <!-- arco de alcance de los honderos (seleccionados) y blanco marcado -->
+    <path d="M60 470 Q195 160 330 470" fill="rgba(224,176,64,.10)" stroke="#e0b040" stroke-dasharray="5 4" stroke-width="1.5"/>
+    <rect x="208" y="146" width="70" height="30" fill="none" stroke="#ff4a3a" stroke-width="2.5" rx="3"/>
+    <text x="243" y="140" font-size="10" text-anchor="middle" fill="#ffb3a8">blanco</text>
+    <!-- trayectorias: parábola (ámbar, por encima de la falange) -->
+    <path d="M200 452 Q215 270 236 178" fill="none" stroke="#ffd04a" stroke-width="1.6" stroke-dasharray="3 3" marker-end="url(#punta)"/>
+    <path d="M178 452 Q205 280 226 180" fill="none" stroke="#ffd04a" stroke-width="1.2" stroke-dasharray="3 3" opacity=".7"/>
+    <path d="M222 452 Q240 290 254 180" fill="none" stroke="#ffd04a" stroke-width="1.2" stroke-dasharray="3 3" opacity=".7"/>
+    <!-- tu línea: manípulo itálico · falange · manípulo itálico (Pirro en Ásculo) -->
+    <rect x="48" y="330" width="70" height="26" fill="url(#itala)"/>
+    <rect x="132" y="326" width="126" height="36" fill="url(#azules)"/>
+    <g stroke="#3a2a16" stroke-width=".8" opacity=".85"><path d="M140 326l-4-16M150 326l-4-16M160 326l-4-16M170 326l-4-16M180 326l-4-16M190 326l-4-16M200 326l-4-16M210 326l-4-16M220 326l-4-16M230 326l-4-16M240 326l-4-16M250 326l-4-16"/></g>
+    <rect x="272" y="330" width="70" height="26" fill="url(#itala)"/>
+    <!-- tiradores detrás (seleccionados: aro dorado) -->
+    <rect x="150" y="440" width="96" height="22" fill="url(#ligeros)" stroke="#e0b040" stroke-width="2.5" rx="4"/>
+    <!-- huecos por donde se retiran -->
+    <path d="M125 450 L125 360" stroke="#9fd0ff" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <path d="M265 450 L265 360" stroke="#9fd0ff" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <!-- estandartes -->
+    <g font-size="9" text-anchor="middle">
+      <line x1="83" y1="330" x2="83" y2="304" stroke="#3a2a16"/><rect x="66" y="292" width="34" height="13" rx="2" fill="#efe2c2"/><text x="83" y="302">Man. I</text>
+      <line x1="195" y1="326" x2="195" y2="296" stroke="#3a2a16"/><rect x="172" y="284" width="46" height="13" rx="2" fill="#efe2c2"/><text x="195" y="294">Falange</text>
+      <line x1="307" y1="330" x2="307" y2="304" stroke="#3a2a16"/><rect x="290" y="292" width="34" height="13" rx="2" fill="#efe2c2"/><text x="307" y="302">Man. II</text>
+      <line x1="198" y1="440" x2="198" y2="418" stroke="#e0b040" stroke-width="1.5"/><rect x="170" y="405" width="56" height="14" rx="2" fill="#ffe08a"/><text x="198" y="415">Honderos 18</text>
+    </g>
+  </svg>
+
+  <div class="arriba">
+    <div class="obj"><b>Ásculo, 279 a.C.</b> · Rompe la línea romana antes de que lleguen sus príncipes</div>
+    <div class="pausa">⏸</div><div class="datos">Datos ▾</div>
+  </div>
+  <div class="aviso">Tirando por encima de la falange · 18 tiros</div>
+
+  <div class="abajo">
+    <div class="mando">
+      <div class="chip"><span class="ico">⚑</span>Todos<div class="barra"><i style="width:92%"></i></div></div>
+      <div class="chip"><span class="ico">⟋</span>Falange<div class="barra"><i style="width:96%"></i></div></div>
+      <div class="chip"><span class="ico">▦</span>Man. I<div class="barra"><i style="width:88%"></i></div></div>
+      <div class="chip"><span class="ico">▦</span>Man. II<div class="barra"><i style="width:90%"></i></div></div>
+      <div class="chip sel"><span class="mun">18</span><span class="ico">◌</span>Honderos<div class="barra"><i style="width:100%"></i></div></div>
+    </div>
+    <div class="ordenes">
+      <div class="ord luz">Tirar<small>al marcado</small></div>
+      <div class="ord">Hostigar<small>ir y volver</small></div>
+      <div class="ord">Retirarse<small>por los huecos</small></div>
+      <div class="ord">Alto<small>el fuego</small></div>
+    </div>
+  </div>
+</div>
+<script>/* en horizontal, el campo entero entre las dos columnas */
+const sv=document.querySelector('svg.campo');function ajusta(){const h=innerWidth>innerHeight;sv.setAttribute('viewBox',h?'0 125 390 350':'0 0 390 600');sv.setAttribute('preserveAspectRatio',h?'xMidYMid meet':'xMidYMid slice');}ajusta();addEventListener('resize',ajusta);</script>
+</body>
+</html>

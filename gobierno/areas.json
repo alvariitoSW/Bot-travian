@@ -131,6 +131,8 @@
         "test/tropas.test.mjs",
         "test/tropas-sim.test.mjs",
         "test/tropas-precios.test.mjs",
+        "test/es3-combinada.test.mjs",
+        "test/es4-asculo.test.mjs",
         "test/registro-lleva.test.mjs"
       ],
       "taller": [],
@@ -157,6 +159,10 @@
           "test/fu4-rivales.test.mjs",
           "test/tropas.test.mjs",
           "test/tropas-sim.test.mjs",
+          "test/es2-mando.test.mjs",
+          "test/es3-tiro.test.mjs",
+          "test/es3-combinada.test.mjs",
+          "test/es4-asculo.test.mjs",
           "test/registro-lleva.test.mjs"
         ],
         "navegador": [

@@ -27,7 +27,7 @@ import { crearCombate, centro, NIVELES, SALVA_VUELO } from '../../../js/bloque-i
 import { crearTropas } from './tropas.js';
 import { crearLucha } from '../../../js/combate-tropas.js';   /* CB3: el motor de lucha decide los golpes y los caídos */
 import { crearFisica } from '../../../js/fisica-batalla.js';   /* FU4: con la falange, los cuerpos de verdad (hombres, jinetes, elefantes) no se atraviesan */
-import { crearFisicaBloque } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
+import { crearFisicaBloque, PROY_MAX } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
 import { crearHud } from './hud.js';
 import { crearAbanico } from './abanico.js';   /* FU5 */
 import { crearMuro } from './formaciones/muro.js';   /* FU5 */
@@ -42,6 +42,7 @@ import { crear as formacionTestudo } from './formaciones/testudo.js';
 import { crearOficial, GOLPE } from './oficial.js';   /* FU2: tú en la fila: el duelo del oficial (solo reglas) */
 import { crearDueloHud, crearFalangitaHud } from './duelo-hud.js';
 import { crearFalangita } from './falangita.js';   /* FU3b: el gesto de la falange (bajar sarisas, cerrar el hueco) */
+import { crear as formacionCombinada, escenarioAsculo } from './formaciones/combinada.js';   /* ES2: falange + dos manípulos con mando de varios cuerpos */
 import { crear as formacionFalange } from './formaciones/falange.js';   /* FU3: la falange del motor (sus reglas, con el control del bloque) */
 import { acercaRival, resultadoLP7 as resultadoLP7F } from '../falange/acciones.js';
 
@@ -49,11 +50,28 @@ const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => 
 const TESTUDO = Q.get('formacion') === 'testudo' && !Q.get('lp7');   /* FU1: la formación de la escena (cada una, su archivo en formaciones/) */
 const FALANGE = Q.get('formacion') === 'falange';   /* FU3: también con ?lp7= (bajar a pie con una falange) */
 const MU = crearMuro(), ABI = crearAbierto(); let AB = null;   /* FU5: muro de escudos, orden abierto y su abanico */
-const FORM = FALANGE ? formacionFalange() : TESTUDO ? formacionTestudo() : formacionManipulo();
+const COMBINADA = Q.get('formacion') === 'combinada' && !Q.get('lp7');   /* ES2 */
+const FORM = COMBINADA ? formacionCombinada() : FALANGE ? formacionFalange() : TESTUDO ? formacionTestudo() : formacionManipulo();
 if (TESTUDO) document.title = 'AQVILA · Testudo a pie';
 if (FALANGE) {   /* tus falangitas de FA2 (azules, su oficial con penacho) contra los hastati de siempre (rojos) */
   document.title = 'AQVILA · Falange a pie'; const pal = gama('#3a64a8', PUEBLOS.falangita);
   ponBandos({ modelo: 'falangita', oficial: 'oficial-falange', paleta: pal, palOficial: Object.assign({}, pal, { escudos: PUEBLOS.falangita.escudos }) }, { modelo: 'hastatus' });
+}
+/* ES4: ?formacion=combinada&escenario=asculo&bando=pirro|roma. Sin bando, la pantalla de entrada (dos botones que recargan con &bando=) */
+const ASC = escenarioAsculo(Q), ASC_ENTRADA = COMBINADA && Q.get('escenario') === 'asculo' && !ASC;
+if (ASC) {   /* el bando azul (la falange de Pirro) lleva falangitas con sarisas; el otro, hastati rojos */
+  const pal = gama('#3a64a8', PUEBLOS.falangita), az = { modelo: 'falangita', oficial: 'oficial-falange', paleta: pal, palOficial: Object.assign({}, pal, { escudos: PUEBLOS.falangita.escudos }) };
+  document.title = 'AQVILA · Ásculo, 279 a.C.'; ASC.bando === 'pirro' ? ponBandos(az, { modelo: 'hastatus' }) : ponBandos(null, { modelo: 'falangita', paleta: pal });
+}
+if (ASC_ENTRADA) {
+  const d = document.createElement('div'); d.id = 'entrada-asculo'; d.style.cssText = 'position:fixed;inset:0;z-index:99;background:#14100c;color:#f1e6c8;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:16px;font:16px/1.35 Georgia,serif;overflow:auto';
+  const b = (id, tit, txt) => '<button data-b="' + id + '" style="min-height:96px;border:2px solid #e9c063;background:#2a2018;color:#f1e6c8;border-radius:10px;padding:10px 14px;text-align:left;font:inherit"><b style="font-size:22px;display:block">' + tit + '</b><span style="font-size:14px">' + txt + '</span></button>';
+  d.innerHTML = '<h1 style="margin:0;font-size:24px;text-align:center">Ásculo, 279 a.C.</h1>' +
+    b('pirro', 'Ser Pirro', 'Intercaló manípulos itálicos entre los bloques de su falange (Polibio 18.28). Rompe la línea romana.') +
+    b('roma', 'Ser Roma', 'Los vélites abrían la batalla y se retiraban entre los manípulos (Polibio 6.21 y 15.9). Aguanta y rompe la falange.') +
+    '<a href="../../../" style="align-self:center;color:#e9c063;font-size:15px;padding:12px 18px">Volver al menú</a>';   /* UN3: salida a Escaramuzas sin el botón «atrás» */
+  document.body.appendChild(d);
+  d.querySelectorAll('button').forEach(x => x.addEventListener('click', () => { const u = new URL(location.href); u.searchParams.set('bando', x.dataset.b); location.href = u.toString(); }));
 }
 /* CB3: ?lucha=reglas vuelve a las bajas por reglas de bloque; por defecto deciden el motor de lucha (js/combate.js) */
 const LUCHA = Q.get('lucha') === 'reglas' ? 'reglas' : 'motor'; let LU = null, acumL = 0;
@@ -128,7 +146,7 @@ const CAMS = { v: { d: 30, alto: 27, ad: 18, fov: 56 }, h: { d: 26, alto: 16, ad
 if (Q.get('cam')) { const c = Q.get('cam').split(',').map(Number); for (const t of [CAMS.v, CAMS.h]) ['d', 'alto', 'ad', 'fov'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
 const CAM = { x: 0, z: 0, yaw: 0, obj: 0, listo: false };
 function camaraSigue(dt) {
-  const S = C.S, tu = S.tuyo, c = centro(tu), K = vertical ? CAMS.v : CAMS.h;
+  const S = C.S, tu = S.tuyo, c = centro(tu), K = vertical ? (FORM.camaras || CAMS).v : (FORM.camaras || CAMS).h;
   /* la cámara no gira con cada giro del bloque (así se ve girar la puerta y el enemigo no se mueve en pantalla);
      solo si tu bloque mira ya a más de 70° de ella, se pone detrás despacio */
   if (!CAM.listo) { CAM.x = c.x; CAM.z = c.z; CAM.yaw = CAM.obj = tu.ang; CAM.listo = true; }
@@ -211,7 +229,7 @@ function creaEfectos() {
   for (let i = 0; i < POLVO_N; i++) polvo.pos[i * 3 + 1] = -99; for (let i = 0; i < CHISPA_N; i++) chispa.pos[i * 3 + 1] = -99;
   mPolvo = pts(polvo, 3.2, false); mChispa = pts(chispa, 0.35, true);
   const gj = new THREE.CylinderGeometry(0.018, 0.018, 1.7, 4); gj.rotateX(Math.PI / 2);
-  mJab = new THREE.InstancedMesh(gj, new THREE.MeshLambertMaterial({ color: 0x5a4630 }), 160); mJab.frustumCulled = false; mJab.count = 0; escena.add(mJab);
+  mJab = new THREE.InstancedMesh(gj, new THREE.MeshLambertMaterial({ color: 0xffffff }), PROY_MAX); mJab.frustumCulled = false; mJab.count = 0; escena.add(mJab);
 }
 function suelta(P, N, x, y, z, vx, vy, vz, r, g, b, vida) { const i = P.k; P.k = (P.k + 1) % N; P.pos.set([x, y, z], i * 3); P.vel.set([vx, vy, vz], i * 3); P.col.set([r, g, b], i * 3); P.vida[i] = vida; P.col0 = P.col0 || new Float32Array(N * 3); P.col0.set([r, g, b], i * 3); }
 function avanza(P, N, m, dt, cae) {
@@ -239,7 +257,9 @@ function lanza(de, a, n, dur) {
     const x0 = de.x + D.x * s, z0 = de.z + D.z * s, x1 = ca.x + (azarV() - 0.5) * a.ancho, z1 = ca.z + (azarV() - 0.5) * a.fondo;
     vuelos.push({ x0, z0, y0: H(x0, z0) + 1.8, x1, z1, y1: H(x1, z1) + 0.2, t: -azarV() * 0.4, dur: dur * (0.9 + azarV() * 0.2), alto: 4 + Math.hypot(x1 - x0, z1 - z0) * 0.18 }); }
 }
-const LARGO = { pilum: 2.0, jabalina: 1.5, flecha: 0.75 };
+const LARGO = { pilum: 2.0, jabalina: 1.5, flecha: 0.75, piedra: 0.3 };
+/* ES3b: grosor (× el del cilindro) y color de cada proyectil: la piedra, un guijarro gris; la flecha, algo más gruesa y clara. Sin entrada: como siempre */
+const GRUESO_P = { piedra: 8, flecha: 2.2 }, COLOR_P = { piedra: new THREE.Color(0xb9b3a6), flecha: new THREE.Color(0xd9c9a0) }, COLOR_0 = new THREE.Color(0x5a4630);
 /* un punto al azar entre los hombres del bloque a (donde caen pilum y jabalinas) */
 const puntoEn = a => { const men = TR.figs.filter(f => f.b === a); return () => { if (!men.length) { const c = centro(a); return { x: c.x, z: c.z }; } const f = men[Math.floor(azarV() * men.length)]; return { x: f.x + (azarV() - 0.5) * 1.6, z: f.z + (azarV() - 0.5) * 1.6 }; }; };
 function lanzaFisica(de, a, n, dur, tipo) { if (!FS || !FS.activa) return lanza(de, a, n, dur); FS.salva(de, a, n, dur, tipo, puntoEn(a)); }
@@ -247,15 +267,15 @@ function pintaVuelos(dt) {
   let n = 0;
   /* LP5a: los de la física (en vuelo, clavados en escudos y cuerpos, en el suelo): la punta y la dirección las da el motor */
   if (FS && FS.activa) for (const p of FS.proyectiles) {   /* FI3u */
-    if (n >= 160) break; const d = FS.dondeP(p), L = LARGO[p.tipo] || 1.5;   /* FI3u */
+    if (n >= PROY_MAX) break; const d = FS.dondeP(p), L = LARGO[p.tipo] || 1.5;   /* FI3u */
     E3.set(d.dx, d.dy, d.dz); if (E3.lengthSq() < 1e-8) continue; E3.normalize(); P3.set(d.x - E3.x * L / 2, d.y - E3.y * L / 2, d.z - E3.z * L / 2);
-    QT.setFromUnitVectors(Z1, E3); E3.set(1, 1, L / 1.7); M4.compose(P3, QT, E3); mJab.setMatrixAt(n++, M4);
+    QT.setFromUnitVectors(Z1, E3); const gr = GRUESO_P[p.tipo] || 1; E3.set(gr, gr, L / 1.7); M4.compose(P3, QT, E3); mJab.setColorAt(n, COLOR_P[p.tipo] || COLOR_0); mJab.setMatrixAt(n++, M4);
   }
-  for (let i = vuelos.length - 1; i >= 0; i--) { const v = vuelos[i]; v.t += dt; if (v.t > v.dur + 2.5) { vuelos.splice(i, 1); continue; } if (v.t < 0 || n >= 160) continue;
+  for (let i = vuelos.length - 1; i >= 0; i--) { const v = vuelos[i]; v.t += dt; if (v.t > v.dur + 2.5) { vuelos.splice(i, 1); continue; } if (v.t < 0 || n >= PROY_MAX) continue;
     const u = Math.min(1, v.t / v.dur), u2 = Math.min(1, (v.t + 0.05) / v.dur), at = w => [v.x0 + (v.x1 - v.x0) * w, v.y0 + (v.y1 - v.y0) * w + v.alto * 4 * w * (1 - w), v.z0 + (v.z1 - v.z0) * w];
     const p = at(u), q = u < 1 ? at(u2) : at(1), dir = u < 1 ? [q[0] - p[0], q[1] - p[1], q[2] - p[2]] : [v.x1 - v.x0, -2, v.z1 - v.z0];
-    P3.set(...p); E3.set(...dir).normalize(); QT.setFromUnitVectors(new THREE.Vector3(0, 0, 1), E3); M4.compose(P3, QT, new THREE.Vector3(1, 1, 1)); mJab.setMatrixAt(n++, M4); }
-  mJab.count = n; mJab.instanceMatrix.needsUpdate = true;
+    P3.set(...p); E3.set(...dir).normalize(); QT.setFromUnitVectors(new THREE.Vector3(0, 0, 1), E3); M4.compose(P3, QT, new THREE.Vector3(1, 1, 1)); mJab.setColorAt(n, COLOR_0); mJab.setMatrixAt(n++, M4); }
+  mJab.count = n; mJab.instanceMatrix.needsUpdate = true; if (mJab.instanceColor) mJab.instanceColor.needsUpdate = true;
 }
 
 /* ---------- partida ---------- */
@@ -289,10 +309,10 @@ function avisa(tipo, d) {
 }
 function nueva(n) {
   nivel = n; if (FORM.combate) { LU = null; return nuevaFormacion(); }
-  C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa, lucha: LUCHA }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}));
-  if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
+  C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa, lucha: LUCHA }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}, FORM.opcCombate ? FORM.opcCombate(BL) : {}));
+  if (LP7 && LP7.rival) C.S.rival = LP7.rival; else if (ASC) C.S.rival = ASC.bando === 'pirro' ? { los: 'los romanos', Los: 'Romanos' } : { los: 'la falange', Los: 'Falange' };   /* ES4: el nombre del rival en Ásculo */ TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
   LU = LUCHA === 'motor' ? crearLucha({ C, TR, semilla }) : null;
-  FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
+  FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, BL, hud, $, dedos, FS, camara, proyecta, suelo, lienzo, semilla, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
   { const cx = { THREE, escena, H, C, S: C.S, TR, Son }; MU.monta(cx); ABI.monta(cx); AB.pon(C); }   /* FU5 */
   OF = crearOficial({ S: C.S, alAviso: alOficial }); rivF = null; sacude = 0;
   window.__bloque.C = C; window.__bloque.LU = LU; window.__bloque.S = C.S; window.__bloque.oficial = OF;
@@ -353,7 +373,8 @@ function haciaDonde(p0, p1) {
   return Math.atan2(Math.sin(a), Math.cos(a));
 }
 /* soltar la raya: la primera fila irá sobre ella, mirando a haciaDonde. El ancho del bloque no cambia (más fácil de leer) */
-function frenteDesdeRaya(p0, p1) { if (FORM.combate) return C.dibujaFrente(p0, p1);   /* FU3: la raya va tal cual al mando de la falange */
+function frenteDesdeRaya(p0, p1) { if (C.mando) return C.mando.dibujaFrente(p0, p1);   /* ES2: al cuerpo elegido, o a la línea entera */
+  if (FORM.combate) return C.dibujaFrente(p0, p1);   /* FU3: la raya va tal cual al mando de la falange */
   C.frente({ x: (p0.x + p1.x) / 2, z: (p0.z + p1.z) / 2, ang: haciaDonde(p0, p1) }); }
 
 /* saltar a un momento (capturas), con el jugador automático de LP2 */
@@ -460,13 +481,13 @@ let tPrev = performance.now(), acum = 0;
 function bucle(ahora) {
   const dt = Math.min(0.1, (ahora - tPrev) / 1000); tPrev = ahora;
   if (C) {
-    if (!congelado && nivel) {
+    if (!congelado && nivel && !(FORM.pausada && FORM.pausada())) {
       acum += dt; let k = 0; while (acum >= 0.05 && k < 4) { C.paso(0.05); FI && FI.paso(C.S.fal, 0.05); FL && FL.paso(0.05); acum -= 0.05; k++; } if (k === 4) acum = 0;
       OF.paso(dt); TR.paso(dt, C.S.T); FS.paso(dt);
       if (LU) { acumL += dt; while (acumL >= 0.05) { LU.paso(0.05); acumL -= 0.05; } }   /* CB3: el motor de lucha a paso fijo */
       lineaDeChoque(dt);
       /* la raya del frente se queda mientras el bloque va hacia ella */
-      const B = C.S.B; if (!dedos.activo()) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
+      const B = C.S.B; if (!dedos.activo() && !C.mando) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
       try { sonBloque(dt); } catch (e) { /* sin sonido */ }
     }
     if (RIVD) RIVD.paso(dt);   /* FU4: también congelado: las reglas no avanzan y el dibujo del rival llega a su sitio */
@@ -485,7 +506,7 @@ function bucle(ahora) {
     DH.pinta({ ve: !!(FORM.duelo !== false && nivel && cam1 && cam1.t() > 0.5), est: OF.estado(), aro: rivF ? proyecta(rivF.x, 1.45, rivF.z) : null, dedo: dedos.dedoEn(), modo: pelea(), dt: congelado ? 0 : dt });
     mPolvo.material.opacity = cam1 ? 1 - 0.75 * cam1.t() : 1;   /* LP7: abajo, el polvo no tapa media pantalla */
     avanza(polvo, POLVO_N, mPolvo, congelado ? 0 : dt, -0.1); avanza(chispa, CHISPA_N, mChispa, congelado ? 0 : dt, 6); pintaVuelos(congelado ? 0 : dt);
-    pintaSoldados(); hud.tick(dt); AB && AB.paso(dt); separaEstandartes($('ests'));   /* FU5 */
+    pintaSoldados(); hud.tick(dt); AB && AB.paso(dt); FORM.despues && FORM.despues(dt); separaEstandartes($('ests'));   /* FU5, ES2 */
      campo && campo.tick(ahora / 1000);
   }
   renderer.render(escena, camara);
@@ -535,6 +556,7 @@ async function arranca() {
   const cargados = {}; for (const k of nombres) { const [b, n] = k.split(':'); pide.push(cargarSoldado(n, paleta(n, b)).then(s => { cargados[k] = s; })); }
   const [cs] = await Promise.all([crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color }).catch(e => { console.warn('Sin campo', e); return null; }), ...pide]);
   campo = cs;
+  if (ASC) for (const k of ASC.bando === 'pirro' ? ['r:falangita', 'r:oficial-falange'] : ['g:falangita']) if (cargados[k]) for (const nv of cargados[k].niveles) if (nv && nv.mat) azulea(nv.mat);
   if (FALANGE) for (const k of ['r:falangita', 'r:oficial-falange']) if (cargados[k]) for (const nv of cargados[k].niveles) if (nv && nv.mat) azulea(nv.mat);   /* FU3b */
   if (FALANGE) for (const k of ['r:falangita', 'r:oficial-falange']) if (cargados[k]) cargados[k].niveles = cargados[k].niveles.map(nv => nv ? paraFalange(nv) : nv);   /* FU3c: una sola arma por hombre (sin la lanza del modelo, queda la sarisa de formaciones/falange.js) y el escudo al pecho (soldados.js) */
   for (const b of ['r', 'g']) {
@@ -554,6 +576,13 @@ async function arranca() {
     ps[0].innerHTML = 'Mandas tu falange, no a un hombre. <b>Arrastra el dedo por el suelo</b>: ahí formará tu primera fila. Un muro de sarisas gira despacio: piensa antes de mover.';
     ps[1].innerHTML = 'Abajo tienes cuatro órdenes: <b>«Bajar picas»</b> (las cinco primeras filas apuntan al frente), «Cerrar filas», «Avanzar» y «Alto». La que conviene <b>se ilumina</b>. Alzadas, las picas paran los proyectiles.';
     ps[2].textContent = enfrente;
+  }
+  if (ASC) {   /* UN3: la tarjeta de entrada de Ásculo (antes salía la del manípulo contra los galos) */
+    const ps = document.querySelectorAll('#inicio p'), P = ASC.bando === 'pirro';
+    $('inicio').querySelector('h1').textContent = 'Ásculo, 279 a.C.';
+    ps[0].innerHTML = P ? 'Eres <b>Pirro</b>: tu falange al centro, dos manípulos itálicos a sus lados y honderos detrás.' : 'Eres <b>Roma</b>: tres manípulos y tus vélites detrás. Los manípulos pueden cerrar el <b>testudo</b>.';
+    ps[1].innerHTML = 'Abajo, una ficha por cuerpo: <b>toca la ficha</b> y arrastra el dedo por el suelo para darle su frente, o elige «Todos». El <b>botón de pausa</b>, arriba, para el tiempo y deja dar órdenes. Toca un rival para que tus tiradores lo marquen.';
+    ps[2].textContent = P ? 'Enfrente, la legión romana con sus vélites. Rompe su línea.' : 'Enfrente, la falange de Pirro y sus honderos. Aguanta y rómpela.';
   }
   nueva(nivel || 'normal');
   $('salir').addEventListener('click', salir); $('salir2').addEventListener('click', salir);

@@ -4,6 +4,12 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 170, fecha: '25/11/2026', cosas: [
+      'Escaramuza nueva: Ásculo, 279 a.C. Está en Escaramuzas, «Pruebas rápidas».',
+      'Eliges bando: ser Pirro, con su falange, o ser Roma, con tres manípulos que forman el testudo.',
+      'Mandas varios cuerpos a la vez: toca su ficha y dibuja su frente, o el de todos.',
+      'El botón de pausa para el tiempo y te deja dar órdenes con calma.',
+      'Honderos, arqueros y vélites: tocas un rival para marcarlo y disparan salvas que vuelan de verdad.'] },
     { v: 169, fecha: '25/11/2026', cosas: [
       'La batalla de la campaña es ya la misma que la de Escaramuzas: jugar en vivo, batalla rápida o resolver.',
       'Si cierras el juego a mitad de batalla, al volver la retomas donde la dejaste.',
