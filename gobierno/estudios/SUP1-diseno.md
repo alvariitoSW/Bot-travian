@@ -215,7 +215,7 @@ Preguntas en el chat de SUP1 (formato numerado A/B). Respuestas literales: §11.
 ## 10. Reparto propuesto SUP2–SUP5
 Archivos propios del modo (área nueva «supervivencia» en `areas.json`, la da de alta el vigía). Guardado propio
 `aqvila-superv-v1`, sin tocar `aqvila-save-v1` ni `G.load`. Lógica sin pantalla, probada en Node.
-M = millones de tokens (`gasto.mjs`). Gasto medido en esta sesión: 1,6 M (director + departamentos, todo Opus). Lo de abajo es estimación: declarado (esperable).
+M = millones de tokens (`gasto.mjs`). Gasto medido en esta sesión: 2,4 M (director + departamentos, todo Opus). Lo de abajo es estimación: declarado (esperable).
 
 | Tanda | Qué entrega | Archivos nuevos | Tamaño | Gasto esperable | Depende de |
 |---|---|---|---|---|---|
