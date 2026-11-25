@@ -73,6 +73,12 @@ desde arriba para construir y otra de cerca para mirar (fuera «Ciudad entera»,
 encima). Estilo: **«De momento ambos para ir más rápido ambos pueden convivir»**: Meshy y 0 A.D. conviven; no se
 unifica en la 2.0.
 
+Literal (25/11): «Y que al mandar construir se vea la animación de que se construye algo y mientras estoy en la estación
+veo como se construye y si paso estación de ha construido. Y lo mismo con la creación de tropas». → M1: al ordenar una
+obra aparecen en el solar andamios, obreros y material; durante la estación se ve trabajar (animación en bucle); al pasar
+estación, hecha (si dura 2, a medias en la primera). Tropas: reclutas entrenando en el patio del cuartel; al pasar
+estación forman y quedan listas.
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
