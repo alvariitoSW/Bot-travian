@@ -651,7 +651,7 @@ Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cereb
   - 🔶 J20a **Subidas en ≤15 min** (bots largos a la liga; sesión `session_01QiKC36FmnMDpekC2Gxmdv3`, rama `j20a-jueces-rapidos`).
   - ⬜ J20b **Liga de bots aparte** (desde partidas avanzadas, cifras al cuadro).
   - 🔶 ES20 **Solo estaciones por turnos** (cobro al empezar, hoja de estación, «Pasar estación»; sesión `session_01QiKC39GzHsFWu4YjWhKvHG`, rama `es20-estaciones`, de paso en comunes).
-  - 🔶 PN1 **Menú: Continuar · Partida nueva · Escaramuzas · Opciones** (campaña en pausa; sesión `session_01QiKC37abtmLWbLkiPoAure`, rama `pn1-menu`).
+  - ✅ PN1 **Menú: Continuar · Partida nueva · Escaramuzas · Opciones** — hecha el 25/11 (`b733466` + arreglo `ed5ab0b6`, unidas; juez Músculo APTO; 1,41 M; ficha de objetivo de 12 puntos, nota 8,5): sin partida, «Empieza tu historia»; «Partida nueva» abre un aviso provisional de Grecia (PN2) y la campaña Roma–Cartago «En pausa». Pase aplicado a `jueces.mjs`.
   - ⬜ PN2 **Ocho polis con su cultura** (Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto, Calcis; cultura reciclada y ficha).
   - ⬜ PN3 **Comarca aleatoria y arranque** (ágora, 5–8 casas, 100–200 personas; tras ES20).
   - ⬜ VI1 **Dos vistas** («Desde arriba» y la ciudad 3D por la que te mueves).
