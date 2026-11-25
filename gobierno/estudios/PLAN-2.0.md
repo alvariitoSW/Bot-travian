@@ -17,6 +17,18 @@ Decisiones del usuario (25/11, en este chat):
 - «Archivar todas (Recomendado)»: las **105 tareas «en pausa» del tablero se archivan** (siguen en git); solo vuelve
   la que encaje en una meta. Lo aplica el vigía cuando se apruebe el plan.
 
+### Jueces de la 2.0 (decidido por el usuario el 25/11)
+- Cambia **cómo se trabaja y las reglas del juego**: «Las dos cosas». Primero jueces, luego reglas del juego.
+- Sí a: **juez por meta**, **tu «Bien» cierra la meta**, **juez de aspecto y diversión**. Literal añadido: «Y además,
+  repensar como trabaja el juez porque si cada vez hace una partida entera va a tardar muchísimo y eso nos retrasa un montón».
+- Medido en SB7 (v171): bots de dificultad 24 min, bots de reglas (sim.test) 21 min, bot investigador ≥20 min; las
+  otras 40 comprobaciones y el recorrido, ~8 min.
+- Literal: «Vamos a medir primero que tiene que juzgar y como. Y así les podemos poner un estándar y hasta que no llegue
+  a ese estándar no pasan la prueba y creamos o mejoramos los jueces para afinar el objetivo final de cada tarea que juzgan».
+  → Cada meta (y cada tarea) lleva su **estándar**: qué se mide, cómo, con qué cifra pasa. Los jueces se crean o
+  mejoran para medir eso; hasta llegar a la cifra, no pasa.
+- Bots desde **partidas ya avanzadas**: «Sí (Recomendado)».
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
