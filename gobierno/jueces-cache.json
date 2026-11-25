@@ -255,14 +255,14 @@
   "fecha": "2026-11-25T04:45:55.093Z"
  },
  "area:test/mapa.test.mjs": {
-  "huella": "cac3d6f9c7ac7f5a",
+  "huella": "259d509ae10db9b3",
   "ok": true,
-  "fecha": "2026-11-25T11:22:33.533Z"
+  "fecha": "2026-11-25T13:11:51.745Z"
  },
  "area:gobierno/juez-mapas.mjs": {
-  "huella": "2123e61e10975d10",
+  "huella": "ba8167e103d3a912",
   "ok": true,
-  "fecha": "2026-11-25T11:57:53.221Z"
+  "fecha": "2026-11-25T13:13:55.767Z"
  },
  "area:test/movil.test.mjs": {
   "huella": "f31666d491a9dd51",
@@ -275,9 +275,9 @@
   "fecha": "2026-11-25T11:23:50.450Z"
  },
  "area:gobierno/arte.mjs": {
-  "huella": "0bff38ec430e9c34",
+  "huella": "ba8167e103d3a912",
   "ok": true,
-  "fecha": "2026-11-25T11:23:50.739Z"
+  "fecha": "2026-11-25T13:13:56.000Z"
  },
  "area:gobierno/fichas.mjs": {
   "huella": "5595621cf30c434d",

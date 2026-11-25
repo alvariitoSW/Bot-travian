@@ -14,6 +14,7 @@ import RIOS from '../../assets/mapa-grecia/rios.js';
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x, mix = (a, b, t) => a + (b - a) * t;
 const paso = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 export const UPX_MIN = 0.12 / 390;          // lo más cerca: 1,2 km de ancho en un móvil de 390 px
+const DESVIOS = [[0, -30], [0, 30], [-32, 0], [32, 0], [-28, -28], [28, 28]];   // si el icono de una comarca choca, se aparta un poco
 const FOV = 30, EL_CERCA = 0.86, EL_LEJOS = 1.2;
 
 const CSS = `
@@ -119,7 +120,7 @@ export class MapaGrecia {
     this.etq.sort((a, b) => a.pri - b.pri);
   }
   _pintaRotulos(w, h) {
-    const a = this.ancho, cajas = [], v3 = this._v3, ky = this.com.uKy.value, alzaPolis = this.vida.alzaRotulo();
+    const a = this.ancho, cajas = this.o.huecos ? this.o.huecos().slice() : [], v3 = this._v3, ky = this.com.uKy.value, alzaPolis = this.vida.alzaRotulo();
     for (const e of this.etq) {
       let ver = a >= e.rango[0] && a <= e.rango[1] && (!e.zona || this.recursosOn);
       if (ver) { v3.set(e.x, Math.max(0, this.rel.altura(e.x, e.z)) * ky + (e.polis ? alzaPolis : 0), e.z).project(this.cam); if (v3.z > 1) ver = false; }
@@ -131,7 +132,8 @@ export class MapaGrecia {
         const m = this.o.margen || [44, 8, 60, 8];   // arriba, derecha, abajo, izquierda: sitio de los botones de la pantalla
         if (c[2] < m[3] || c[0] > w - m[1] || c[1] < m[0] || c[3] > h - m[2]) ver = false;
         else if (!e.polis && (c[0] < 2 || c[2] > w - 2)) ver = false;
-        else { for (const o of cajas) if (c[0] < o[2] + 3 && c[2] > o[0] - 3 && c[1] < o[3] + 2 && c[3] > o[1] - 2) { ver = false; break; } }
+        else { const choca = q => { for (const o of cajas) if (q[0] < o[2] + 3 && q[2] > o[0] - 3 && q[1] < o[3] + 2 && q[3] > o[1] - 2) return true; return false; };
+          if (choca(c)) { ver = false; if (e.zona) for (const d of DESVIOS) { const q = [c[0] + d[0], c[1] + d[1], c[2] + d[0], c[3] + d[1]]; if (q[0] > 2 && q[2] < w - 2 && q[1] > m[0] && q[3] < h - m[2] && !choca(q)) { c[0] = q[0]; c[1] = q[1]; c[2] = q[2]; c[3] = q[3]; ver = true; break; } } } }
         if (ver) { cajas.push(c); if (e.zona) e.d.classList.toggle('compacta', !!compacta); const tr = 'translate(' + Math.round(c[0]) + 'px,' + Math.round(c[1]) + 'px)'; if (e.tr !== tr) { e.tr = tr; e.d.style.transform = tr; } } }
       if (ver !== e.visto) { e.visto = ver; e.d.style.display = ver ? '' : 'none'; }
     }

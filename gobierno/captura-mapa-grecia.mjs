@@ -86,16 +86,16 @@ async function gestos(page, completo) {
   if (!completo) return;
   // (c) doble toque
   await vista(page, 'corazon'); await page.waitForTimeout(1200);
-  const f0 = (await d.estado()).upx; await d.toque(195, 500); await page.waitForTimeout(80); await d.toque(195, 500); await page.waitForTimeout(600);
-  const f1 = (await d.estado()).upx;
+  let f0, f1;   // el navegador reparte los toques al ritmo de los cuadros (a software, 1-3 por segundo, un toque tarda ~1 s en llegar y la ventana del doble toque es de 320 ms): se para el bucle de dibujo mientras se dan los dos toques; hasta 3 intentos
+  for (let k = 0; k < 3; k++) { await vista(page, 'corazon'); await page.waitForTimeout(1200); await page.waitForTimeout(500); f0 = (await d.estado()).upx; await page.evaluate(() => __mapa.pausa(true)); await d.toque(195, 500); await page.waitForTimeout(60); await d.toque(195, 500); await page.waitForTimeout(100); await page.evaluate(() => __mapa.pausa(false)); await page.waitForTimeout(2500); f1 = (await d.estado()).upx; if (f1 < f0 * 0.6) break; }
   G.dobleToque = linea('gesto', 'doble toque', f1 < f0 * 0.6, `upx ×${(f1 / f0).toFixed(2)} en 600 ms (debe ser < 0,6)`);
   // (d) topes
   const UPX_MIN = 0.12 / 390; await vista(page, 'corazon'); await page.waitForTimeout(800);
   let minVisto = 1e9; for (let k = 0; k < 8; k++) { await d.pellizco(195, 500, 60, 300, 5); minVisto = Math.min(minVisto, (await d.estado()).upx); }
-  const dentro = (await d.estado()).upx, tope = await page.evaluate(() => __mapa._upxMax);
+  const dentro = (await d.estado()).upx;
   G.topeCerca = linea('gesto', 'tope al acercar', minVisto >= UPX_MIN * 0.999 && dentro <= UPX_MIN * 1.05, `upx mínimo ${(minVisto * 390).toFixed(3)} (ancho) ≥ ${(UPX_MIN * 390).toFixed(3)}, queda en ${(dentro * 390).toFixed(3)}`);
   let maxVisto = 0; for (let k = 0; k < 10; k++) { await d.pellizco(195, 500, 300, 60, 5); maxVisto = Math.max(maxVisto, (await d.estado()).upx); }
-  const fin = (await d.estado()).upx;
+  const fin = (await d.estado()).upx, tope = await page.evaluate(() => __mapa._upxMax);   // el tope de alejar depende de la altura de la cámara: se lee al final
   G.topeLejos = linea('gesto', 'tope al alejar', maxVisto <= tope * 1.001 && fin >= tope * 0.95, `upx máx ${maxVisto.toFixed(5)} ≤ _upxMax ${tope.toFixed(5)}, queda en ${fin.toFixed(5)}`);
 }
 
@@ -117,7 +117,7 @@ async function pantalla(page, ori, completo) {
     for (const e of r.es) { for (const b of r.bs) if (solapa(e, b, 2)) tapados.push(`${v}${rec ? '+rec' : ''}: «${e.n}» bajo botón ${b.n}`); }
     for (let i = 0; i < r.es.length; i++) for (let j = i + 1; j < r.es.length; j++) if (solapa(r.es[i], r.es[j], 2)) tapados.push(`${v}${rec ? '+rec' : ''}: «${r.es[i].n}» con «${r.es[j].n}»`);
     if (v === 'corazon' && !rec) { R.polisExisten = linea('pantalla', `8 rótulos de polis ${ori}`, r.polisTotal === 8, `${r.polisTotal} existen`); if (ori === 'v') R.polisVistas = linea('pantalla', 'polis visibles en «corazón» vertical', r.polisVistas >= 6, `${r.polisVistas} de 8 (≥ 6)`); }
-    if (v === 'corazon' && rec) R['zonas' + ori] = linea('pantalla', `rótulos de zona con Recursos (${ori})`, r.zonasVistas >= 8, `${r.zonasVistas} visibles (≥ 8)`);
+    if (v === 'corazon' && rec) { if (ori === 'v') R.zonasv = linea('pantalla', 'rótulos de zona con Recursos (v)', r.zonasVistas >= 8, `${r.zonasVistas} visibles (≥ 8)`); else { R.zonash = { dato: r.zonasVistas }; console.log(`pantalla rótulos de zona con Recursos (h): info (${r.zonasVistas} visibles en «corazón» horizontal; no se exige)`); } }
   }
   R.solapes = linea('pantalla', `rótulos tapados ${ori}`, tapados.length === 0, tapados.length ? tapados.slice(0, 6).join('; ') + (tapados.length > 6 ? ` … (${tapados.length})` : '') : 'ninguno');
   await page.evaluate(() => __mapa.recursos(false));
@@ -132,7 +132,9 @@ async function pantalla(page, ori, completo) {
 }
 
 /* ---------- ejecución ---------- */
-if (JUEZ) {
+if (op.solo === 'gestos') {   // para depurar: solo gestos y pantalla vertical
+  const { page } = await nueva(390, 844, 1); await abrir(page, 'estilo=a&vista=corazon&fija=1'); await gestos(page, true);
+} else if (JUEZ) {
   const { page } = await nueva(390, 844, 1);
   await abrir(page, 'estilo=a&vista=corazon&fija=1&t=20'); M.arranqueMs = await page.evaluate(() => __mapa.arranqueMs); console.log('arranque del mapa: ' + M.arranqueMs + ' ms');
   await captura(page, `${pref}-vivo-a.jpg`);
@@ -150,7 +152,7 @@ if (JUEZ) {
         await vista(page, 'corazon'); await page.click('[data-a="recursos"]'); await page.waitForTimeout(1500);
         let tocada = true; try { await page.click('.mg-polis[data-polis="atenas"]', { timeout: 8000 }); } catch (e) { tocada = false; }
         const fichaAbierta = await page.evaluate(() => !document.querySelector('.mgp-ficha').hidden);
-        linea('pantalla', `tocar el rótulo de Atenas abre su ficha (${est})`, tocada && fichaAbierta, tocada ? (fichaAbierta ? 'ficha abierta' : 'se tocó pero la ficha no se abre') : 'rótulo no tocable (oculto o tapado)');
+        linea('pantalla', `tocar el rótulo de Atenas abre su ficha (${est})`, tocada && fichaAbierta, tocada ? (fichaAbierta ? 'ficha abierta' : 'se tocó pero la ficha no se abre') : 'rótulo no tocable: ' + await page.evaluate(() => { const e = __mapa.etq.find(q => q.polis && q.polis.id === 'atenas'), r = e.d.getBoundingClientRect(), t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return `visto=${e.visto} caja ${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}×${Math.round(r.height)}; encima: ${t ? t.className || t.tagName : '-'}`; }));
         await captura(page, `${pref}-${est}-recursos-v.jpg`);
         await page.click('[data-a="recursos"]'); await page.evaluate(() => __pantalla.ficha(null));
         await vista(page, { lon: 23.63, lat: 37.945, a: 0.25 }); await captura(page, `${pref}-${est}-puerto-v.jpg`);

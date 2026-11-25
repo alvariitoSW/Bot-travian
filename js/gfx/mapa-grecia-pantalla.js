@@ -58,8 +58,11 @@ export async function montarMapaGrecia(caja, opts) {
     '<div class="mgp-abajo"><div class="mgp-regla"><span></span><i></i></div><div class="mgp-fila"><button data-a="recursos" aria-pressed="false">Recursos</button><button data-v="entera">Grecia entera</button><button data-v="corazon">Las polis</button></div></div>' +
     '<div class="mgp-carga">Desplegando el mapa de Grecia…</div>';
   const $ = s => raiz.querySelector(s), hoja = $('.mgp-ficha'), regla = $('.mgp-regla'), bEst = $('[data-a="estilo"]'), lema = $('[data-r="lema"]');
-  let kmPrev = 0, estVisto = '';
-  let mapa; try { mapa = new MapaGrecia($('.mgp-mapa'), Object.assign({}, opts, { estilo, onPolis: p => ficha(p), onToque: () => ficha(null), onCambio: m => {
+  let kmPrev = 0, estVisto = '', huecos = null;
+  /* sitio que ocupan los botones: los rótulos del mapa no se meten debajo */
+  const mideHuecos = () => { const r0 = raiz.getBoundingClientRect(); huecos = [...raiz.querySelectorAll('.mgp-zoom, .mgp-arriba > *, .mgp-fila, .mgp-regla, .mgp-leyenda:not([hidden])')].map(e => { const r = e.getBoundingClientRect(); return [r.left - r0.left - 4, r.top - r0.top - 4, r.right - r0.left + 4, r.bottom - r0.top + 4]; }).filter(r => r[2] > r[0] + 8); return huecos; };
+  new ResizeObserver(() => { huecos = null; }).observe(raiz);
+  let mapa; try { mapa = new MapaGrecia($('.mgp-mapa'), Object.assign({}, opts, { estilo, huecos: () => huecos || mideHuecos(), onPolis: p => ficha(p), onToque: () => ficha(null), onCambio: m => {
     if (m.est !== estVisto) pintaEstilo(); const km100 = m.kmPor100px(); if (Math.abs(km100 - kmPrev) / km100 < 0.02) return; kmPrev = km100;
     const pasos = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]; let k = pasos[0]; for (const q of pasos) if (q <= km100 * 0.9) k = q;
     regla.firstChild.textContent = k < 1 ? (k * 1000) + ' m' : k + ' km'; regla.lastChild.style.width = Math.round(k / km100 * 100) + 'px';
@@ -80,7 +83,7 @@ export async function montarMapaGrecia(caja, opts) {
     if (b.dataset.v) { ficha(null); mapa.vista(b.dataset.v, 900); }
     else if (b.dataset.ir) { const p = POLIS.find(q => q.id === b.dataset.ir); ficha(null); mapa.vista({ lon: p.lon, lat: p.lat, a: 0.42 }, 1600); }
     else if (b.classList.contains('cerrar')) ficha(null);
-    else if (a === 'recursos') { const on = mapa.recursos(); b.setAttribute('aria-pressed', on); $('.mgp-leyenda').hidden = !on; }
+    else if (a === 'recursos') { const on = mapa.recursos(); b.setAttribute('aria-pressed', on); $('.mgp-leyenda').hidden = !on; huecos = null; }
     else if (a === 'estilo') { b.disabled = true; mapa.estilo().then(k => { try { localStorage.setItem('aqvila-mapa-estilo', k); } catch (x) {} pintaEstilo(); }).catch(err => console.warn('No se pudo cambiar el estilo del mapa', err)).then(() => { b.disabled = false; }); }
     else if (a === 'mas') mapa.irA(mapa.V.x, mapa.V.z, mapa.V.upx / 2, 350); else if (a === 'menos') mapa.irA(mapa.V.x, mapa.V.z, mapa.V.upx * 2, 350);
     else if (a === 'volver' && opts.onVolver) opts.onVolver(); });

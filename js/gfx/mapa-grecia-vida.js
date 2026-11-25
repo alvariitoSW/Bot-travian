@@ -15,7 +15,7 @@ function azar(s) { let a = s >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let
 const MUROS = ['#efe6d0', '#e4d6b4', '#d9c8a2', '#f3ecdc', '#cdb890'], TEJ = ['#b99a5e', '#a98848', '#c2a868', '#b3855a', '#a06a44', '#978c70'];   // adobe encalado; paja, barro y alguna teja
 const E = 0.019;             // escala del caserío de lejos (modelos de 0 A.D.)
 const M = 2.6e-4;            // escala de cerca: 1 m de modelo = 2,6 m de mapa (las casas se agrandan para leerse en el móvil)
-const A_CASAS = 3.4, A_PLANO = 9;   // por debajo de estos anchos de pantalla (decenas de km) se ven las casas / el plano de calles
+const A_CASAS = 2.4, A_PLANO = 9;   // por debajo de estos anchos de pantalla (decenas de km) se ven las casas / el plano de calles
 
 function mancha(color, borde) { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 2, 32, 32, 31);
   r.addColorStop(0, color); r.addColorStop(borde || 0.5, color.replace(/[\d.]+\)$/, '0.45)')); r.addColorStop(1, color.replace(/[\d.]+\)$/, '0)')); g.fillStyle = r; g.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
