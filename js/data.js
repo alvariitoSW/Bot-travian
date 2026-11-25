@@ -461,6 +461,48 @@
     Object.defineProperty(D.BUILD.foro, 'n', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? 'Ágora' : 'Foro'; } });
     Object.defineProperty(D.LEVA_FICHAS.campo_marte, 'n', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? 'Campo de armas' : 'Campo de Marte'; } }); }
 
+  /* PN3c: rivales griegas en la partida de polis (en vez de las ciudades de Italia). Solo existen mientras hay abierta una partida de polis
+     nueva (s.region 'grecia'); D.ponPolis las mete y las quita, como las colonias. La campaña de Roma no las ve nunca.
+     Sitio (lon, lat): el de js/gfx/mapa-grecia-datos.js (fuente: gobierno/historia/AM2-mapa-grecia.md), con el mismo id: el mapa de Grecia
+     las pinta en su sitio. Licencia de juego: guarnición = 3 × la leva de su ficha D.POLIS; riqueza (w), muralla (wl) y caminos, de juego.
+     Esparta sin muralla (no la tuvo hasta época helenística: Pausanias 7.8.5). Su bien especial es su lujo si el juego lo tiene (plata, púrpura,
+     caballos, sal); los demás lujos no dan bien. */
+  D.POLIS_GR = {
+    atenas: { lon: 23.73, lat: 37.98, tipo: 'naval', w: 3, wl: 1, costa: true },
+    esparta: { lon: 22.43, lat: 37.07, tipo: 'militar', w: 3, wl: 0, costa: false },
+    corinto: { lon: 22.88, lat: 37.905, tipo: 'emporio', w: 3, wl: 1, costa: true },
+    argos: { lon: 22.72, lat: 37.63, tipo: 'agraria', w: 2, wl: 1, costa: true },
+    tebas: { lon: 23.32, lat: 38.32, tipo: 'agraria', w: 2, wl: 1, costa: false },
+    megara: { lon: 23.34, lat: 38.0, tipo: 'naval', w: 2, wl: 1, costa: true },
+    mileto: { lon: 27.28, lat: 37.53, tipo: 'naval', w: 3, wl: 1, costa: true },
+    calcis: { lon: 23.6, lat: 38.46, tipo: 'naval', w: 2, wl: 1, costa: true }
+  };
+  D.POLIS_CAMINOS = [['megara', 'corinto'], ['corinto', 'argos'], ['argos', 'esparta'], ['megara', 'atenas'], ['megara', 'tebas'], ['atenas', 'tebas'], ['tebas', 'calcis'], ['atenas', 'mileto', 1], ['calcis', 'mileto', 1]];
+  D.polisGr = false;   // true: la partida abierta es de polis con rivales griegas (tu polis está en Grecia, no en el sitio de Roma)
+  D.ponPolis = function (p, griegas) {
+    for (const id of Object.keys(D.CITIES)) if (D.CITIES[id].griega) delete D.CITIES[id];
+    for (const id of Object.keys(D.FACTIONS)) if (D.FACTIONS[id].griega) delete D.FACTIONS[id];
+    for (let i = D.EDGES.length - 1; i >= 0; i--) if (!D.CITIES[D.EDGES[i][0]] || !D.CITIES[D.EDGES[i][1]] || D.EDGES[i].griega) D.EDGES.splice(i, 1);
+    delete D.REGIONES.grecia; D.polisGr = false;
+    if (!p || !griegas || !D.POLIS[p]) return false;
+    const otras = D.POLIS_ORDEN.filter(id => id !== p);
+    for (const id of otras) {
+      const f = D.POLIS[id], q = D.POLIS_GR[id], g = {};
+      for (const k in f.leva) g[k] = f.leva[k] * 3;
+      D.CITIES[id] = { n: f.n, lon: q.lon, lat: q.lat, f: id, esp: D.ESPECIAL[f.lujo] ? f.lujo : undefined, tipo: q.tipo, w: q.w, wl: q.wl, g, sea: q.costa, griega: true, h: f.lema + '. Lujo: ' + f.lujoN.toLowerCase() + ' (' + f.lujoDe + ').' };
+      D.FACTIONS[id] = { n: f.n, col: f.color, raid: true, from: 280, griega: true };
+    }
+    for (const e of D.POLIS_CAMINOS) { const a = e[0] === p ? 'roma' : e[0], b = e[1] === p ? 'roma' : e[1], r = [a, b, !!e[2]]; r.griega = true; D.EDGES.push(r); }
+    D.REGIONES.grecia = { n: 'Grecia', ciudades: ['roma'].concat(otras), hechos: [], capitalRival: null, hasta: D.REGIONES.italia.hasta,
+      final: { gana: 'Dominas Grecia en {anio} a.C.', agota: 'Ha pasado el plazo de la partida y Grecia no es tuya.' },
+      camara: { lon: D.POLIS_GR[p].lon, lat: D.POLIS_GR[p].lat, zoom: 3.2 } };
+    D.polisGr = true; return true;
+  };
+  /* tu polis, en su sitio de Grecia (solo con rivales griegas: las partidas de polis anteriores siguen en el sitio de Roma) */
+  for (const k of ['lon', 'lat']) { const v0 = D.CITIES.roma[k]; Object.defineProperty(D.CITIES.roma, k, { enumerable: true, configurable: true, get() { return D.polisGr && D.POLIS_GR[D.polis] ? D.POLIS_GR[D.polis][k] : v0; } }); }
+  /* el bien especial de tu polis es su lujo, si el juego lo tiene; si no, ninguno (antes salía «Sal», el de Roma) */
+  { const e0 = D.CITIES.roma.esp; Object.defineProperty(D.CITIES.roma, 'esp', { enumerable: true, configurable: true, get() { const f = D.polis && D.POLIS[D.polis]; return f ? (D.ESPECIAL[f.lujo] ? f.lujo : undefined) : e0; } }); }
+
   // [a, b, marítima]
   D.EDGES = [
     ['roma', 'volsinii'], ['roma', 'capua'], ['roma', 'carales', 1], ['roma', 'emporion', 1],

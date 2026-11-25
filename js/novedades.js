@@ -4,6 +4,12 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 176, fecha: '25/11/2026', cosas: [
+      'Con una polis, tus rivales son ahora las otras polis griegas, cada una en su sitio del mapa.',
+      'La pestaña Mapa abre de lejos y ves las 8 polis de golpe; las que no caben junto a su sitio salen unidas con una línea.',
+      'La hoja de tu polis dice su lujo y qué te da, en vez de «Bien: Sal».',
+      'Las casas de la aldea del arranque se ven a su tamaño, ya no más pequeñas que un árbol.',
+      'El botón «Marchas» se lee bien y «Población al tope» es un aviso en ámbar, no una alarma.'] },
     { v: 175, fecha: '25/11/2026', cosas: [
       'Las polis de costa tienen mar: al norte del río se extiende el agua hasta el horizonte.',
       'El ágora de tu polis es ahora el bouleuterion griego, no el foro romano.',

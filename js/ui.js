@@ -908,7 +908,7 @@ function impFila(id) {
   if (c.inq > 0) pon(60 + c.inq, 'Inquietud', 'mal');
   if (f < 40) pon(50 + (40 - f), 'Ánimo bajo', 'mal');
   if (con.flags.almacen) pon(40, 'Almacén lleno', 'av');
-  if (con.flags.viviendas) pon(35, 'Población al tope', 'av');
+  if (con.flags.viviendas) { if (G.polis()) pon(25, 'Población al tope', 'ambar'); else pon(35, 'Población al tope', 'av'); }   // PN3c: en la polis es lo normal al empezar (la aldea crece con calles y casas): aviso en ámbar, no urgente
   if (!ob.length && con.rec) pon(20, 'Sin obra · hay recursos', 'av');
   else if (!ob.length) pon(5, 'Sin obra', 'ok');
   return { id, c, f, pc, pts, causa, tono, con, ob, urg: pts >= 30 };
@@ -1774,8 +1774,8 @@ function renderSheet() {
   const src = G.neighbors(id).filter(n => s.cities[n].owner === 'roma'), inc = s.marches.filter(m => m.to === id && !m.sitio), esp = s.marches.filter(m => m.sitio && m.from === id), sal = c.owner === 'roma' ? G.salidasPosibles(id, G.heroAvailable(id)) : [];
   const key = esp.map(m => m.id + (m.postura || '')).join() + sal.map(x => x.m.id).join() + id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + G.turnosFaltan(m)).join();
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
-  let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + f.n + '</span></h3><p>' + esc(d.h) + '</p>';
-  h += '<span class="stat">🧱 ' + (id === 'roma' && mine && G.faseMuralla(c) === 1 ? 'Muralla vieja de toba' : FASE_MURALLA[G.faseMuralla(c)]) + ' · Defensa ' + G.nivelMuralla(c) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');
+  let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + (mine && id === 'roma' && G.polis() ? 'tu polis' : f.n === d.n ? 'polis rival' : f.n) + '</span></h3><p>' + esc(d.h) + '</p>';
+  h += '<span class="stat">🧱 ' + (id === 'roma' && mine && G.faseMuralla(c) === 1 ? 'Muralla vieja de toba' : FASE_MURALLA[G.faseMuralla(c)]) + ' · Defensa ' + G.nivelMuralla(c) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (id === 'roma' && G.polisFicha() ? '<span class="stat">Lujo: ' + esc(G.polisFicha().lujoN) + ' (' + esc(G.polisFicha().lujoDe) + ')' + (D.ESPECIAL[d.esp] ? ' · ' + esc(D.ESPECIAL[d.esp].d) : '') + '</span>' : D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');   // PN3c: tu polis dice su lujo y qué da
   { const tr = G.rutasAbiertas().find(r => r.b === id && r.f !== 'roma'); if (tr) h += '<span class="stat">⚖️ Tratado de comercio con Roma</span>'; }
   h += '<div class="units">' + (Object.keys(c.units).filter(k => c.units[k] > 0).map(k => '<span>' + D.UNITS[k].n + ' <b>' + c.units[k] + '</b></span>').join('') || '<span>Sin guarnición</span>') + '</div>';
   if (inc.length) h += inc.map(m => '<div class="stat" style="color:' + (m.owner === 'roma' ? 'var(--good)' : 'var(--bad)') + '">' + (m.owner === 'roma' ? '🚩 Tus tropas llegan' : '⚠️ ' + D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ') llega') + ' ' + llegaEn(m.t1) + '</div>').join('');

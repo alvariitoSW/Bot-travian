@@ -57,7 +57,18 @@ await sesion(390, 844, async page => { await empezar(page, 'tebas', 4242); await
 await sesion(390, 844, async page => { await empezar(page, 'esparta', 31337); await plano(page, false); await foto(page, 'PN3b-d-esparta'); });
 /* PN3b: Roma antes/después (AQ_SOLO_ROMA=etiqueta: solo esa captura, con AQ_RAIZ apuntando a otra copia del código) y una en horizontal */
 const romaFoto = async (page, n) => { await accion(page, 'newregion', 'italia'); await page.waitForTimeout(3500); await cierra(page); await ciudad(page); await page.waitForTimeout(10000); await cierra(page); await plano(page, false); await page.waitForTimeout(1500); await foto(page, n); };
-if (B3) {
+if (process.env.AQ_C) {   /* PN3c: aldea (casas a su escala), Imperio (ámbar), hoja de tu polis en el mapa y una rival griega; vertical y horizontal */
+  const c = async (page, sfx) => { await empezar(page, 'atenas', 1013); await plano(page, true); await foto(page, 'PN3c-arriba-' + sfx); await plano(page, false); await foto(page, 'PN3c-cerca-' + sfx);
+    console.log('arranque-' + sfx, JSON.stringify(await page.evaluate(() => ({ rojo: [...document.querySelectorAll('#res .neg, #res .baja')].filter(e => e.offsetParent).map(e => e.parentNode.textContent.trim()), grano: Math.round(Game.state.res.grano), cap: Game.capDe ? Game.capDe('grano') : null, ciudades: Object.keys(Game.state.cities) }))));
+    await accion(page, 'tab', 'imperio'); await page.waitForTimeout(2500); await cierra(page); await foto(page, 'PN3c-imperio-' + sfx);
+    await accion(page, 'tab', 'map'); await page.waitForTimeout(6000); await cierra(page); await foto(page, 'PN3c-mapa-' + sfx);
+    await page.evaluate(() => { UI.sel = 'roma'; UI.sheetKey = ''; }); await page.waitForTimeout(1500); await foto(page, 'PN3c-hoja-' + sfx);
+    console.log('hoja-' + sfx, JSON.stringify(await page.evaluate(() => { const h = document.getElementById('sheet'); return h && !h.hidden ? h.innerText.slice(0, 260) : null; })));
+    await page.evaluate(() => { UI.sel = 'corinto'; UI.sheetKey = ''; }); await page.waitForTimeout(1500); await foto(page, 'PN3c-rival-' + sfx);
+    console.log('marchas-' + sfx, JSON.stringify(await page.evaluate(() => { const b = document.getElementById('bmarchas'), cs = b && getComputedStyle(b); return b ? { color: cs.color, fondo: cs.backgroundColor } : null; }))); };
+  const v = page => c(page, 'v'), h = page => c(page, 'h'); v.b2 = h.b2 = true; await sesion(390, 844, v); await sesion(844, 390, h);   // con AQ_B2=1: solo estas
+}
+else if (B3) {
   const a = async page => { await empezar(page, 'atenas', 1013); await plano(page, true); await foto(page, 'PN3b3-arriba'); await plano(page, false); await foto(page, 'PN3b3-cerca');
     await accion(page, 'tab', 'imperio'); await page.waitForTimeout(2500); await cierra(page); await foto(page, 'PN3b3-imperio'); };
   a.b2 = true; await sesion(390, 844, a);

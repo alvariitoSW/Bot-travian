@@ -5,7 +5,7 @@
      AM4-comarca-{v,h}   la comarca de tu polis, con los recursos
      AM4-polis-{v,h}     tu polis de cerca
      AM4-hoja-v          tras tocar tu polis: su hoja del juego
-     AM4-marcha-v        una marcha enemiga que llega de poniente (puesta a mano en la partida)
+     AM4-marcha-v        una marcha de Corinto contra tu polis (puesta a mano en la partida)
      AM4-entrar-v        segundo toque: se entra en la ciudad; AM4-volver-v al volver al mapa
      AM4-roma-{v,h}      la campaña de Roma: su mapa de siempre
    Comprueba (y escribe AM4-medidas.json): ni un rótulo romano en el mapa de polis, tu polis marcada, la hoja abre la tuya,
@@ -74,11 +74,11 @@ for (const [w, h, s] of [[390, 844, 'v'], [844, 390, 'h']]) await sesion(w, h, a
   await page.evaluate(() => document.querySelector('.mpg .mg-polis.mia').click()); await page.waitForTimeout(1500);
   const hoja = await page.evaluate(() => ({ sel: UI.sel, hoja: !document.getElementById('sheet').hidden, texto: document.getElementById('sheet').innerText.slice(0, 160) }));
   medidas.hoja = hoja; await foto(page, 'hoja-v'); ok(hoja.sel === 'roma' && hoja.hoja, 'tocar tu polis abre su hoja del juego');
-  /* una marcha enemiga que llega de poniente, y otra tuya hacia poniente */
-  await page.evaluate(() => { const s = Game.state; s.marches.push({ id: 9001, owner: 'epiro', from: 'tarentum', to: 'roma', units: { hoplitas: 800 }, t0: s.t - 1, t1: s.t + 0.6 }, { id: 9002, owner: 'roma', from: 'roma', to: 'syracusae', units: { hoplitas: 300 }, t0: s.t - 0.3, t1: s.t + 1 }); });
-  await page.evaluate(() => UI.map.gr.opts.onSelect(null)); await ir(page, 21.8, 37.9, 26); await page.waitForTimeout(3000);
+  /* PN3c: una marcha de Corinto contra tu polis y otra tuya contra Atenas (rivales griegas: ya nada llega «de poniente») */
+  await page.evaluate(() => { const s = Game.state; s.marches.push({ id: 9001, owner: 'corinto', from: 'corinto', to: 'roma', units: { hoplitas: 800 }, t0: s.t - 1, t1: s.t + 0.6 }, { id: 9002, owner: 'roma', from: 'roma', to: 'atenas', units: { hoplitas: 300 }, t0: s.t - 0.3, t1: s.t + 1 }); });
+  await page.evaluate(() => UI.map.gr.opts.onSelect(null)); await ir(page, 23.35, 37.95, 14); await page.waitForTimeout(3000);
   const mar = await page.evaluate(() => [...document.querySelectorAll('.mpg .mpg-ej')].filter(e => e.style.display !== 'none').map(e => e.textContent));
-  medidas.marchas = mar; await foto(page, 'marcha-v'); ok(mar.length === 2 && mar.some(t => /De poniente/.test(t)), 'las dos marchas se pintan (' + mar.join(' | ') + ')');
+  medidas.marchas = mar; await foto(page, 'marcha-v'); ok(mar.length === 2 && !mar.some(t => /poniente/.test(t)), 'las dos marchas se pintan (' + mar.join(' | ') + ')');
   ok(!mar.some(t => ROMANOS.test(t)), 'las marchas no nombran ciudades de Italia');
   const bm = await page.evaluate(() => { const b = document.getElementById('bmarchas'); return b && !b.hidden && b.textContent; }); ok(/Marchas/.test(bm || ''), 'el botón «Marchas» sigue en el mapa');
   await accion(page, 'marchas'); await page.waitForTimeout(800); await foto(page, 'marchas-hoja-v');
