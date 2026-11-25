@@ -1,0 +1,7 @@
+/* piel B: letra de carta antigua, placas de pergamino y sellos de lacre */
+.piel-b .etq.polis { background: #f4e8c8; border: 1px solid #4a2f1c; border-radius: 2px; font-variant: small-caps; font-size: 14px; letter-spacing: .6px; box-shadow: 1px 1px 0 #4a2f1c88; }
+.piel-b .etq.polis.pri3 { font-size: 12.5px; }
+.piel-b .etq.zona { --zona-texto: #3a2416; text-shadow: 0 0 3px #f4e8c8, 0 0 2px #f4e8c8, 0 0 2px #f4e8c8; font-weight: bold; }
+.piel-b .etq.zona i { border-color: #4a2f1c; box-shadow: 1px 1px 0 #4a2f1c; }
+.piel-b .etq.polis .lujo { box-shadow: 0 0 0 1.5px #3d120c, 0 0 0 3px #b34233; }
+.piel-b #titulo { background: linear-gradient(#3a2416ee, #3a2416aa 70%, #3a241600); }
