@@ -150,8 +150,8 @@
   }
 
   function aviso(c, e) {
-    if (e === 'sost') return '<div class="cam-aviso sost">' + RELOJ + '<span>Aguanta ' + num(c.sost) + '/' + num(c.sostMeta) + ' meses</span></div>';
-    if (e === 'peligro') { const r = Math.max(0, num(c.gracia, 3) - num(c.fallo)); return '<div class="cam-aviso peligro">' + PELIGRO + '<span>Se pierde en ' + r + (r === 1 ? ' mes' : ' meses') + '</span></div>'; }
+    if (e === 'sost') return '<div class="cam-aviso sost">' + RELOJ + '<span>Aguanta ' + Math.floor(num(c.sost) / 3) + '/' + Math.ceil(num(c.sostMeta) / 3) + ' estaciones</span></div>';   // ES20: meses internos en estaciones
+    if (e === 'peligro') { const r = Math.max(1, Math.ceil(Math.max(0, num(c.gracia, 3) - num(c.fallo)) / 3)); return '<div class="cam-aviso peligro">' + PELIGRO + '<span>Se pierde en ' + r + (r === 1 ? ' estación' : ' estaciones') + '</span></div>'; }
     if (e === 'perdido') return '<div class="cam-aviso perdido">' + CRUZ + '<span>Perdido</span></div>';
     if (e === 'logrado') return '<div class="cam-aviso logrado">' + VISTO + '<span>Camino logrado</span></div>';
     return '';

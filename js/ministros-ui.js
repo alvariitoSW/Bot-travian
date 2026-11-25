@@ -114,7 +114,7 @@
         Object.keys(d.INVEST).filter(id => !h[id] && (d.INVEST[id].edad || 1) <= ed).sort((a, b) => coste(d.INVEST[a]) - coste(d.INVEST[b]) || (a < b ? -1 : 1)).slice(0, 6).forEach(id => out.push({ tipo: 'saber', saber: id }));
       }
       if (t === 'impuesto') Object.keys(d.IMPUESTOS).filter(n => n !== (c.imp || 'normal')).forEach(n => out.push({ tipo: 'impuesto', ciudad: cid, nivel: n }));
-      if (t === 'reserva') ['grano', 'denarios', 'materiales', 'hierro'].forEach(r => out.push({ tipo: 'reserva', recurso: r, objetivo: Math.ceil((s.res && s.res[r]) || 0) + 300 }));
+      if (t === 'reserva') ['grano', 'denarios', 'materiales', 'hierro'].forEach(r => out.push({ tipo: 'reserva', recurso: r, objetivo: Math.ceil(Math.max(0, (s.res && s.res[r]) || 0) + Math.max(0, (s.alm && s.alm[r]) || 0)) + 300 }));   // ES20: reserva entera
       if (t === 'acto') (f.actos || []).forEach(a => out.push({ tipo: 'acto', acto: a, n: 1 }));
     }
     return out;
@@ -155,7 +155,7 @@
     }
     if (e.tipo === 'saber') return { fi: caja('', '📜', px2, ''), tit: (D().INVEST[e.saber] && D().INVEST[e.saber].n) || e.saber, sub: 'Investigar', ch: '' };
     if (e.tipo === 'reserva') {
-      const cur = Math.floor((s.res && s.res[e.recurso]) || 0), p = Math.max(0, Math.min(100, Math.round(100 * cur / e.objetivo)));
+      const cur = Math.floor(Math.max(0, (s.res && s.res[e.recurso]) || 0) + Math.max(0, (s.alm && s.alm[e.recurso]) || 0)), p = Math.max(0, Math.min(100, Math.round(100 * cur / e.objetivo)));
       return { fi: caja('', IC[e.recurso] || '📦', px2, ''), tit: 'Reunir ' + (RECURSO[e.recurso] || e.recurso), sub: cur + ' / ' + e.objetivo, ch: '', mini: '<div class="mn-barra"><i style="width:' + p + '%"></i></div>' };
     }
     if (e.tipo === 'acto') return { fi: caja('', ICACTO[e.acto] || '🏛️', px2, ''), tit: FACTO[e.acto] || 'Hacer un acto', sub: '', ch: '' };

@@ -4,6 +4,12 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 172, fecha: '25/11/2026', cosas: [
+      'El tiempo ya no corre solo: pasa por estaciones cuando pulsas «Pasar estación».',
+      'Al empezar cada estación ves la hoja: lo que has recogido, lo que se ha acabado y lo que ha pasado.',
+      'Obras y tropas se pagan enteras al ordenarlas y tardan una o dos estaciones.',
+      'Todo lo guardado en el almacén se puede gastar; lo que no cabe se pierde.',
+      'En Partida nueva puedes ver ya el mapa de Grecia.'] },
     { v: 171, fecha: '25/11/2026', cosas: [
       'Limpieza: fuera las escenas viejas del testudo y la falange a pie; el juego pesa menos y se ve igual.'] },
     { v: 170, fecha: '25/11/2026', cosas: [

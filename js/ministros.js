@@ -68,7 +68,7 @@
       case 'tropas': return c ? ((c.units && c.units[e.u]) || 0) : 0;
       case 'saber': return (s.inv && s.inv.hechas && s.inv.hechas[e.saber]) ? 1 : 0;
       case 'impuesto': return c && (c.imp || 'normal') === e.nivel ? 1 : 0;
-      case 'reserva': return (s.res && s.res[e.recurso]) || 0;
+      case 'reserva': return Math.max(0, (s.res && s.res[e.recurso]) || 0) + Math.max(0, (s.alm && s.alm[e.recurso]) || 0);   // ES20: una sola reserva (caja + almacén)
       case 'campo': return ((s.agro && s.agro.parcelas) || []).filter(p => p.ciudad === e.ciudad && p.campo === e.campo).length;
       case 'mejora': { const p = parcelaDe(s, e); return p && (p.mejoras || []).indexOf(e.mejora) >= 0 ? 1 : 0; }
       case 'cambiar': { const p = parcelaDe(s, e); return p && p.campo === e.campo ? 1 : 0; }
@@ -190,7 +190,8 @@
   M.proponer = (s, mid, mes, ayuda) => {
     M.migrar(s); ayuda = ayuda || {}; if (mes == null) mes = mesDe(s);
     const cs = porPop(s), mayor = cs[0]; if (!mayor || !FICHA[mid]) return null;
-    const C = s.cities[mayor], res = s.res || {};
+    const C = s.cities[mayor], res = {};   // ES20: la reserva entera (caja + almacén)
+    for (const r of ['grano', 'denarios', 'materiales', 'hierro']) res[r] = Math.max(0, (s.res && s.res[r]) || 0) + Math.max(0, (s.alm && s.alm[r]) || 0);
     const P = lista => primero(s, mid, mes, lista);
     switch (mid) {
       case 'ejercito': {

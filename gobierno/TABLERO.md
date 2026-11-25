@@ -650,9 +650,9 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cerebro, de paso en comunes: ES20 → PN2 → PN3 → VI1 → VI2 → AM3; (c) Músculo: PN1; (d) Arte de Mapas: AM0 → AM1 → AM2 (**Fable** por excepción del usuario, «Fable diseña y construye», gasto medido). ≈20 M declarados (30–40 esperable).
   - 🔶 J20a **Subidas en ≤15 min** (bots largos a la liga; sesión `session_01QiKC36FmnMDpekC2Gxmdv3`, rama `j20a-jueces-rapidos`).
   - ⬜ J20b **Liga de bots aparte** (desde partidas avanzadas, cifras al cuadro).
-  - 🔶 ES20 **Solo estaciones por turnos** (cobro al empezar, hoja de estación, «Pasar estación»; sesión `session_01QiKC39GzHsFWu4YjWhKvHG`, rama `es20-estaciones`, de paso en comunes).
+  - ✅ ES20 **Solo estaciones por turnos** — hecha el 25/11 (`1cededd`, unida; caché v172 con el pase de AM2: botón «Ver el mapa de Grecia»; cerebro APTO, jueces rápidos APTO 16; ficha de objetivo, nota 8,5; economía corta agresivo 1/5 → 5/5; **19,3 M, +220 %**). Pases: Músculo (retirar `test/pausas.test.mjs`).
   - ✅ PN1 **Menú: Continuar · Partida nueva · Escaramuzas · Opciones** — hecha el 25/11 (`b733466` + arreglo `ed5ab0b6`, unidas; juez Músculo APTO; 1,41 M; ficha de objetivo de 12 puntos, nota 8,5): sin partida, «Empieza tu historia»; «Partida nueva» abre un aviso provisional de Grecia (PN2) y la campaña Roma–Cartago «En pausa». Pase aplicado a `jueces.mjs`.
-  - ⬜ PN2 **Ocho polis con su cultura** (Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto, Calcis; cultura reciclada y ficha).
+  - 🔶 PN2 **Ocho polis con su cultura** (Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto, Calcis; cultura reciclada y ficha). (en obra desde el 25/11 ~15:41, de paso en comunes; sesión `session_01QiKC37D1rr3kW6cq7ssDBz`, rama `pn2-polis`)
   - ⬜ PN3 **Comarca aleatoria y arranque** (ágora, 5–8 casas, 100–200 personas; tras ES20).
   - ⬜ VI1 **Dos vistas** («Desde arriba» y la ciudad 3D por la que te mueves).
   - ⬜ VI2 **Ver construir y entrenar** (andamios, obreros, reclutas).

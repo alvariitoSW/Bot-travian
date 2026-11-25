@@ -126,9 +126,12 @@
      una ciudad ya saqueada hace menos de SAQUEO_MESES da solo SAQUEO_REPETIDO. Licencia de juego en las cifras (la praeda era real: Polibio 10.17 y Livio 26.47 en Cartago Nova).
      Si te saquean a ti, cada almacén esconde ESCONDITE de cada recurso y de lo demás se llevan SAQUEO_ROBO. */
   D.SAQUEO_BASE = 90; D.SAQUEO_REPETIDO = 0.4; D.SAQUEO_MESES = 6; D.ESCONDITE = 120; D.SAQUEO_ROBO = 0.2; D.SAQUEO_IA = 0.5;
-  /* Caja del mes (Q2): lo que se gasta en el mes es lo que se gana en el mes. Al cerrar el mes lo que sobra va al almacén hasta su tope (lo que no cabe se pierde)
-     y de él solo se puede sacar un cuarto cada mes. */
-  D.CUARTO_ALMACEN = 0.25; D.AVISO_CIERRE = 0.75;
+  /* ES20 (usuario 25/11): una sola reserva. Lo recogido entra en el almacén al cerrar cada mes interno, hasta su tope (lo que no cabe se pierde),
+     y TODO lo guardado se puede gastar: ya no hay «cuarto del almacén» (CUARTO_ALMACEN = 1 deja el campo viejo sin efecto). */
+  D.CUARTO_ALMACEN = 1; D.AVISO_CIERRE = 0.75;
+  /* ES20: estaciones que tarda un lote de reclutas: tiempo de instrucción de D.UNITS × LOTE_FACTOR meses, en estaciones (mínimo 1, tope 2).
+     Hastati, vélites y príncipes, 1 estación; triarios y équites, 2. La milicia y las levas no tienen tiempo: 1. Licencia de juego. */
+  D.LOTE_FACTOR = 40; D.LOTE_ESTACIONES_MAX = 2;
   /* CE3-A2: cinco niveles, topados por el Foro. Subir al nivel L cuesta coste base x L (NIVEL_COSTE[L]); lo que añade cada nivel va con lo que costó,
      así la producción total sigue 1, 3, 6, 10, 15 (NIVEL_PROD). PROD_NIVEL1 = 14: el nivel 1 rinde lo mismo que antes de CE3 (G.rate(1) era 14), así un
      nivel se paga con lo que produce en unas 3 estaciones, como antes; con 8 estaciones (primer intento, PROD_NIVEL1 = 6) el bot ya no ganaba. Cada nivel
@@ -149,7 +152,7 @@
      pueblo = favor del pueblo al celebrarla; inq = meses de inquietud que calma en una ciudad conquistada; dios = multiplica el don del dios del templo mientras dura.
      La ofrenda se paga con lo que el arca iba a perder por el tope (o con grano); los juegos, con denarios. */
   D.FIESTAS = {
-    ofrenda: { n: 'Ofrenda al templo', i: '🏺', mult: 2, min: 60, dura: 1, reposo: 1, fel: 4, pueblo: 2, inq: 0, dios: 2, pago: 'arca', templo: true, d: 'Duplica un mes el don del dios del templo.' },
+    ofrenda: { n: 'Ofrenda al templo', i: '🏺', mult: 2, min: 60, dura: 3, reposo: 3, fel: 4, pueblo: 2, inq: 0, dios: 2, pago: 'arca', templo: true, d: 'Duplica durante una estación el don del dios del templo.' },
     juegos: { n: 'Juegos públicos', i: '🎭', mult: 4, min: 150, dura: 3, reposo: 6, fel: 10, pueblo: 5, inq: 4, dios: 1, pago: 'denarios', templo: false, d: 'Calman al pueblo y a una ciudad conquistada.' }
   };
   /* CN16a: la leva del Foro (dilectus). Los aldeanos libres se alistan como milicia a cambio de grano y denarios; sin cola ni reloj, solo cuando el jugador pulsa. n = soldados por pulsación; tope = parte de la población libre que puede estar bajo armas por leva (el resto sigue en el campo). Licencia de juego: el coste es de equilibrio, no sale de las fuentes. */
@@ -773,7 +776,7 @@
   /* CE6: Senado de familias, siete bandos. Todas las cifras son licencia de juego (gobierno/estudios/CE6-encargo.md).
      fam = familia que lo encabeza; entra = condición en texto llano; trato = lo que ofrece por sus dudosos; rival = bandos que pierden cuando este gana. */
   D.BANDOS = {
-    ter: { n: 'Terratenientes', fam: 'Fabios', col: '#8FAE5A', entra: 'Desde el principio', trato: 'sinLeva', rival: ['mer'], peso: 'grano al mes / 10 + niveles de granja' },
+    ter: { n: 'Terratenientes', fam: 'Fabios', col: '#8FAE5A', entra: 'Desde el principio', trato: 'sinLeva', rival: ['mer'], peso: 'grano por estación / 30 + niveles de granja' },
     mer: { n: 'Mercaderes', fam: 'Emilios', col: '#5AA6C4', entra: 'Desde el principio', trato: 'pago', rival: ['ter'], peso: 'mercado y puerto x 3 + rutas x 5 + denarios de rutas / 20' },
     mil: { n: 'Militares', fam: 'Escipiones', col: '#D0443A', entra: 'Desde el principio', trato: 'guarnicion', rival: ['pue'], peso: 'hombres en armas / 100 + cuartel x 2 + victorias del año x 3' },
     sac: { n: 'Sacerdotes', fam: 'Valerios', col: '#C9A24A', entra: 'Entran con 2 niveles de templo entre tus ciudades', trato: 'pago', rival: ['pro'], peso: 'niveles de templo x 3' },

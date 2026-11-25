@@ -45,6 +45,7 @@
     if (vista === 'nueva') return '<div class="mct"><p class="ro-rubrica">Partida nueva</p><button class="mvolver" data-pn="inicio">Volver</button></div>' +
       '<div class="pn-grecia" role="note"><p class="pn-gt">Grecia · elige tu polis</p><p>Aquí elegirás tu ciudad griega: Atenas, Esparta, Corinto y más. ' +
       'Llega en la próxima versión; <b>todavía no se puede jugar.</b></p></div>' +
+      '<div class="pn-ops">' + opcion('data-pnmapa="1"', 'Ver el mapa de Grecia', 'Ya se puede mirar: amplía con dos dedos, de Grecia entera a las calles de cada polis') + '</div>' +
       '<p class="pn-mient">Mientras tanto, puedes jugar:</p><div class="pn-ops">' +
       opcion('data-act="hoja" data-v="corta"', 'Jugar en Italia · partida corta', horasCorta()) +
       opcion('data-act="newregion" data-v="italia"', 'Jugar la Región de Italia', 'Campaña solo en el mapa de Italia') +
@@ -94,6 +95,9 @@
     ob.observe(m, { childList: true, attributes: true, attributeFilter: ['hidden'] }); fondo(m); decora(m);
     // en captura, antes que el clic global de ui.js: así la vista ya está puesta cuando ui.js repinta
     document.addEventListener('click', function (e) {
+      /* AM2: el mapa vivo de Grecia se abre a pantalla completa encima del menú (módulo aparte, se carga al pedirlo) */
+      var gm = e.target.closest && e.target.closest('#menu [data-pnmapa]');
+      if (gm) { if (!gm.disabled) { gm.disabled = true; import(new URL('js/gfx/mapa-grecia-pantalla.js', document.baseURI).href).then(function (x) { return x.abrirMapaGrecia(); }).catch(function (err) { console.error(err); }).then(function () { gm.disabled = false; }); } return; }
       var t = e.target.closest && e.target.closest('#menu [data-pn], #menu [data-act="mpanel"]'); if (!t) return;
       var pn = t.getAttribute('data-pn');
       if (pn) { ponVista(pn, m); return; }
