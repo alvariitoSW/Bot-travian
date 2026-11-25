@@ -183,11 +183,30 @@ agricultura, mercado, caminos de victoria y batallas a pie (falange, hoplitas).
 
 | Meta | Terminada cuando… | Tamaño |
 |---|---|---|
-| **M1 · Empezar de cero** | Menú → Partida nueva → Grecia → comarca aleatoria → ágora, pocas casas, materias básicas y un núcleo de gente. Los jueces juegan esta partida en minutos. Críticas a la 1.0 arregladas | Medio |
-| **M2 · La polis crece** | La levantas tú o la delegas en tus ministros; crece y pide por clases; edificios griegos con aspecto propio, ninguno repetido; militares (herrería, campo de entrenamiento, mercenarios); bella (nota ≥ 7) | Grande |
-| **M3 · Ejército y comercio desde la ciudad** | Las tropas salen de tus edificios; comercias con tus vecinos | Grande |
-| **M4 · Ganar** | Se gana por armas, comercio, política, ciudad y ciencia en esta partida; política griega (asamblea, consejo, arcontes) | Grande |
-| **M5 · Guerra** | Las batallas de la 1.0 enganchadas a la partida (hoplitas, falange) y un asedio corto | Medio |
+| **M1 · Empezar de cero** | (1) Menú: Continuar · Partida nueva · Escaramuzas · Opciones; Partida nueva → Grecia o Campaña «en pausa». (2) Eliges Atenas, Esparta o Corinto. (3) Comarca aleatoria según la región. (4) Arranque: ágora, 5–8 casas, 100–200 personas, materias básicas. (5) Tiempo solo por estaciones, por turnos: cobras al empezar, «Pasar estación». (6) Dos vistas: «Desde arriba» y la ciudad 3D por la que te mueves; necesidades encima. (7) Se ve construir (andamios, obreros) y entrenar (reclutas en el cuartel) durante la estación. (8) Jueces rápidos (≤15 min) y liga de bots desde partidas avanzadas. (9) Críticas a la 1.0 arregladas | **Grande** (creció: era «Medio») |
+| **M2 · La polis crece** | Ciudad viva griega rehecha desde cero (la de Roma se siente artificial); la levantas tú o delegas en ministros; crece y pide por clases; edificios griegos con aspecto propio, ninguno repetido; militares (herrería, campo de entrenamiento, mercenarios); tres épocas que cambian el aspecto (barro y madera → mármol); bella (nota ≥ 7); texturas Poly Haven; descarga hasta ~80 MB; Meshy cuando haya créditos | Grande |
+| **M3 · Ejército y comercio desde la ciudad** | Las tropas salen de tus edificios; comercias con tus vecinos (mercado y agricultura de la 1.0, en griego) | Grande |
+| **M4 · Ganar** | Se gana por armas, comercio, política, ciudad y ciencia en esta partida; política griega (asamblea, consejo, arcontes); los bots logran cada camino 4–7 de 10; imagen de época en sucesos | Grande |
+| **M5 · Guerra** | Las batallas de la 1.0 enganchadas a la partida (hoplitas, falange), también en Escaramuzas, y un asedio corto | Medio |
+
+### Estándar de M1 (borrador, 25/11)
+| Qué se mide | Quién lo mide | Aprueba si… |
+|---|---|---|
+| Menú nuevo | Juez de pantalla 390 px | Continuar, Partida nueva y Escaramuzas a la vista; campaña con «en pausa»; ≤ 3 toques hasta empezar; botones ≥ 44 px |
+| Elegir polis | Juez de pantalla | Atenas, Esparta y Corinto con una línea de su carácter |
+| Comarca aleatoria | Bot de reglas, 20 comarcas | 20 distintas, 20 con agua, cultivo y sitio para el ágora, coherentes con la polis |
+| Arranque mínimo | Bot de reglas | Ágora, 5–8 casas, 100–200 personas, materias básicas |
+| Primeros minutos | Bot «jugador nuevo» | ≥ 5 cosas que hacer en 10 min; siguiendo al asesor nadie pasa hambre |
+| La polis aguanta | Liga de bots | Sobrevive 30 años en 8 de 10 con bot normal |
+| Solo estaciones | Bot de reglas | Sin reloj, meses ni caja del mes; cobro al empezar la estación; cada obra y tropa acaba cuando toca |
+| Se entiende el turno | Juez de pantalla | Hoja de inicio de estación (recogido y lo que acaba); «Pasar estación» siempre a la vista |
+| Dos vistas | Juez de pantalla | Solo dos; cambio en 1 toque; necesidades encima |
+| Ver construir y entrenar | Juez de pantalla, antes y después | Andamios y obreros; edificio hecho al pasar (a medias si dura 2); reclutas en el cuartel, tropa formada al pasar |
+| Fluidez | Juez de fluidez | Sin bajar con 5 obras y 3 tropas a la vez |
+| Jueces rápidos | Cada subida | ≤ 15 min |
+| Aspecto arcaico | Juez de aspecto | Nota ≥ 7: barro, madera, adobe y tejas |
+| Críticas a la 1.0 | Antes/después y el usuario | Cada una arreglada; su «Bien» |
+| En su móvil | El usuario | Fluido y sin red |
 
 Decidido después (25/11): **«Una polis real»** (eliges Atenas, Esparta o Corinto y la levantas desde la aldea, cada una con su carácter) y **«Sí, con 3 épocas (Recomendado)»** (arcaica → clásica → helenística: del barro y la madera al mármol; abre edificios, tropas y saberes).
 
