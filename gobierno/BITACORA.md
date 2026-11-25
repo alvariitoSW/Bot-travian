@@ -588,6 +588,7 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Modo supervivencia (SUP1)**: el diseño está hecho (rama `sup1-diseno`, `gobierno/estudios/SUP1-diseno.md`, 7 capturas). Te esperan 7 preguntas en el chat de SUP1 (`session_01QiKC36Sf8RZgvbyrwhY4GL`): el tiempo, la duración, la fecha (700–650 a.C.), Tasos, la pelea, el tope de 60 MB y el reparto SUP2–SUP5. Contéstalas allí.
 
 
 ## Propuestas por aprobar
