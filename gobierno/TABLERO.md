@@ -656,8 +656,8 @@ Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cereb
   - ⬜ PN3 **Comarca aleatoria y arranque** (ágora, 5–8 casas, 100–200 personas; tras ES20).
   - ⬜ VI1 **Dos vistas** («Desde arriba» y la ciudad 3D por la que te mueves).
   - ⬜ VI2 **Ver construir y entrenar** (andamios, obreros, reclutas).
-  - 🔶 AM0 **Montar el Departamento de Arte de Mapas** (sesión `session_01QiKC39NwiD67XUm7SsRT1t`, rama `am0-arte-mapas`).
-  - ⬜ AM1 **Diseño y maqueta del mapa vivo** con capturas para elegir (**Fable**).
+  - ✅ AM0 **Montar el Departamento de Arte de Mapas** — hecha el 25/11 ~12:25 (`aa7e095a`, unida): skill `arte-mapas`, área `mapas` en `areas.json`, `gobierno/juez-mapas.mjs` (APTO 59 s); 0,6 M. Pases: `jueces.mjs --area mapas`; `avisos.test` de Músculo ya fallaba (lección de 87 caracteres).
+  - 🔶 AM1 **Diseño y maqueta del mapa vivo** con capturas para elegir (**Fable**; sesión `session_01QiKC38S7hF4pGtWPkmm7Bx`, rama `am1-mapa-maqueta`).
   - ⬜ AM2 **Mapa vivo construido**: Grecia con sus polis (**Fable**).
   - ⬜ AM3 **Recursos por zonas y lujo en algunas ciudades** (por comercio o conquista; tras AM2 y PN2).
   - ⬜ CR20 **Críticas a la 1.0** cuando el usuario juegue la v171 (las recoge la sesión de debate).
