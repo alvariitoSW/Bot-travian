@@ -675,7 +675,13 @@
     return Math.max(0.5, t);
   };
 
-  G.log = function (txt, kind, mudo) { const s = G.state; s.log.unshift({ t: s.t, x: txt, k: kind || '' }); if (s.log.length > 60) s.log.pop(); hojaLog(txt, kind, mudo); emit('log', { x: txt, k: kind, mudo: !!mudo }); };   // mudo: va a la Crónica pero no saca aviso en pantalla
+  /* PN3e (pase de JG3): en la partida de polis, la crónica y la hoja de estación no hablan del Senado ni de las legiones de Roma.
+     Asamblea: la ekklesia de la polis, que votaba la guerra y los tributos (Aristóteles, Constitución de los atenienses 43-44). Usar el
+     mismo Senado del juego con otro nombre es licencia de juego. Roma, igual. */
+  const GRIEGO = [[/\bdel Senado\b/g, 'de la Asamblea'], [/\bal Senado\b/g, 'a la Asamblea'], [/\bel Senado\b/g, 'la Asamblea'], [/\bEl Senado\b/g, 'La Asamblea'], [/\bSenado\b/g, 'Asamblea'],
+    [/\ba las legiones\b/g, 'a los hoplitas'], [/\bsus legiones\b/g, 'sus hoplitas'], [/\blas legiones\b/g, 'los hoplitas'], [/\blegiones\b/g, 'hoplitas']];
+  G.griego = txt => G.polis() && typeof txt === 'string' ? GRIEGO.reduce((t, r) => t.replace(r[0], r[1]), txt) : txt;
+  G.log = function (txt, kind, mudo) { txt = G.griego(txt); const s = G.state; s.log.unshift({ t: s.t, x: txt, k: kind || '' }); if (s.log.length > 60) s.log.pop(); hojaLog(txt, kind, mudo); emit('log', { x: txt, k: kind, mudo: !!mudo }); };   // mudo: va a la Crónica pero no saca aviso en pantalla
 
   /* ---------- la ciudad nueva dentro del juego (CN2b) ----------
      js/ciudad.js (ESM) hace la geometría; este bloque la conecta con la economía. El módulo se enchufa con G.usarCiudad(modulo):
@@ -1793,7 +1799,7 @@
     if (llenos.length) out.push({ k: '', x: T.llenoAlm(llenos.slice(0, 3).join(', ') + (llenos.length > 3 ? '…' : '')) });
     for (const id of mis) { const pd = G.arca(id).pide; if (pd) { out.push({ k: '', x: pd }); break; } }   // CN13a: el arca pide una ofrenda
     const mi = G.misionActual(), sen = G.favorBajo() ? { k: 'bad', x: T.favor() } : mi ? { k: '', x: T.mision(mi.m.n, mi.quedan, mi.falta) } : null;   // sustituye al tercer aviso
-    const sv = D.SENADO.sala && G.senadoSala() ? { k: '', x: 'El Senado vota: ' + G.senadoSala().ley.n + '.' } : null;   // SN1
+    const sv = D.SENADO.sala && G.senadoSala() ? { k: '', x: G.griego('El Senado vota: ' + G.senadoSala().ley.n + '.') } : null;   // SN1
     const l = [head].concat(out.slice(0, sv ? Math.max(0, 3 - (sen ? 1 : 0) - 1) : sen ? 2 : 3)); if (sen) l.push(sen); if (sv) l.push(sv);
     l.push({ k: rec ? '' : 'good', x: rec || T.tranquila() });
     return l.slice(0, 5);
@@ -2004,7 +2010,7 @@
       if (win && res.prisioneros > 0) cautivos(res.prisioneros, cercaDeCiudad(cid), out);   // CG4b: los heridos del vencido son cautivos: esclavos o venta
       if (win && res.heridos) heridosA(dHer, res.heridos[0], out);
       if (!win && res.cautivos > 0) out.lines.push('⛓️ ' + res.cautivos + (res.cautivos === 1 ? ' herido tuyo cae prisionero.' : ' heridos tuyos caen prisioneros.'));
-      if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push('🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); }
+      if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push(G.polis() ? '🎺 ¡Gran victoria! La polis lo celebra: sube el favor de la Asamblea y del pueblo.' : '🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); /* PN3e */ }
     }
     if (m.tribuno != null && s.tribunos) {
       const i = s.tribunos.findIndex(t => t.id === m.tribuno);
@@ -2384,7 +2390,7 @@
       if (win && res.prisioneros > 0) { const A = D.CAMINOS[K.camino - 1], p = K.punto || 0, a = A && D.CITIES[A[0]], b = A && D.CITIES[A[1]]; cautivos(res.prisioneros, a && b ? romanaCerca(a.lon + (b.lon - a.lon) * p, a.lat + (b.lat - a.lat) * p) : dHer, out); }   // CG4b: cautivos a tu ciudad más cercana al camino
       if (win && res.heridos) heridosA(dHer, res.heridos[0], out);
       if (!win && res.cautivos > 0) out.lines.push('⛓️ ' + res.cautivos + (res.cautivos === 1 ? ' herido tuyo cae prisionero.' : ' heridos tuyos caen prisioneros.'));
-      if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push('🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); }
+      if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push(G.polis() ? '🎺 ¡Gran victoria! La polis lo celebra: sube el favor de la Asamblea y del pueblo.' : '🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); /* PN3e */ }
     }
     if (m.tribuno != null && s.tribunos) {
       const i = s.tribunos.findIndex(t => t.id === m.tribuno);

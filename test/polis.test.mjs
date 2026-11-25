@@ -112,4 +112,9 @@ t('PN3e: si cae tu polis, el final dice su nombre y no «Roma»', () => {
   assert.ok(s.over && !s.over.win, 'cae');
   const txt = JSON.stringify(s.over); assert.ok(/Mégara ha caído/.test(txt) && !/Roma ha caído/.test(txt), txt);
 });
+t('PN3e: en la polis, la crónica habla de la Asamblea y los hoplitas; en Roma, del Senado y las legiones', () => {
+  nueva('atenas'); G.log('🏛️ Peticiones del Senado: cumples con los optimates.', 'good'); G.log('🏛️ Tributo de guerra: faltan 5 denarios para pagar a las legiones.', 'bad');
+  assert.strictEqual(G.state.log[1].x, '🏛️ Peticiones de la Asamblea: cumples con los optimates.'); assert.strictEqual(G.state.log[0].x, '🏛️ Tributo de guerra: faltan 5 denarios para pagar a los hoplitas.');
+  nueva(null); G.log('🏛️ Peticiones del Senado: x.', ''); assert.strictEqual(G.state.log[0].x, '🏛️ Peticiones del Senado: x.');
+});
 console.log(mal ? '\n' + mal + ' fallos de ' + (n + mal) : '\nPOLIS: APTO (' + n + ' pruebas)'); process.exit(mal ? 1 : 0);
