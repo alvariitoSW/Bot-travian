@@ -1,33 +1,33 @@
 {
  "pausas": {
-  "huella": "91bdbf2a57901781",
+  "huella": "24640f237dff0561",
   "ok": true,
-  "fecha": "2026-11-25T12:13:57.347Z"
+  "fecha": "2026-11-25T12:59:18.741Z"
  },
  "encargos": {
-  "huella": "c9ef3397356e4590",
+  "huella": "8434f99bba51b429",
   "ok": true,
-  "fecha": "2026-11-25T12:14:06.172Z"
+  "fecha": "2026-11-25T12:59:28.410Z"
  },
  "movil": {
-  "huella": "0aca31151e3d48d4",
+  "huella": "886936d3ef9801fe",
   "ok": true,
-  "fecha": "2026-11-25T12:14:17.514Z"
+  "fecha": "2026-11-25T12:59:40.452Z"
  },
  "ciudad": {
-  "huella": "3e868e21a254e0f2",
+  "huella": "ca08cd0e7bacf1d0",
   "ok": true,
-  "fecha": "2026-11-25T12:15:42.237Z"
+  "fecha": "2026-11-25T13:02:23.294Z"
  },
  "senado": {
-  "huella": "3f2337740cee8e3a",
+  "huella": "fb05d8dbae8431a8",
   "ok": true,
-  "fecha": "2026-11-25T12:15:56.200Z"
+  "fecha": "2026-11-25T13:02:51.688Z"
  },
  "campo": {
-  "huella": "2075125fb478c4d4",
+  "huella": "6ce70b875176defc",
   "ok": true,
-  "fecha": "2026-11-25T12:16:04.260Z"
+  "fecha": "2026-11-25T13:03:04.679Z"
  },
  "guerra": {
   "huella": "33d7d0eee713c181",
@@ -40,29 +40,29 @@
   "fecha": "2026-11-25T12:16:17.008Z"
  },
  "guerra-juego": {
-  "huella": "bded5d86073fb030",
+  "huella": "e28c2782a9c44877",
   "ok": true,
-  "fecha": "2026-11-25T12:16:27.734Z"
+  "fecha": "2026-11-25T13:03:20.599Z"
  },
  "fichas": {
-  "huella": "536d206308c53ee1",
+  "huella": "4508e834a2f47656",
   "ok": true,
-  "fecha": "2026-11-25T12:16:27.806Z"
+  "fecha": "2026-11-25T13:03:20.681Z"
  },
  "mapa": {
-  "huella": "a6f552480902d878",
+  "huella": "37f6d3d8fe38ca8b",
   "ok": true,
-  "fecha": "2026-11-25T12:16:27.892Z"
+  "fecha": "2026-11-25T13:03:20.752Z"
  },
  "saber": {
-  "huella": "be0baf76994f4f2e",
+  "huella": "a74cf2ae46ca9c93",
   "ok": true,
-  "fecha": "2026-11-25T12:16:54.232Z"
+  "fecha": "2026-11-25T13:03:47.677Z"
  },
  "sim": {
-  "huella": "5e09eefd651b245e",
+  "huella": "fc425e12024a0af2",
   "ok": true,
-  "fecha": "2026-11-25T12:20:54.228Z"
+  "fecha": "2026-11-25T13:12:25.815Z"
  },
  "investigador": {
   "huella": "02a337f0b4874454",
@@ -70,9 +70,9 @@
   "fecha": "2026-11-24T23:39:16.509Z"
  },
  "diplomacia": {
-  "huella": "1363c8f7ceaf5e37",
+  "huella": "d884552018715404",
   "ok": true,
-  "fecha": "2026-11-25T12:21:00.366Z"
+  "fecha": "2026-11-25T13:12:35.490Z"
  },
  "sonido-ciudad": {
   "huella": "f3ee14d1d8d4925e",
@@ -80,9 +80,9 @@
   "fecha": "2026-11-25T12:21:00.421Z"
  },
  "ajustes": {
-  "huella": "4952356742ab509e",
+  "huella": "c5d0e3d763921ac4",
   "ok": true,
-  "fecha": "2026-11-25T12:31:10.944Z"
+  "fecha": "2026-11-25T13:24:28.649Z"
  },
  "guerra-jugada": {
   "huella": "25ca1010e0c8707b",
@@ -255,29 +255,29 @@
   "fecha": "2026-11-25T04:45:55.093Z"
  },
  "area:test/ciudad.test.mjs": {
-  "huella": "82b37f75cc0b349f",
+  "huella": "c9e8a79ea72ab6b2",
   "ok": true,
-  "fecha": "2026-11-25T12:53:31.724Z"
+  "fecha": "2026-11-25T13:20:45.117Z"
  },
  "area:test/senado.test.js": {
-  "huella": "476a22dbd6dd7079",
+  "huella": "b11ea9af007dcf0f",
   "ok": true,
-  "fecha": "2026-11-25T12:53:41.567Z"
+  "fecha": "2026-11-25T13:20:55.073Z"
  },
  "area:test/saber.test.mjs": {
-  "huella": "f3063db5b12d0f37",
+  "huella": "fb998b01df71595a",
   "ok": true,
-  "fecha": "2026-11-25T12:38:08.777Z"
+  "fecha": "2026-11-25T13:21:13.131Z"
  },
  "area:test/diplomacia.test.mjs": {
-  "huella": "357df141a6d5b056",
+  "huella": "51e83fa035c0d686",
   "ok": true,
-  "fecha": "2026-11-25T12:38:15.041Z"
+  "fecha": "2026-11-25T13:21:18.749Z"
  },
  "area:test/encargos.test.mjs": {
-  "huella": "177f9c95c844964b",
+  "huella": "a4c769d1c84aa3e4",
   "ok": true,
-  "fecha": "2026-11-25T12:38:19.445Z"
+  "fecha": "2026-11-25T13:21:22.781Z"
  },
  "area:test/caminos.test.mjs": {
   "huella": "311c4bcf090e5b4a",
@@ -300,13 +300,13 @@
   "fecha": "2026-11-25T12:38:22.309Z"
  },
  "navegador-cerebro": {
-  "huella": "c5db2ad3fc484e41",
+  "huella": "3bf183e0928d5601",
   "ok": true,
-  "fecha": "2026-11-25T12:41:11.313Z"
+  "fecha": "2026-11-25T13:27:57.846Z"
  },
  "area:gobierno/jueces.mjs --area cerebro": {
-  "huella": "dbaa9f8114579d6c",
+  "huella": "3bf183e0928d5601",
   "ok": true,
-  "fecha": "2026-11-25T12:41:11.327Z"
+  "fecha": "2026-11-25T13:27:57.857Z"
  }
 }

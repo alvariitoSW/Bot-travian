@@ -1928,3 +1928,35 @@ body.encalles #cbar, body.encalles #tabs3 { display: none !important; }
 #cbar { display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 8px; }
 #kbtn { width: 52px; height: 52px; min-width: 0; padding: 0; gap: 1px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid rgba(255, 240, 200, .6); box-shadow: 0 6px 18px rgba(0, 0, 0, .6); }
 #kbtn svg { width: 20px; height: 20px; } #kbtn b { font-size: 9.5px; font-weight: 750; letter-spacing: 0; line-height: 1; }
+
+/* ---- ES20: sin reloj. «Pasar estación» siempre a la vista y hoja de estación ---- */
+/* en la ciudad y en la sala del Senado, píldora dorada en la tira (no tapa «Construir» ni los votos); en lo demás, la barra grande sobre las pestañas */
+#app[data-tab="ciudad"] #tira #turno:not([hidden]), #app[data-sala] #tira #turno:not([hidden]) { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none; position: static; width: 84px; min-width: 84px; height: 44px; margin: 0; padding: 0 6px; border-radius: 22px; border: 1px solid rgba(255, 240, 200, .5); font: 700 12.5px/1.05 var(--serif); letter-spacing: 0; white-space: normal; text-align: center; color: #1c1206; background: linear-gradient(var(--gold), var(--gold2)); text-transform: none; text-shadow: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); max-width: none; }
+#app[data-tab="ciudad"] #tira #turno .tu-lacre, #app[data-sala] #tira #turno .tu-lacre, #app[data-tab="ciudad"] #tira #turno .tu-est, #app[data-sala] #tira #turno .tu-est { display: none; }
+#app[data-sello] #turno { min-height: 48px; }
+/* la hoja de estación: tarjeta de papiro, como mucho 2/3 de la pantalla; dentro se desplaza si no cabe */
+#inf.hojaest { display: flex; flex-direction: column; max-height: min(66vh, 560px); overflow: clip; padding: 10px 12px 10px; }
+#inf.hojaest.mas { max-height: min(66vh, 560px); }
+#inf.hojaest .inf-t { flex: none; margin-bottom: 2px; padding-right: 48px; font-size: 16px; }
+#inf.hojaest .he-cu { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+#inf.hojaest .he-s { margin: 6px 0 0; }
+#inf.hojaest .he-st { display: block; font: 700 12px var(--serif); letter-spacing: .1em; text-transform: uppercase; color: var(--minio); border-bottom: 1px solid rgba(60, 35, 10, .22); padding-bottom: 1px; margin-bottom: 3px; }
+#inf.hojaest .he-entra .he-st { padding-right: 40px; }
+#inf.hojaest .he-rs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+#inf.hojaest .he-r { display: flex; flex-direction: column; align-items: center; min-width: 0; padding: 3px 2px; border-radius: 4px; background: rgba(255, 246, 214, .35); text-align: center; overflow: clip; }
+#inf.hojaest .he-ri { display: flex; align-items: center; gap: 3px; }
+#inf.hojaest .he-ri .ico { width: 20px; height: 20px; flex: none; }
+#inf.hojaest .he-ri b { font: 700 19px var(--serif); font-variant-numeric: tabular-nums; color: var(--tinta); }
+#inf.hojaest .he-rn { font-size: 11px; color: var(--tinta2); }
+#inf.hojaest .he-r small { font-size: 11.5px; line-height: 1.2; color: var(--tinta); white-space: nowrap; }
+#inf.hojaest .he-r small.mal { color: #a8281a; font-weight: 700; }
+#inf.hojaest .he-l { font-size: 14.5px; line-height: 1.3; color: var(--tinta); overflow-wrap: anywhere; padding: 1px 0; }
+#inf.hojaest .he-l.mal { color: #a8281a; font-weight: 600; }
+#inf.hojaest .he-l.bien { color: #2f5d1c; }
+#inf.hojaest .he-vacio, #inf.hojaest .he-mas { color: var(--tinta2); font-style: italic; }
+#inf.hojaest .he-avisos .he-l:not(.he-mas)::before { content: "• "; }
+#inf.hojaest .inf-b { flex: none; margin-top: 8px; }
+body.conhojaest #turno { display: none !important; }
+/* fichas de construir y reclutar: «Pagas ahora» y «Tarda» */
+.pagas { font-size: 12px; font-weight: 700; letter-spacing: .02em; margin: 6px 0 2px; color: inherit; opacity: .85; }
+.nota.tarda b, .ds.tarda b { font-weight: 800; }
