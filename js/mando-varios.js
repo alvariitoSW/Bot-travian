@@ -121,9 +121,9 @@ export function crearMando(C, { MO, avisa = () => {}, hueco = HUECO } = {}) {
   }
   function aplicaOrden(id, n) {
     if (id !== 'todos') return ordenA(por(id), n);
-    /* «Todos»: a cada cuerpo, la orden de su mismo hueco (BT1; la propia, solo a los de su tipo). Los tiradores, la misma palabra (como antes) */
+    /* «Todos»: a cada cuerpo, la orden de su mismo hueco (BT1; la propia, solo a los de su tipo), también a los tiradores (HUECOS.tiradores) */
     const h = M.ordenesDe('todos').indexOf(n); let ok = false;
-    for (const c of cuerpos) { const nc = c.alOrden ? n : M.ordenesDe(c.id)[h]; if (nc && (h > 0 || nc === n)) ok = ordenA(c, nc) || ok; }
+    for (const c of cuerpos) { const nc = c.alOrden ? (h > 0 ? HUECOS.tiradores[BARRA[h]] : n) : M.ordenesDe(c.id)[h]; if (nc && (h > 0 || nc === n)) ok = ordenA(c, nc) || ok; }   /* los tiradores, la orden de su hueco (Retirada → retirarse) */
     return ok;
   }
   M.orden = n => {

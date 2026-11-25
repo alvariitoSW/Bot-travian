@@ -267,14 +267,12 @@ export function pintaSarisas(M, lista, o) {
         const cy = Math.cos(dy), sy = Math.sin(dy), x = V.D.x * cy + V.D.z * sy, z = -V.D.x * sy + V.D.z * cy, hz = Math.hypot(x, z) || 1, yy = V.D.y * Math.cos(dp) + hz * Math.sin(dp), hz2 = hz * Math.cos(dp) - V.D.y * Math.sin(dp);
         Da[0] = x / hz * hz2; Da[1] = yy; Da[2] = z / hz * hz2; const nd = Math.hypot(Da[0], Da[1], Da[2]); Da[0] /= nd; Da[1] /= nd; Da[2] /= nd;
         Pa[0] = W[0] - Da[0] * atras; Pa[1] = W[1] - Da[1] * atras; Pa[2] = W[2] - Da[2] * atras;
-        let n = 0; for (const c of vecinos) if (toca(Pa, Da, c) && ++n > peor) return false; return n === 0; };
-      let peor = 0;   /* con todos tocando, se queda el desvío que toca a menos */
+        for (const c of vecinos) if (toca(Pa, Da, c)) return false; return true; };
       let d0 = desvios.get(h) || DESVIOS[0], hecho = vecinos.length === 0 || libre(d0[0], d0[1]);
       if (!hecho && d0 !== DESVIOS[0]) { d0 = DESVIOS[0]; hecho = libre(0, 0); }
       if (!hecho) for (const d of DESVIOS) if (libre(d[0], d[1])) { d0 = d; hecho = true; break; }
       if (!hecho && kB > 0.05) { h.alzaBT1 = Tm + 1.5; coloca(0); W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras]; d0 = DESVIOS[0]; hecho = libre(0, 0); }   /* sin paso limpio: alzada */
       if (!hecho) { coloca(0, true); W = [V.P.x + V.D.x * atras, V.P.y + V.D.y * atras, V.P.z + V.D.z * atras]; d0 = DESVIOS[0]; hecho = true; h.alzaBT1 = Math.max(h.alzaBT1 || 0, Tm + 1.5); }   /* y si aún toca (un caído a sus pies): alzada con el regatón en alto */
-      if (!hecho) { let mejor = Infinity; peor = 99; for (const d of DESVIOS) { libre(d[0], d[1]); const n = vecinos.reduce((a, c) => a + (toca(Pa, Da, c) ? 1 : 0), 0); if (n < mejor) { mejor = n; d0 = d; } } peor = 0; }
       desvios.set(h, d0); if (forma) forma.desviadas = (forma.desviadas || 0) + (d0 !== DESVIOS[0] ? 1 : 0) + (hecho ? 0 : 1000); if (d0 !== DESVIOS[0]) { libre(d0[0], d0[1]); V.D.set(Da[0], Da[1], Da[2]); V.P.set(Pa[0], Pa[1], Pa[2]); }
     }
     if (!h.picaRota && FI && h.alzaBT1 === undefined) { const r = FI.pica(h, V.P, V.D, SARISA); if (r && r.ret) V.P.addScaledVector(V.D, -r.ret); }

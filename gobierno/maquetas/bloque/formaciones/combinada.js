@@ -20,7 +20,7 @@ export function escenarioAsculo(q) { const e = q.get('escenario') === 'asculo', 
 export function crear() {
   const ASC = escenarioAsculo(new URLSearchParams(location.search)), ROMA = !!(ASC && ASC.bando === 'roma');
   let ctx = null, M = null, tira = null, vista = null, aros = [], tAro = 0;
-  let MS = null;   /* BT1: las sarisas de los bloques de falange (Ásculo) */
+  let MS = null, rivC = null;   /* BT1: las sarisas de los bloques de falange (Ásculo) y la lista de rivales */
   const camaras = { v: { d: 95, alto: 70, ad: 30, fov: 56 }, h: { d: 52, alto: 34, ad: 22, fov: 44 } };
   /* BT1: los falangitas de Ásculo (bloques 'falange' de js/bloque.js, pintados a hueco por tropas.js) llevan la sarisa de formaciones/falange.js
      (pintaSarisas: mismo carril, mismo apartado). La bajan las cinco primeras filas al trabarse, al cargar o con el rival a menos de 30 m */
@@ -38,7 +38,9 @@ export function crear() {
       f.gk = h.r < 5 && h.vivo && !h.huye && h.alzaBT1 === undefined ? h.kB : 0; f.gg = 0;
       if (h.vivo && !h.huye && h.r < 5 && h.kB > 0.5 && !(f.v > 0.3) && f.clip !== 'morir' && f.clip !== 'guardia') { f.clip = 'guardia'; f.t = (h.i % 97) * 0.03; }
     }
-    const bandos = new Set([...baja.keys()].map(b => b.bando)), rivales = ctx.TR.figs.filter(f => f.vivo !== false && f.b && !bandos.has(f.b.bando));   /* el asta no pasa por dentro de un rival */
+    /* el asta no pasa por dentro de un rival: la lista se rehace cada 8 cuadros o si cambia el número de hombres (no cada cuadro) */
+    if (!rivC || ++rivC.n >= 8 || rivC.len !== ctx.TR.figs.length) { const bandos = new Set([...baja.keys()].map(b => b.bando)); rivC = { n: 0, len: ctx.TR.figs.length, l: ctx.TR.figs.filter(f => f.vivo !== false && f.b && !bandos.has(f.b.bando)) }; }
+    const rivales = rivC.l;
     pintaSarisas(MS, lista, { H: ctx.H, Tm: S.T, rivales, caidos: ctx.TR.caidos });
   }
   function monta(c) {

@@ -79,7 +79,7 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
       if (f.h) { c.f = f.h.col; c.r = f.h.fila; c.guardia = guardia(f.h, S); SF.fal.push(c); }
       else { c.guardia = null; SF.ene.push(c); }
     }
-    for (const f of TR.caidos) { if (!despiertos.has(f.b)) continue; const c = cuerpo(f); if (c.vivo) { c.vivo = false; c.yaw = f.yaw; } c.x = f.x; c.z = f.z; tiende(c, f);   /* BT1: el caído, donde se dibuja (tropas.js lo corre si cae sobre otro) */ alarga(c, dt); (f.h ? SF.fal : SF.ene).push(c); }
+    for (const f of TR.caidos) { if (!despiertos.has(f.b)) continue; const c = cuerpo(f); if (c.vivo) { c.vivo = false; c.x = f.x; c.z = f.z; c.yaw = f.yaw; } tiende(c, f); alarga(c, dt); (f.h ? SF.fal : SF.ene).push(c); }
   }
   /* la frontera: dos bloques rivales no se meten uno en otro, aunque las reglas metan un rectángulo en otro (o unos tiradores
      que huyen pasen por encima de tus filas). Para cada par de bloques rivales cuyos rectángulos (los de sus hombres, con MARGEN) se tocan: la

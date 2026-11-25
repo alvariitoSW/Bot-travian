@@ -151,6 +151,9 @@ export function gestoEspada(f, t, i, prestadas = false) {   /* prestadas: el cue
     if (!prestadas) { const mu = t.malla.geometry.attributes.aMuestra; mu.setX(i, clip === 'guardia' ? 2 : 4); mu.needsUpdate = true; }   /* andando, la espada envainada y sin lanza */
   }
   if (!CON_ESPADA[clip]) return;   /* en testudo, la 1.ª fila (el muro) va en guardia: también; los de debajo del techo, «cubrirse», no */
+  /* las filas de atrás (de la 3.ª en adelante) esperan con la espada envainada: a medio metro unos de otros, la hoja desnuda entraba en el vecino */
+  const fila = f.h ? (f.h.fila ?? f.h.r ?? 0) : f.b && f.b.vis && f.slot !== undefined ? Math.floor(f.slot / f.b.vis.cols) : 0;
+  if (clip === 'guardia' && fila >= 2) { if (!prestadas) { const mu = t.malla.geometry.attributes.aMuestra; mu.setX(i, 4); mu.needsUpdate = true; } return; }
   const k = kitGestos(t); if (!k) return;
   const tb = k.tab, cu = t.malla.geometry.attributes.aCuadro, fps = (t.s.j.clips.quieto || {}).fps || 30;
   let a, b, x;

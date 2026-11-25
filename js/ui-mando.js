@@ -445,6 +445,7 @@
     }
 
     /* ---------- barras sobre cada manípulo: hombres, moral, cansancio ---------- */
+    let sepCam = '', sepT = -1e9;   /* BT1: la última separación de estandartes (cámara y hora) */
     function pintarBarras() {
       const al = Math.max(0, Math.min(1, acum / PASO)), y = altoN * TALLA * 1.9;
       for (const u of S.man) {
@@ -460,7 +461,9 @@
         pon(mo, u.moral); pon(fa, 1 - u.fatiga);
       }
       /* BT1: las etiquetas no se pisan ni asoman encima de la ficha, la barra de órdenes, la de arriba o los avisos */
-      if (mods.RO) mods.RO.separaEstandartes($('capa'), { zonas: [$('abajo'), $('arriba'), $('formas')], fijos: [$('aviso'), $('cinta')], pila: 2, peso: (e, r) => (e.classList.contains('sel') ? 100 : 0) + (e.classList.contains('ene') ? 0 : 10) + r.bottom / alto });   /* como mucho dos en torre: sobran las del rival más lejanas */
+      const camK = Math.round(camara.position.x * 10) + ',' + Math.round(camara.position.y * 10) + ',' + Math.round(camara.position.z * 10) + ',' + ancho + 'x' + alto, ahoraE = performance.now();   /* BT1: cada ~100 ms o si la cámara cambia (no cada cuadro) */
+      if (mods.RO && (camK !== sepCam || ahoraE - sepT > 100)) sepCam = camK, sepT = ahoraE;
+      if (mods.RO && sepT === ahoraE) mods.RO.separaEstandartes($('capa'), { zonas: [$('abajo'), $('arriba'), $('formas')], fijos: [$('aviso'), $('cinta')], pila: 2, peso: (e, r) => (e.classList.contains('sel') ? 100 : 0) + (e.classList.contains('ene') ? 0 : 10) + r.bottom / alto });   /* como mucho dos en torre: sobran las del rival más lejanas */
     }
 
     /* ---------- ficha y botones de la selección ----------

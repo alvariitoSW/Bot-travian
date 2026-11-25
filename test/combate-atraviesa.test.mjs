@@ -24,7 +24,7 @@ const LP7_MAN = { semilla: 11, nivel: 'normal', fuerzas: { tuyo: 120, centro: 12
 const LP7_FAL = { semilla: 11, lejos: 30, unidad: 'hastati', color: '#b8462e', rival: { Los: 'Hastati' }, objetivo: 'Rompe su línea: se lucha hasta el 15 %' };
 /* [nombre, parámetros, fase de marcha] (la lucha es siempre ?fase=lucha, saltando desde la marcha) */
 const ESCENAS = [
-  ['manipulo', '', 'carga'],
+  ['manipulo', 'formacion=manipulo', 'carga'],   /* sin ?formacion= la escena abre ahora la prueba unida (testudo y manípulo) */
   ['testudo', 'formacion=testudo', 'testudo'],
   ['falange-manipulos', 'formacion=falange&rival=manipulos', 'picas'],
   ['falange-caballeria', 'formacion=falange&rival=caballeria', 'picas'],
