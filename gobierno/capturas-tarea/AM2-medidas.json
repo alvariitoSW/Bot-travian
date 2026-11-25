@@ -7,112 +7,112 @@
    "tri": 134697,
    "llamadas": 106,
    "ancho": 43.68,
-   "arranqueMs": 373
+   "arranqueMs": 335
   },
   {
    "archivo": "AM2-a-comarca-v.jpg",
-   "tri": 154012,
-   "llamadas": 84,
+   "tri": 132830,
+   "llamadas": 50,
    "ancho": 3.2,
-   "arranqueMs": 373
+   "arranqueMs": 335
   },
   {
    "archivo": "AM2-a-polis-v.jpg",
    "tri": 131874,
    "llamadas": 30,
    "ancho": 0.2,
-   "arranqueMs": 373
+   "arranqueMs": 335
   },
   {
    "archivo": "AM2-a-recursos-v.jpg",
    "tri": 137385,
    "llamadas": 110,
    "ancho": 21,
-   "arranqueMs": 373
+   "arranqueMs": 335
   },
   {
    "archivo": "AM2-a-puerto-v.jpg",
    "tri": 126290,
    "llamadas": 13,
    "ancho": 0.25,
-   "arranqueMs": 373
+   "arranqueMs": 335
   },
   {
    "archivo": "AM2-b-lejos-v.jpg",
    "tri": 120208,
    "llamadas": 56,
    "ancho": 43.68,
-   "arranqueMs": 332
+   "arranqueMs": 360
   },
   {
    "archivo": "AM2-b-comarca-v.jpg",
    "tri": 127046,
    "llamadas": 25,
    "ancho": 3.2,
-   "arranqueMs": 332
+   "arranqueMs": 360
   },
   {
    "archivo": "AM2-b-polis-v.jpg",
    "tri": 121274,
    "llamadas": 14,
    "ancho": 0.2,
-   "arranqueMs": 332
+   "arranqueMs": 360
   },
   {
    "archivo": "AM2-b-recursos-v.jpg",
    "tri": 122896,
    "llamadas": 60,
    "ancho": 21,
-   "arranqueMs": 332
+   "arranqueMs": 360
   },
   {
    "archivo": "AM2-b-puerto-v.jpg",
    "tri": 121262,
    "llamadas": 8,
    "ancho": 0.25,
-   "arranqueMs": 332
+   "arranqueMs": 360
   },
   {
    "archivo": "AM2-a-lejos-h.jpg",
    "tri": 132448,
    "llamadas": 116,
    "ancho": 36.47,
-   "arranqueMs": 411
+   "arranqueMs": 335
   },
   {
    "archivo": "AM2-a-comarca-h.jpg",
-   "tri": 144684,
-   "llamadas": 69,
+   "tri": 127091,
+   "llamadas": 46,
    "ancho": 3.2,
-   "arranqueMs": 411
+   "arranqueMs": 335
   },
   {
    "archivo": "AM2-a-polis-h.jpg",
    "tri": 128507,
    "llamadas": 30,
    "ancho": 0.2,
-   "arranqueMs": 411
+   "arranqueMs": 335
   },
   {
    "archivo": "AM2-b-lejos-h.jpg",
    "tri": 116222,
    "llamadas": 63,
    "ancho": 36.47,
-   "arranqueMs": 413
+   "arranqueMs": 309
   },
   {
    "archivo": "AM2-b-comarca-h.jpg",
    "tri": 123046,
    "llamadas": 25,
    "ancho": 3.2,
-   "arranqueMs": 413
+   "arranqueMs": 309
   },
   {
    "archivo": "AM2-b-polis-h.jpg",
    "tri": 117274,
    "llamadas": 14,
    "ancho": 0.2,
-   "arranqueMs": 413
+   "arranqueMs": 309
   }
  ],
  "fluidez": [
@@ -120,21 +120,21 @@
    "estilo": "a",
    "altura": "lejos",
    "dpr": 1,
-   "fps": 2.5,
-   "peorMs": 450,
+   "fps": 2.6,
+   "peorMs": 433,
    "triangulos": 134697,
    "llamadas": 106,
-   "msPorCuadro": 34.6
+   "msPorCuadro": 29.2
   },
   {
    "estilo": "a",
    "altura": "comarca",
    "dpr": 1,
-   "fps": 2.6,
-   "peorMs": 417,
-   "triangulos": 154012,
-   "llamadas": 84,
-   "msPorCuadro": 24.6
+   "fps": 3,
+   "peorMs": 383,
+   "triangulos": 132830,
+   "llamadas": 50,
+   "msPorCuadro": 18.4
   },
   {
    "estilo": "a",
@@ -144,33 +144,33 @@
    "peorMs": 417,
    "triangulos": 131874,
    "llamadas": 30,
-   "msPorCuadro": 17
+   "msPorCuadro": 13.9
   },
   {
    "estilo": "b",
    "altura": "lejos",
    "dpr": 1,
    "fps": 2.9,
-   "peorMs": 383,
+   "peorMs": 367,
    "triangulos": 120208,
    "llamadas": 56,
-   "msPorCuadro": 22.8
+   "msPorCuadro": 21.6
   },
   {
    "estilo": "b",
    "altura": "comarca",
    "dpr": 1,
-   "fps": 3.7,
-   "peorMs": 333,
+   "fps": 3.9,
+   "peorMs": 300,
    "triangulos": 127046,
    "llamadas": 25,
-   "msPorCuadro": 14.3
+   "msPorCuadro": 14.6
   },
   {
    "estilo": "b",
    "altura": "polis",
    "dpr": 1,
-   "fps": 3.5,
+   "fps": 3.6,
    "peorMs": 317,
    "triangulos": 121274,
    "llamadas": 14,
@@ -181,60 +181,60 @@
    "altura": "lejos",
    "dpr": 2,
    "fps": 1.1,
-   "peorMs": 983,
+   "peorMs": 1000,
    "triangulos": 134697,
    "llamadas": 106,
-   "msPorCuadro": 57.1
+   "msPorCuadro": 56.7
   },
   {
    "estilo": "a",
    "altura": "comarca",
    "dpr": 2,
-   "fps": 1,
-   "peorMs": 1017,
-   "triangulos": 154012,
-   "llamadas": 84,
-   "msPorCuadro": 41.3
+   "fps": 1.2,
+   "peorMs": 883,
+   "triangulos": 132830,
+   "llamadas": 50,
+   "msPorCuadro": 38.4
   },
   {
    "estilo": "a",
    "altura": "polis",
    "dpr": 2,
-   "fps": 0.9,
-   "peorMs": 1117,
+   "fps": 1,
+   "peorMs": 1017,
    "triangulos": 131874,
    "llamadas": 30,
-   "msPorCuadro": 30.3
+   "msPorCuadro": 27.8
   },
   {
    "estilo": "b",
    "altura": "lejos",
    "dpr": 2,
-   "fps": 1.1,
-   "peorMs": 950,
+   "fps": 1.2,
+   "peorMs": 867,
    "triangulos": 120208,
    "llamadas": 56,
-   "msPorCuadro": 41.9
+   "msPorCuadro": 43
   },
   {
    "estilo": "b",
    "altura": "comarca",
    "dpr": 2,
-   "fps": 1.3,
-   "peorMs": 767,
+   "fps": 1.4,
+   "peorMs": 733,
    "triangulos": 127046,
    "llamadas": 25,
-   "msPorCuadro": 27.9
+   "msPorCuadro": 30.3
   },
   {
    "estilo": "b",
    "altura": "polis",
    "dpr": 2,
-   "fps": 1,
-   "peorMs": 1083,
+   "fps": 1.2,
+   "peorMs": 900,
    "triangulos": 121274,
    "llamadas": 14,
-   "msPorCuadro": 20.5
+   "msPorCuadro": 21.3
   }
  ],
  "gestos": {
@@ -244,7 +244,7 @@
   },
   "arrastre": {
    "bien": true,
-   "dato": "V.x bajó 6.9419, esperado 6.4615 (±20 %)"
+   "dato": "V.x bajó 6.9797, esperado 6.4615 (±20 %)"
   },
   "dobleToque": {
    "bien": true,
@@ -274,12 +274,12 @@
     "dato": "6 de 8 (≥ 6)"
    },
    "zonasv": {
-    "bien": false,
-    "dato": "7 visibles (≥ 8)"
+    "bien": true,
+    "dato": "10 visibles (≥ 8)"
    },
    "solapes": {
-    "bien": false,
-    "dato": "corazon: «Ática» bajo botón mas; corazon+rec: «Ática» bajo botón mas"
+    "bien": true,
+    "dato": "ninguno"
    },
    "estilo": {
     "bien": true,
@@ -296,7 +296,7 @@
     "dato": "8 existen"
    },
    "zonash": {
-    "dato": 2
+    "dato": 6
    },
    "solapes": {
     "bien": true,
@@ -305,7 +305,7 @@
   }
  },
  "aviso": "render por software (sin GPU): vale para comparar alturas, no como cifra del móvil",
- "arranqueMs": 373,
+ "arranqueMs": 335,
  "errores": [],
- "fallos": 2
+ "fallos": 0
 }
