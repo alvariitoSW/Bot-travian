@@ -1,6 +1,6 @@
 {
   "_ayuda": "Camino a la 1.0 (CM5, pedido del usuario del 24/11). Lo pinta el cuadro de mando arriba del todo, en «Juego». Lo pone al día el vigía en cada subida: cambia «actualizado» (hora ISO en UTC), el «estado» de cada paso (hecho, prueba = en prueba, esperando) y, si cambia el plan, las horas y los %. Las horas van en UTC (terminan en Z); el cuadro las enseña en hora de España. «hasta» es opcional (una franja: de «hora» a «hasta»); sin «hora», «cuando» dice el texto que sale. «pct» es el % del cuadro al acabar ese paso. El % actual no se escribe aquí: sale de lista.json, (hechas + ½ a medias) / total, el mismo del menú del juego.",
-  "actualizado": "2026-11-25T00:23:00Z",
+  "actualizado": "2026-11-25T10:12:00Z",
   "pasos": [
     {
       "que": "Ciudad CDe4: subida a tu móvil (v165)",
@@ -15,27 +15,27 @@
       "estado": "hecho"
     },
     {
-      "que": "CG4b: la batalla nueva en la campaña (en obra)",
-      "hora": "2026-11-25T02:30:00Z",
+      "que": "CG4b: la batalla nueva en la campaña (v169) y CG4c: campaña al delegar calibrada",
+      "hora": "2026-11-25T04:40:00Z",
       "pct": 88,
-      "estado": "prueba"
+      "estado": "hecho"
     },
     {
-      "que": "FU6 limpieza del motor y UN3 escaramuza combinada",
-      "hora": "2026-11-25T03:30:00Z",
+      "que": "UN3 escaramuza combinada «Ásculo» (v170) y FU6 limpieza de escenas viejas (v171)",
+      "hora": "2026-11-25T05:50:00Z",
       "pct": 95,
-      "estado": "esperando"
+      "estado": "hecho"
     },
     {
-      "que": "Subida final con los jueces completos; resumen por la mañana",
-      "hora": "2026-11-25T05:00:00Z",
+      "que": "Subida final SB7: jueces completos 42/43 (solo un plazo de tiempo, subido a 30 min por el usuario); se repite ese juez sobre 594f868 y se sube a tu móvil",
+      "hora": "2026-11-25T10:30:00Z",
+      "hasta": "2026-11-25T11:00:00Z",
       "pct": 100,
-      "estado": "esperando"
+      "estado": "prueba"
     }
   ],
   "riesgos": [
-    "Roma cae ante Aníbal en 6 de 10 partidas largas (CE12)",
-    "Escaramuza combinada (ES2–ES4) va aparte: entra si llega a tiempo",
+    "Aníbal contra una Roma que no recluta: decidido A (dejarlo así; hay que prepararse)",
     "El límite semanal de uso"
   ]
 }
