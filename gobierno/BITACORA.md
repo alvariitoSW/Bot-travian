@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~16:45 (vigía 4): «1A 2 a»: (1) se aplica el cuadro nuevo simplificado de CM6 (4 pestañas, un botón por acción); (2) las partidas de polis empiezan en el 800 a.C. (lo aplica PN3).
 - 25/11 (chat de SUP1, botones): tiempo «Tiempo seguido»; duración «3 años, ~1 h 45 (Recomendado)» (antes: «Esto habría UE evitar que los jueces jugases 3,h y tardaswn tanto en pasar las pruebas por qué las partidas son largas»); fecha «700–650 a.C. (Recomendado)»; lugar «Frontera Argos–Esparta»; pelea «Las dos a la vez (Recomendado)»; peso «Subir el tope a 60 MB (Recomendado)»; reparto SUP2–SUP5 «Sí, aprobado (Recomendado)». Área `supervivencia` dada de alta. Abrir SUP2: pendiente de cuándo (el usuario dijo: primero la jugabilidad de las batallas, EB1).
 - 25/11 ~16:30 (vigía 4): «Abre otra sesión que quiero hablar sobre el estado de las batallas en el juego. […] Quiero saber cómo está actualmente en el móvil. Todos los tipos de juego de escaramuza […] falange, testudo, el manípulo […] qué mejoras podemos hacer para el tema de testudo y unificarlo todo bien. Y luego ya hacemos la parte de esta del juego de supervivencia […] creo que ha habido mejoras en un lado a la vez que se empeoraba por otro […] si ya está todo unificado, todas las batallas son iguales, los movimientos, las tropas, todo. Quiero un resumen exacto del estado actual.» Abierta EB1 (conversación, no construye): `session_01QiKC38ppBoFUVBbxUVzf9u`, rama `estado-batallas`.
 - 25/11 ~16:25 (vigía 4): amplía CM6: «el cuadro de mando debe ir cambiando según va avanzando el proyecto, porque se supone que terminamos ayer la 1.0 y estamos ahora por la 2.0 y todavía sigue como si no hubiéramos terminado la 1.0 […] hay como demasiada información en el cuadro de mando que no significa nada ni nos lleva a ningún lado […] las cosas con las que podemos trabajar y con las que son necesarias están como muy dispersas. También hay cosas muy repetidas […] juntar un poco más los botones y converger un poco más en la funcionalidad del cuadro de mando». CM6: porcentajes de una fuente, fase dinámica (2.0/M1), inventario y maqueta del cuadro simplificado con capturas para su «sí».
@@ -593,7 +594,6 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
-- **Año de inicio de las polis**: hoy una partida de Atenas dice 280 a.C. (A) Poner 800 a.C. en las partidas de polis, con PN3 [recomendado]; (B) dejar 280 a.C. por ahora. Por qué: el plan de la 2.0 sitúa la Partida nueva en el 800 a.C.
 
 
 ## Propuestas por aprobar
