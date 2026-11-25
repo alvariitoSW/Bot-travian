@@ -283,5 +283,15 @@
   "huella": "5595621cf30c434d",
   "ok": true,
   "fecha": "2026-11-25T11:23:50.797Z"
+ },
+ "navegador-musculo": {
+  "huella": "5a7641918e6ffa88",
+  "ok": true,
+  "fecha": "2026-11-25T12:03:48.344Z"
+ },
+ "area:gobierno/jueces.mjs --area musculo": {
+  "huella": "5a7641918e6ffa88",
+  "ok": true,
+  "fecha": "2026-11-25T12:03:48.367Z"
  }
 }
