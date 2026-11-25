@@ -776,10 +776,12 @@ export function fundarAuto(E, semilla) {
   if (!cand.length) return null; const mejor = Math.max(...cand.map(c => c.nota)), r = azar((semilla || 0) * 104729 + 7);
   /* mejores notas primero, con un empujón de azar de la semilla (hasta 1.2 puntos) para que dos ciudades no caigan juntas (sin semilla, el orden de la rejilla) */
   /* PN3: E.sitioLibre (ciudad de polis) abre el abanico: entra lo que esté a 3 puntos de la mejor y el azar pesa hasta 4, para que el ágora cambie de sitio entre partidas */
-  const anch = E.sitioLibre ? 3 : 1, emp = E.sitioLibre ? 4 : 1.2;
-  const top = cand.filter(c => c.nota >= mejor - anch).map(c => Object.assign(c, { u: semilla === undefined ? 0 : r() })).sort((a, b) => (b.nota + b.u * emp) - (a.nota + a.u * emp));
+  let top = cand.filter(c => c.nota >= mejor - 1).map(c => Object.assign(c, { u: semilla === undefined ? 0 : r() })).sort((a, b) => (b.nota + b.u * 1.2) - (a.nota + a.u * 1.2));
+  /* PN3: E.sitioLibre (ciudad de polis): sitios separados al menos 150 entre sí (los mejores de cada zona); la semilla elige por cuál se empieza */
+  if (E.sitioLibre) { const reps = []; for (const c of cand.slice().sort((a, b) => a.z - b.z || b.nota - a.nota)) if (c.nota >= mejor - 4 && reps.every(q => Math.hypot(q.x - c.x, q.z - c.z) >= 150)) reps.push(c);
+    const k = Math.floor(azar((semilla || 0) * 7841 + 3)() * reps.length); top = reps.slice(k).concat(reps.slice(0, k), top.filter(c => !reps.includes(c))); }
   /* ensayo en una ciudad desechable: vale si sale la calle del foro al camino y las 20 chozas (si no, se prueba el siguiente) */
-  let n = 0; for (const c of top) { if (n++ >= 10) break; const P = crear(E.semilla); topeRuta = 1200; let ok; try { ok = fundar(P, c.x, c.z) && P.vias.length >= 2 && poblacion(P) >= 250; } finally { topeRuta = Infinity; } if (ok && fundar(E, c.x, c.z)) return [c.x, c.z]; }
+  let n = 0; for (const c of top) { if (n++ >= 10) break; const P = crear(E.semilla); topeRuta = 1200; let ok; try { ok = fundar(P, c.x, c.z) && P.vias.length >= 2 && poblacion(P) >= (E.sitioLibre ? 150 : 250); /* PN3: la aldea de polis cabe en menos sitio */ } finally { topeRuta = Infinity; } if (ok && fundar(E, c.x, c.z)) return [c.x, c.z]; }
   for (const c of top) if (fundar(E, c.x, c.z)) return [c.x, c.z]; return null;
 }
 

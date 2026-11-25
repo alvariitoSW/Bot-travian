@@ -843,7 +843,7 @@ export class CityView3D {
     selActual = sel || null;
     dibujar();
     this.etiquetasBarrio(H);
-    const el = this.armyEl, txt = '⚔️ Campo de Marte · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }
+    const el = this.armyEl, txt = '⚔️ ' + ((window.DATA && DATA.LEVA_FICHAS && DATA.LEVA_FICHAS.campo_marte && DATA.LEVA_FICHAS.campo_marte.n) || 'Campo de Marte') + ' · ' + this.men;   // PN3: en partida de polis, «Campo de armas» if (el._t !== txt) { el._t = txt; el.textContent = txt; }
     if (this.guarn && this.men && cam.d < 700) { const p = aPantalla(this.guarn.x, this.guarn.z, 14), r = host.getBoundingClientRect(), y = p.y - r.top; if (p.ok && y > 104 && y < H - 150) { el.style.display = ''; el.style.transform = 'translate(' + (p.x - r.left).toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-100%)'; } else el.style.display = 'none'; } else el.style.display = 'none';
   }
   /* CN6: una etiqueta pequeña por barrio («Foro · II»), solo con la cámara lejos y lejos de la línea de arriba y de la bandeja de abajo */
@@ -921,6 +921,9 @@ export class CityView3D {
     sincronizar(true); this.callesBorra(); Calles3d.pintar({ hecha: pts }); clearTimeout(c.tHecha); c.tHecha = setTimeout(() => { if (this._calles === c) Calles3d.pintar({}); }, this.opts.msDestello || 3000); }
   /* CV1: vista de plano. Cámara casi a plomo que encuadra la urbe entera y sin bruma. Solo vista; no toca reglas ni datos. */
   get enPlano() { return !!this._plano; }
+  /* PN3: la aldea de la polis (E.sinUrbe, sin urbe): su centro y su radio (ágora, casas y edificios menos los campos), para encuadrarla de cerca */
+  aldea() { if (!E || !E.sinUrbe || !E.foro) return null; const pts = [[E.foro.x, E.foro.z]]; for (const l of E.parcelas || []) if (l.casa && !l.casa.ruina && !l.fuera) pts.push([l.x, l.z]); for (const e of E.edificios || []) if (e.tipo !== 'granja') pts.push([e.x, e.z]);
+    let cx = 0, cz = 0; for (const q of pts) { cx += q[0]; cz += q[1]; } cx /= pts.length; cz /= pts.length; let r = 30; for (const q of pts) r = Math.max(r, Math.hypot(q[0] - cx, q[1] - cz) + 12); return { cx, cz, r }; }
   plano(on, hacia, ya) {
     on = !!on; if (on === !!this._plano && !ya) return; if (on === !!this._plano && ya && !this.planoA) return;
     const now = performance.now(), de = { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az, el: cam.el, nk: nieblaK };
@@ -931,10 +934,11 @@ export class CityView3D {
       const u = E && E.urbe, f = E && E.foro; let R = (u && u.RU ? Math.max(...u.RU) + 7 : 300), cx = f ? f.x : 0, cz = f ? f.z : -20;
       /* CV4a: se encuadra el contorno de la urbe (su centro y su radio de verdad), no un círculo alrededor del foro: junto al río la urbe queda descentrada y se veía pequeña */
       if (u && u.borde && u.borde.length) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const q of u.borde) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[1]); z1 = Math.max(z1, q[1]); } cx = (x0 + x1) / 2; cz = (z0 + z1) / 2; R = 7; for (const q of u.borde) R = Math.max(R, Math.hypot(q[0] - cx, q[1] - cz) + 7); }
+      const ald = !u && this.aldea(); if (ald) { cx = ald.cx; cz = ald.cz; R = ald.r * 3; }      // PN3: la aldea ocupa un tercio del ancho
       const asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
       const tv = Math.tan(fov * Math.PI / 360), th = Math.min(tv, tv * asp);
       const dEnc = Math.min(4000, R * PLANO_MARGEN / th);
-      a = { tx: cx, tz: cz, d: dEnc, az: planoBaseOn ? 0 : cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = planoBaseOn ? dEnc * 1.12 : 4000; if (planoBaseOn) { cam.dMin = PLANO_DMIN; cam.pan = { x: cx, z: cz, r: R * PLANO_PAN }; } this._plano = true;
+      a = { tx: cx, tz: cz, d: dEnc, az: planoBaseOn ? 0 : cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = planoBaseOn ? (ald ? Math.max(dEnc * 1.12, 1600) : dEnc * 1.12) : 4000; if (planoBaseOn) { cam.dMin = PLANO_DMIN; cam.pan = { x: cx, z: cz, r: ald ? Math.max(R * PLANO_PAN, 450) : R * PLANO_PAN }; } this._plano = true;
     } else {
       const P = hacia || this._prev || { tx: cam.tx, tz: cam.tz, d: Math.min(cam.d, 640), az: cam.az, elF: 0 }, efi = P.elF || 0;
       a = { tx: P.tx, tz: P.tz, d: P.d, az: P.az === undefined ? cam.az : P.az, el: efi || kEl(P.d), nk: 1, fin: true, elF: efi }; this._plano = false; this._prev = null;
@@ -960,6 +964,7 @@ export class CityView3D {
         let k = 0, dm = 1e9; p.forEach((q, i) => { const dd = Math.hypot(q[0] - sx, q[1] - sz); if (dd < dm) { dm = dd; k = i; } }); const i0 = Math.max(0, k - 2), i1 = Math.min(p.length - 1, k + 2), a = p[i0], b = p[k]; cam.tx = b[0]; cam.tz = b[1]; cam.az = Math.atan2(-(p[i1][0] - a[0]), -(p[i1][1] - a[1])); } else { cam.tx = f ? f.x : 0; cam.tz = f ? f.z + 20 : 0; cam.az = 0.25; }
       cam.d = 70; cam.elF = 0.3; }
     else if (name === 'ejercito') { const g = this.guarn || (f ? { x: f.x, z: f.z + 46 } : { x: 0, z: 0 }); cam.tx = g.x; cam.tz = g.z; cam.d = 90; cam.az = 0.35; cam.elF = 0.3; }
+    else if (this.aldea()) { const A = this.aldea(); cam.tx = A.cx; cam.tz = A.cz; cam.az = 0; cam.d = Math.max(150, A.r * (vert ? 5 : 3.6)); }      // PN3: la aldea de cerca, en el centro
     else { let cx = f ? f.x : 0, cz = f ? f.z - 10 : -20, r = 120; if (E && E.surco && E.surco.length) { cx = cz = 0; for (const p of E.surco) { cx += p[0]; cz += p[1]; } cx /= E.surco.length; cz /= E.surco.length; r = 0; for (const p of E.surco) r = Math.max(r, Math.hypot(p[0] - cx, p[1] - cz)); r = Math.max(r, 120); } cam.tx = cx; cam.tz = cz; cam.az = 0; cam.d = Math.max(260, r * (vert ? 3.6 : 2.8)); }
     ponerCamara();
   }

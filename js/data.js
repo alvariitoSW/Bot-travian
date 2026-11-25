@@ -457,7 +457,8 @@
     Object.defineProperty(D.FACTIONS.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
     Object.defineProperty(D.FACTIONS.roma, 'col', { enumerable: true, configurable: true, get() { return pn('#b3261e', 'color'); } });
     /* PN3: en partida de polis el foro se llama «Ágora» (mismo edificio, mismas reglas) */
-    Object.defineProperty(D.BUILD.foro, 'n', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? 'Ágora' : 'Foro'; } }); }
+    Object.defineProperty(D.BUILD.foro, 'n', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? 'Ágora' : 'Foro'; } });
+    Object.defineProperty(D.LEVA_FICHAS.campo_marte, 'n', { enumerable: true, configurable: true, get() { return D.polis && D.POLIS[D.polis] ? 'Campo de armas' : 'Campo de Marte'; } }); }
 
   // [a, b, marítima]
   D.EDGES = [

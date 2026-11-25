@@ -146,14 +146,15 @@ function franjas(E) {
   for (const a of E.arboles) (esc[a.pieza] = esc[a.pieza] || []).push(a.esc); for (const k in esc) { esc[k].sort((x, y) => x - y); esc[k] = esc[k][esc[k].length >> 1]; }
   const granjas = E.edificios.filter(e => e.tipo === 'granja');
   /* CV4a: con la urbe grande a la vista la vega llega más lejos y ningún cuadro se mete dentro de la urbe */
-  const urbe = !!(E.urbe && C.CI.enUrbe), LEJOS = urbe ? 540 : 400;
+  const urbe = !!(E.urbe && C.CI.enUrbe), aldea = !!E.sinUrbe && !!C.CI.poblacion, LEJOS = urbe ? 540 : aldea ? Math.min(400, 190 + C.CI.poblacion(E) * 0.3) : 400;
+  /* PN3: la aldea de la polis (E.sinUrbe) labra poco: la vega crece con la gente (120 personas, hasta unos 226 m: un anillo justo fuera del surco; 700, la vega entera) y se deja más tierra sin labrar; el trazado sale de la semilla de la comarca (E.semilla) */
   for (let j = -13; j <= 13; j++) for (let i = -13; i <= 13; i++) {
     const cx = (i + 0.5) * LADO, cz = (j + 0.5) * LADO, p = mu(cx, cz), d = Math.hypot(p[0] - f.x, p[1] - f.z); if (d > LEJOS || d < 60) continue;
     const hacia = (x, z, m) => { const dx = x - f.x, dz = z - f.z, dd = Math.hypot(dx, dz) || 1; return [x - dx / dd * m, z - dz / dd * m]; };
     let ok = true; const pts = []; for (let b = 0; b <= 2 && ok; b++) for (let a = 0; a <= 2; a++) { const q = mu(cx + (a - 1) * LADO * 0.5, cz + (b - 1) * LADO * 0.5); pts.push(q); const h = hacia(q[0], q[1], 24), h2 = hacia(q[0], q[1], 12);
       if (!libre(q[0], q[1]) || !tierra(q[0], q[1]) || (E.fundada && C.CI.cercado(E, h[0], h[1])) || (urbe && C.CI.enUrbe(E, h2[0], h2[1]))) { ok = false; break; } }
     if (!ok) continue; const ys = pts.map(q => C.altura(q[0], q[1])); if (Math.max(...ys) - Math.min(...ys) > DESNIVEL_MAX) continue;
-    if (granjas.some(g => Math.hypot(g.x - p[0], g.z - p[1]) < 46)) continue; if (hash(i, j, E.semilla) < 0.18) continue;
+    if (granjas.some(g => Math.hypot(g.x - p[0], g.z - p[1]) < 46)) continue; if (hash(i, j, E.semilla) < (aldea ? 0.4 : 0.18)) continue;
     const su = suelo(p[0], p[1]), pl = colaP[su] && colaP[su].shift(), ch = pl ? { campo: pl.campo, nota: Agro.encaje(pl.campo, su, pl.mejoras).nota, fijas: pl.mejoras || [] } : elegir(su, i, j, 23, false), o = mu(cx - LADO / 2 + MARGEN, cz - LADO / 2 + MARGEN), L = LADO - 2 * MARGEN, U = [c * L, s * L], V = [-s * L, c * L];
     pars.push(nuevoPar(ch, su, o, U, V, i * 31 + j)); if (pl) pars[pars.length - 1].plantado = true; cuadros.push({ x: p[0], z: p[1], c, s });
     /* seto de cipreses u olivos en una linde del cuadro de trigo */
@@ -298,7 +299,7 @@ const estDeMes = m => (m === 11 || m <= 1 ? 3 : m < 5 ? 0 : m < 8 ? 1 : 2);
 /* rehace la malla si cambió algo que la mueve; devuelve true si cambió (para repintar árboles) */
 export function poner(E, k, fe) {
   if (!CAMPOS || !mA) return false;
-  const fi = E && E.fundada ? E.semilla + '|' + E.edificios.filter(e => e.tipo === 'granja').map(e => Math.round(e.x) + ',' + (e.obra ? 1 : 0) + (e.ruina ? 1 : 0)).join(';') + '|' + E.vias.length + '|' + E.parcelas.length + '|' + E.edificios.length + '|' + E.muralla.fase + '|' + claveDatos() : '';
+  const fi = E && E.fundada ? E.semilla + '|' + E.edificios.filter(e => e.tipo === 'granja').map(e => Math.round(e.x) + ',' + (e.obra ? 1 : 0) + (e.ruina ? 1 : 0)).join(';') + '|' + E.vias.length + '|' + E.parcelas.length + '|' + E.edificios.length + '|' + E.muralla.fase + '|' + claveDatos() + (E.sinUrbe && C.CI && C.CI.poblacion ? '|' + Math.round(C.CI.poblacion(E) / 40) : '') : '';   /* PN3: la aldea rehace la vega cuando crece */
   if (fi === firma) { estacion(k, fe); return false; } firma = fi;
   if (!fi) { mA.visible = mB.visible = mP.visible = mO.visible = false; cuadros = []; extra = []; pars = []; tapaSet = new Set(); return true; }
   franjas(E); for (const p of pars) p.mej = mejorasDe(p); suelos(E); estQ = -1; claveP = ''; estacion(k, fe); return true;

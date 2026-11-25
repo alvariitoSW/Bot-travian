@@ -843,7 +843,7 @@
     if (!CI.fundarAuto(E, k.semilla)) return null;
     if (E.barrios[0]) { E.barrios[0].nombre = 'Barrio del Ágora'; E.barrios[0].corto = 'Ágora'; }
     const pon = pz => { const s = mejorSitioG(E, pz); if (!s) return null; const r = CI.colocar(E, pz, s[0], s[1], true); if (!r.ok) return null; r.e.obra = 0; return r.e; };
-    for (let i = 0; i < (c.b.granja || 1); i++) pon('granja'); pon('granero');
+    pon('fuente'); for (let i = 0; i < (c.b.granja || 1); i++) pon('granja'); pon('granero');   // la fuente: el pozo de la aldea (agua para las casas)
     aplicarMur0(E, 0); c.heredado = {}; c.foroMin = 1; regE.set(c, { E, id, rev: -1 }); sinc(c, regE.get(c)); ponerDatos(c, regE.get(c));
     return E;
   }

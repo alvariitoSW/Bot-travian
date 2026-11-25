@@ -24,7 +24,7 @@
   DIP.pacifica = (s, f) => !!DIP.estado(s, f);   // aliado o tributario: no lanza incursiones
   /* motivo por el que NO se puede (o null si se puede) */
   DIP.motivoAlianza = (s, f, G) => {
-    DIP.migrar(s); const e = DIP.ELEGIBLES[f], anio = G.yearOf(s.t);
+    DIP.migrar(s); const e = DIP.ELEGIBLES[f], anio = G.anioReglas ? G.anioReglas(s.t) : G.yearOf(s.t);   // PN3: el reloj de las reglas (la partida de polis ve 800 a.C.)
     if (!e) return 'Esta facción no pacta foedus con Roma.';
     if (DIP.estado(s, f) === 'alianza') return 'Ya es aliada.';
     if (DIP.estado(s, f) === 'tributo') return 'Paga tributo: no es aliada.';

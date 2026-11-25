@@ -40,15 +40,16 @@ for (const id of IDS) t('arranque de ' + id + ': ágora, 5-8 casas, 100-200 pers
   assert.ok(E && E.foro, 'ágora fundada'); assert.strictEqual(D.BUILD.foro.n, 'Ágora'); assert.strictEqual(E.barrios[0].corto, 'Ágora');
   assert.ok(cs.length >= 5 && cs.length <= 8, cs.length + ' casas'); assert.ok(c.pop >= 100 && c.pop <= 200 && c.pop === CI.poblacion(E), 'personas ' + c.pop);
   assert.ok(!E.urbe, 'sin urbe de relleno'); assert.strictEqual(E.cultura, 'grie'); assert.strictEqual(E.terreno, s.comarca.terreno);
-  const tipos = E.edificios.map(e => e.tipo).sort(); assert.ok(tipos.every(x => x === 'granja' || x === 'granero') && tipos.includes('granja') && tipos.includes('granero'), tipos.join());
+  const tipos = E.edificios.map(e => e.tipo).sort(); assert.ok(tipos.every(x => ['granja', 'granero', 'fuente'].includes(x)) && tipos.includes('fuente') && tipos.includes('granja') && tipos.includes('granero'), tipos.join());
   for (const b of ['almacen', 'mercado', 'cuartel', 'templo', 'puerto', 'muralla']) assert.ok(!c.b[b], b + ' no construido');
   const pz = CI.PIEZA_DE[D.POLIS[id].edificio.id]; assert.ok(E.abiertas.includes(pz), 'edificio propio abierto: ' + pz);
   assert.ok(!Object.keys(s.ev).length, 'ningún hecho romano al empezar');
   arr[id] = { pop: c.pop, casas: cs.length, terreno: E.terreno, sitio: E.sitio };
 });
-t('el ágora y el terreno cambian con la semilla (6 partidas de Atenas)', () => { const vistos = new Set();
-  for (const sem of [1013, 2026, 3039, 5065, 7091, 9117]) { nueva('atenas', sem); const E = G.ciudadE('roma'); assert.ok(E.sitio, 'sitio para el ágora'); vistos.add(E.terreno + JSON.stringify(E.sitio)); }
-  assert.ok(vistos.size >= 3, 'solo ' + vistos.size + ' ciudades distintas'); });
+t('el ágora cambia de sitio con la semilla: 20 partidas de Atenas, al menos 4 sitios separados', () => { const sitios = new Map();
+  for (let i = 0; i < 20; i++) { nueva('atenas', 101 + i * 7919); const E = G.ciudadE('roma'); assert.ok(E.sitio, 'sitio para el ágora'); sitios.set(E.sitio.x + ',' + E.sitio.z, E.sitio); }
+  const L = [...sitios.values()]; assert.ok(L.length >= 4, 'solo ' + L.length + ' sitios');
+  const lejos = []; for (const p of L) if (lejos.every(q => Math.hypot(q.x - p.x, q.z - p.z) >= 150)) lejos.push(p); assert.ok(lejos.length >= 4, 'solo ' + lejos.length + ' sitios a 150 o más'); });
 t('la primera estación sin hambre y 4 estaciones sin errores', () => { const s = nueva('esparta', 77); const p0 = s.cities.roma.pop; for (let i = 0; i < 4 && !s.over; i++) { G.pasarEstacion(); if (i === 0) assert.ok(s.cities.roma.pop >= p0 && !s.log.some(l => /hambre/i.test(l.x)), 'hambre en la primera estación'); s.pending.length = 0; }
   assert.ok(s.cities.roma.pop > 0 && Number.isFinite(s.res.grano)); assert.ok(G.yearOf(s.t) === 799, 'año ' + G.yearOf(s.t)); assert.ok(!Object.keys(s.ev).length, 'sin hechos romanos'); });
 
