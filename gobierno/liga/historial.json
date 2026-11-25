@@ -1,0 +1,32 @@
+[
+ {
+  "fecha": "2026-11-25T15:12:51.468Z",
+  "commit": "9ac05b1",
+  "ok": true,
+  "segundos": 380,
+  "partidas": 48,
+  "victorias": 13,
+  "anioMedio": 212,
+  "denariosMedio": 7081,
+  "porBot": {
+   "pacifico": "0/16",
+   "agresivo": "7/16",
+   "investiga": "6/16"
+  }
+ },
+ {
+  "fecha": "2026-11-25T15:23:21.479Z",
+  "commit": "9ac05b1",
+  "ok": true,
+  "segundos": 387,
+  "partidas": 48,
+  "victorias": 13,
+  "anioMedio": 212,
+  "denariosMedio": 7081,
+  "porBot": {
+   "pacifico": "0/16",
+   "agresivo": "7/16",
+   "investiga": "6/16"
+  }
+ }
+]
