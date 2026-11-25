@@ -159,7 +159,7 @@ const suave = x => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 
    (soldados.js paraFalange) como una caja fina: centro, eje a lo ancho (u), medio ancho, medio alto y medio grueso. Solo dibujo */
 const CUERPO_FAL = [[0, 0.12, 0, 0, 0.9, 0, 0.2], [0, 0.9, 0, 0, 1.36, 0, 0.21], [0.18, 1.36, 0, -0.18, 1.36, 0, 0.11], [0, 1.42, 0.04, 0, 1.6, 0.03, 0.13]];
 const ESCUDO_FAL = { c: [0.205, 1.25, 0.17], n: [-0.64, 0, 0.77], R: 0.29, g: 0.03 };   /* el disco: centro, normal, radio y medio grueso */
-const R_ASTA = 0.02, HOLGURA = 0.05;
+const R_ASTA = 0.02, HOLGURA = 0.07;
 const PUNTA_RIVAL = 0.45;   /* el último tramo del asta que puede tocar al rival (golpe, no cruce): el mismo margen que la medida (fisica.js MARGEN.puntaRival) */
 /* desvíos que se prueban (giro sobre la mano: de lado, arriba/abajo), del más pequeño al más grande */
 const DESVIOS = (() => { const o = [[0, 0]]; for (const a of [0.015, 0.03, 0.05, 0.08, 0.11, 0.15]) for (const p of [0, 0.02, -0.02, 0.04]) for (const sg of [1, -1]) o.push([a * sg, p]); for (const p of [0.02, 0.04, 0.06, -0.02]) o.push([0, p]);
@@ -243,7 +243,7 @@ export function pintaSarisas(M, lista, o) {
        mano barría el cuerpo del de detrás). Solo dibujo: la punta de las reglas (bajada) no cambia */
     atras = AGARRE - (primera ? 0.6 * estoca : 0);
     if (!SIN_APARTAR) { const ymano = V.Mn.y; if (V.D.y > 0.05) atras = Math.min(atras, (ymano - 0.06) / V.D.y); if (kB > 0.02 && kB < 0.98) atras = Math.min(atras, AGARRE * (1 - 0.72 * Math.sin(Math.PI * kB))); atras = Math.max(0.35, atras); }
-    if (corto) atras = Math.min(atras, 0.45);   /* alzada y corta por detrás: el regatón en alto, sin tocar al caído del suelo */
+    if (corto) atras = Math.min(atras, 0.25);   /* alzada y corta por detrás: el regatón en alto, sin tocar al caído del suelo */
     V.P.set(f.x + V.Mn.x, H(f.x, f.z) + V.Mn.y, f.z + V.Mn.z).addScaledVector(V.D, -atras);
     };
     /* alzada junto a un caído o con un compañero a menos de 0,85 m, el regatón en alto (apoyado en el suelo caería sobre él o entre sus pies) */
