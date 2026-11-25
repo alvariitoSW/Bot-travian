@@ -320,15 +320,15 @@
     vigiles: { n: 'Guardia urbana', lic: 'En la República no hubo un cuerpo con ese nombre; de noche vigilaban unos triunviros (Livio 9.46)', g: '⚔', cls: 'inf', atk: 6, def: 7, spd: 30, mor: 50, up: 0 },
     // --- otros pueblos ---
     milicia: { n: 'Milicia', lic: 'Leva genérica, no es una tropa concreta de las fuentes', g: '⚔', cls: 'inf', atk: 5, def: 5, spd: 30, mor: 40, up: 0.1 },
-    hoplitas: { n: 'Hoplitas', g: '↟', cls: 'spear', atk: 8, def: 12, spd: 27, mor: 65, up: 0.2 },
+    hoplitas: { n: 'Hoplitas', g: '↟', cls: 'spear', atk: 8, def: 12, spd: 27, mor: 65, up: 0.2, time: 0.06, cost: { grano: 18, hierro: 24, denarios: 14 }, req: { cuartel: 1 }, griega: true, d: 'Infantería pesada con lanza y gran escudo. Se bate en falange.' },
     falange: { n: 'Falange', g: '↟', cls: 'spear', atk: 11, def: 14, spd: 22, mor: 75, up: 0.25 },
-    peltastas: { n: 'Peltastas', g: '➶', cls: 'rng', atk: 4, ratk: 7, def: 4, spd: 40, mor: 45, range: 170, up: 0.1 },
+    peltastas: { n: 'Peltastas', g: '➶', cls: 'rng', atk: 4, ratk: 7, def: 4, spd: 40, mor: 45, range: 170, up: 0.1, time: 0.04, cost: { grano: 10, hierro: 8, denarios: 10 }, req: { cuartel: 1 }, griega: true, d: 'Tropa ligera con jabalinas. Hostiga y huye.' },
     honderos: { n: 'Honderos baleares', g: '➶', cls: 'rng', atk: 3, ratk: 8, def: 3, spd: 40, mor: 45, range: 200, up: 0.1 },
     libios: { n: 'Infantería libia', g: '⚔', cls: 'inf', atk: 9, def: 9, spd: 30, mor: 60, up: 0.15 },
     iberos: { n: 'Guerreros íberos', g: '⚔', cls: 'inf', atk: 11, def: 8, spd: 33, mor: 60, up: 0.15 },
     galos: { n: 'Guerreros galos', g: '⚔', cls: 'inf', atk: 13, def: 6, spd: 34, mor: 45, up: 0.15 },
     sagrada: { n: 'Ciudadanos de Cartago', g: '⚔', cls: 'inf', atk: 13, def: 14, spd: 28, mor: 90, up: 0.3 },
-    jinetes: { n: 'Jinetes', lic: 'Caballería genérica que sirve a varias facciones', g: '♞', cls: 'cav', atk: 12, def: 8, spd: 70, mor: 60, up: 0.4 },
+    jinetes: { n: 'Jinetes', lic: 'Caballería genérica que sirve a varias facciones', g: '♞', cls: 'cav', atk: 12, def: 8, spd: 70, mor: 60, up: 0.4, time: 0.1, cost: { grano: 45, hierro: 30, denarios: 28 }, req: { establo: 1 }, griega: true, d: 'Caballería de las polis. Rápida para flancos y persecuciones.' },
     numidas: { n: 'Caballería númida', g: '♞', cls: 'cav', atk: 11, def: 7, spd: 82, mor: 60, up: 0.35 },
     tesalios: { n: 'Caballería tesalia', g: '♞', cls: 'cav', atk: 15, def: 10, spd: 72, mor: 75, up: 0.4 },
     elefantes: { n: 'Elefantes de guerra', g: '🐘', cls: 'ele', atk: 13, def: 9, spd: 42, mor: 50, hp: 8, mass: 4, up: 2 },
@@ -398,6 +398,61 @@
   const NOMBRE_FINAL = {};
   D.nombreCiudad = (id, anio) => { const c = D.CITIES[id]; return c.antes && anio > c.antes.hasta ? c.antes.n : (NOMBRE_FINAL[id] !== undefined ? NOMBRE_FINAL[id] : c.n); };
   Object.keys(D.CITIES).forEach(id => { const c = D.CITIES[id]; if (!c.antes) return; NOMBRE_FINAL[id] = c.n; Object.defineProperty(c, 'n', { enumerable: true, configurable: true, get() { return D.nombreCiudad(id, D.anio); } }); });
+
+  /* PN2: las 8 polis griegas que se pueden elegir en «Partida nueva». Cada una cambia el nombre de la ciudad y del bando del jugador,
+     su rasgo (un bono pequeño), un edificio propio (existe en D.BUILD; empieza un nivel más alto), una tropa propia y la leva inicial.
+     Colores, lujo y su origen: los de js/gfx/mapa-grecia-datos.js (una prueba comprueba que coinciden). Fuentes en js/registro.js.
+     TODOS LOS NÚMEROS (bonos, leva) SON LICENCIA DE JUEGO: no vienen de las fuentes. bono usa las claves de G.bonoMul (productos) y G.bonoSum (fel, suma).
+     tropa.id es una unidad griega de D.UNITS (hoplitas, peltastas o jinetes); tropa.n es el nombre local que ve el jugador. */
+  D.POLIS = {
+    atenas: { n: 'Atenas', color: '#2f5fa8', sello: 'ΑΘΕ', lema: 'Plata del Laurion y la flota del Pireo', lujo: 'plata', lujoN: 'Plata', lujoDe: 'minas del Laurion',
+      rasgo: { n: 'Plata del Laurion', d: 'Los impuestos rinden un 10 % más.', bono: { impuestos: 1.10 } },
+      edificio: { id: 'puerto', n: 'El Pireo', d: 'Puerto de guerra y comercio de Atenas.' },
+      tropa: { id: 'peltastas', n: 'Peltastas tracios', d: 'Tropa ligera con jabalinas, contratada en el norte.' },
+      heroe: 'Polemarco de Atenas', leva: { hoplitas: 25, peltastas: 25 } },
+    esparta: { n: 'Esparta', color: '#a8262b', sello: 'Λ', lema: 'Soldados desde niños; moneda de hierro', lujo: 'purpura', lujoN: 'Púrpura', lujoDe: 'caracolas de Laconia y Citera',
+      rasgo: { n: 'La agogé', d: 'Instruir tropas es un 15 % más rápido y el comercio da un 10 % menos de oro (moneda de hierro).', bono: { instr: 0.85, oroCom: 0.90 } },
+      edificio: { id: 'cuartel', n: 'Agogé', d: 'La educación militar de los jóvenes espartanos.' },
+      tropa: { id: 'hoplitas', n: 'Espartiatas', d: 'Ciudadanos-soldado de Esparta, la mejor infantería pesada.' },
+      heroe: 'Polemarco de Esparta', leva: { hoplitas: 50, peltastas: 8 } },
+    corinto: { n: 'Corinto', color: '#b7791f', sello: 'Ϙ', lema: 'Ciudad de dos mares y del díolkos', lujo: 'ceramica', lujoN: 'Cerámica fina', lujoDe: 'vasos corintios',
+      rasgo: { n: 'Ciudad de dos mares', d: 'El comercio da un 15 % más de oro.', bono: { oroCom: 1.15 } },
+      edificio: { id: 'mercado', n: 'Díolkos', d: 'Camino de piedra para arrastrar barcos por el istmo.' },
+      tropa: { id: 'hoplitas', n: 'Hoplitas corintios', d: 'Infantería pesada de la ciudad rica del istmo.' },
+      heroe: 'Polemarco de Corinto', leva: { hoplitas: 35, peltastas: 15 } },
+    argos: { n: 'Argos', color: '#5d7a2c', sello: 'ΑΡ', lema: 'El Hereo y la llanura de caballos', lujo: 'caballos', lujoN: 'Caballos', lujoDe: 'la llanura «criadora de caballos»',
+      rasgo: { n: 'El Hereo', d: 'La gente está más contenta: +3 de felicidad.', bono: { fel: 3 } },
+      edificio: { id: 'templo', n: 'Hereo', d: 'El gran santuario de Hera, entre Argos y Micenas.' },
+      tropa: { id: 'hoplitas', n: 'Los Mil', d: 'Cuerpo escogido de infantería pesada de Argos.' },
+      heroe: 'Polemarco de Argos', leva: { hoplitas: 40, peltastas: 10 } },
+    tebas: { n: 'Tebas', color: '#7a4a9a', sello: 'ΘΕ', lema: 'Llanura de Beocia y caballería', lujo: 'anguilas', lujoN: 'Manjares del lago', lujoDe: 'anguilas del lago Copais',
+      rasgo: { n: 'Llanura de Beocia', d: 'La población crece un 10 % más deprisa.', bono: { crece: 1.10 } },
+      edificio: { id: 'granja', n: 'Llanura beocia', d: 'Campos de cereal de la llanura de Beocia.' },
+      tropa: { id: 'jinetes', n: 'Caballería beocia', d: 'Jinetes de la llanura, famosos en toda Grecia.' },
+      heroe: 'Polemarco de Tebas', leva: { hoplitas: 25, jinetes: 12, peltastas: 8 } },
+    megara: { n: 'Mégara', color: '#3d8c8c', sello: 'ΜΕ', lema: 'Madre de colonias y viajes por mar', lujo: 'sal', lujoN: 'Sal', lujoDe: 'salinas de la costa',
+      rasgo: { n: 'Madre de colonias', d: 'Los viajes por mar tardan un 10 % menos.', bono: { viajeMar: 0.90 } },
+      edificio: { id: 'puerto', n: 'Nisea', d: 'Puerto de Mégara en el golfo Sarónico.' },
+      tropa: { id: 'peltastas', n: 'Epibatas megareos', d: 'Soldados de a bordo, ligeros y de mucho mar.' },
+      heroe: 'Polemarco de Mégara', leva: { hoplitas: 20, peltastas: 30 } },
+    mileto: { n: 'Mileto', color: '#c4577a', sello: 'ΜΙ', lema: 'Calles en damero y lana fina', lujo: 'lana', lujoN: 'Lana fina', lujoDe: 'lana milesia',
+      rasgo: { n: 'Calles en damero', d: 'Las obras cuestan un 8 % menos (el plano de Hipódamo).', bono: { obra: 0.92 } },
+      edificio: { id: 'mercado', n: 'Ágora de Mileto', d: 'Plaza de mercado en una ciudad trazada a cordel.' },
+      tropa: { id: 'peltastas', n: 'Peltastas jonios', d: 'Tropa ligera de las ciudades de Jonia.' },
+      heroe: 'Polemarco de Mileto', leva: { hoplitas: 25, peltastas: 25 } },
+    calcis: { n: 'Calcis', color: '#8c6a3d', sello: 'ΧΑ', lema: 'Bronce y hierro de Eubea', lujo: 'bronce', lujoN: 'Bronce', lujoDe: 'talleres de bronce',
+      rasgo: { n: 'Bronce de Eubea', d: 'Las mejoras de armas y armaduras cuestan un 15 % menos.', bono: { forjaCoste: 0.85 } },
+      edificio: { id: 'mina', n: 'Minas de Eubea', d: 'Minas de cobre y hierro de la isla.' },
+      tropa: { id: 'jinetes', n: 'Hipóbotas', d: 'Los grandes terratenientes de Calcis, a caballo.' },
+      heroe: 'Polemarco de Calcis', leva: { hoplitas: 30, jinetes: 10, peltastas: 10 } }
+  };
+  D.POLIS_ORDEN = ['atenas', 'esparta', 'corinto', 'argos', 'tebas', 'megara', 'mileto', 'calcis'];
+  /* Con polis elegida (D.polis = id; lo fijan G.newGame y G.load) la ciudad y el bando del jugador llevan su nombre. Sin polis, «Roma» como siempre. */
+  D.polis = null;
+  { const pn = (f, p) => D.polis && D.POLIS[D.polis] ? D.POLIS[D.polis][p] : f;
+    Object.defineProperty(D.CITIES.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
+    Object.defineProperty(D.FACTIONS.roma, 'n', { enumerable: true, configurable: true, get() { return pn('Roma', 'n'); } });
+    Object.defineProperty(D.FACTIONS.roma, 'col', { enumerable: true, configurable: true, get() { return pn('#b3261e', 'color'); } }); }
 
   // [a, b, marítima]
   D.EDGES = [

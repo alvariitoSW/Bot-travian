@@ -4,6 +4,10 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 173, fecha: '25/11/2026', cosas: [
+      'En Partida nueva eliges entre 8 polis griegas: Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto y Calcis.',
+      'Cada una tiene su rasgo, su edificio propio, su tropa y su lujo; la ciudad y el bando llevan su nombre.',
+      'De momento tu polis se juega sobre el mapa de Italia; su comarca en Grecia llega en la próxima versión.'] },
     { v: 172, fecha: '25/11/2026', cosas: [
       'El tiempo ya no corre solo: pasa por estaciones cuando pulsas «Pasar estación».',
       'Al empezar cada estación ves la hoja: lo que has recogido, lo que se ha acabado y lo que ha pasado.',

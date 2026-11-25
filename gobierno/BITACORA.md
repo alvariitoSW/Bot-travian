@@ -593,6 +593,7 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Año de inicio de las polis**: hoy una partida de Atenas dice 280 a.C. (A) Poner 800 a.C. en las partidas de polis, con PN3 [recomendado]; (B) dejar 280 a.C. por ahora. Por qué: el plan de la 2.0 sitúa la Partida nueva en el 800 a.C.
 
 
 ## Propuestas por aprobar
