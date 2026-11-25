@@ -1920,8 +1920,8 @@ document.addEventListener('click', function (e) {
     case 'plan-prio': case 'plan-est': case 'plan-nuevo': case 'plan-sug': case 'plan-add': case 'plan-cierra': case 'plan-ciu': case 'plan-poner': case 'plan-quitar': case 'plan-mover': case 'plan-votar': case 'plan-aband': case 'plan-aband-no': case 'plan-aband-si': planAccion(a, v); break;
     case 'sent': UI.senT = v; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;   // MN2: pestañas del Senado
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
-    case 'turno': { if (UI.pasando || UI.hojaPend) break; if (s.vivo) { toast('🔥 Primero decide qué hacer con el fuego.', 'bad'); break; } if (s.over || s.pending.length || UI.modalOpen) break;
-      UI.pasando = true; $('turno').hidden = true; hojaEstCierra(); AV.acum = []; let hecho = false;   // ES20: cerrojo: una pulsación, una estación (se abre al salir la hoja)
+    case 'turno': { if (UI.pasando || UI.hojaPend || $('inf')) break;   // con la hoja a la vista no se pasa: primero «Empezar la estación» if (s.vivo) { toast('🔥 Primero decide qué hacer con el fuego.', 'bad'); break; } if (s.over || s.pending.length || UI.modalOpen) break;
+      UI.pasando = true; $('turno').hidden = true; AV.acum = []; let hecho = false;   // ES20: cerrojo: una pulsación, una estación (se abre al salir la hoja)
       try { hecho = G.pasarEstacion(); } finally { const l = AV.acum; AV.acum = null; if (!hecho) { UI.pasando = false; toastResumen(l); } else if (!UI.hojaPend && !$('inf')) UI.pasando = false; }
       UI.dirty = true; tickUI(); break; }   // lo pasado va a la hoja de estación; si una batalla o un fuego la cortan, un aviso
     case 'tira': { const e = $('tpanel'); e.hidden = !e.hidden; $('tira-b').setAttribute('aria-expanded', String(!e.hidden)); if (!e.hidden) { $('cuentas').hidden = true; $('popsheet').hidden = true; tpanelPinta(true); } break; }   // CDe3
