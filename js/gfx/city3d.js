@@ -15,7 +15,7 @@ import * as Civicas from './civicas.js';          // CN15d: dique, arca del foro
 import * as trajin from './trajin.js';              // CN15b: cuadrilla de obra y recuas (lo escribe otro encargo)
 import * as Fachadas from './fachadas.js';           // CN15a: puestos, toldos y ropa de la plaza y los barrios (lo escribe otro encargo)
 import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES, tintesEstacion, OPC_SUELO } from './ground.js';
-import { altura, RIO, NIVEL_RIO, azar, distRio } from './mundo.js';
+import { altura, RIO, NIVEL_RIO, azar, distRio, ponMar } from './mundo.js';
 import * as CI from '../ciudad.js';
 import * as Calles from '../calles.js';           // CD2a: calles con el dedo y el arquitecto (reglas)
 import * as Calles3d from './calles3d.js';
@@ -42,16 +42,18 @@ const pieza = k => griegas.get(k) || (RS.esPieza(k) ? RS.pieza(k) : getStatic(k)
 
 /* CD7: templo y bouleuterion griegos hechos con Meshy (assets/edificios-griegos, tools/aligerar_edificios_griegos.mjs).
    Solo en ciudades de cultura 'grie'; si no cargan, quedan las piezas de 0 A.D. Lector de .glb mínimo: una malla en flotantes y su textura. */
-const GRIEGAS = { grie_templo_m: 'assets/edificios-griegos/templo.glb', grie_bouleuterion: 'assets/edificios-griegos/curia.glb' };
+const GRIEGAS = { grie_templo_m: 'assets/edificios-griegos/templo.glb', grie_bouleuterion: 'assets/edificios-griegos/curia.glb', ald_plebeyo: 'assets/personajes/plebeyo.glb', ald_plebeya: 'assets/personajes/plebeya.glb', ald_artesano: 'assets/personajes/artesano.glb', ald_artesana: 'assets/personajes/artesana.glb' };      // PN3b2: los cuatro últimos son los aldeanos (Meshy, assets/personajes)
 const griegas = new Map();
 async function piezaGLB(clave, url) {
   const buf = await (await fetch(url)).arrayBuffer(), dv = new DataView(buf); let off = 12, js = null, bin = 0;
   while (off + 8 <= buf.byteLength) { const n = dv.getUint32(off, true), t = dv.getUint32(off + 4, true); if (t === 0x4E4F534A) js = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, off + 8, n))); else if (t === 0x004E4942) bin = off + 8; off += 8 + n; }
-  const TIPO = { 5126: Float32Array, 5125: Uint32Array, 5123: Uint16Array }, NC = { SCALAR: 1, VEC2: 2, VEC3: 3 };
-  const acc = i => { const a = js.accessors[i], v = js.bufferViews[a.bufferView], T = TIPO[a.componentType], n = NC[a.type], o = bin + (v.byteOffset || 0) + (a.byteOffset || 0); if (!v.byteStride) return new T(buf, o, a.count * n); const r = new T(a.count * n); for (let k = 0; k < a.count; k++) r.set(new T(buf, o + k * v.byteStride, n), k * n); return r; };      // con o sin entrelazar
+  const TIPO = { 5126: Float32Array, 5125: Uint32Array, 5123: Uint16Array, 5122: Int16Array, 5120: Int8Array }, NC = { SCALAR: 1, VEC2: 2, VEC3: 3 }, MAXN = { 5122: 32767, 5120: 127, 5123: 65535 };
+  const acc = i => { const a = js.accessors[i], v = js.bufferViews[a.bufferView], T = TIPO[a.componentType], n = NC[a.type], o = bin + (v.byteOffset || 0) + (a.byteOffset || 0); let r; if (!v.byteStride) r = new T(buf.slice(o, o + a.count * n * T.BYTES_PER_ELEMENT)); else { r = new T(a.count * n); for (let k = 0; k < a.count; k++) r.set(new T(buf.slice(o + k * v.byteStride, o + k * v.byteStride + n * T.BYTES_PER_ELEMENT)), k * n); }
+    if (a.normalized && MAXN[a.componentType]) { const f = new Float32Array(r.length); for (let k = 0; k < r.length; k++) f[k] = Math.max(r[k] / MAXN[a.componentType], -1); return f; } return r; };      // PN3b2: lee también modelos cuantizados (KHR_mesh_quantization: los de assets/personajes)      // con o sin entrelazar
   const pr = js.meshes[0].primitives[0], geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(acc(pr.attributes.POSITION), 3)); geo.setAttribute('normal', new THREE.BufferAttribute(acc(pr.attributes.NORMAL), 3)); geo.setAttribute('uv', new THREE.BufferAttribute(acc(pr.attributes.TEXCOORD_0), 2));
-  geo.setIndex(new THREE.BufferAttribute(acc(pr.indices), 1)); geo.computeBoundingBox(); geo.computeBoundingSphere();
+  geo.setIndex(new THREE.BufferAttribute(acc(pr.indices), 1)); { const nd = js.nodes && js.nodes[0]; if (nd && (nd.translation || nd.scale)) { const M = new THREE.Matrix4().compose(new THREE.Vector3(...(nd.translation || [0, 0, 0])), new THREE.Quaternion(), new THREE.Vector3(...(nd.scale || [1, 1, 1]))); geo.applyMatrix4(M); } }      // la transformación del nodo (cuantizados)
+  geo.computeBoundingBox(); geo.computeBoundingSphere();
   const im = js.images[js.textures[js.materials[pr.material].pbrMetallicRoughness.baseColorTexture.index].source], v = js.bufferViews[im.bufferView];
   const tex = new THREE.Texture(await createImageBitmap(new Blob([new Uint8Array(buf, bin + (v.byteOffset || 0), v.byteLength)], { type: im.mimeType }))); tex.flipY = false; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.needsUpdate = true;
   const b = geo.boundingBox; griegas.set(clave, { key: clave, parts: [{ geo, tex, file: 'meshy_' + clave, mode: 0, maps: {} }], bb: [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z] });
@@ -162,8 +164,8 @@ const ESC_C = { roma: 1, grie: 1.06, cart: 1.17 };            // las casas grieg
 const TEMPLO_C = { grie: ['grie_templo', 1.09], cart: ['cart_templo', 1.02] };
 const TEMPLO_PZ = ['grie_templo', 'cart_templo', 'grie_templo_m', 'grie_bouleuterion'];
 /* CD7: en las ciudades griegas, templo y curia (bouleuterion) de Meshy si cargaron; si no, lo de siempre */
-const GRIE_M = { templo: ['grie_templo_m', 1.09], curia: ['grie_bouleuterion', 1.0] };
-function piezaGriega(tipo, d) { const g = cul === 'grie' && GRIE_M[tipo]; return g && L[g[0]] && L[g[0]].niv ? [g[0], g[1], d[2], d[3]] : null; }
+const GRIE_M = { templo: ['grie_templo_m', 1.09], curia: ['grie_bouleuterion', 1.0], foro: ['grie_bouleuterion', 0.95] };      // PN3b: el ágora de la polis es el bouleuterion (no el foro romano)
+function piezaGriega(tipo, d) { const g = cul === 'grie' && GRIE_M[tipo] && (tipo !== 'foro' || (E && E.sitioLibre)) && GRIE_M[tipo]; return g && L[g[0]] && L[g[0]].niv ? [g[0], g[1], d[2], d[3]] : null; }
 const TINTE_O = { galos: { m: [0.97, 1.03, 0.94], t: [0.96, 1.02, 0.95] }, iberos: { m: [1.04, 0.97, 0.86], t: [1.03, 0.96, 0.88] }, etruscos: { m: [1.03, 0.96, 0.92], t: [1.04, 0.95, 0.9] }, campanos: { m: [1.02, 1.0, 0.94], t: [1.0, 0.98, 0.94] }, mamertinos: { m: [1.0, 0.97, 0.93], t: [1.0, 0.97, 0.94] } };
 let cul = 'roma', tinteO = null;
 function tinteBase(a, b) {                               // muro y teja por cultura (grie y cart: la función tinte() de gobierno/maquetas/ciudad2)
@@ -316,7 +318,8 @@ export async function montar() {
     const t = new Bulto(); t.cono(5.2, 4.6, 4, 0, 2.3, 0, '#d8ccb0', 1, Math.PI / 4, 1.15, 0.8); t.caja(0.25, 5.6, 0.25, 0, 2.8, 0, '#5a4632'); t.caja(1.6, 0.7, 1.2, 4.6, 0.35, 1.5, '#8a6a48');
     tiendaM = new THREE.InstancedMesh(t.geo(), matBulto, 40); for (const m of [...chozaM, tiendaM]) { m.count = 0; m.castShadow = m.receiveShadow = true; m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); } }
   L.paja = lote('prop_paja', 90, { sinTeja: true }); L.carreta = lote('prop_carreta', 8, { sinTeja: true });
-  vida.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, carros: L.carreta, pedirReparto: () => { pedirReparto = true; } });
+  const aldeanos = ['ald_plebeyo', 'ald_plebeya', 'ald_artesano', 'ald_artesana'].map(k => griegas.get(k)).filter(Boolean).map(g => ({ geo: g.parts[0].geo, tex: g.parts[0].tex, alto: Math.max(0.01, g.bb[4] - g.bb[1]), y0: g.bb[1] }));
+  vida.iniciar({ aldeanos, scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, carros: L.carreta, pedirReparto: () => { pedirReparto = true; } });
   trajin.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
   Civicas.iniciar({ scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
   Fachadas.iniciar({ scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
@@ -327,7 +330,8 @@ export function mundo(estado) {
   vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; OPC_SUELO.apretado = romaS(); tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); Civicas.reiniciar(); trajin.reiniciar();
   for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, estBarM, estBarL, surcoM, aradoM, plazaM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
   dinM = andM = andL = estBarM = estBarL = surcoM = aradoM = plazaM = null; plazaF = ''; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
-  sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); sueloJ.terreno(E && E.terreno); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
+  const hayMar = !!(E && E.terreno === 'costa'); ponMar(hayMar);      // PN3b: la polis de costa tiene mar al norte del río (antes de crear suelo y árboles)
+  sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); sueloJ.terreno(E && E.terreno); scene.add(sueloJ.malla); rio = crearRio(G.T, U, hayMar); scene.add(rio);
   /* lámina de la crecida: una cinta más ancha que el río, escondida bajo el cauce hasta que toca */
   { const n = RIO.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let sl = 0; for (let i = 0; i < n; i++) { const a = RIO[Math.max(0, i - 1)], b = RIO[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / l, nz = (b[0] - a[0]) / l, w = 124; if (i) sl += Math.hypot(RIO[i][0] - RIO[i - 1][0], RIO[i][1] - RIO[i - 1][1]); pos.set([RIO[i][0] + nx * w, 0, RIO[i][1] + nz * w, RIO[i][0] - nx * w, 0, RIO[i][1] - nz * w], i * 6); uv.set([0, sl / 60, 2.5, sl / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
@@ -336,7 +340,7 @@ export function mundo(estado) {
   { const B = new Bulto(), rnd = azar(99), Rr = (a, b) => a + (b - a) * rnd(), P = PUENTE, c = Math.cos(P.ang), s = Math.sin(P.ang), y = NIVEL_RIO + 5.2, AN = 9.6;
     /* UR1: puente de pilotes, de orilla a orilla (antes medía 84 y el río 104: no llegaba). Tablero de tablas sobre caballetes de tres pilotes con riostras,
        largueros, barandilla y una rampa de tierra en cada cabeza. Modelo: el pons Sublicius, todo de madera y sin hierro (Dionisio 3.45; Plinio 36.100). */
-    const orilla = sg => { let u = 20; while (u < 110 && altura(P.x + c * u * sg, P.z + s * u * sg) < NIVEL_RIO + 1.6) u += 1; return u + 2; }, u0 = -orilla(-1), u1 = orilla(1);
+    const orilla = sg => { let u = 20; while (u < (hayMar && sg < 0 ? 42 : 110) && altura(P.x + c * u * sg, P.z + s * u * sg) < NIVEL_RIO + 1.6) u += 1; return u + 2; }, u0 = -orilla(-1), u1 = orilla(1);
     const en = (u, l) => [P.x + c * u - s * l, P.z + s * u + c * l];
     for (let u = u0; u < u1; u += 1.6) { const q = en(u + 0.8, 0), k = rnd(); B.caja(1.52, 0.42, AN, q[0], y, q[1], k < 0.33 ? '#7a6347' : k < 0.66 ? '#6c573e' : '#84704f', -P.ang); }      // tablas
     for (const l of [-3.9, 0, 3.9]) { const q = en((u0 + u1) / 2, l); B.caja(u1 - u0, 0.7, 0.6, q[0], y - 0.55, q[1], '#4f3f2e', -P.ang); }                                              // largueros
@@ -345,7 +349,7 @@ export function mundo(estado) {
       { const q = en(u, 0); B.caja(1, 0.8, AN + 1.6, q[0], y - 1.25, q[1], '#54432f', -P.ang); B.caja(0.4, 0.4, 9.6, q[0], y - 3.4, q[1], '#463829', -P.ang, 0.42); B.caja(0.4, 0.4, 9.6, q[0], y - 3.4, q[1], '#463829', -P.ang, -0.42); } }
     for (const l of [-AN / 2 + 0.3, AN / 2 - 0.3]) { { const q = en((u0 + u1) / 2, l); B.caja(u1 - u0, 0.3, 0.3, q[0], y + 2.3, q[1], '#5c4a38', -P.ang); B.caja(u1 - u0, 0.22, 0.22, q[0], y + 1.3, q[1], '#5c4a38', -P.ang); }      // barandilla
       for (let u = u0 + 0.5; u <= u1 - 0.4; u += 4.5) { const q = en(u, l); B.caja(0.42, 2.5, 0.42, q[0], y + 1.2, q[1], '#4f3f2e', -P.ang); } }
-    for (const [u, sg] of [[u0, -1], [u1, 1]]) for (let k = 0; k < 40; k++) { const q = en(u + sg * (0.8 + k * 1.6), 0), ys = altura(q[0], q[1]), yt = y - 0.3 * (k + 1); if (yt < ys + 0.25) break; B.caja(1.56, 0.42, AN, q[0], yt, q[1], k % 2 ? '#7a6347' : '#6c573e', -P.ang, 0, 0); if (k % 3 === 0) for (const l of [-4.2, 4.2]) { const e = en(u + sg * (0.8 + k * 1.6), l); B.caja(0.7, yt - ys + 2, 0.7, e[0], (yt + ys - 2) / 2, e[1], '#463829', -P.ang); } }      // rampas de tablas hasta el suelo
+    for (const [u, sg] of [[u0, -1], [u1, 1]]) for (let k = 0; k < (hayMar && sg < 0 ? 0 : 40); k++) { const q = en(u + sg * (0.8 + k * 1.6), 0), ys = altura(q[0], q[1]), yt = y - 0.3 * (k + 1); if (yt < ys + 0.25) break; B.caja(1.56, 0.42, AN, q[0], yt, q[1], k % 2 ? '#7a6347' : '#6c573e', -P.ang, 0, 0); if (k % 3 === 0) for (const l of [-4.2, 4.2]) { const e = en(u + sg * (0.8 + k * 1.6), l); B.caja(0.7, yt - ys + 2, 0.7, e[0], (yt + ys - 2) / 2, e[1], '#463829', -P.ang); } }      // rampas de tablas hasta el suelo
     for (let i = 0; i < RIO.length - 1; i++) { const p = RIO[i], q = RIO[i + 1]; if (Math.abs(p[0]) > 900) continue; const ang = Math.atan2(q[1] - p[1], q[0] - p[0]);
       for (const l of [1, -1]) for (let k = 0; k < 3; k++) { if (rnd() < 0.45) continue; const r = Rr(17, 27), x = p[0] - Math.sin(ang) * r * l + Rr(-5, 5), z = p[1] + Math.cos(ang) * r * l + Rr(-5, 5), yy = altura(x, z); if (yy > NIVEL_RIO + 2.5 || yy < NIVEL_RIO - 1.2) continue; for (let j = 0; j < 4; j++) B.cono(Rr(0.5, 0.9), Rr(3, 5), 4, x + Rr(-1.6, 1.6), Math.max(yy, NIVEL_RIO) + 1.8, z + Rr(-1.6, 1.6), rnd() < 0.5 ? '#7c8448' : '#9a9050', 1, Rr(0, 3)); } }
     estM = new THREE.Mesh(B.geo(), matBulto); estM.castShadow = estM.receiveShadow = true; scene.add(estM); }
@@ -434,13 +438,13 @@ function casas(t) {
       const nbr = E.barrios && E.barrios[l.barrio], hh = hashXZ(l.x, l.z), tj = tinteK(l.tono * 0.8 + 0.1, l.teja, nbr ? nbr.nivel : undefined, l.arrabal, nbr && nbr.tejas, nbr ? CI.caracterBarrio(E, l.barrio) : undefined), ss = h.s * (u < 0 ? 0.001 : 0.8 + 0.2 * f);
       por[h.k].push({ m: matriz(l.x, suelo(l.x, l.z, 3.3 * h.s) - 0.1, l.z, giro, ss, ss * 0.85 * (0.15 + 0.85 * f), ss), muro: tj.muro, teja: [...tejaTono(hh, !!(nbr && nbr.tejas)), tj.teja[3]] }); continue; }
     const n1 = c.nivel === 1 && rs && !!E.urbe;      // UR1: en la Roma en pie, la casa de nivel I es una casa baja de teja, no una choza de paja en mitad del foro
-    if (c.nivel === 1 && !n1) { const tienda = c.desde === 0 && E.mesN < 8, i = tienda ? nt++ : nc++, e = tienda ? 0.82 + 0.3 * l.tono : 0.8 + 0.2 * l.tono; if (i < (tienda ? 40 : 220)) { const mm = matriz(l.x, suelo(l.x, l.z, 4) - 0.05, l.z, giro + (tienda ? l.tipo * 3 : Math.PI / 2 + (l.tipo - 0.5) * 0.5), e * sx, e * sy, e * sx), cc = _c.setScalar(0.8 + 0.34 * l.teja); for (const m of tienda ? [tiendaM] : chozaM) { m.setMatrixAt(i, mm); m.setColorAt(i, cc); } } continue; }
+    if (c.nivel === 1 && !n1) { const tienda = c.desde === 0 && E.mesN < 8, i = tienda ? nt++ : nc++, e = (tienda ? 0.82 + 0.3 * l.tono : 0.8 + 0.2 * l.tono) * (E.sinUrbe ? (tienda ? 2.4 : 1.8) : 1);   /* PN3c: en la aldea de la polis, a su escala (antes ×1,6) */ if (i < (tienda ? 40 : 220)) { const mm = matriz(l.x, suelo(l.x, l.z, 4) - 0.05, l.z, giro + (tienda ? l.tipo * 3 : Math.PI / 2 + (l.tipo - 0.5) * 0.5), e * sx, e * sy, e * sx), cc = _c.setScalar(0.8 + 0.34 * l.teja); for (const m of tienda ? [tiendaM] : chozaM) { m.setMatrixAt(i, mm); m.setColorAt(i, cc); } } continue; }
     const nb = E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined;
     let k; if (fam === CASAS_C.roma) k = c.nivel === 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa' : 'casa_b');
     else { const n = fam.length, lo = Math.max(1, Math.round(n * 0.4)), a = c.nivel === 2 ? 0 : c.nivel === 3 ? Math.floor(n * 0.25) : n - Math.max(2, Math.round(n * 0.5)), b = c.nivel === 2 ? lo : c.nivel === 3 ? Math.min(n, a + Math.max(2, Math.round(n * 0.6))) : n; k = fam[a + Math.floor(l.tipo * (b - a)) % (b - a)]; }
     if (rs) k = c.nivel <= 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa_d' : 'casa_b');      // CI1: sin 'casa' (la de entramado de madera)
     if (rs && RS.esInsula(l, nb)) k = 'rs_insula';
-    const e = n1 ? 0.56 : c.nivel === 2 ? 0.64 : c.nivel === 3 ? 0.84 : 0.97, alto = c.nivel === 4 ? 1.3 : c.nivel === 3 ? 1 : n1 ? 0.8 : 0.9, tn = c.nivel <= 2 ? l.tono * 0.42 : c.nivel === 3 ? 0.3 + l.tono * 0.45 : 0.62 + l.tono * 0.38, tj = c.nivel <= 2 ? 0.6 + l.teja * 0.4 : c.nivel === 4 ? l.teja * 0.6 : l.teja;
+    const e = (n1 ? 0.56 : c.nivel === 2 ? 0.64 : c.nivel === 3 ? 0.84 : 0.97) * (E.sinUrbe && c.nivel <= 2 ? 2 : 1),   /* PN3c: las casas de la aldea de la polis, a su escala (eran más pequeñas que un árbol) */ alto = c.nivel === 4 ? 1.3 : c.nivel === 3 ? 1 : n1 ? 0.8 : 0.9, tn = c.nivel <= 2 ? l.tono * 0.42 : c.nivel === 3 ? 0.3 + l.tono * 0.45 : 0.62 + l.tono * 0.38, tj = c.nivel <= 2 ? 0.6 + l.teja * 0.4 : c.nivel === 4 ? l.teja * 0.6 : l.teja;
     /* CI1: pared con pared: se estira a lo largo de la calle hasta tocar a la vecina; la ínsula, a su tamaño */
     const ins = k === 'rs_insula', eX = ins ? 1 : e * EC, eY = ins ? (c.nivel === 4 ? 1 : 0.9) : e * EC * alto, vv = vec && vec.get(l.id), dv = vv ? Math.min(vv.iz || 99, vv.de || 99) : 0, kx = dv ? Math.min(1.45, Math.max(1, (dv + 0.6) / ((ins ? 14.4 : 15) * eX))) : 1;
     por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 6 * e) - (ins ? 0.1 : 0.25), l.z, giro, eX * sx * kx, eY * sy, eX * sx), ...tinteK(tn, tj, E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined, l.arrabal, E.barrios && E.barrios[l.barrio] && E.barrios[l.barrio].tejas, E.barrios && E.barrios[l.barrio] ? CI.caracterBarrio(E, l.barrio) : undefined) }); }
@@ -843,7 +847,7 @@ export class CityView3D {
     selActual = sel || null;
     dibujar();
     this.etiquetasBarrio(H);
-    const el = this.armyEl, txt = '⚔️ Campo de Marte · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }
+    const el = this.armyEl, txt = '⚔️ ' + ((window.DATA && DATA.LEVA_FICHAS && DATA.LEVA_FICHAS.campo_marte && DATA.LEVA_FICHAS.campo_marte.n) || 'Campo de Marte') + ' · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }   // PN3: en partida de polis, «Campo de armas»
     if (this.guarn && this.men && cam.d < 700) { const p = aPantalla(this.guarn.x, this.guarn.z, 14), r = host.getBoundingClientRect(), y = p.y - r.top; if (p.ok && y > 104 && y < H - 150) { el.style.display = ''; el.style.transform = 'translate(' + (p.x - r.left).toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-100%)'; } else el.style.display = 'none'; } else el.style.display = 'none';
   }
   /* CN6: una etiqueta pequeña por barrio («Foro · II»), solo con la cámara lejos y lejos de la línea de arriba y de la bandeja de abajo */
@@ -921,6 +925,9 @@ export class CityView3D {
     sincronizar(true); this.callesBorra(); Calles3d.pintar({ hecha: pts }); clearTimeout(c.tHecha); c.tHecha = setTimeout(() => { if (this._calles === c) Calles3d.pintar({}); }, this.opts.msDestello || 3000); }
   /* CV1: vista de plano. Cámara casi a plomo que encuadra la urbe entera y sin bruma. Solo vista; no toca reglas ni datos. */
   get enPlano() { return !!this._plano; }
+  /* PN3: la aldea de la polis (E.sinUrbe, sin urbe): su centro y su radio (ágora, casas y edificios menos los campos), para encuadrarla de cerca */
+  aldea() { if (!E || !E.sinUrbe || !E.foro) return null; const pts = [[E.foro.x, E.foro.z]]; for (const l of E.parcelas || []) if (l.casa && !l.casa.ruina && !l.fuera) pts.push([l.x, l.z]); for (const e of E.edificios || []) if (e.tipo !== 'granja') pts.push([e.x, e.z]);
+    let cx = 0, cz = 0; for (const q of pts) { cx += q[0]; cz += q[1]; } cx /= pts.length; cz /= pts.length; let r = 30; for (const q of pts) r = Math.max(r, Math.hypot(q[0] - cx, q[1] - cz) + 12); return { cx, cz, r }; }
   plano(on, hacia, ya) {
     on = !!on; if (on === !!this._plano && !ya) return; if (on === !!this._plano && ya && !this.planoA) return;
     const now = performance.now(), de = { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az, el: cam.el, nk: nieblaK };
@@ -931,10 +938,11 @@ export class CityView3D {
       const u = E && E.urbe, f = E && E.foro; let R = (u && u.RU ? Math.max(...u.RU) + 7 : 300), cx = f ? f.x : 0, cz = f ? f.z : -20;
       /* CV4a: se encuadra el contorno de la urbe (su centro y su radio de verdad), no un círculo alrededor del foro: junto al río la urbe queda descentrada y se veía pequeña */
       if (u && u.borde && u.borde.length) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const q of u.borde) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[1]); z1 = Math.max(z1, q[1]); } cx = (x0 + x1) / 2; cz = (z0 + z1) / 2; R = 7; for (const q of u.borde) R = Math.max(R, Math.hypot(q[0] - cx, q[1] - cz) + 7); }
+      const ald = !u && this.aldea(); if (ald) { cx = ald.cx; cz = ald.cz; R = ald.r * 1.1; }      // PN3b3: la aldea (ágora, casas y edificios) llena el ancho para contar las casas a ojo
       const asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
       const tv = Math.tan(fov * Math.PI / 360), th = Math.min(tv, tv * asp);
       const dEnc = Math.min(4000, R * PLANO_MARGEN / th);
-      a = { tx: cx, tz: cz, d: dEnc, az: planoBaseOn ? 0 : cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = planoBaseOn ? dEnc * 1.12 : 4000; if (planoBaseOn) { cam.dMin = PLANO_DMIN; cam.pan = { x: cx, z: cz, r: R * PLANO_PAN }; } this._plano = true;
+      a = { tx: cx, tz: cz, d: dEnc, az: planoBaseOn ? 0 : cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = planoBaseOn ? (ald ? Math.max(dEnc * 1.12, 1600) : dEnc * 1.12) : 4000; if (planoBaseOn) { cam.dMin = PLANO_DMIN; cam.pan = { x: cx, z: cz, r: ald ? Math.max(R * PLANO_PAN, 450) : R * PLANO_PAN }; } this._plano = true;
     } else {
       const P = hacia || this._prev || { tx: cam.tx, tz: cam.tz, d: Math.min(cam.d, 640), az: cam.az, elF: 0 }, efi = P.elF || 0;
       a = { tx: P.tx, tz: P.tz, d: P.d, az: P.az === undefined ? cam.az : P.az, el: efi || kEl(P.d), nk: 1, fin: true, elF: efi }; this._plano = false; this._prev = null;
@@ -960,6 +968,7 @@ export class CityView3D {
         let k = 0, dm = 1e9; p.forEach((q, i) => { const dd = Math.hypot(q[0] - sx, q[1] - sz); if (dd < dm) { dm = dd; k = i; } }); const i0 = Math.max(0, k - 2), i1 = Math.min(p.length - 1, k + 2), a = p[i0], b = p[k]; cam.tx = b[0]; cam.tz = b[1]; cam.az = Math.atan2(-(p[i1][0] - a[0]), -(p[i1][1] - a[1])); } else { cam.tx = f ? f.x : 0; cam.tz = f ? f.z + 20 : 0; cam.az = 0.25; }
       cam.d = 70; cam.elF = 0.3; }
     else if (name === 'ejercito') { const g = this.guarn || (f ? { x: f.x, z: f.z + 46 } : { x: 0, z: 0 }); cam.tx = g.x; cam.tz = g.z; cam.d = 90; cam.az = 0.35; cam.elF = 0.3; }
+    else if (this.aldea()) { const A = this.aldea(); cam.tx = A.cx; cam.tz = A.cz; cam.az = 0; cam.d = Math.max(85, A.r * (vert ? 2.3 : 1.7)); }      // PN3b: la aldea de cerca, más cerca que antes (se cuentan las casas)
     else { let cx = f ? f.x : 0, cz = f ? f.z - 10 : -20, r = 120; if (E && E.surco && E.surco.length) { cx = cz = 0; for (const p of E.surco) { cx += p[0]; cz += p[1]; } cx /= E.surco.length; cz /= E.surco.length; r = 0; for (const p of E.surco) r = Math.max(r, Math.hypot(p[0] - cx, p[1] - cz)); r = Math.max(r, 120); } cam.tx = cx; cam.tz = cz; cam.az = 0; cam.d = Math.max(260, r * (vert ? 3.6 : 2.8)); }
     ponerCamara();
   }

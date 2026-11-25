@@ -1,5 +1,5 @@
 /* AQVILA — interfaz: mapa 3D como pantalla principal, paneles, modales y pantalla de batalla */
-import { MapView3D } from './gfx/map3d.js';
+import { MapaPartida } from './gfx/mapa-partida.js';   // AM4: en partida de polis, el mapa vivo de Grecia; en las demás, el de siempre (map3d.js)
 import { portrait } from './gfx/models.js';
 import { preload, loadIndex, realPortrait } from './gfx/units.js';
 import * as ESC from './ui-escaramuza.js';   // CG2a: constructor de ejército de Escaramuzas
@@ -10,12 +10,13 @@ import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez
 import * as Ciudad from './ciudad.js';
 import * as NEC from './necesidades.js';   // CDe1: necesidades de la ciudad (las usa game.js)
 import * as AGRO from './agricultura.js';   // CDe3: campos por suelo (los usa game.js)
+import * as COMARCA from './comarca.js';   // PN3: comarca aleatoria de la partida de polis (la usa game.js)
 import { crearMenu } from './ciudad-menu.js';   // CD1b: botón «Construir» y su menú por familias
 import { abrirMercado, fijarAviso } from './mercado-ui.js';   // CDe3 2b: pantalla del mercado
 import { descargar, copiar, hacerPostal, guardarCopia, cargarCopia, contemplar } from './gfx/movil.js';   // CN18
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
-G.usarCiudad(Ciudad); if (G.usarNecesidades) G.usarNecesidades(NEC); if (G.usarAgricultura) G.usarAgricultura(AGRO);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
+G.usarCiudad(Ciudad); if (G.usarNecesidades) G.usarNecesidades(NEC); if (G.usarAgricultura) G.usarAgricultura(AGRO); if (G.usarComarca) G.usarComarca(COMARCA);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
 const UI = { codice: null, modo: 'gobierno', tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
 const ROMA = D.FACTIONS.roma.col;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -239,7 +240,7 @@ function infoGuardada() {
     const cs = st.cities || {}, ids = Object.keys(cs), mias = ids.filter(k => cs[k] && cs[k].owner === 'roma');
     let hombres = 0; for (const k of mias) for (const u in (cs[k].units || {})) hombres += cs[k].units[u] || 0;
     for (const m of (st.marches || [])) if (m.owner === 'roma') for (const u in (m.units || {})) hombres += m.units[u] || 0;
-    return { fecha: G.dateStr(st.t), gen: st.hero && st.hero.name || '', mias: mias.length, total: ids.length, hombres, fin: !!st.over };
+    return { fecha: G.dateStr(st.t, st.anio0), gen: st.hero && st.hero.name || '', mias: mias.length, total: ids.length, hombres, fin: !!st.over };
   } catch (e) { return null; }
 }
 function subGuardada() { const i = infoGuardada(); return i ? i.fecha : ''; }
@@ -483,7 +484,7 @@ function cuentasHtml() {
   const l = (n, v, mal) => { v *= EM; const z = Math.abs(v) < 0.05; return '<div><span>' + n + '</span><b class="' + (z ? '' : mal ? 'mal' : 'ok') + '">' + (z ? '0' : sg(mal ? -v : v)) + '</b></div>'; };
   return '<div class="cu-top"><div class="tt">Cuentas de ' + G.estacion(s.t).toLowerCase() + '</div><button class="cu-x" data-act="cux" aria-label="Cerrar">✕</button></div>' +
     '<div class="cu-sec"><span>RECURSOS</span><div class="cu-imp"><small>Impuestos de ' + esc(D.CITIES[c.id || UI.city].n) + '</small>' + impu + '</div></div>' + ['materiales', 'hierro', 'grano'].map(fila).join('') + '<div class="cu-hom">' + D.POP_ICON + '<span>Hombres para reclutar en tus ciudades: <b>' + fmt(G.hombres()) + '</b></span></div>' + bienesCu(mercado) +
-    '<div class="cu-sec"><span>DENARIOS POR ESTACIÓN</span><i>' + D.RES_ICON.denarios + '</i></div><div class="cu-oro"><div class="cu-col">' + l('Impuestos', o.impuestos) + l('Foro y comercio', o.foro) + l('Rutas · puerto', o.rutas) + '</div><div class="cu-col">' + l('Edificios', o.edificios, 1) + (o.sabios >= 0.05 ? l('Sabios', o.sabios, 1) : '') + l('Legiones', o.legiones, 1) + l('Obras y tropas', o.obras, 1) + (o.otros >= 0.05 ? l('Otros', o.otros, 1) : '') + '</div></div>' +
+    '<div class="cu-sec"><span>DENARIOS POR ESTACIÓN</span><i>' + D.RES_ICON.denarios + '</i></div><div class="cu-oro"><div class="cu-col">' + l('Impuestos', o.impuestos) + l('Foro y comercio', o.foro) + l('Rutas · puerto', o.rutas) + '</div><div class="cu-col">' + l('Edificios', o.edificios, 1) + (o.sabios >= 0.05 ? l('Sabios', o.sabios, 1) : '') + l(G.polis() ? 'Hoplitas' : 'Legiones', o.legiones, 1) + l('Obras y tropas', o.obras, 1) + (o.otros >= 0.05 ? l('Otros', o.otros, 1) : '') + '</div></div>' +
     '<div class="cu-saldo ' + (o.saldo >= 0 ? 'ok' : 'mal') + '"><span>Saldo por estación</span><b>' + (o.saldo >= 0 ? '+ ' : '− ') + Math.round(Math.abs(o.saldo * EM)) + '</b></div>';
 }
 /* CE2: bienes guardados en la hoja de cuentas: cuántos, cuánto entra por estación, el tope, el lujo y botones para venderlos */
@@ -531,7 +532,7 @@ function guerraHoja() {
   const f = (act, v, ico, txt) => '<button class="hf" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
   return '<b class="hrot">' + (ms.length ? (ms.length === 1 ? '1 marcha en curso' : ms.length + ' marchas en curso') : 'Ninguna marcha en curso') + '</b>' +
     ms.map(m => f('vera', m.to, '🚩', 'De ' + nom(m.from) + ' a ' + nom(m.to) + ' · llega ' + llegaEn(m.t1))).join('') +
-    '<div class="hsep"></div>' + f('minimapa', null, ICO_MAPA, UI.map && UI.map.miniOn ? 'Ocultar minimapa' : 'Ver minimapa') + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general');
+    '<div class="hsep"></div>' + (G.polis() ? '' : f('minimapa', null, ICO_MAPA, UI.map && UI.map.miniOn ? 'Ocultar minimapa' : 'Ver minimapa')) + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general');
 }
 const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
@@ -907,7 +908,7 @@ function impFila(id) {
   if (c.inq > 0) pon(60 + c.inq, 'Inquietud', 'mal');
   if (f < 40) pon(50 + (40 - f), 'Ánimo bajo', 'mal');
   if (con.flags.almacen) pon(40, 'Almacén lleno', 'av');
-  if (con.flags.viviendas) pon(35, 'Población al tope', 'av');
+  if (con.flags.viviendas) { if (G.polis()) pon(25, 'Población al tope', 'ambar'); else pon(35, 'Población al tope', 'av'); }   // PN3c: en la polis es lo normal al empezar (la aldea crece con calles y casas): aviso en ámbar, no urgente
   if (!ob.length && con.rec) pon(20, 'Sin obra · hay recursos', 'av');
   else if (!ob.length) pon(5, 'Sin obra', 'ok');
   return { id, c, f, pc, pts, causa, tono, con, ob, urg: pts >= 30 };
@@ -931,7 +932,7 @@ function camVictoria() {
   const mb = $('mbox'); CAMINOS_UI.montar(mb, mb.innerHTML, a => { if (a !== 'seguir' && a !== 'abrir') return; CAMINOS.marcarVista(S()); UI.camVic = false; G.save(); closeModal(); if (a === 'abrir') camAbrir(); });
 }
 const impCaminos = () => { const v = camVista(); return v ? CAMINOS_UI.tira(v).replace('data-cam="abrir"', 'data-cam="abrir" data-act="camabrir"') : impCaminosVacio(); };
-const impCaminosVacio = () => '<div class="imp-cam" role="group" aria-label="Tus caminos de victoria"><div class="imp-cam-t"><b>Tus caminos</b><span>Ganas con tres de cuatro</span></div><div class="imp-cam-g">' +
+const impCaminosVacio = () => G.polis() ? '<div class="imp-cam" role="group" aria-label="Dominio por las armas"><div class="imp-cam-t"><b>Dominio por las armas</b><span>Ganas al conquistar todas las ciudades o el 90 % del territorio</span></div></div>' : '<div class="imp-cam" role="group" aria-label="Tus caminos de victoria"><div class="imp-cam-t"><b>Tus caminos</b><span>Ganas con tres de cuatro</span></div><div class="imp-cam-g">' +
   IMP_CAMINOS.map(c => '<div class="imp-cam-c" data-c="' + c[0] + '">' + svgIco(c[2]) + '<span>' + c[1] + '</span><div class="sen-cinta"><i></i></div></div>').join('') + '</div></div>';
 function viewImperio() {
   const s = S(), filas = G.myCities().map(impFila), n = filas.length;
@@ -942,7 +943,7 @@ function viewImperio() {
   const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.ob.length, obras: r => !!r.ob.length, animo: r => r.f < 40 }[F] || (() => true);
   const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
   const cara = f => '<span class="ro-punto ' + (f >= 60 ? 'bien' : f >= 40 ? 'med' : 'mal') + '"></span>';
-  let h = '<div class="imp mar mar-imp ro ro-imp"><div class="ro-palo"></div><div class="ro-papiro"><div class="mar-top"><h2 class="ro-ansata">Imperio</h2>' + (window.laminaHtml ? laminaHtml('imperio') : '') + '' + impCaminos() + '<div class="imp-res ro-cifras"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' + RO_HIEDRA +
+  let h = '<div class="imp mar mar-imp ro ro-imp"><div class="ro-palo"></div><div class="ro-papiro"><div class="mar-top"><h2 class="ro-ansata">Imperio</h2>' + (window.laminaHtml && !G.polis() ? laminaHtml('imperio') : '') + '' + impCaminos() + '<div class="imp-res ro-cifras"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' + RO_HIEDRA +
     (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
     '<div class="imp-chips ro-tablilla">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div></div><div class="imp-lista mar-lista">';
   if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
@@ -1109,7 +1110,7 @@ function nivelesHtml(c, bid) {
   const L = bid === 'foro' ? (c.b.foro || 1) : (c.b[bid] || 0), tope = bid === 'foro' ? D.MAX_LVL : Math.min(D.MAX_LVL, c.b.foro || 1);
   let h = '<div class="nv5" role="list" aria-label="Niveles del edificio">';
   for (let i = 1; i <= D.MAX_LVL; i++) h += '<span role="listitem" class="nv5-c' + (i <= L ? ' hecho' : '') + (i === L ? ' act' : '') + (i > tope ? ' tope' : '') + '"' + (i === L ? ' aria-current="true"' : '') + '>' + ROM5[i] + (i > tope ? '<i>🔒</i>' : '') + '</span>';
-  h += '</div><div class="nv5-t">' + (bid === 'foro' ? 'Foro' : 'Edificio') + ' a nivel <b>' + (ROM5[L] || '0') + '</b> de ' + ROM5[D.MAX_LVL] + (bid !== 'foro' && tope < D.MAX_LVL ? ' · el Foro (nivel ' + ROM5[tope] + ') pone el tope' : '') + '</div>';
+  h += '</div><div class="nv5-t">' + (bid === 'foro' ? D.BUILD.foro.n : 'Edificio') + ' a nivel <b>' + (ROM5[L] || '0') + '</b> de ' + ROM5[D.MAX_LVL] + (bid !== 'foro' && tope < D.MAX_LVL ? ' · el Foro (nivel ' + ROM5[tope] + ') pone el tope' : '') + '</div>';
   return h;
 }
 const topeForo = (c, bid) => !!bid && bid !== 'foro' && (c.b[bid] || 0) < D.MAX_LVL && (c.b[bid] || 0) >= (c.b.foro || 1);
@@ -1117,8 +1118,8 @@ function fichaHtml(c, sd) {
   const E = G.ciudadE(UI.city), cn = D.CITIES[UI.city].n, lleno = c.obras.length >= G.huecos(c);
   let ico, nom, sub, que, nv, cuerpo = '', e = null, P = null, ob = null;
   if (sd.k === 'foro') {
-    ico = (window.miniEdif && miniEdif('foro', c.b.foro || 1, 'p')) || bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
-    cuerpo = nivelesHtml(c, 'foro') + '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. El foro sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (c.owner === 'roma' ? arcaHtml(c) : '');
+    ico = (window.miniEdif && miniEdif('foro', c.b.foro || 1, 'p')) || bIco('foro'); nom = D.BUILD.foro.n; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
+    cuerpo = nivelesHtml(c, 'foro') + '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. ' + (G.polis() ? 'El ágora' : 'El foro') + ' sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (G.comarcaTexto && G.comarcaTexto() ? '<div class="nota">🗺️ ' + esc(G.comarcaTexto()) + '</div>' : '') + (c.owner === 'roma' ? arcaHtml(c) : '');
   } else {
     e = sd.e || null; ob = sd.o || c.obras.find(q => q.eid === e.id) || null; P = Ciudad.EDIF[e ? e.tipo : sd.o.pieza];
     const bid = P.bid, dg = bid === 'templo' ? G.diosDe(c) : null, k = e ? (e.mejora || 0) : 0;
@@ -1161,7 +1162,7 @@ function leccionHoy() {
   try { arrabal = !!avisoArrabal(G.ciudadE(UI.city)); } catch (e) { }
   try { cuotas = !!(c && c.obras && c.obras.some(o => o.q)); } catch (e) { }
   try { const cap = G.cap(); lleno = !!cap && D.RES.filter(r => r !== 'denarios').some(r => G.reserva(r) / G.capDe(r) >= 0.9); } catch (e) { }
-  const ctx = { mes: Math.floor(s.t + 1e-9), ahora: Date.now(), colocando: (UI.modo3 || 'mirar') !== 'mirar', cifra: !!$('l-cifra').textContent, cuotas, riesgo, barrioSube: false, almacenLleno: lleno, arrabal, turnos: !!s.turnos };
+  const ctx = { mes: Math.floor(s.t + 1e-9), ahora: Date.now(), colocando: (UI.modo3 || 'mirar') !== 'mirar', cifra: !!$('l-cifra').textContent, cuotas, riesgo, barrioSube: false, almacenLleno: lleno, arrabal, turnos: !!s.turnos, hierroPolis: !!(G.polis() && !G.vetaHierro(G.capital())) };   // PN3e: la polis sin veta aprende a comprar hierro
   const r = ASESOR.siguiente(s.ajustes, ctx); return r || null;
 }
 const conSigno = n => (n < 0 ? '\u2212' : '+') + Math.abs(n);
@@ -1682,7 +1683,7 @@ function viewCodice() {
 function viewLog() {
   if (UI.codice && window.CODICE) return viewCodice();
   // K12b: Crónica en estilo Códice. Tres folios con scroll-snap horizontal (sin scroll infinito): Campaña, Línea del tiempo y Crónica reciente.
-  const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1, cap = ch => '<span class="cod-cap">' + ch + '</span>';
+  const s = S(), year = G.yearOf(s.t), left = G.anioReglas(s.t) - D.END_YEAR + 1, cap = ch => '<span class="cod-cap">' + ch + '</span>';
   const f1 = '<section class="cod-f"><div class="cod-h">' + cap('C') + '<div><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><i>Folio I · La campaña</i></div></div><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p class="cod-st">⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p>' + (window.CODICE ? '<button class="btn ro-bronce cod-b" data-act="codice" data-v="tropas">' + D.BUILD_ICON.escuela + ' Abrir el Códice</button>' : '') + '<button class="btn ro-tinta cod-b" data-act="tomenu">Guardar y salir al menú</button></section>';
   const f2 = '<section class="cod-f"><div class="cod-h">' + cap('L') + '<div><h2>Línea del tiempo</h2><i>Folio II · Lo que fue y lo que viene</i></div></div><div class="tl cod-tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '><b>' + e.y + ' a.C.</b>' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div></section>';
   const f3 = '<section class="cod-f"><div class="cod-h">' + cap('A') + '<div><h2>Anales</h2><i>Folio III · Lo último que ocurrió</i></div></div>' + (s.log.length ? '<div class="cod-an">' + s.log.slice(0, 10).map(l => '<div class="logl ' + l.k + '"><small>' + D.MONTHS[Math.floor(l.t) % 12] + ' · ' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') + '</div>' : '<div class="empty">Aún no ha ocurrido nada.</div>') + '</section>';
@@ -1773,8 +1774,8 @@ function renderSheet() {
   const src = G.neighbors(id).filter(n => s.cities[n].owner === 'roma'), inc = s.marches.filter(m => m.to === id && !m.sitio), esp = s.marches.filter(m => m.sitio && m.from === id), sal = c.owner === 'roma' ? G.salidasPosibles(id, G.heroAvailable(id)) : [];
   const key = esp.map(m => m.id + (m.postura || '')).join() + sal.map(x => x.m.id).join() + id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + G.turnosFaltan(m)).join();
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
-  let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + f.n + '</span></h3><p>' + esc(d.h) + '</p>';
-  h += '<span class="stat">🧱 ' + (id === 'roma' && mine && G.faseMuralla(c) === 1 ? 'Muralla vieja de toba' : FASE_MURALLA[G.faseMuralla(c)]) + ' · Defensa ' + G.nivelMuralla(c) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');
+  let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + (mine && id === 'roma' && G.polis() ? 'tu polis' : f.n === d.n ? 'polis rival' : f.n) + '</span></h3><p>' + esc(d.h) + '</p>';
+  h += '<span class="stat">🧱 ' + (id === 'roma' && mine && G.faseMuralla(c) === 1 ? 'Muralla vieja de toba' : FASE_MURALLA[G.faseMuralla(c)]) + ' · Defensa ' + G.nivelMuralla(c) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + ((id === 'roma' ? G.polisFicha() : d.griega && D.POLIS[id]) ? (pf => '<span class="stat">Lujo: ' + (D.ESPECIAL[d.esp] ? D.ESPECIAL[d.esp].i + ' ' : '') + esc(pf.lujoN) + ' (' + esc(pf.lujoDe) + ')' + (D.ESPECIAL[d.esp] ? ' · ' + esc(D.ESPECIAL[d.esp].d) : '') + '</span>')(id === 'roma' ? G.polisFicha() : D.POLIS[id]) : D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');   // PN3c/PN3d: las 8 polis (la tuya y las rivales) dicen su lujo y qué da, con el mismo formato
   { const tr = G.rutasAbiertas().find(r => r.b === id && r.f !== 'roma'); if (tr) h += '<span class="stat">⚖️ Tratado de comercio con Roma</span>'; }
   h += '<div class="units">' + (Object.keys(c.units).filter(k => c.units[k] > 0).map(k => '<span>' + D.UNITS[k].n + ' <b>' + c.units[k] + '</b></span>').join('') || '<span>Sin guarnición</span>') + '</div>';
   if (inc.length) h += inc.map(m => '<div class="stat" style="color:' + (m.owner === 'roma' ? 'var(--good)' : 'var(--bad)') + '">' + (m.owner === 'roma' ? '🚩 Tus tropas llegan' : '⚠️ ' + D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ') llega') + ' ' + llegaEn(m.t1) + '</div>').join('');
@@ -1899,7 +1900,7 @@ document.addEventListener('click', function (e) {
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
     case 'new': case 'newregion': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
-    case 'newpolis': { const pf = D.POLIS[v]; if (!pf) break; if (G.hasSave() && !confirm('Ya tienes una partida guardada. Empezar con ' + pf.n + ' la reemplaza. ¿Seguir?')) break; G.newGame(pf.heroe, 'italia', { polis: v, dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break; }   // PN2: empezar con una polis griega (sobre el mapa de Italia de momento)
+    case 'newpolis': { const pf = D.POLIS[v]; if (!pf) break; if (G.hasSave() && !confirm('Ya tienes una partida guardada. Empezar con ' + pf.n + ' la reemplaza. ¿Seguir?')) break; G.newGame(pf.heroe, 'italia', { polis: v, dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false, semilla: UI.semillaPolis }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break; }   // PN2: empezar con una polis griega (sobre el mapa de Italia de momento). PN3: comarca al azar (UI.semillaPolis la fija para las capturas)
     case 'cortaen': case 'cortafun': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
     case 'novedades': if (UI.menu && (!e.target.closest('.nv-hoja') || el.classList.contains('mvolver'))) { UI.novedades = !UI.novedades; showMenu(); } break;   // CDe3
@@ -2061,7 +2062,20 @@ function frame(now) {
 
 window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.cityV && !$('citywrap').hidden) UI.cityV.resize(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && S() && !UI.menu) G.save(); });
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
+/* Vigía 25/11: al abrir y al volver al juego se busca versión nueva; si llega, un aviso la ofrece (la página abierta sigue con los archivos viejos hasta recargar) */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  const habia = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js').then(r => { r.update().catch(() => { }); document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update().catch(() => { }); }); }).catch(() => { });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!habia || document.getElementById('avisoVersion')) return;
+    caches.keys().then(ks => ks.filter(k => /^aqvila-v\d+$/.test(k)).sort((a, b) => b.slice(8) - a.slice(8))[0] || '', () => '').then(k => {
+      const b = document.createElement('button'); b.id = 'avisoVersion'; b.type = 'button';
+      b.textContent = 'Hay una versión nueva' + (k ? ' (' + k.replace('aqvila-', '') + ')' : '') + '. Toca para actualizar';
+      b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:99999;min-height:48px;padding:10px 14px;border:2px solid #8a6d2b;border-radius:14px;background:#f3e2b3;color:#3a2a10;font:600 16px system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.35)';
+      b.onclick = () => location.reload(); document.body.appendChild(b);
+    });
+  });
+}
 
 document.body.classList.add('aspecto');   // CDe4 (MN4a): el aspecto nuevo (papiro, bronce, iconos pintados); quitar la clase lo apaga
 fijarAviso((x, k) => toast(x, k)); buildTop(); buildTabs(); initBandeja();
@@ -2074,7 +2088,7 @@ function abreMinistros(dentro) {
 UI.menuC = crearMenu({ ministros: abreMinistros, senado: () => { UI.senT = 'plan'; setTab('senado'); }, D, ids: bandejaIds, info: piezaInfo, minis: () => UI.minis, coste5, puede: c => G.canAfford(c), elegir: id => elegir3(id), aviso: t => lineaPon(t, 'aviso', '', 5),
   famDe: id => { const P = Ciudad.EDIF[id]; return (P && P.bid && D.BUILD[P.bid] && D.BUILD[P.bid].fam) || D.FAMILIA_PIEZA[id] || 'principales'; },
   costa: () => { const c = D.CITIES[UI.city]; return !!(c && c.sea); } });
-try { UI.map = new MapView3D($('mapwrap'), { onSelect: id => { const otra = id && id === UI.sel && propiaEntrable(id); UI.sel = id; UI.sheetKey = ''; renderSheet(); if (otra) UI.map.entrarCiudad(id); }, puedeEntrar: propiaEntrable, ocupado: () => !!UI.battle, onEntrar: id => { UI.city = id; UI.bsel = null; UI.cityList = false; UI.deMapa = true; setTab('city'); } }); }
+try { UI.map = new MapaPartida($('mapwrap'), { onSelect: id => { const otra = id && id === UI.sel && propiaEntrable(id); UI.sel = id; UI.sheetKey = ''; renderSheet(); if (otra) UI.map.entrarCiudad(id); }, puedeEntrar: propiaEntrable, ocupado: () => !!UI.battle, onEntrar: id => { UI.city = id; UI.bsel = null; UI.cityList = false; UI.deMapa = true; setTab('city'); } }); }
 catch (e) { console.warn('WebGL no disponible para el mapa', e); $('mapwrap').innerHTML = '<div class="empty" style="padding:160px 24px;text-align:center">Tu dispositivo no puede mostrar el mapa 3D. Puedes jugar desde las pestañas Ciudad y Ejército.</div>'; }
 showMenu(); requestAnimationFrame(frame);
 // modelos reales (0 A.D.): se cargan en segundo plano; hasta entonces se usan los generados por código.

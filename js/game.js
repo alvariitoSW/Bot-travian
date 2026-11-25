@@ -25,8 +25,12 @@
 
   // General con nombre que defiende una ciudad en un año (a.C., bajan): entre `from` (opcional) y `until`
   G.cityGen = (id, year) => { const d = D.CITIES[id], g = d && d.gen; return g && year >= g.until && (!g.from || year <= g.from) ? g : null; };
-  G.yearOf = t => D.START_YEAR - Math.floor(t / 12);
-  G.dateStr = t => G.estacion(t) + ' · ' + G.yearOf(t) + ' a.C.';   // ES20: sin meses a la vista
+  /* PN3: la partida de polis empieza en s.anio0 (D.ANIO_POLIS); las demás, en D.START_YEAR. a0 opcional: el de una partida guardada que no está abierta. */
+  G.anio0 = a0 => a0 || (G.state && G.state.anio0) || D.START_YEAR;
+  G.yearOf = (t, a0) => G.anio0(a0) - Math.floor(t / 12);
+  /* El reloj de las reglas con fecha histórica (ventanas del Senado, requisitos por año, IA): cuenta desde D.START_YEAR en toda partida, así la de polis juega igual */
+  G.anioReglas = t => D.START_YEAR - Math.floor(t / 12);
+  G.dateStr = (t, a0) => G.estacion(t) + ' · ' + G.yearOf(t, a0) + ' a.C.';   // ES20: sin meses a la vista
   G.estTxt = n => n + (n === 1 ? ' estación' : ' estaciones');   // ES20: «1 estación», «2 estaciones»
   G.rate = L => L <= 0 ? 0 : D.PROD_NIVEL1 * D.NIVEL_PROD[Math.min(L, D.MAX_LVL)];   // CE3-A2: 1, 3, 6, 10, 15 x PROD_NIVEL1 (cuenta en data.js)
   G.cost = function (b, L) { const o = {}, base = D.BUILD[b].cost, m = D.NIVEL_COSTE[L + 1] || L + 1; for (const r in base) o[r] = Math.round(base[r] * m / 5) * 5; return escalaCoste(o); };   // CE3-A2: subir al nivel L+1 cuesta base x (L+1)
@@ -113,7 +117,7 @@
     const s = G.state, cs = G.myCities().map(id => s.cities[id]), md = G.modo(), c10 = x => Math.max(0, Math.min(10, Math.round(x * 10) / 10));
     const niv = cs.reduce((n, c) => n + Object.values(c.b || {}).reduce((a, v) => a + (typeof v === 'number' ? v : 0), 0), 0), pob = cs.reduce((n, c) => n + Math.max(0, c.pop || 0), 0);
     let pod = cs.reduce((n, c) => n + G.power(c.units || {}), 0); for (const m of s.marches) if (m.owner === 'roma') pod += G.power(m.units || {});
-    const total = Math.max(1, G.yearOf(0) - G.hasta()), vivido = Math.max(0, Math.min(total, G.yearOf(0) - G.yearOf(s.t))), f = vivido / total;
+    const total = Math.max(1, G.anioReglas(0) - G.hasta()), vivido = Math.max(0, Math.min(total, G.anioReglas(0) - G.anioReglas(s.t))), f = vivido / total;
     const cr = [{ id: 'ciudad', n: 'Ciudad', v: c10(niv / NOTA_REF.niveles * 10), d: niv + ' niveles de edificios' }, { id: 'poblacion', n: 'Población', v: c10(pob / NOTA_REF.pob * 10), d: Math.round(pob) + ' habitantes' },
       { id: 'ejercito', n: 'Ejército', v: c10(pod / NOTA_REF.poder * 10), d: 'fuerza ' + pod }, { id: 'anios', n: 'Años', v: c10(win ? 10 - 6 * f : 10 * f * 0.5), d: win ? 'victoria en ' + G.yearOf(s.t) + ' a.C.' : 'resististe hasta ' + G.yearOf(s.t) + ' a.C.' }];
     const u = G.ajustesUsados(), media = cr.reduce((a, q) => a + q.v, 0) / cr.length, mul = NOTA_DIF[u.dif], pen = Math.min(1.5, 0.5 * u.apagados.length);
@@ -191,9 +195,9 @@
   // sin veta de hierro la mina no da nada: de partida, un aldeano en ella y el resto en materiales y grano (licencia de juego)
   G.repartoBase = cid => cid && !G.vetaHierro(cid) ? { aserradero: 7, cantera: 6, mina: 1, granja: 6 } : { aserradero: 5, cantera: 5, mina: 5, granja: 5 };
   /* ---------- CE2: hierro, hombres y bienes ---------- */
-  G.vetaHierro = cid => D.VETAS_HIERRO.indexOf(cid) >= 0;
+  G.vetaHierro = cid => D.hayVeta ? D.hayVeta(cid) : D.VETAS_HIERRO.indexOf(cid) >= 0;   // PN3e: con polis, también Calcis
   // por qué no se puede abrir o subir la mina en esta ciudad (null = se puede)
-  G.minaMotivo = cid => G.vetaHierro(cid) ? null : 'Aquí no hay vetas de hierro: la mina solo se abre en Etruria o en Hispania. Compra el hierro en el mercado.';
+  G.minaMotivo = cid => G.vetaHierro(cid) ? null : D.polis && D.POLIS[D.polis] ? 'Aquí no hay vetas de hierro: en Grecia solo en Calcis (Eubea). Compra el hierro en el mercado.' : 'Aquí no hay vetas de hierro: la mina solo se abre en Etruria o en Hispania. Compra el hierro en el mercado.';   // PN3e
   // rendimiento de la mina: entero con veta; una mina vieja fuera de las vetas, al VETA_POBRE («vetas pobres»)
   G.minaMul = cid => G.vetaHierro(cid) ? 1 : D.VETA_POBRE;
   // hombres: no se guardan; son los reclutas libres de tus ciudades
@@ -671,7 +675,13 @@
     return Math.max(0.5, t);
   };
 
-  G.log = function (txt, kind, mudo) { const s = G.state; s.log.unshift({ t: s.t, x: txt, k: kind || '' }); if (s.log.length > 60) s.log.pop(); hojaLog(txt, kind, mudo); emit('log', { x: txt, k: kind, mudo: !!mudo }); };   // mudo: va a la Crónica pero no saca aviso en pantalla
+  /* PN3e (pase de JG3): en la partida de polis, la crónica y la hoja de estación no hablan del Senado ni de las legiones de Roma.
+     Asamblea: la ekklesia de la polis, que votaba la guerra y los tributos (Aristóteles, Constitución de los atenienses 43-44). Usar el
+     mismo Senado del juego con otro nombre es licencia de juego. Roma, igual. */
+  const GRIEGO = [[/\bdel Senado\b/g, 'de la Asamblea'], [/\bal Senado\b/g, 'a la Asamblea'], [/\bel Senado\b/g, 'la Asamblea'], [/\bEl Senado\b/g, 'La Asamblea'], [/\bSenado\b/g, 'Asamblea'],
+    [/\ba las legiones\b/g, 'a los hoplitas'], [/\bsus legiones\b/g, 'sus hoplitas'], [/\blas legiones\b/g, 'los hoplitas'], [/\blegiones\b/g, 'hoplitas']];
+  G.griego = txt => G.polis() && typeof txt === 'string' ? GRIEGO.reduce((t, r) => t.replace(r[0], r[1]), txt) : txt;
+  G.log = function (txt, kind, mudo) { txt = G.griego(txt); const s = G.state; s.log.unshift({ t: s.t, x: txt, k: kind || '' }); if (s.log.length > 60) s.log.pop(); hojaLog(txt, kind, mudo); emit('log', { x: txt, k: kind, mudo: !!mudo }); };   // mudo: va a la Crónica pero no saca aviso en pantalla
 
   /* ---------- la ciudad nueva dentro del juego (CN2b) ----------
      js/ciudad.js (ESM) hace la geometría; este bloque la conecta con la economía. El módulo se enchufa con G.usarCiudad(modulo):
@@ -683,10 +693,13 @@
        cierreMes llama a ciudad.mes(E) una vez por mes entero y mantiene la igualdad. E.n0 = el mesN de su creación (la ciudad no
        rehace los meses anteriores a n0 al reconstruirse).
      - E.modoJuego = true: el juego manda la caja. Las piezas se colocan con E.obra = 0 (el tiempo de obra lo cuenta c.obras). */
-  let CI = null, cargando = false;
+  let CI = null, cargando = false, COM = null;   // COM: comarca aleatoria de la partida de polis (js/comarca.js, ESM; PN3)
   const regE = new WeakMap();            // objeto ciudad -> { E, id, rev, cap, casas, campo } | false (no se pudo)
   const memoConv = {};                   // conversiones ya hechas (id|mes|niveles|pop -> datos): repetirlas es solo reconstruir
   G.usarCiudad = m => { CI = m || null; };
+  G.usarComarca = m => { COM = m || null; };
+  G.comarca = () => (G.state && G.state.comarca) || null;
+  G.comarcaTexto = () => COM && G.comarca() ? COM.texto(G.comarca()) : '';
   G.hayCiudad = () => !!CI;
   G.ciudadMirada = null;                 // reservado: la interfaz pone aquí la ciudad que se mira (hoy se simulan todas)
   G.huecosObra = c => D.HUECOS_OBRA[Math.min(D.MAX_LVL, Math.max(1, (c && c.b && c.b.foro) || 1))];   // obras a la vez según el nivel del foro (Q4b)
@@ -748,7 +761,7 @@
   /* CI1b: datos viejos sin plano: se prueba el plano 2 (calles con eje) y, si alguna obra no cabe, se rehace con el 1 (el de antes) */
   function reconstruir(d) { const p = d.plano; let E = rehacerCiudad(d, !p || p >= 2 ? 3 : p); if (E.fallos && (!p || p === 2)) E = rehacerCiudad(d, 2); if (E.fallos && !p) E = rehacerCiudad(d, 1); delete E.fallos; return E; }   // CI3a: se prueba el plano 3 (urbe a la vista), luego el 2 y el 1
   function rehacerCiudad(d, plano) {
-    const E = crearE(d.semilla); E.plano = plano; E.fallos = 0; E.modoJuego = true; E.cultura = d.cultura || 'roma'; E.tinte = d.tinte || E.cultura; E.tam = d.tam || null; CI.fijarTerreno(E, d.terreno || 'rio'); E.n0 = d.n0 || 0; E.mesN = E.n0; if (d.sitio) CI.fundar(E, d.sitio.x, d.sitio.z); aplicarMur0(E, d.mur0 || 0);
+    const E = crearE(d.semilla); E.plano = plano; E.fallos = 0; E.modoJuego = true; E.cultura = d.cultura || 'roma'; E.tinte = d.tinte || E.cultura; E.tam = d.tam || null; CI.fijarTerreno(E, d.terreno || 'rio'); E.n0 = d.n0 || 0; E.mesN = E.n0; if (d.chozas0) E.chozas0 = d.chozas0.slice(); if (d.sinUrbe) E.sinUrbe = true; if (CI.abrirPiezas) CI.abrirPiezas(E, d.abre); if (d.sitio) CI.fundar(E, d.sitio.x, d.sitio.z); aplicarMur0(E, d.mur0 || 0);   // PN3: casas del arranque, sin urbe, piezas abiertas
     const ac = d.acciones || [];
     for (let n = E.n0; n <= d.mesN; n++) {
       for (const a of ac) { if (a.n !== n) continue;
@@ -825,6 +838,19 @@
     const r = { E, id, rev: -1 }; regE.set(c, r); c.heredado = {}; sinc(c, r);
     const her = {}; for (const b of COMPAT) { const f = (viejo[b] || 0) - (c.b[b] || 0); if (f > 0) her[b] = f; }   // lo que la plantilla no trae se conserva como nivel heredado
     c.heredado = her; c.foroMin = Math.max(1, viejo.foro || 0); sinc(c, r); ponerDatos(c, r);
+    return E;
+  }
+  /* PN3: la ciudad de la polis al empezar. Se funda en su comarca (terreno y semilla de s.comarca: sitio del ágora y bosques cambian),
+     con 5 a 8 casas de nivel I y II, sin la urbe de adorno, cultura griega, los campos y el granero. El edificio propio queda abierto en la bandeja. */
+  function fundarPolis(c, id, k) {
+    const f = D.POLIS[G.state.polis], n0 = mesAlin(), E = crearE(k.semilla); E.plano = 3; E.modoJuego = true; E.n0 = E.mesN = n0;
+    E.cultura = 'grie'; E.tinte = 'grie'; E.tam = 'peq'; E.sinUrbe = true; E.sitioLibre = true; E.chozas0 = k.casas.slice(); CI.fijarTerreno(E, k.terreno);
+    const propia = f && CI.PIEZA_DE[f.edificio.id]; CI.abrirPiezas(E, propia ? [propia] : []);
+    if (!CI.fundarAuto(E, k.semilla)) return null;
+    if (E.barrios[0]) { E.barrios[0].nombre = 'Barrio del Ágora'; E.barrios[0].corto = 'Ágora'; }
+    const pon = pz => { const s = mejorSitioG(E, pz); if (!s) return null; const r = CI.colocar(E, pz, s[0], s[1], true); if (!r.ok) return null; r.e.obra = 0; return r.e; };
+    pon('fuente'); for (let i = 0; i < (c.b.granja || 1); i++) pon('granja'); pon('granero');   // la fuente: el pozo de la aldea (agua para las casas)
+    aplicarMur0(E, 0); c.heredado = {}; c.foroMin = 1; regE.set(c, { E, id, rev: -1 }); sinc(c, regE.get(c)); ponerDatos(c, regE.get(c));
     return E;
   }
   function abrir(c) {                    // reconstruye (si hay datos) o convierte
@@ -1016,6 +1042,7 @@
     G.quitarColonias();   // las colonias de la partida anterior no pasan a esta
     let modoId = opciones.modo === 'corta' && D.MODOS.corta ? 'corta' : null;   // I8: 'campana' (por defecto) = la de siempre, con modo null
     if (modoId) region = D.MODOS[modoId].region;
+    { const pp = !modoId && opciones.polis && D.POLIS[opciones.polis] ? opciones.polis : null; D.ponPolis(pp, true); if (pp) region = 'grecia'; }   // PN3c: la polis contra las otras polis griegas (la campaña de Roma: sin ninguna)
     region = D.REGIONES[region] ? region : 'mediterraneo';
     const inicioId = modoId ? (opciones.inicio === 'fundar' && CI && D.COLONIAS[D.MODOS[modoId].inicio.fundar.sitio] ? 'fundar' : 'enPie') : null;   // sin la ciudad nueva no se puede fundar: se cae a «en pie»
     const s = {
@@ -1027,28 +1054,35 @@
       hero: { name: heroName || 'Lucio Cornelio Escipión', lvl: 1, xp: 0, pts: 1, sk: { mando: 0, disc: 0, log: 0 }, city: 'roma', march: null, wound: 0 }
     };
     D.polis = s.polis;   // PN2: el nombre de la ciudad y del bando del jugador sale de la polis
+    if (s.polis) {   // PN3: la polis empieza en D.ANIO_POLIS, con su comarca al azar (opciones.semilla la fija: pruebas y capturas) y con lo justo en el almacén
+      s.anio0 = D.ANIO_POLIS; const sem = Number.isFinite(opciones.semilla) && opciones.semilla > 0 ? Math.floor(opciones.semilla) : 1 + Math.floor(Math.random() * 99990);
+      s.comarca = COM ? COM.generar(s.polis, sem) : null; Object.assign(s.res, D.POLIS_RES);
+    }
     const ciudades = D.regionCiudades(region).filter(id => (inicioId !== 'fundar' || D.CITIES[id].f !== 'roma') && (!s.polis || D.CITIES[id].f !== 'roma' || id === 'roma'));   // con polis: solo la capital es del jugador (sin Capua)   // «fundar de la nada»: ni Roma ni Capua existen en la partida
     for (const id of ciudades) {
       const d = D.CITIES[id];
       s.cities[id] = { owner: d.f, barrio: 1, bdef: 0, tipo: 'municipio', tipoElegido: false, units: Object.assign({}, d.g), obras: [], train: [], levas: [], reparto: G.repartoBase(id), fiesta: { ofrenda: -99, juegos: -99 }, puertas: false, vetB: 0, rac: 'normal', b: G.edificiosBase(id, d.w, d.wl), pueblos: (d.pueblos || []).map(() => 0), pobra: null };
     }
-    if (s.polis && s.cities.roma) { const f = D.POLIS[s.polis], r = s.cities.roma; r.units = Object.assign({}, f.leva); r.b[f.edificio.id] = Math.min(D.MAX_LVL, (r.b[f.edificio.id] || 0) + 1); }   // PN2: leva griega y el edificio propio un nivel más alto
+    if (s.polis && s.cities.roma) { const f = D.POLIS[s.polis], r = s.cities.roma; r.units = Object.assign({}, f.leva);   // PN2: leva griega
+      for (const b in r.b) r.b[b] = 0; r.b.foro = 1; r.b.granja = f.edificio.id === 'granja' ? 2 : 1; }   // PN3: solo el ágora y los campos (Tebas, cuyo edificio propio es la granja, con dos)
     for (const id in s.cities) { const c = s.cities[id]; c.pop = Math.round(G.popCapViejo(c) * 0.7); c.ciu = 0; c.esc = 0; G.ligarObras(c); }
     for (const id of ciudades) if (D.CITIES[id].f === 'roma' && id !== 'roma') incorporar(s.cities[id], D.CITIES[id].g);   // aliada de Roma (Capua): empieza como ciudad recién incorporada
     G.state = s; aristasC = null;
     if (modoId && G.factor('guarnicion') !== 1) for (const id in s.cities) { const c = s.cities[id]; if (c.owner === D.MODOS[modoId].rival) for (const k in c.units) c.units[k] = Math.round(c.units[k] * G.factor('guarnicion')); }   // I8: el rival parte ya con la guarnición del modo
     if (CI) for (const id of G.myCities()) {   // Roma y Capua: en pie desde la plantilla, con su población
-      const c = s.cities[id]; c.plantilla = true; const E = abrir(c); if (E && c.plantilla) c.pop = Math.min(G.popCap(c), Math.round(poblacionE(E)));
+      const c = s.cities[id]; if (s.polis && id === 'roma' && s.comarca) { const E = fundarPolis(c, id, s.comarca); if (E) { c.pop = Math.min(G.popCap(c), Math.round(poblacionE(E))); continue; } }   // PN3: la polis, en su comarca
+      c.plantilla = true; const E = abrir(c); if (E && c.plantilla) c.pop = Math.min(G.popCap(c), Math.round(poblacionE(E)));
     }
     if (inicioId === 'enPie') s.capital = 'roma';
     s.ajustes.hist.push([mesAlin() + 1, { dif: dif0, suc: Object.assign({}, s.ajustes.suc) }]);   // Roma y Capua ya nacieron en Normal: la elegida cuenta desde el mes siguiente
-    s.evN = D.EVENTS.length; s.evV = EV_VERSION; D.anio = D.START_YEAR;
+    s.evN = D.EVENTS.length; s.evV = EV_VERSION; D.anio = G.anio0();   // PN3: en la partida de polis (800 a.C.) no salta ningún hecho romano
     if (s.cities.roma && !s.polis) for (const k in D.LEVA_INICIAL) s.cities.roma.units[k] = (s.cities.roma.units[k] || 0) + D.LEVA_INICIAL[k];   // H13b: preparación inicial (licencia de juego)
-    checkEvents(D.START_YEAR);
+    checkEvents(G.anio0());
     G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); DIP.migrar(s); G.migrarCD(s); G.migrarAgro(s); G.migrarAjustes(s); G.migrarTribunos(s); G.senadoAsignar(); if (D.SENADO.sala) G.senadoEstacion();
     if (inicioId === 'fundar') { s.hero.city = null; s.colonias[D.MODOS[modoId].inicio.fundar.sitio] = { estado: 'pendiente', desde: null }; }
     s.hojaR0 = reservaAhora();   // ES20: la reserva con que empieza la primera estación (la hoja cuenta desde aquí)   // colonos «ya llegados»: la pantalla llama a G.fundarColonia
-    if (s.polis) { const f = D.POLIS[s.polis]; G.log('🏛️ Empiezas como ' + f.n + ': ' + f.rasgo.n + '. ' + f.rasgo.d + ' Tu edificio propio, ' + f.edificio.n + ', ya está un nivel más alto.', 'good'); }
+    if (s.polis) { const f = D.POLIS[s.polis], k = s.comarca; G.log('🏛️ Empiezas como ' + f.n + ': ' + f.rasgo.n + '. ' + f.rasgo.d + (f.edificio.id === 'granja' ? ' Tu edificio propio, ' + f.edificio.n + ': empiezas con dos granjas.' : ' Tu edificio propio, ' + f.edificio.n + ', ya se puede construir.'), 'good');
+      if (k && COM) G.log('🗺️ ' + COM.texto(k), ''); }
     return s;
   };
 
@@ -1477,6 +1511,7 @@
 
   // turno de los rivales: refuerzos de guarnición e incursiones. factor 1 = una vez al año; en turnos se llama 4 veces al año con 0.25
   function turnoIA(year, factor) {
+    year -= G.anio0() - D.START_YEAR;   // PN3: la IA va con el reloj de las reglas (en la partida de polis el año que se ve empieza en s.anio0)
     const s = G.state, mult = 1 + (D.START_YEAR - year) / (D.START_YEAR - G.hasta()) * 0.8, md = G.modo();
     for (const id in s.cities) {
       const c = s.cities[id]; if (c.owner === 'roma') continue;
@@ -1764,7 +1799,7 @@
     if (llenos.length) out.push({ k: '', x: T.llenoAlm(llenos.slice(0, 3).join(', ') + (llenos.length > 3 ? '…' : '')) });
     for (const id of mis) { const pd = G.arca(id).pide; if (pd) { out.push({ k: '', x: pd }); break; } }   // CN13a: el arca pide una ofrenda
     const mi = G.misionActual(), sen = G.favorBajo() ? { k: 'bad', x: T.favor() } : mi ? { k: '', x: T.mision(mi.m.n, mi.quedan, mi.falta) } : null;   // sustituye al tercer aviso
-    const sv = D.SENADO.sala && G.senadoSala() ? { k: '', x: 'El Senado vota: ' + G.senadoSala().ley.n + '.' } : null;   // SN1
+    const sv = D.SENADO.sala && G.senadoSala() ? { k: '', x: G.griego('El Senado vota: ' + G.senadoSala().ley.n + '.') } : null;   // SN1
     const l = [head].concat(out.slice(0, sv ? Math.max(0, 3 - (sen ? 1 : 0) - 1) : sen ? 2 : 3)); if (sen) l.push(sen); if (sv) l.push(sv);
     l.push({ k: rec ? '' : 'good', x: rec || T.tranquila() });
     return l.slice(0, 5);
@@ -1961,7 +1996,7 @@
         soltarCiudad(c); c.owner = m.owner; c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.obras.length = 0; c.train = []; c.puertas = false; c.vetB = 0;
         out.lines.push('🔥 ' + d.n + ' ha caído en manos de ' + D.FACTIONS[m.owner].n + '.');
         G.log('🔥 ' + d.n + ' ha caído ante ' + D.FACTIONS[m.owner].n + '.', 'bad');
-        if (cid === G.capital()) terminar(false, G.modo() ? textoFinal('pierde', { anio: G.yearOf(s.t), rival: D.FACTIONS[m.owner].n }) : 'Roma ha caído en ' + G.yearOf(s.t) + ' a.C. ante ' + D.FACTIONS[m.owner].n + '. Vae victis.');
+        if (cid === G.capital()) terminar(false, G.modo() ? textoFinal('pierde', { anio: G.yearOf(s.t), rival: D.FACTIONS[m.owner].n }) : D.CITIES[cid].n + ' ha caído en ' + G.yearOf(s.t) + ' a.C. ante ' + D.FACTIONS[m.owner].n + '.' + (G.polis() ? '' : ' Vae victis.'));   // PN3e: el nombre de tu polis, no «Roma»
         else if (h.city === cid) h.city = G.capital();
         // las marchas propias hacia la ciudad perdida se convierten en ataques al llegar (ya lo gestiona tick)
       }
@@ -1975,7 +2010,7 @@
       if (win && res.prisioneros > 0) cautivos(res.prisioneros, cercaDeCiudad(cid), out);   // CG4b: los heridos del vencido son cautivos: esclavos o venta
       if (win && res.heridos) heridosA(dHer, res.heridos[0], out);
       if (!win && res.cautivos > 0) out.lines.push('⛓️ ' + res.cautivos + (res.cautivos === 1 ? ' herido tuyo cae prisionero.' : ' heridos tuyos caen prisioneros.'));
-      if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push('🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); }
+      if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push(G.polis() ? '🎺 ¡Gran victoria! La polis lo celebra: sube el favor de la Asamblea y del pueblo.' : '🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); /* PN3e */ }
     }
     if (m.tribuno != null && s.tribunos) {
       const i = s.tribunos.findIndex(t => t.id === m.tribuno);
@@ -2355,7 +2390,7 @@
       if (win && res.prisioneros > 0) { const A = D.CAMINOS[K.camino - 1], p = K.punto || 0, a = A && D.CITIES[A[0]], b = A && D.CITIES[A[1]]; cautivos(res.prisioneros, a && b ? romanaCerca(a.lon + (b.lon - a.lon) * p, a.lat + (b.lat - a.lat) * p) : dHer, out); }   // CG4b: cautivos a tu ciudad más cercana al camino
       if (win && res.heridos) heridosA(dHer, res.heridos[0], out);
       if (!win && res.cautivos > 0) out.lines.push('⛓️ ' + res.cautivos + (res.cautivos === 1 ? ' herido tuyo cae prisionero.' : ' heridos tuyos caen prisioneros.'));
-      if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push('🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); }
+      if (win && res.dead[1] >= D.TRIUNFO.bajas && res.dead[0] * D.TRIUNFO.ratio < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push(G.polis() ? '🎺 ¡Gran victoria! La polis lo celebra: sube el favor de la Asamblea y del pueblo.' : '🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); /* PN3e */ }
     }
     if (m.tribuno != null && s.tribunos) {
       const i = s.tribunos.findIndex(t => t.id === m.tribuno);
@@ -2377,7 +2412,7 @@
   G.dipRomper = f => { const r = DIP.romper(G.state, f); if (r) G.log('⚔️ Roma rompe el pacto con ' + D.FACTIONS[f].n + '.', 'bad'); return r; };
   G.dipIngreso = () => DIP.ingresoMes(G.state);
   G.load = function () { let ok = false; cargando = true; try { ok = cargar(); } finally { cargando = false; } if (ok) { G.migrarAjustes(G.state); G.migrarTribunos(G.state); G.migrarParada(G.state); G.migrarCampo(G.state); G.migrarAgro(G.state); } if (ok && CI) alCargar(); return ok; };
-  function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (s.polis === undefined || !D.POLIS[s.polis]) s.polis = null; D.polis = s.polis; G.migrarNiveles(s); G.migrarEstaciones(s); G.migrarRecursos(s); for (const id in s.cities) G.ligarObras(s.cities[id]); for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } if (s.vivo === undefined) s.vivo = null; if (!Array.isArray(s.vivoCola)) s.vivoCola = []; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(id); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; G.migrarHeridos(c); if (typeof c.puertas !== 'boolean') c.puertas = false; if (typeof c.vetB !== 'number') c.vetB = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarPueblos(s); G.migrarRetirados(s); G.migrarES20(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); DIP.migrar(s); G.migrarCD(s); G.migrarAjustes(s); G.migrarModo(s); if (s.triunfo === undefined) s.triunfo = null; if (typeof s.triunfoFin !== 'number') s.triunfoFin = 0; return true; } } catch (e) { /* partida corrupta */ } return false; }
+  function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (s.polis === undefined || !D.POLIS[s.polis]) s.polis = null; D.polis = s.polis; D.ponPolis(s.polis, s.region === 'grecia');   /* PN3c: rivales griegas (las partidas de polis anteriores siguen con las de Italia) */ if (s.comarca === undefined) s.comarca = null; if (!Number.isFinite(s.anio0)) delete s.anio0;   /* PN3: partida vieja (de polis o no): sin comarca y con su año de siempre (D.START_YEAR) */ G.migrarNiveles(s); G.migrarEstaciones(s); G.migrarRecursos(s); for (const id in s.cities) G.ligarObras(s.cities[id]); for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } if (s.vivo === undefined) s.vivo = null; if (!Array.isArray(s.vivoCola)) s.vivoCola = []; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(id); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; G.migrarHeridos(c); if (typeof c.puertas !== 'boolean') c.puertas = false; if (typeof c.vetB !== 'number') c.vetB = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarPueblos(s); G.migrarRetirados(s); G.migrarES20(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); DIP.migrar(s); G.migrarCD(s); G.migrarAjustes(s); G.migrarModo(s); if (s.triunfo === undefined) s.triunfo = null; if (typeof s.triunfoFin !== 'number') s.triunfoFin = 0; return true; } } catch (e) { /* partida corrupta */ } return false; }
   /* CE3-A2: de diez niveles a cinco. Todo nivel viejo L pasa a ceil(L / 2) en c.b, c.heredado, foroMin y el muro guardado de la ciudad nueva (las piezas guardan su mejora 0..3:
      ahora valen 1..4 niveles y c.b se rehace solo). Las obras en curso conservan lo pagado y su fin se acorta a 2 estaciones (6 meses) desde ahora. Idempotente con s.niveles5. */
   G.migrarNiveles = function (s) {
@@ -2612,7 +2647,7 @@
     if (req.inv) return req.inv.every(id => h[id] !== undefined);
     if (req.saberes !== undefined) return nInv() >= req.saberes;
     if (req.ramas !== undefined) { const r = {}; for (const k in h) if (D.INVEST[k]) r[D.INVEST[k].rama] = 1; return Object.keys(r).length >= req.ramas; }
-    if (req.y !== undefined) return G.yearOf(s.t) <= req.y;
+    if (req.y !== undefined) return G.anioReglas(s.t) <= req.y;
     if (req.o) return req.o.some(r => G.invReq(null, r));
     return false;
   };
@@ -2769,7 +2804,7 @@
   G.senadoAsignar = function () {
     const s = G.state; G.migrarSenado(s); if (s.mision) return null;
     if (D.SENADO.sala) return G.senadoObraSiguiente();   // SN1: las misiones llegan por votación
-    const y = G.yearOf(s.t), mes = Math.floor(s.t + 1e-9);
+    const y = G.anioReglas(s.t), mes = Math.floor(s.t + 1e-9);
     const m = Object.values(D.MISIONES).find(q => !s.misionesHechas[q.id] && y <= q.desde && y >= q.desde - D.SENADO.ventana && G.MISION_TIPOS[q.cond.tipo] && (!q.cond.ciudad || s.cities[q.cond.ciudad]));   // I8: sin Roma ni Capua (fundar) no hay misiones en ellas
     if (!m) return null;
     s.mision = { id: m.id, t0: mes, t1: mes + m.plazo };
@@ -2884,7 +2919,7 @@
   G.migrarSala = function (s) {
     if (s.senado && s.senado.v === 2) return;
     if (!s.senado || s.senado.v !== 1) {
-      const f = s.favor.senado, y = G.yearOf(s.t), perm = {};
+      const f = s.favor.senado, y = G.anioReglas(s.t), perm = {};
       for (const id in D.FACTIONS) { const F = D.FACTIONS[id]; if (id !== 'roma' && F.raid && y <= F.from) perm[id] = 99999; }   // guerras ya en marcha: las que asaltan de antiguo (from = año a.C. en que empiezan)
       const md = s.modo && D.MODOS && D.MODOS[s.modo.id]; if (md && md.rival) perm[md.rival] = 99999;
       if (s.marches) for (const m of s.marches) if (!m.colonos && s.cities[m.to]) { const o = m.owner === 'roma' ? s.cities[m.to].owner : m.owner; if (o !== 'roma') perm[o] = 99999; }
@@ -2971,7 +3006,7 @@
   };
   // lista ordenada de leyes posibles ahora: la primera es la del Senado
   G.candidatas = function () {
-    const s = G.state, q = SQ(), y = G.yearOf(s.t), mes = mesAhora(s), out = [];
+    const s = G.state, q = SQ(), y = G.anioReglas(s.t), mes = mesAhora(s), out = [];
     const pon = id => { if (!out.includes(id) && G.leyDe(id) && sirve(s, q, G.leyDe(id))) { const u = q.ultimas[id]; if (u === undefined || G.turnoN(s.t) - u >= D.SENADO.duracion) out.push(id); } };
     if (!s.mision && !q.obras.length) { const m = Object.values(D.MISIONES).find(x => !s.misionesHechas[x.id] && y <= x.desde && y >= x.desde - D.SENADO.ventana && G.MISION_TIPOS[x.cond.tipo] && (!x.cond.ciudad || s.cities[x.cond.ciudad])); if (m) pon(m.id); }
     const rojo = s.res.denarios < 0 || s.deudaPaga > 0, enemigo = s.marches.some(m => m.owner !== 'roma' && s.cities[m.to] && s.cities[m.to].owner === 'roma');
@@ -3664,5 +3699,5 @@
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 
   root.Game = G;
-  if (typeof module !== 'undefined') { module.exports = G; try { G.usarCiudad(require('./ciudad.js')); } catch (e) { /* sin ciudad nueva: el juego sigue con números */ } try { G.usarNecesidades(require('./necesidades.js')); } catch (e) { /* sin necesidades de barrio */ } try { G.usarAgricultura(require('./agricultura.js')); } catch (e) { /* sin agricultura por suelos */ } }
+  if (typeof module !== 'undefined') { module.exports = G; try { G.usarCiudad(require('./ciudad.js')); } catch (e) { /* sin ciudad nueva: el juego sigue con números */ } try { G.usarComarca(require('./comarca.js')); } catch (e) { /* sin comarca: la polis empieza como en PN2 */ } try { G.usarNecesidades(require('./necesidades.js')); } catch (e) { /* sin necesidades de barrio */ } try { G.usarAgricultura(require('./agricultura.js')); } catch (e) { /* sin agricultura por suelos */ } }
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -49,7 +49,8 @@ export function datosCiudad(E, clasesTot, nec) {
     const cob = NEC.coberturaBarrio(mias, alc.porCasa), mem = Object.assign(NEC.memoriaNueva(), (nec && nec.mem && nec.mem[i]) || {});
     const ficha = NEC.fichaBarrio({ cobertura: cob, clases, mem });
     const dom = ['ple', 'ciu', 'esc'].reduce((a, k) => clases[k] > clases[a] ? k : a, 'ple');
-    const estado = mem.revuelta || ficha.animo < 40 ? 'mal' : ficha.animo >= 60 ? 'bien' : 'falta';
+    const aldea = E.sinUrbe && (E.mesN - (E.n0 || 0)) < 12;      // PN3: la aldea de la polis no pide servicios de ciudad el primer año (arranque tranquilo)
+    const estado = mem.revuelta ? 'mal' : aldea || ficha.animo >= 60 ? 'bien' : ficha.animo < 40 ? 'mal' : 'falta';
     return { i, nombre: b.nombre || ('Barrio ' + (i + 1)), corto: b.corto || b.nombre || ('B' + (i + 1)), x: b.x, z: b.z, n: mias.length, pop: mias.reduce((s, c) => s + CABEN[Math.min(4, c.nivel)], 0),
       cob, mem, ficha, animo: ficha.animo, humor: ficha.humor, estado, revuelta: !!mem.revuelta, nivel: ficha.nivel, clases, dom, claseNombre: CLASE_NOMBRE[dom], tend: 0 };
   });
@@ -134,7 +135,8 @@ const pct = f => Math.round(f * 100);
 const CSS = `
 .bui-etq { position: absolute; inset: 0; overflow: clip; pointer-events: none; z-index: 3; }
 .bui-etq button { text-transform: none; letter-spacing: 0; position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 5px; max-width: 150px; min-height: 30px; padding: 3px 10px 3px 4px; border-radius: 16px; background: rgba(246, 237, 216, .94); color: #4a2f12; border: 1.5px solid rgba(110, 76, 30, .55); font-family: inherit; font-weight: 650; font-size: 13px; line-height: 1; white-space: nowrap; pointer-events: auto; box-shadow: 0 2px 8px #0006; overflow: clip; will-change: transform; }
-.bui-etq button span { overflow: clip; text-overflow: ellipsis; }
+.bui-etq.chica button { min-height: 24px; padding: 1px 8px 1px 3px; font-size: 11px; gap: 3px; } .bui-etq.chica button svg { width: 18px; height: 18px; }
+.bui-etq button span { overflow: clip; text-overflow: ellipsis; line-height: 1.3; padding-top: 2px; }
 .bui-etq button.mal { border-color: #b5281f; }
 .bui-gotas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 .mlabel.barrio { display: none !important; }
@@ -270,6 +272,7 @@ export function montarBarrioUI(vista, ctx) {
     const E = G && G.ciudadE && U ? G.ciudadE(ciudadId()) : null;
     if (!E || !E.fundada) { if (est.D) { est.D = null; est.clave = ''; limpiarTodo(); } return false; }
     const k = claveDe(E);
+    est.aldea = !!(E.sinUrbe && (E.mesN - (E.n0 || 0)) < 12); etq.classList.toggle('chica', est.aldea);
     if (k !== est.clave) { est.clave = k; est.D = calcular(E); pintarCapas(); if (est.barrio >= 0) pintaFicha(); }
     return true;
   }
@@ -279,7 +282,8 @@ export function montarBarrioUI(vista, ctx) {
   function pintarCapas() {
     const D = est.D; if (!D) return;
     if (est.capa) { vista.quitarCapa('barrios'); const cv = pintarZona(D, zonaNecesidad(D, est.capa), COL_NEC[est.capa], 0.5); vista.capaSuelo('zonas', cv, D.rect, { orden: 1, bajoCasas: true }); }
-    else { vista.quitarCapa('zonas'); vista.capaSuelo('barrios', pintarManchas(D), D.rect, { orden: 0, bajoCasas: true }); }
+    else { const Ea = G && G.ciudadE && U ? G.ciudadE(ciudadId()) : null, suave = !!(Ea && Ea.sinUrbe && (Ea.mesN - (Ea.n0 || 0)) < 12);      // PN3b: la aldea del primer año, con manchas apenas visibles
+      vista.quitarCapa('zonas'); vista.capaSuelo('barrios', pintarManchas(D), D.rect, { orden: 0, bajoCasas: true, opacidad: suave ? 0.3 : 1 }); }
     pintarRemedio(); ponerEtiquetas(); est.firma = ''; posicionar();
   }
   function pintarRemedio() {
@@ -304,7 +308,7 @@ export function montarBarrioUI(vista, ctx) {
     const verEtq = !!D && est.visible && !est.capa && est.barrio < 0;
     est.etqs.forEach((e, i) => {
       const b = D && D.barrios[i]; if (!b || !verEtq) { e.style.display = 'none'; return; }
-      const p = vista.aPantalla(b.x, b.z, 6), x = p.x - r.left, y = p.y - r.top, w = e.offsetWidth || 90;
+      const p = vista.aPantalla(b.x, b.z, est.aldea ? 30 : 6), x = p.x - r.left, y = p.y - r.top, w = e.offsetWidth || 90;
       if (!p.ok || y < 190 || y > H - 110) { e.style.display = 'none'; return; }
       e.style.display = ''; e.style.transform = 'translate(' + Math.round(Math.max(4, Math.min(W - w - 4, x - w / 2))) + 'px,' + Math.round(y - 15) + 'px)';
     });

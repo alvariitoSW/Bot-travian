@@ -147,3 +147,19 @@ body.aspecto #tabs3 button { min-width: 0; overflow: clip; font-size: 10px; lett
   body.aspecto #tabs3 button span { display: none; }
   body.aspecto #tabs3 button i img { width: 24px; height: 24px; }
 }
+
+/* PN3b: la «Lección» ocupa una tira baja de dos líneas con el botón al lado (antes tapaba media aldea al empezar) */
+html body #linea.leccion { display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 10px; max-height: none; font-size: 12px; line-height: 1.25; }
+html body #linea.leccion #l-nota { flex: none; margin: 0; font-size: 11px; }
+html body #linea.leccion #l-texto { flex: 1; min-width: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: clip; }
+html body #linea.leccion #l-ok { flex: none; margin: 0; min-height: 44px; padding: 0 10px; font-size: 12px; }
+/* PN3c: «Marchas» sobre papiro: letra e icono en tinta (antes oro pálido sobre crema, no se leía) */
+body.aspecto #bmarchas { color: var(--as-tinta); border-color: var(--as-bronce2); }
+body.aspecto #bmarchas .ico { stroke: var(--as-tinta); }
+/* PN3c: «Población al tope» de la polis, en ámbar (aviso, no alarma) */
+.imp-tag.ambar, .ro .imp-tag.ambar { color: #6e4600; background: #f0cf7a66; border: 1px solid #b8862b; }
+/* PN3c: la fila de datos de la hoja de una ciudad (muralla, riqueza, fuerza, lujo) en tinta, no gris pálido sobre papiro */
+body.aspecto #sheet .stat { color: var(--as-tinta2); font-size: 12.5px; }
+body.aspecto #sheet .empty { color: #7a3d08; }   /* PN3c: «Sin ruta…» legible sobre papiro (≈ 6:1) */
+/* PN3c: la lección, en tinta sobre papiro (antes blanco sobre crema) */
+html body #linea.leccion #l-texto, html body #linea.leccion #l-nota { color: var(--as-tinta); text-shadow: none; }

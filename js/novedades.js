@@ -4,6 +4,30 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 178, fecha: '25/11/2026', cosas: [
+      'Calcis tiene veta de hierro: sus Minas de Eubea ya lo producen.',
+      'Con una polis, la primera lección te enseña a comprar hierro en el mercado para tus hoplitas.',
+      'En Partida nueva, la ficha de tu polis dice qué te da su bien especial.',
+      'Si cae tu polis, la crónica dice su nombre y no «Roma».'] },
+    { v: 177, fecha: '25/11/2026', cosas: [
+      'Cada una de las 8 polis tiene su bien especial: Corinto su cerámica, Tebas sus anguilas, Mileto su lana fina y Calcis su bronce.'] },
+    { v: 176, fecha: '25/11/2026', cosas: [
+      'Con una polis, tus rivales son ahora las otras polis griegas, cada una en su sitio del mapa.',
+      'La pestaña Mapa abre de lejos y ves las 8 polis de golpe; las que no caben junto a su sitio salen unidas con una línea.',
+      'La hoja de tu polis dice su lujo y qué te da, en vez de «Bien: Sal».',
+      'Las casas de la aldea del arranque se ven a su tamaño, ya no más pequeñas que un árbol.',
+      'El botón «Marchas» se lee bien y «Población al tope» es un aviso en ámbar, no una alarma.'] },
+    { v: 175, fecha: '25/11/2026', cosas: [
+      'Las polis de costa tienen mar: al norte del río se extiende el agua hasta el horizonte.',
+      'El ágora de tu polis es ahora el bouleuterion griego, no el foro romano.',
+      'El arranque se ve más claro: la cámara se acerca a la aldea y la lección ya no tapa las casas.',
+      'Los aldeanos son ahora los personajes de Meshy, con cara, y ya no hay muñecos de bloque.',
+      'Con una polis, la pestaña Mapa es el mapa vivo de Grecia y solo se gana por las armas: todas las ciudades o el 90 % del territorio.',
+      'Si hay una versión nueva del juego, un aviso abajo te deja actualizar con un toque.'] },
+    { v: 174, fecha: '25/11/2026', cosas: [
+      'Tu polis empieza pequeña: el ágora, unas pocas casas y entre 100 y 200 personas, en el año 800 a.C.',
+      'Cada partida nueva sale una comarca distinta: el terreno, el sitio del ágora y los bosques cambian.',
+      'En la ficha del ágora ves tu comarca: su agua, su puerto y los recursos que tienes cerca.'] },
     { v: 173, fecha: '25/11/2026', cosas: [
       'En Partida nueva eliges entre 8 polis griegas: Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto y Calcis.',
       'Cada una tiene su rasgo, su edificio propio, su tropa y su lujo; la ciudad y el bando llevan su nombre.',

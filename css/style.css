@@ -1919,6 +1919,8 @@ body.encalles #cbar, body.encalles #tabs3 { display: none !important; }
 #cbar { display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 8px; }
 #kbtn { width: 52px; height: 52px; min-width: 0; padding: 0; gap: 1px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid rgba(255, 240, 200, .6); box-shadow: 0 6px 18px rgba(0, 0, 0, .6); }
 #kbtn svg { width: 20px; height: 20px; } #kbtn b { font-size: 9.5px; font-weight: 750; letter-spacing: 0; line-height: 1; }
+/* PN3b: Calles y Construir miden lo que dicen sus reglas (antes, con flex: 1 1 0 en columna, se aplastaban a ~40 px) */
+#cbar .cbar-b { flex: none; min-height: 52px; }
 
 /* ---- ES20: sin reloj. «Pasar estación» siempre a la vista y hoja de estación ---- */
 /* en la ciudad y en la sala del Senado, píldora dorada en la tira (no tapa «Construir» ni los votos); en lo demás, la barra grande sobre las pestañas */

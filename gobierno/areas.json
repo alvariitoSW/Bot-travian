@@ -253,7 +253,10 @@
         "js/gfx/calles3d.js",
         "test/calles.test.mjs",
         "gobierno/maquetas/calles/",
-        "gobierno/maquetas/mercado/"
+        "gobierno/maquetas/mercado/",
+        "js/comarca.js",
+        "test/comarca.test.mjs",
+        "gobierno/captura-pn3.mjs"
       ],
       "taller": [],
       "juez": {
@@ -266,7 +269,8 @@
           "test/caminos.test.mjs",
           "test/este-ano.test.mjs",
           "test/gobernador.test.mjs",
-          "test/calles.test.mjs"
+          "test/calles.test.mjs",
+          "test/comarca.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area cerebro"
