@@ -11,6 +11,7 @@
               J20b: la liga también acaba guardados de mitad de partida con cada bot: gobierno/liga.mjs, ver su cabecera.)
    J20b: una liga lanzada aparte (`node gobierno/liga.mjs &`) no frena la subida: al empezar, la subida la pausa (SIGSTOP a su
         grupo) y la reanuda al acabar, también si falla o se corta. La subida nunca lanza la liga.
+   JG3: la subida juega también una partida de polis (la Partida nueva griega) en su propio navegador: ver partidaPolis().
    J20b: la subida pasa el juez de aspecto (gobierno/juez-aspecto.mjs --todas) sobre todas las fichas de gobierno/aspecto/.
    J20a: las pruebas con reloj de pared (marcadas «solo») corren antes y en serie, sin nada compitiendo.
    JZ1: cada prueba guarda en gobierno/jueces-cache.json la huella de los archivos que lee al dar APTO; si no cambió ninguno, no
@@ -155,14 +156,14 @@ async function logica(cola) {
 
 /* ---------- 2. Navegador ---------- */
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
-function servidor() {
+function servidor(vistos) {   // JG3: con «vistos» (un Set), apunta cada archivo servido (la huella de la partida de polis)
   return new Promise(ok => {
     const s = createServer(async (req, res) => {
       try {
         let ruta = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^([/\\])+/, '');
         if (ruta === '' || ruta.endsWith('/')) ruta += 'index.html';
         if (ruta.startsWith('..')) throw new Error('fuera');
-        const datos = await readFile(join(RAIZ, ruta));
+        const datos = await readFile(join(RAIZ, ruta)); if (vistos) vistos.add(ruta.split(/[\\/]/).join('/'));
         res.writeHead(200, { 'Content-Type': TIPOS[extname(ruta)] || 'application/octet-stream', 'Cache-Control': 'no-cache' }); res.end(datos);
       } catch (e) { res.writeHead(404); res.end('no encontrado'); }
     });
@@ -684,6 +685,126 @@ async function guerraJugada() {
   return r.status === 0;
 }
 
+/* ---------- 2c. JG3 · Partida de polis (la Partida nueva griega de la 2.0), en su propio navegador a 390×844 ----------
+   Menú → Partida nueva → Atenas → arranque en el 800 a.C. (ágora, casas, aldeanos de Meshy y ningún muñeco de bloque) → MAPA de Grecia con
+   las 8 polis y ni un nombre romano a la vista → Imperio solo con «Dominio por las armas» → «Pasar estación» → sin errores de consola.
+   Capturas en gobierno/capturas-polis/ (aparte: el recorrido borra gobierno/capturas/ al empezar y los dos van a la vez).
+   Memoria: la huella son los archivos que el navegador pidió de verdad en su último APTO (sin service worker, que pediría todo). */
+const CAPS_POLIS = join(RAIZ, 'gobierno', 'capturas-polis');
+const POLIS_GR = ['Atenas', 'Esparta', 'Corinto', 'Argos', 'Tebas', 'Mégara', 'Mileto', 'Calcis'];
+const ROMANOS = /\b(Roma|Volsinii|Capua|Tarentum|Mediolanum|Messana|Syracusae|Agrigentum|Panormus|Lilybaeum|Carales|Carthago|Corinthus|Neapolis|Massalia|Ostia|Mare Internum|Tyrrhenum)\b/;
+async function partidaPolis(vistos) {
+  console.log('Juez 2 · partida de polis (390×844)');
+  let chromium;
+  try { chromium = createRequire(import.meta.url)('playwright').chromium; }
+  catch (e) { apunta('Partida de polis: abrir el navegador', false, 'Playwright no está instalado: ' + e.message.split('\n')[0]); return; }
+  await rm(CAPS_POLIS, { recursive: true, force: true }); await mkdir(CAPS_POLIS, { recursive: true });
+  const srv = await servidor(vistos), url = 'http://127.0.0.1:' + srv.address().port + '/', err = [];
+  const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+  const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true, serviceWorkers: 'block' });
+  if (RITMO_MS > 0) await ctx.addInitScript({ content: 'window.__ritmoMs=' + RITMO_MS + ';' + readFileSync(join(RAIZ, 'gobierno', 'ritmo-pruebas.js'), 'utf8') });
+  const page = await ctx.newPage();
+  page.on('console', m => { if (m.type() === 'error') err.push(m.text().slice(0, 300)); });
+  page.on('pageerror', e => err.push('EXCEPCIÓN: ' + String(e.message).slice(0, 300)));
+  let n = 0;
+  const foto = async nombre => { const f = 'P' + String(++n).padStart(2, '0') + '-' + nombre + '.jpg'; await page.screenshot({ path: join(CAPS_POLIS, f), type: 'jpeg', quality: 72 }); return '../capturas-polis/' + f; };
+  const estado = (fn, arg) => page.evaluate(fn, arg);
+  const accion = (a, v) => estado(([a, v]) => { const b = document.createElement('button'); b.dataset.act = a; if (v) b.dataset.v = v; document.body.appendChild(b); b.click(); b.remove(); }, [a, v]);
+  const limpia = () => estado(() => { const m = document.getElementById('modal'); if (m && !m.hidden && !m.querySelector('[data-act="close"]')) return; for (const b of document.querySelectorAll('#modal:not([hidden]) [data-act="close"]')) b.click(); const l = document.getElementById('linea'); if (l) l.hidden = true; });
+  let sigue = true;
+  const paso = async (nombre, fn) => {
+    if (!sigue) { apunta('Partida de polis · ' + nombre, false, 'no se llegó: falló un paso anterior'); return; }
+    try { const r = await fn(); apunta('Partida de polis · ' + nombre, r.ok, r.detalle, r.captura); if (!r.ok && r.corta) sigue = false; }
+    catch (e) { let c = null; try { c = await foto('fallo'); } catch (x) { } apunta('Partida de polis · ' + nombre, false, String(e.message).split('\n')[0].slice(0, 300), c); sigue = false; }
+  };
+  try {
+    await paso('menú → Partida nueva → elegir Atenas', async () => {
+      await page.goto(url, { waitUntil: 'load' });
+      await page.waitForSelector('#menu [data-pn="nueva"]:visible', { timeout: 30000 });
+      await estado(() => { UI.semillaPolis = 1013; });   // la misma comarca cada vez (la de las capturas de PN3)
+      await page.click('#menu [data-pn="nueva"]:visible'); await page.waitForTimeout(500);
+      const ids = await estado(() => [...document.querySelectorAll('#menu [data-pnpolis]')].filter(e => e.offsetParent).map(e => e.dataset.pnpolis));
+      const c1 = await foto('eleccion');
+      await page.click('#menu [data-pnpolis="atenas"]'); await page.waitForTimeout(400);
+      const ficha = await estado(() => { const b = document.querySelector('#menu [data-act="newpolis"]'); return b ? { txt: b.innerText.replace(/\s+/g, ' ').trim(), alto: Math.round(b.getBoundingClientRect().height) } : null; });
+      await foto('ficha-atenas');
+      const ok = ids.length === 8 && !!ficha && ficha.alto >= 44 && /Atenas/.test(ficha.txt);
+      return { ok, corta: true, detalle: ok ? '8 polis a elegir; «' + ficha.txt + '» (' + ficha.alto + ' px)' : JSON.stringify({ ids, ficha }), captura: c1 };
+    });
+    await paso('arranque en el 800 a.C. con ágora, casas y aldeanos de Meshy (ningún muñeco de bloque)', async () => {
+      await page.click('#menu [data-act="newpolis"]');
+      await page.waitForFunction(() => window.Game && Game.state && !UI.menu && UI.cityV && UI.cityV.listo, null, { timeout: 90000 });
+      await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; });
+      /* las escenas que dibuja la ciudad: para contar a la gente por lo que se pinta de verdad */
+      await estado(() => { const r = UI.cityV.r, o = r.render; window.__escenas = new Set(); r.render = function (s, c) { window.__escenas.add(s); return o.call(this, s, c); }; });
+      await page.waitForTimeout(2500); await limpia();
+      const arriba = await estado(() => !!UI.cityV.enPlano);
+      const cA = await foto('ciudad-arriba');
+      if (arriba) { await accion('cplano'); await page.waitForFunction(() => !UI.cityV.enPlano, null, { timeout: 20000 }); }
+      /* aldeanos de Meshy: mallas instanciadas con su escala (userData.k/dy, js/gfx/vida.js); muñecos de bloque: las de 270 con color por vértice */
+      const cuenta = () => { let m = 0, b = 0; for (const e of window.__escenas || []) e.traverse(o => { if (!o.isInstancedMesh || !o.visible) return; if (o.userData.k !== undefined && o.userData.dy !== undefined) m += o.count; else if (o.material && o.material.vertexColors && o.instanceMatrix.count === 270) b += o.count; }); return { m, b }; };
+      await page.waitForFunction(new Function('return (' + cuenta.toString() + ')().m > 0'), null, { timeout: 45000 }).catch(() => { });
+      await page.waitForTimeout(1500); await limpia();
+      const g = await estado(new Function('return (' + cuenta.toString() + ')()'));
+      const m = await estado(() => { const E = Game.ciudadE('roma'), vis = e => e.offsetParent !== null && getComputedStyle(e).display !== 'none';
+        const rot = [...document.querySelectorAll('#citywrap *')].filter(e => !e.children.length && vis(e)).map(e => e.textContent.trim());
+        return { polis: Game.polis(), fecha: Game.dateStr(Game.state.t), barra: (document.getElementById('res') || document.body).innerText.replace(/\s+/g, ' ').slice(0, 120), casas: E.parcelas.filter(l => l.casa && !l.casa.ruina).length, foro: !!E.foro, agora: rot.includes('Ágora'), foroRomano: rot.some(t => /^Foro\b/.test(t)), mias: Game.myCities().length }; });
+      const cB = await foto('ciudad-cerca');
+      const ok = m.polis === 'atenas' && /800 a\.C\./.test(m.fecha) && m.foro && m.agora && !m.foroRomano && m.casas >= 5 && m.mias === 1 && g.m > 0 && g.b === 0;
+      return { ok, corta: true, detalle: (ok ? '' : 'MAL: ') + m.fecha + '; Ágora ' + (m.agora ? 'a la vista' : 'NO') + '; ' + m.casas + ' casas; ' + g.m + ' aldeanos de Meshy; ' + g.b + ' muñecos de bloque' + (ok ? '' : ' · ' + JSON.stringify({ m, arriba, cA })), captura: cB };
+    });
+    await paso('MAPA = mapa vivo de Grecia con las 8 polis y ninguna ciudad romana', async () => {
+      await accion('tab', 'map');
+      await page.waitForFunction(() => UI.map && UI.map.gr && UI.map.gr.mapa && UI.map.gr.mapa.listo, null, { timeout: 60000 });
+      await page.waitForTimeout(4000); await limpia(); await page.waitForTimeout(300);
+      const L = await estado(ROM => { const caja = document.querySelector('#mapwrap .mpg'), vis = e => e.offsetParent !== null && getComputedStyle(e).display !== 'none';
+        const polis = caja ? [...caja.querySelectorAll('.mg-polis')].filter(vis).map(e => e.textContent.trim()) : [];
+        const rotulos = caja ? [...caja.querySelectorAll('.mg-e')].filter(vis).map(e => e.textContent.trim()) : [];
+        /* un rótulo romano cuenta si se ve: está a la vista y nada lo tapa en su centro */
+        const encima = [...document.querySelectorAll('#mapwrap .mlabel, #mapwrap .mmigas')].filter(e => { const r = e.getBoundingClientRect(); if (!vis(e) || !r.width || r.right < 0 || r.left > innerWidth || r.bottom < 0 || r.top > innerHeight) return false; const t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return t && e.contains(t); }).map(e => e.textContent.trim());
+        const romanos = [...rotulos, ...encima].filter(t => new RegExp(ROM).test(t));
+        const mia = caja && caja.querySelector('.mg-polis.mia');
+        return { tab: UI.tab, grecia: !!caja && vis(caja), polis, mia: mia ? mia.textContent.trim() : null, encima, romanos }; }, ROMANOS.source);
+      const c = await foto('mapa-grecia');
+      const nombres = L.polis.map(t => t.replace(/tu polis$/, '').trim()), faltan = POLIS_GR.filter(p => !nombres.includes(p));
+      const ok = L.tab === 'map' && L.grecia && nombres.length === 8 && !faltan.length && /^Atenas/.test(L.mia || '') && /tu polis/.test(L.mia || '') && !L.romanos.length && !L.encima.length;
+      return { ok, detalle: ok ? '8 polis (' + nombres.join(', ') + '), «' + L.mia + '»; ni un nombre romano a la vista' : JSON.stringify({ faltan, L }).slice(0, 380), captura: c };
+    });
+    await paso('Imperio con solo «Dominio por las armas»', async () => {
+      await limpia(); await accion('tab', 'imperio'); await page.waitForTimeout(2500); await limpia();
+      const I = await estado(() => { const vis = e => e.offsetParent !== null; const cajas = [...document.querySelectorAll('.cam-caja')].filter(vis).map(e => e.innerText.replace(/\s+/g, ' ').trim());
+        return { tab: UI.tab, cajas, otros: /Tus caminos|Camino de (las armas|l comercio|la política|la ciudad)/.test(document.body.innerText) }; });
+      const c = await foto('imperio');
+      const ok = I.tab === 'imperio' && I.cajas.length >= 1 && I.cajas.every(t => /^Dominio por las armas/.test(t)) && !I.otros;
+      return { ok, detalle: ok ? '«' + I.cajas[0].slice(0, 90) + '»' : JSON.stringify(I).slice(0, 380), captura: c };
+    });
+    await paso('«Pasar estación» funciona', async () => {
+      await limpia(); await estado(() => document.querySelector('#tabs3 [data-v="ciudad"]').click()); await page.waitForTimeout(1200); await limpia();
+      const a = await estado(() => ({ t: Game.state.t, fecha: Game.dateStr(Game.state.t), txt: document.getElementById('turno').innerText.replace(/\s+/g, ' ').trim() }));
+      await page.click('#turno');
+      const paso1 = await page.waitForFunction(t => Game.state.t > t, a.t, { timeout: 60000 }).then(() => true, () => false);
+      await page.waitForTimeout(2000);
+      const d = await estado(() => ({ t: Game.state.t, fecha: Game.dateStr(Game.state.t), hoja: !!document.getElementById('inf'), sigue: !!Game.state && !Game.state.over && Game.polis() === 'atenas' }));
+      const c = await foto('pasar-estacion');
+      const ok = /Pasar estación/i.test(a.txt) && paso1 && d.t === a.t + 3 && d.fecha !== a.fecha && /800 a\.C\./.test(d.fecha) && d.sigue;
+      return { ok, detalle: ok ? a.fecha + ' → ' + d.fecha + (d.hoja ? ', con su hoja de estación' : '') : JSON.stringify({ a, d, paso1 }), captura: c };
+    });
+  } finally {
+    await br.close().catch(() => { }); srv.close();
+  }
+  apunta('Partida de polis · sin errores de consola', err.length === 0, err.length ? err.length + ' error(es): ' + err.slice(0, 3).join(' ‖ ') : '');
+}
+/* JG3: memoria de la partida de polis: los archivos que pidió el navegador en su último APTO, más este juez */
+async function polisConMemoria() {
+  const base = ['gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs', 'gobierno/ritmo-pruebas.js'], m = MEMORIA.polis, nombre = 'Partida de polis';
+  if (!TODO && m && m.ok && Array.isArray(m.archivos) && m.huella === huella([...m.archivos, ...base])) {
+    apunta(nombre, true, 'sin cambios en los ' + m.archivos.length + ' archivos que carga desde su APTO del ' + m.fecha.slice(0, 16).replace('T', ' ') + ' (memoria; capturas de entonces; --todo la repite)'); saltadas++; return; }
+  const vistos = new Set(), antes = pasos.length, t = Date.now(); await partidaPolis(vistos);
+  console.log('  · ' + nombre + ': ' + Math.round((Date.now() - t) / 1000) + ' s');
+  const archivos = [...vistos].filter(r => { try { return statSync(join(RAIZ, r)).isFile(); } catch (e) { return false; } }).sort();
+  if (pasos.length > antes && pasos.slice(antes).every(p => p.ok)) NUEVA.polis = { huella: huella([...archivos, ...base]), ok: true, fecha: new Date().toISOString(), archivos };
+}
+
 /* JZ1: un juez de pantalla se salta si no cambió nada de lo que ve el navegador desde su último APTO */
 async function conMemoria(id, nombre, extra, fn) {
   const h = huella([...servido(), ...cierre(extra)]), m = MEMORIA[id];
@@ -696,7 +817,8 @@ const visual = async () => {
   /* J20a: el recorrido y la guerra jugada van a la vez, cada uno en su navegador (antes, uno detrás de otro: 19 + 26 min) */
   const nav = () => conMemoria('navegador' + (AREA ? '-' + AREA : ''), 'Recorrido en navegador' + (AREA ? ' · área ' + AREA : ''), ['gobierno/jueces.mjs', 'gobierno/ritmo-pruebas.js'], navegador);
   const gue = () => conMemoria('guerra-jugada', 'Guerra jugada de verdad', ['gobierno/juez-guerra.mjs', 'gobierno/ritmo-pruebas.js'], guerraJugada);   // con --area batallas, juez-area.mjs la pasa aparte
-  if (AREA) await nav(); else if (SEGUIDO) { await nav(); await gue(); } else await Promise.all([nav(), gue()]);
+  /* JG3: la partida de polis va en su propio navegador, a la vez que los otros dos; sin --area (los jueces de área no la pasan) */
+  if (AREA) await nav(); else if (SEGUIDO) { await nav(); await gue(); await polisConMemoria(); } else await Promise.all([nav(), gue(), polisConMemoria()]);
 };
 /* la lógica (procesos aparte) y el navegador corren a la vez: el recorrido pasa mucho rato esperando a la página */
 const COLA = AREA ? [] : preparaLogica();
