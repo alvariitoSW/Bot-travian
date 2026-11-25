@@ -1,57 +1,76 @@
 {
- "vivo-estado-v": {
-  "t": 42.800000000000004,
-  "fin": false,
-  "res": null,
-  "sel": [],
-  "pausa": false,
-  "vel": 1,
-  "cam": {
-   "x": -28.040956897415175,
-   "z": 44.08385293115829,
-   "d": 40,
-   "y": -56.560373342064324
-  },
-  "tri": 644598,
-  "llamadas": 28,
-  "figuras": 800,
-  "caidas": 58,
-  "niveles": [
-   0,
-   0,
-   33,
-   825
-  ]
+ "falange-caballeria-estado-v": {
+  "T": 10.699999999999978,
+  "nivel": "normal",
+  "ganador": null,
+  "util": null,
+  "orden": null,
+  "llamadas": 18,
+  "triangulos": 502286,
+  "figs": 96,
+  "caidos": 0
  },
- "mando-v": {
+ "falange-caballeria-lucha-v": {
   "errores": 0,
   "ej": []
  },
- "vivo-estado-h": {
-  "t": 43,
-  "fin": false,
-  "res": null,
-  "sel": [],
-  "pausa": false,
-  "vel": 1,
-  "cam": {
-   "x": -25.437589943598976,
-   "z": 52.89551319037183,
-   "d": 40,
-   "y": -56.560373342064324
-  },
-  "tri": 626279,
-  "llamadas": 26,
-  "figuras": 800,
-  "caidas": 58,
-  "niveles": [
-   0,
-   0,
-   0,
-   858
-  ]
+ "falange-elefantes-estado-v": {
+  "T": 20.100000000000016,
+  "nivel": "normal",
+  "ganador": null,
+  "util": null,
+  "orden": null,
+  "llamadas": 20,
+  "triangulos": 496416,
+  "figs": 93,
+  "caidos": 3
  },
- "mando-h": {
+ "falange-elefantes-lucha-v": {
+  "errores": 0,
+  "ej": []
+ },
+ "falange-falange-estado-v": {
+  "T": 166.49999999999483,
+  "nivel": "normal",
+  "ganador": "tuyo",
+  "util": null,
+  "orden": null,
+  "llamadas": 21,
+  "triangulos": 649786,
+  "figs": 46,
+  "caidos": 50
+ },
+ "falange-falange-lucha-v": {
+  "errores": 0,
+  "ej": []
+ },
+ "manipulo-estado-v": {
+  "T": 59.400000000000574,
+  "nivel": "normal",
+  "ganador": null,
+  "util": null,
+  "orden": "marcha",
+  "llamadas": 26,
+  "triangulos": 724341,
+  "figs": 730,
+  "caidos": 100
+ },
+ "manipulo-lucha-v": {
+  "errores": 0,
+  "ej": []
+ },
+ "asculo-estado-v": {
+  "T": 50.50000000000045,
+  "nivel": "normal",
+  "ganador": null,
+  "util": null,
+  "orden": null,
+  "llamadas": 28,
+  "triangulos": 652970,
+  "figs": 727,
+  "caidos": 81
+ },
+ "asculo-lucha-v": {
   "errores": 0,
   "ej": []
  }
