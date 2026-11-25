@@ -172,7 +172,7 @@ function geoCasa() {
 
 /* peña de la acrópolis, de bulto: roca en escalones irregulares, clara arriba y parda abajo, con la cima llana para el templo */
 function geoPena(r, h, sem) {
-  const rnd = azar(sem * 31 + 5), seg = 22, an = [[1.42, 0, 0.0], [1.2, 0.3, 0.35], [1.02, 0.66, 0.7], [0.88, 0.93, 0.95], [0.78, 1, 1]], pos = [], col = [], idx = [], c0 = new THREE.Color('#a8a070'), c1 = new THREE.Color('#e6d8b4'), cc = new THREE.Color(), lob = [rnd() * 6, rnd() * 6, rnd() * 6];
+  const rnd = azar(sem * 31 + 5), seg = 22, an = [[1.42, 0, 0.0], [1.2, 0.3, 0.35], [1.02, 0.66, 0.7], [0.88, 0.93, 0.95], [0.78, 1, 1]], pos = [], col = [], idx = [], c0 = new THREE.Color('#98a064'), c1 = new THREE.Color('#e2d4b0'), cc = new THREE.Color(), lob = [rnd() * 6, rnd() * 6, rnd() * 6];
   an.forEach((A, i) => { for (let s = 0; s < seg; s++) { const a = s / seg * 6.283, q = 1 + (0.1 * Math.sin(a * 2 + lob[0]) + 0.07 * Math.sin(a * 3 + lob[1]) + 0.05 * Math.sin(a * 5 + lob[2])) * (i === 4 ? 0.5 : 1) + (rnd() - 0.5) * 0.06; pos.push(Math.cos(a) * r * A[0] * q, h * A[1] * (i > 0 && i < 3 ? 0.9 + 0.2 * rnd() : 1), Math.sin(a) * r * A[0] * q); cc.copy(c0).lerp(c1, A[2] * (0.9 + 0.2 * rnd())); col.push(cc.r, cc.g, cc.b); } });
   pos.push(0, h, 0); col.push(c1.r, c1.g, c1.b);
   for (let i = 0; i < 4; i++) for (let s = 0; s < seg; s++) { const a = i * seg + s, b = i * seg + (s + 1) % seg, c = a + seg, d = b + seg; idx.push(a, c, b, b, c, d); }
@@ -271,7 +271,7 @@ export class Vida {
     const N = 2200, pino = new THREE.ConeGeometry(0.5, 1.7, 7, 1, true).translate(0, 0.95, 0), copa = new THREE.IcosahedronGeometry(0.7, 0), mat = new THREE.MeshLambertMaterial({ color: '#ffffff' });
     copa.setAttribute('normal', new THREE.BufferAttribute(Float32Array.from(copa.attributes.position.array, v => v / 0.7), 3)); copa.scale(1, 0.72, 1).translate(0, 0.55, 0);   // luz redonda: la copa no enseña sus caras
     const I = g => { const im = new THREE.InstancedMesh(g, mat, N); im.count = 0; im.frustumCulled = false; im.visible = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.g.add(im); return im; };
-    const som = new THREE.InstancedMesh(new THREE.CircleGeometry(0.62, 8).rotateX(-Math.PI / 2).translate(0.42, 0.03, 0.34), new THREE.MeshBasicMaterial({ color: '#1c2412', transparent: true, opacity: 0.26, depthWrite: false }), N * 2); som.count = 0; som.frustumCulled = false; som.visible = false; som.renderOrder = 3; som.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.g.add(som);
+    const som = new THREE.InstancedMesh(new THREE.CircleGeometry(0.7, 8).rotateX(-Math.PI / 2).scale(1.25, 1, 0.9).translate(0.6, 0.03, 0.46), new THREE.MeshBasicMaterial({ color: '#141c0c', transparent: true, opacity: 0.4, depthWrite: false }), N * 2); som.count = 0; som.frustumCulled = false; som.visible = false; som.renderOrder = 3; som.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.g.add(som);
     this.arb = { pinos: I(pino), copas: I(copa), som, N, clave: '', col: new THREE.Color() };
   }
   _plantar(w, h) {
@@ -281,9 +281,9 @@ export class Vida {
     const dado = (i, j, k) => { let n = Math.imul(i, 374761393) + Math.imul(j, 668265263) + k * 974711; n = Math.imul(n ^ (n >>> 13), 1274126177); return ((n ^ (n >>> 16)) >>> 0) / 4294967296; };
     const PINO = ['#5f8450', '#6c9458', '#567a48'], COPA = ['#7f9a52', '#8ea65c', '#72904a', '#9aa866'];
     for (let j = z1; j >= z0; j--) for (let i = x0; i <= x1; i++) { const x = (i + dado(i, j, 1)) * paso, z = (j + dado(i, j, 2)) * paso, bos = masc(x, z, 1), cam = masc(x, z, 0), r = dado(i, j, 3);
-      const dens = bos > 0.25 ? 0.5 + 0.4 * bos : cam > 0.4 ? 0.035 : 0.09; if (r > dens) continue; const a = alt(x, z); if (a < 3) continue;
+      const soto = dado(Math.floor(i / 5), Math.floor(j / 5), 9), dens = bos > 0.25 ? 0.5 + 0.4 * bos : (cam > 0.4 ? 0.03 : 0.08) * (soto > 0.6 ? 3.2 : soto < 0.3 ? 0.25 : 1); if (r > dens) continue; const a = alt(x, z); if (a < 3) continue;
       let enPueblo = false; for (const P of this.polis) for (const b of P.barrios) if (Math.hypot(x - b.T.cx, z - b.T.cz) < b.T.R * 1.05 && Math.hypot(x - b.T.agora.x, z - b.T.agora.z) < b.T.R) { enPueblo = dado(i, j, 5) > 0.12; break; } if (enPueblo) continue;
-      const e = 0.0021 + 0.0019 * dado(i, j, 4), esPino = bos > 0.25 ? dado(i, j, 6) < 0.7 : dado(i, j, 6) < 0.15; v.set(x, a * KY_CERCA, z); q.setFromAxisAngle(this._eje, r * 40); s.set(e, e * (esPino ? 1.25 : 1), e); m4.compose(v, q.identity(), s); if (np + nc < A.N * 2) A.som.setMatrixAt(np + nc, m4); m4.compose(v, q.setFromAxisAngle(this._eje, r * 40), s);
+      const e = 0.0017 + 0.003 * dado(i, j, 4) * dado(i, j, 4), esPino = bos > 0.25 ? dado(i, j, 6) < 0.7 : dado(i, j, 6) < 0.15; v.set(x, a * KY_CERCA, z); q.setFromAxisAngle(this._eje, r * 40); s.set(e, e * (esPino ? 1.25 : 1), e); m4.compose(v, q.identity(), s); if (np + nc < A.N * 2) A.som.setMatrixAt(np + nc, m4); m4.compose(v, q.setFromAxisAngle(this._eje, r * 40), s);
       if (esPino) { if (np < A.N) { A.pinos.setMatrixAt(np, m4); A.pinos.setColorAt(np++, A.col.set(PINO[(r * 300 | 0) % 3])); } } else if (nc < A.N) { A.copas.setMatrixAt(nc, m4); A.copas.setColorAt(nc++, A.col.set(COPA[(r * 400 | 0) % 4])); } }
     A.pinos.count = np; A.copas.count = nc; A.som.count = np + nc; A.som.instanceMatrix.needsUpdate = true; A.pinos.instanceMatrix.needsUpdate = A.copas.instanceMatrix.needsUpdate = true; if (A.pinos.instanceColor) A.pinos.instanceColor.needsUpdate = true; if (A.copas.instanceColor) A.copas.instanceColor.needsUpdate = true;
   }
@@ -316,7 +316,7 @@ export class Vida {
     const m = this.m, upx = m.V.upx, a = m.ancho, ky = m.com.uKy.value, alt = m.rel.altura, B = this.est === 'b';
     /* el caserío de lejos mide siempre unos 21 px de radio (nunca menos que la polis real); por debajo de ~16 km de ancho deja paso al plano y a las casas */
     const fuera = paso(0.9, 1.3, a), cerca = a < 1.3, plano = a < A_PLANO, I = this.lejosInst; for (const k in I) I[k].n = 0;
-    const rLejos = mix(mix(52, 21, paso(3, 12, a)), 16, paso(30, 50, a)), pxSello = mix(86, mix(50, 42, paso(25, 45, a)), paso(3, 14, a));
+    const rLejos = mix(mix(52, 21, paso(3, 12, a)), 16, paso(30, 50, a)), pxSello = mix(66, mix(50, 42, paso(25, 45, a)), paso(3, 14, a));
     this._radioPx = cerca ? clamp(0.06 / upx, 12, 46) : B ? pxSello * 0.42 : rLejos;
     for (const P of this.polis) { const y = Math.max(0, alt(P.x, P.z)) * ky, esc = clamp(Math.max(rLejos * upx, P.R * 0.9) / 0.95, 0.02, 2.6) * (0.6 + 0.4 * fuera) * (P.p.pri === 3 ? mix(1, 0.7, paso(25, 45, a)) : 1), ee = E * esc;
       const enVista = Math.abs(P.x - m.V.x) < w * upx * 0.75 + 3 * esc && Math.abs(P.z - m.V.z) < h * upx * 1.3 + 3 * esc;
@@ -374,10 +374,11 @@ function iconoCiudad(p) {
     for (const q of [[50, 172], [204, 176], [74, 232], [184, 236]]) { casa(q[0] - 24, q[1] - 10, 50); casa(q[0] + 22, q[1], 54); }
     temploTinta(g, 128, 200, 78, p.color); arbolTinta(g, 128, 150, 44, true); arbolTinta(g, 16, 214, 40, false); arbolTinta(g, 240, 216, 40, false);
   } else {
-    for (let i = 0; i < 3; i++) casa(44 + i * 84 + (rr() - 0.5) * 10, 190 + (rr() - 0.5) * 6, 62);            // fila del fondo
-    const alto = F.alto || 1, yc = 168 - alto * 12; g.save(); g.translate(128, yc); penaTinta(g, 0, 0, 62, alto * 0.9, rr); temploTinta(g, 0, 10, 104, p.color); g.restore();
-    for (const x of alto > 2 ? [34, 222] : [34, 128, 222]) casa(x + (rr() - 0.5) * 8, 222, 64);
-    for (const x of [80, 176]) casa(x + (rr() - 0.5) * 8, 244, 66);
+    for (let i = 0; i < 5; i++) casa(30 + i * 49 + (rr() - 0.5) * 8, 188 + (rr() - 0.5) * 6, 40);            // fila del fondo
+    const alto = F.alto || 1, yc = 166 - alto * 12; g.save(); g.translate(128, yc); penaTinta(g, 0, 0, 56, alto * 0.9, rr); temploTinta(g, 0, 9, 92, p.color); g.restore();
+    for (const x of alto > 2 ? [24, 66, 190, 232] : [24, 66, 128, 190, 232]) casa(x + (rr() - 0.5) * 8, 220 + (rr() - 0.5) * 5, 42);
+    for (const x of [46, 100, 156, 210]) casa(x + (rr() - 0.5) * 8, 244, 44);
+    arbolTinta(g, 10, 240, 30, true); arbolTinta(g, 246, 242, 28, false);
     if (F.muralla) { g.strokeStyle = TINTA; g.lineWidth = 4; g.fillStyle = '#e4d4aa'; g.beginPath(); g.rect(8, 234, 240, 16); g.fill(); g.stroke(); for (let i = 0; i < 4; i++) { g.beginPath(); g.rect(4 + i * 76, 220, 20, 32); g.fill(); g.stroke(); } }
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;

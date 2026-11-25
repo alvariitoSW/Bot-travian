@@ -142,7 +142,8 @@ void main(){
   float v1 = smoothstep(4.0, 12.0, 0.085 / uPx) * smoothstep(0.25, 0.6, campos), v2 = smoothstep(5.0, 15.0, 0.012 / uPx) * smoothstep(0.25, 0.6, campos);
   if (v1 > 0.001) { vec4 h1, h2; float b1, b2; vec2 f1, f2; parcela(pc, 0.085, h1, b1, f1); parcela(pc + 1.3, 0.012, h2, b2, f2);
     float clase = h2.b > 0.86 ? h2.r : h1.r; vec3 cf = cultivo(mix(h1.r, clase, v2)); cf *= 0.88 + 0.24 * mix(h1.b, 0.5 * (h1.b + h2.g), v2);
-    float sur = sin((h2.a > 0.5 ? f2.x : f2.y) * 37.0) * 0.5 + 0.5; cf *= 1.0 - 0.10 * sur * v2 * smoothstep(0.0035, 0.0012, uPx);
+    float sur = sin((h2.a > 0.5 ? f2.x : f2.y) * (22.0 + 30.0 * h2.g)) * 0.5 + 0.5; cf *= 1.0 - 0.14 * sur * step(0.42, h2.g) * v2 * smoothstep(0.0035, 0.0012, uPx);
+    float mot = texture2D(tRuido, p * 23.0).r, mot2 = texture2D(tRuido, p * 71.0 + 0.3).g; cf *= 1.0 + ((mot - 0.5) * 0.26 + (mot2 - 0.5) * 0.16) * v2; cf = mix(cf, vec3(0.80, 0.72, 0.52), smoothstep(0.62, 0.8, mot2 * 0.6 + mot * 0.4) * step(h2.g, 0.42) * v2 * 0.35);
     if (h1.r > 0.80) { vec3 ol = copas(p, 0.0016, 0.9); float vo = smoothstep(0.012, 0.004, uPx); cf = mix(cf, vec3(0.36, 0.44, 0.26), ol.x * 0.9 * vo); cf *= 1.0 - ol.z * 0.25 * vo; }   // olivar
     cf = mix(cf, cf * 0.74, smoothstep(0.07, 0.02, b2) * v2 * 0.6); cf = mix(cf, vec3(0.78, 0.70, 0.52), smoothstep(0.022, 0.006, b1) * 0.5);     // lindes y sendas
     c = mix(c, cf * (0.55 + 0.75 * lum), v1 * 0.78); }
@@ -178,15 +179,16 @@ void main(){
   /* campos: aguadas de dos tonos por pagos; a media altura, surcos a pluma en la mitad de ellos; de cerca, lindes finas (un trazo de pluma, no un catastro) */
   float v2 = smoothstep(5.0, 15.0, 0.011 / uPx) * smoothstep(0.25, 0.6, campos), v1 = smoothstep(4.0, 12.0, 0.2 / uPx) * smoothstep(0.25, 0.6, campos);
   if (v1 > 0.001) { vec4 h1, h2; float b1, b2; vec2 f1, f2; parcela(pc, 0.085, h1, b1, f1); parcela(mix(p, pc, 0.25) + 1.3, 0.012, h2, b2, f2);
-    c = mix(c, c * mix(vec3(1.07, 1.0, 0.80), vec3(0.88, 1.0, 0.84), h1.r), v1 * 0.6);
+    c = mix(c, c * mix(vec3(1.09, 1.0, 0.76), vec3(0.84, 1.0, 0.80), h1.r), v1 * 0.72);
     float rs = raya(p + (g1 - 0.5) * uPx * 4.0, h1.g * 3.1, 0.2) * step(0.45, h1.b); c = mix(c, tinta, rs * v1 * (1.0 - v2) * 0.13);
     float sur = smoothstep(0.6, 0.95, sin((h2.a > 0.5 ? f2.x : f2.y) * 31.0)) * step(0.35, h2.r); c = mix(c, tinta, sur * v2 * 0.09 * smoothstep(0.0035, 0.0012, uPx));
     c = mix(c, c * mix(vec3(1.05, 0.98, 0.8), vec3(0.88, 0.98, 0.82), h2.g), v2 * 0.4);
     if (h1.r > 0.78) { vec3 ol = copas(p, 0.0016, 0.85); float vo = smoothstep(0.012, 0.004, uPx), aro = ol.x * (1.0 - smoothstep(0.0, 0.9, ol.y * 1.8)); c = mix(c, vec3(0.56, 0.64, 0.40), ol.x * 0.7 * vo); c = mix(c, tinta, clamp(aro * 0.8 + ol.z * 0.4, 0.0, 1.0) * vo * 0.7); }   // olivar a pluma
     float w2 = uPx / 0.012, w1 = uPx / 0.085, cerca1 = smoothstep(0.012, 0.004, uPx);
-    c = mix(c, tinta, smoothstep(w2 * 1.5, w2 * 0.5, b2) * v2 * 0.07 * step(0.5, h2.b)); c = mix(c, tinta, smoothstep(w1 * 2.0, w1 * 0.6, b1) * v1 * cerca1 * mix(0.16, 0.07, v2)); }
+    c = mix(c, tinta, smoothstep(w2 * 1.5, w2 * 0.5, b2) * v2 * 0.12 * step(0.35, h2.b));
+    float agu = texture2D(tRuido, p * 19.0).r, agu2 = texture2D(tRuido, p * 57.0 + 0.4).g; c *= 1.0 + ((agu - 0.5) * 0.2 + (agu2 - 0.5) * 0.12) * v2; c = mix(c, tinta, smoothstep(0.7, 0.9, agu2) * step(h2.g, 0.3) * v2 * 0.1); c = mix(c, tinta, smoothstep(w1 * 2.0, w1 * 0.6, b1) * v1 * cerca1 * mix(0.16, 0.07, v2)); }
   /* monte bajo: matas sueltas a pluma (de cerca) */
-  if (uPx < 0.006) { float monte = clamp(1.0 - campos * 1.6 - bosque * 2.0, 0.0, 1.0), vm = smoothstep(0.006, 0.002, uPx) * monte; vec3 mt = copas(p + 7.1, 0.0024, 0.28);
+  if (uPx < 0.006) { float monte = clamp(1.0 - campos * 1.6 - bosque * 2.0, 0.0, 1.0), vm = smoothstep(0.006, 0.002, uPx) * monte; vec3 mt = copas(p + 7.1, 0.0024, 0.2 + 0.4 * smoothstep(0.4, 0.6, texture2D(tRuido, p * 4.3).r)); float am = texture2D(tRuido, p * 15.0 + 0.2).r; c *= 1.0 + (am - 0.5) * 0.22 * vm; c = mix(c, c * vec3(0.9, 0.98, 0.8), smoothstep(0.5, 0.7, am) * vm * 0.5);
     float aro = mt.x * (1.0 - smoothstep(0.0, 0.9, mt.y * 1.8)); c = mix(c, vec3(0.60, 0.66, 0.42), mt.x * 0.55 * vm); c = mix(c, tinta, clamp(aro * 0.8 + mt.z * 0.35, 0.0, 1.0) * vm * 0.6); }
   /* línea de costa a tinta, siempre fina */
   c = mix(c, vec3(0.2, 0.13, 0.09), mix(smoothstep(1.0, 0.15, abs(costaKm(p)) / max(0.25, uPx * 14.0)), smoothstep(2.4, 1.0, abs(ac) / max(fwidth(ac), 1e-5)) * step(abs(costaKm(p)), 0.35), uCerca) * 0.9);
