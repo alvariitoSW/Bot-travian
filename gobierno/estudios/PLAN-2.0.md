@@ -29,6 +29,14 @@ Decisiones del usuario (25/11, en este chat):
   mejoran para medir eso; hasta llegar a la cifra, no pasa.
 - Bots desde **partidas ya avanzadas**: «Sí (Recomendado)».
 
+### Decisiones sobre M3 y el menú (25/11)
+- Descarga: **«1A»**, subir el tope a ~80 MB. Meshy: **«2A»**, empezar con modelos propios y Poly Haven; Meshy cuando haya créditos.
+- Literal: «Antes hay que cambiar una cosa. Primero en el menú no solo tener la opción de campaña sino la opción de
+  partida nueva y ahí elija campaña, cambiar la partida corta a partida nueva (y que aquí trabajen los jueces porque la
+  campaña la vamos a dejar pausada)».
+  → La 2.0 se construye y se juzga sobre **«Partida nueva»** (hoy «Partida corta», Italia, 3–5 h, con final). La campaña
+  larga queda **en pausa**. Los bots y jueces juegan la partida nueva: más corta, más rápido el juez.
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
