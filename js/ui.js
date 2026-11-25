@@ -1310,7 +1310,7 @@ const gestosCiudad = {
 const bar = (label, v, max) => '<span>' + label + '</span><u><s style="width:' + Math.min(100, v / max * 100) + '%"></s></u>';
 const avisoMo = (c, n) => { const z = Math.round(G.manoObraDe(c, Math.max(0, (c.pop || 0) - n)) * 100); return z < 100 ? '<div class="ds" style="color:#e0a030">Los campos quedarán al ' + z + ' % (+' + n + ')</div>' : ''; };
 /* CN26: cola «En instrucción» y tarjetas de reclutar. Sin bid, todas las unidades (pestaña Ejército); con bid, solo las que pide ese edificio (ficha del Cuartel, del Establo…) */
-const reclutaDe = bid => Object.keys(D.UNITS).filter(k => D.UNITS[k].cost && (!bid || Object.keys(D.UNITS[k].req)[0] === bid));
+const reclutaDe = bid => Object.keys(D.UNITS).filter(k => D.UNITS[k].cost && G.reclutable(k) && (!bid || Object.keys(D.UNITS[k].req)[0] === bid));
 function reclutarHtml(c, bid) {
   const ks = reclutaDe(bid); let h = '';
   if (c.train.length) {
@@ -1319,9 +1319,9 @@ function reclutarHtml(c, bid) {
   }
   h += '<div class="sec">Reclutar</div>';
   for (const k of ks) {
-    const u = D.UNITS[k];
+    const u = D.UNITS[k], pf = G.polisFicha(), loc = pf && pf.tropa.id === k ? pf.tropa : null;   // PN2: la tropa propia de la polis lleva su nombre local
     const ok = G.unitOk(c, k), rb = Object.keys(u.req)[0], n = cohort(k), fe = (c.b[rb] || 0) >= u.req[rb] ? G.faltaEspecial('tropa', k) : null;
-    h += '<div class="card ' + (ok ? '' : 'locked') + '"><div class="pt">' + pt(k) + '</div><div class="bd"><div class="tt">' + u.n + '</div><div class="ds">' + u.d + '</div>' + licHtml(u) +
+    h += '<div class="card ' + (ok ? '' : 'locked') + '"><div class="pt">' + pt(k) + '</div><div class="bd"><div class="tt">' + (loc ? loc.n : u.n) + '</div><div class="ds">' + (loc ? loc.d : u.d) + '</div>' + licHtml(u) +
       '<div class="bars">' + bar('Ataque', u.ratk || u.atk, 16) + bar('Defensa', u.def, 16) + bar('Moral', u.mor, 100) + bar('Velocidad', u.spd, 85) + '</div>' + pagasHtml(G.loteCoste(c, k, n)) + '<div class="ds tarda">Tarda <b>' + mesesEst(G.trainDur(c, k, n)) + '</b></div>' + (ok ? avisoMo(c, n) : '') + '</div>' +
       (ok ? '<div class="btns"><button class="btn" data-act="train" data-v="' + k + '" data-n="' + n + '" data-need=\'' + JSON.stringify(G.loteCoste(c, k, n)) + '\'>+' + n + '<small>' + mesesEst(G.trainDur(c, k, n)) + '</small></button><button class="btn" data-act="train" data-v="' + k + '" data-n="' + n * 3 + '" data-need=\'' + JSON.stringify(G.loteCoste(c, k, n * 3)) + '\'>+' + n * 3 + '<small>' + mesesEst(G.trainDur(c, k, n * 3)) + '</small></button></div>'
         : fe ? faltaBtn(fe) : '<button class="btn no">' + D.BUILD[rb].n + '<small>nivel ' + u.req[rb] + '</small></button>') + '</div>';
@@ -1898,6 +1898,7 @@ document.addEventListener('click', function (e) {
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
     case 'new': case 'newregion': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'newpolis': { const pf = D.POLIS[v]; if (!pf) break; if (G.hasSave() && !confirm('Ya tienes una partida guardada. Empezar con ' + pf.n + ' la reemplaza. ¿Seguir?')) break; G.newGame(pf.heroe, 'italia', { polis: v, dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break; }   // PN2: empezar con una polis griega (sobre el mapa de Italia de momento)
     case 'cortaen': case 'cortafun': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
     case 'novedades': if (UI.menu && (!e.target.closest('.nv-hoja') || el.classList.contains('mvolver'))) { UI.novedades = !UI.novedades; showMenu(); } break;   // CDe3

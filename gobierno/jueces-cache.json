@@ -310,34 +310,34 @@
   "fecha": "2026-11-25T12:41:46.178Z"
  },
  "area:test/ciudad.test.mjs": {
-  "huella": "962ca80cf1ddbeeb",
+  "huella": "b5da78336a04a8f9",
   "ok": true,
-  "fecha": "2026-11-25T14:17:56.512Z"
+  "fecha": "2026-11-25T14:53:32.206Z"
  },
  "area:test/senado.test.js": {
-  "huella": "423a8c84ff1d1150",
+  "huella": "845a8090812047b6",
   "ok": true,
-  "fecha": "2026-11-25T14:18:05.728Z"
+  "fecha": "2026-11-25T14:53:42.559Z"
  },
  "area:test/saber.test.mjs": {
-  "huella": "9ae191cd2c8a7aff",
+  "huella": "ae43da29f3c7c7b1",
   "ok": true,
-  "fecha": "2026-11-25T14:18:22.896Z"
+  "fecha": "2026-11-25T14:54:01.060Z"
  },
  "area:test/diplomacia.test.mjs": {
-  "huella": "6b3d94214726c3aa",
+  "huella": "8cbe7d0aab9ff2c5",
   "ok": true,
-  "fecha": "2026-11-25T14:18:28.485Z"
+  "fecha": "2026-11-25T14:54:07.033Z"
  },
  "area:test/encargos.test.mjs": {
-  "huella": "2c5bfd9c9a1b1a59",
+  "huella": "7d32217e3d881e2f",
   "ok": true,
-  "fecha": "2026-11-25T14:18:32.391Z"
+  "fecha": "2026-11-25T14:54:11.255Z"
  },
  "area:test/caminos.test.mjs": {
-  "huella": "a39c5dab66750699",
+  "huella": "1586fb5a66a89226",
   "ok": true,
-  "fecha": "2026-11-25T14:18:32.458Z"
+  "fecha": "2026-11-25T14:54:11.373Z"
  },
  "area:test/este-ano.test.mjs": {
   "huella": "0f9e2d0df0a81a53",
@@ -345,9 +345,9 @@
   "fecha": "2026-11-25T14:18:32.496Z"
  },
  "area:test/gobernador.test.mjs": {
-  "huella": "10a5aec654d907b3",
+  "huella": "c35bb9048602344b",
   "ok": true,
-  "fecha": "2026-11-25T14:18:32.549Z"
+  "fecha": "2026-11-25T14:54:11.433Z"
  },
  "area:test/calles.test.mjs": {
   "huella": "a44f27476c5a111c",
@@ -355,13 +355,13 @@
   "fecha": "2026-11-25T14:18:35.428Z"
  },
  "navegador-cerebro": {
-  "huella": "bec8d14ae639c1f6",
+  "huella": "f9dbb787575a4769",
   "ok": true,
-  "fecha": "2026-11-25T14:21:19.943Z"
+  "fecha": "2026-11-25T14:57:09.167Z"
  },
  "area:gobierno/jueces.mjs --area cerebro": {
-  "huella": "9a6990a0eda46c6e",
+  "huella": "1258f78eab4c537e",
   "ok": true,
-  "fecha": "2026-11-25T14:21:19.952Z"
+  "fecha": "2026-11-25T14:57:09.177Z"
  }
 }

@@ -1,8 +1,8 @@
 /* AQVILA — MN4c · Portada y láminas; PN1 · menú de inicio «Continuar · Partida nueva · Escaramuzas · Opciones». Script clásico, no toca la lógica del juego.
    - Pone la clase `portada` en <body> y, cada vez que ui.js repinta #menu, le añade la capa de fondo (lámina de época) si falta.
    - PN1: tras cada repintado reordena el menú (decora(), idempotente). Quita las filas «Nueva campaña», «Partida corta» y «Región de Italia»
-     y pone delante «Partida nueva». Lleva su propia vista: 'inicio' (Continuar, o «Bienvenido» si no hay partida), 'nueva' (pantalla provisional:
-     Grecia llega en la próxima versión; mientras, partida corta, Región de Italia o la campaña Roma contra Cartago, en pausa) y 'campana'
+     y pone delante «Partida nueva». Lleva su propia vista: 'inicio' (Continuar, o «Bienvenido» si no hay partida), 'nueva' (PN2: «Elige tu polis», rejilla de 8; debajo,
+     partida corta, Región de Italia o la campaña Roma contra Cartago, en pausa), 'polis' (la ficha de la polis tocada, con «Empezar con…») y 'campana'
      (la tarjeta de nueva campaña de ui.js con la etiqueta «En pausa»). Sus botones usan data-pn (no data-act: ese lo atiende ui.js).
      window.PORTADA.vista(v) cambia la vista desde las pruebas.
    - Expone window.LAMINAS, window.laminaHtml(clave) y window.miniEdif(id, nivel) para que ui.js vista Saber, Senado, Tropas, Imperio y las fichas de edificio.
@@ -41,10 +41,41 @@
     var D = window.DATA, d = D && D.MODOS && D.MODOS.corta && D.MODOS.corta.duracion;
     return d ? 'De ' + d.horasMin + ' a ' + d.horasMax + ' horas, con final' : 'Unas horas, con final';
   }
+  /* ===== PN2 · elegir polis: rejilla de 8 tarjetas y ficha de cada una (datos: D.POLIS; historia: REGISTRO.fichas.polis) ===== */
+  var polisSel = null;
+  var LUJO_COL = { plata: '#cfd6dd', purpura: '#8b2f7a', ceramica: '#c8643a', caballos: '#8a5a33', anguilas: '#3f7f86', sal: '#eef0ee', lana: '#e6dcc4', bronce: '#b0792e' };
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function POLIS_ORDEN() { var D = window.DATA; return D && D.POLIS_ORDEN ? D.POLIS_ORDEN.filter(function (id) { return D.POLIS[id]; }) : []; }
+  function sello(p) { return '<span class="pn-sello" style="--pc:' + esc(p.color) + '" aria-hidden="true">' + esc(p.sello) + '</span>'; }
+  function punto(p) { return '<i class="pn-pto" style="background:' + (LUJO_COL[p.lujo] || '#b8862b') + '"></i>'; }
+  function tarjetaPolis(id) {
+    var p = window.DATA.POLIS[id];
+    return '<button class="pn-polis" data-pnpolis="' + id + '" aria-label="' + esc(p.n) + '">' + sello(p) + '<b>' + esc(p.n) + '</b><small>' + esc(p.lema) + '</small>' +
+      '<span class="pn-lujo">' + punto(p) + esc(p.lujoN) + '</span></button>';
+  }
+  function fichaPolis(hay) {
+    var D = window.DATA, p = D && D.POLIS[polisSel]; if (!p) { vista = 'nueva'; return cartaPropia(hay); }
+    var R = window.REGISTRO, fi = R && R.fichas && R.fichas.polis && R.fichas.polis[polisSel], hi = fi && fi.historia, E = D.BUILD[p.edificio.id], T = D.UNITS[p.tropa.id];
+    var lam = window.LAMINAS && window.LAMINAS.edif(p.edificio.id);
+    var lic = '<span class="pn-lic">licencia de juego</span>';
+    return '<div class="mct"><p class="ro-rubrica">Tu polis</p><button class="mvolver" data-pn="nueva">Volver</button></div>' +
+      '<div class="pn-cab">' + sello(p) + '<div><p class="pn-nom">' + esc(p.n) + '</p><p class="pn-lema">' + esc(p.lema) + '</p></div></div>' +
+      (lam ? '<figure class="pn-fig"><img src="' + lam + '" alt="" loading="lazy"><figcaption>' + esc(p.edificio.n) + ' · ' + (window.LAMINAS_PIE || 'Render de 0 A.D. · CC BY-SA 3.0') + '</figcaption></figure>' : '') +
+      '<dl class="pn-ds">' +
+      '<dt>Rasgo ' + lic + '</dt><dd><b>' + esc(p.rasgo.n) + '.</b> ' + esc(p.rasgo.d) + '</dd>' +
+      '<dt>Edificio propio ' + lic + '</dt><dd><b>' + esc(p.edificio.n) + '.</b> ' + esc(p.edificio.d) + ' Empieza un nivel más alto (' + esc(E ? E.n : p.edificio.id) + ').</dd>' +
+      '<dt>Tropa propia ' + lic + '</dt><dd><b>' + esc(p.tropa.n) + '.</b> ' + esc(p.tropa.d) + (T ? ' Es un tipo de ' + esc(T.n.toLowerCase()) + '.' : '') + ' Empiezas con ' + Object.keys(p.leva).map(function (k) { return p.leva[k] + ' ' + (D.UNITS[k] ? D.UNITS[k].n.toLowerCase() : k); }).join(' y ') + '.</dd>' +
+      '<dt>Lujo</dt><dd>' + punto(p) + '<b>' + esc(p.lujoN) + '</b>, de ' + esc(p.lujoDe) + '.</dd>' +
+      (hi && hi.texto ? '<dt>Historia</dt><dd>' + esc(hi.texto) + '</dd>' : '') + '</dl>' +
+      '<p class="pn-aviso">Tu comarca en Grecia llega en la próxima versión; de momento tu polis se juega sobre el mapa de Italia.</p>' +
+      (hay ? '<p class="pn-aviso pn-aviso2">Ya tienes una partida guardada: empezar otra la reemplaza.</p>' : '') +
+      '<button class="btn ro-sello mcont pn-emp" data-act="newpolis" data-v="' + polisSel + '"><span class="msello"></span>Empezar con ' + esc(p.n) + '</button>' +
+      '<button class="btn pn-volver" data-pn="nueva">Volver</button>';
+  }
   function cartaPropia(hay) {
+    if (vista === 'polis') return fichaPolis(hay);
     if (vista === 'nueva') return '<div class="mct"><p class="ro-rubrica">Partida nueva</p><button class="mvolver" data-pn="inicio">Volver</button></div>' +
-      '<div class="pn-grecia" role="note"><p class="pn-gt">Grecia · elige tu polis</p><p>Aquí elegirás tu ciudad griega: Atenas, Esparta, Corinto y más. ' +
-      'Llega en la próxima versión; <b>todavía no se puede jugar.</b></p></div>' +
+      '<p class="pn-gt pn-elige">Elige tu polis</p><div class="pn-rejilla">' + POLIS_ORDEN().map(tarjetaPolis).join('') + '</div>' +
       '<div class="pn-ops">' + opcion('data-pnmapa="1"', 'Ver el mapa de Grecia', 'Ya se puede mirar: amplía con dos dedos, de Grecia entera a las calles de cada polis') + '</div>' +
       '<p class="pn-mient">Mientras tanto, puedes jugar:</p><div class="pn-ops">' +
       opcion('data-act="hoja" data-v="corta"', 'Jugar en Italia · partida corta', horasCorta()) +
@@ -72,12 +103,12 @@
     // la fila «Partida nueva» solo hace falta con «Continuar» arriba: sin partida ya está el sello, y en las otras vistas ya estás dentro
     lista.querySelector('[data-pn="nueva"]').classList.toggle('pn-oculta', !(vista === 'inicio' && hay));
     // tarjeta de arriba
-    var propia = m.querySelector('section.pn-carta'), quiere = vista === 'nueva' || (vista === 'inicio' && !hay), clave = vista + (hay ? '+' : '-');
+    var propia = m.querySelector('section.pn-carta'), quiere = vista === 'nueva' || vista === 'polis' || (vista === 'inicio' && !hay), clave = vista + (vista === 'polis' ? polisSel : '') + (hay ? '+' : '-');
     carta.classList.toggle('pn-oculta', quiere);
     if (!quiere) { if (propia) propia.remove(); }
     else if (!propia || propia.getAttribute('data-k') !== clave) {
       if (!propia) { propia = document.createElement('section'); carta.parentNode.insertBefore(propia, carta.nextSibling); }
-      propia.className = 'mcarta ro-papiro pn-carta' + (vista === 'nueva' ? ' pn-nueva' : ''); propia.setAttribute('data-k', clave);
+      propia.className = 'mcarta ro-papiro pn-carta' + (vista === 'nueva' || vista === 'polis' ? ' pn-nueva' : ''); propia.setAttribute('data-k', clave);
       propia.innerHTML = cartaPropia(hay);
     }
     if (vista === 'campana') {
@@ -98,13 +129,15 @@
       /* AM2: el mapa vivo de Grecia se abre a pantalla completa encima del menú (módulo aparte, se carga al pedirlo) */
       var gm = e.target.closest && e.target.closest('#menu [data-pnmapa]');
       if (gm) { if (!gm.disabled) { gm.disabled = true; import(new URL('js/gfx/mapa-grecia-pantalla.js', document.baseURI).href).then(function (x) { return x.abrirMapaGrecia(); }).catch(function (err) { console.error(err); }).then(function () { gm.disabled = false; }); } return; }
+      var tp = e.target.closest && e.target.closest('#menu [data-pnpolis]');
+      if (tp) { polisSel = tp.getAttribute('data-pnpolis'); ponVista('polis', m); return; }
       var t = e.target.closest && e.target.closest('#menu [data-pn], #menu [data-act="mpanel"]'); if (!t) return;
       var pn = t.getAttribute('data-pn');
       if (pn) { ponVista(pn, m); return; }
       if (t.getAttribute('data-v') === 'nueva') vista = 'campana';   // «Campaña Roma contra Cartago» con partida guardada
       else if (vista === 'campana') vista = 'nueva';                 // el «Volver» de ui.js lleva a «Partida nueva»
     }, true);
-    window.PORTADA = { vista: function (v) { ponVista(v, m); }, actual: function () { return vista; } };
+    window.PORTADA = { vista: function (v, id) { if (id) polisSel = id; ponVista(v, m); }, actual: function () { return vista; } };
   }
   if (document.body) arranca(); else document.addEventListener('DOMContentLoaded', arranca);
 })();
