@@ -248,17 +248,46 @@ cambia al aprobarse el plan. Historia: fichas nuevas de la Grecia arcaica con fu
 ### Estándar de M2 (borrador, 25/11)
 | Qué se mide | Quién lo mide | Aprueba si… |
 |---|---|---|
-| Ciudad viva griega | Juez de aspecto | Nota ≥ 7 frente a referencias; no se siente artificial (gente que va a sus sitios, humo, mercado) |
+| Ciudad viva griega | Juez de aspecto con ficha de objetivo | Nota ≥ 8,5 frente a referencias; no se siente artificial (gente que va a sus sitios, humo, mercado) |
+| Ministros | Juez de pantalla | Una pantalla; ≤ 2 toques para dar objetivo; al empezar, 2 ministros; el resto se desbloquea en ≤ 20 estaciones jugando normal |
 | Ministros con objetivo | Bot de reglas | Con un objetivo («más comida», «crecer», «murallas»), en 8 estaciones el ministro lo cumple en 8 de 10 partidas sin gastar más de lo dado |
 | Informe del ministro | Juez de pantalla | Al empezar la estación, una hoja corta: qué hizo, qué falta, con imagen |
-| Clases por polis | Bot de reglas | Cada polis con sus clases; cada clase pide ≥ 2 cosas propias; descuidarla 4 estaciones trae una consecuencia visible |
-| Edificios griegos | Juez de arte | ≥ 25 edificios, 0 repetidos, cada uno con su ficha de historia |
-| Militares | Bot de reglas | Herrería, campo de entrenamiento y mercenarios cambian algo medible en tus tropas |
+| Clases por polis | Bot de reglas | Cada polis con sus clases; cada clase pide ≥ 2 cosas propias; descuidarla 4 estaciones trae descontento: baja tu fuerza política, huelga y disturbios visibles |
+| Edificios griegos | Juez de arte | ≥ 25 edificios con su ficha; cada familia con ≥ 1 modelo propio; repetidos solo con otro color o tamaño (más estricto con créditos de Meshy) |
+| Militares | Bot de reglas | Herrería, campo de entrenamiento y mercenarios mejoran tus tropas; saberes militares desbloquean tropas más fuertes |
 | Que sirvan | Liga de bots | Todos se construyen alguna vez en 30 años; ninguno es «el único que vale» |
 | Épocas | Liga de bots y juez de aspecto | Arcaica → clásica en 15–40 años según cómo juegues; la ciudad cambia de aspecto (captura antes/después) |
-| Peso | Juez de arte | Descarga ≤ 80 MB |
+| Peso | Juez de arte | Medido en cada subida (sin tope fijo) |
 | Te gusta | El usuario | Su «Bien» |
 
+
+### M2: respuesta del usuario al estándar (25/11, literal)
+«Nota de 8,5 o más, pero esto tiene que tener unos objetivos muy bien específicos para que cuando trabajen las Ia les
+sea fácil entender lo que construir y puedan llegar a la 1° tanda. Lo del objetivo es como que cada ministerio o hacerlo
+más fácil y minimalista para no tener que pulsar 50 veces siempre en cada ministerio, y que vayas desbloqueando los
+ministerios al principio según avances en la política o cumplas unos requisitos que no sean muy difíciles y al principio
+solo tengas 2 ministros básicos y luego vayas desbloqueando el resto. Lo de las clases vale, y que haya descontento y te
+afexte en la política o que no vayan a trabajar o que haya disturbios en la ciudad. Lo de que no se repitan los edificios
+hay que tener unas reglas osea se pueden repetir ahora que estamos sin créditos de meshy y tenemos cosas hechas luego se
+puede ser más estricto. Pero el mapa debería ser bastante más grande como los videos que te mandé del juego de iberia y
+que pueda verlo como casi el Google Maps y amplíe con los dedos en el mapa grande, que tiene que ser mucho más grande que
+el que hay de roma, y ahí hacer el mapa más realista. Lo de los militares ok y que tengan mejoras de ciencia específicas
+y desbloqueen nuevas tropas más fuertes, y puedas mejorar las tropas. Lo de las etapas ok y habrá que desarrollarlas más
+adelante y definir los objetivos de las épocas y tal. Siempre se podrá ampliar más de 80mb».
+Aplicado:
+- **Juez de aspecto: nota ≥ 8,5** (en todas las metas). Cada nota va con una **ficha de objetivo**: lista de 8–12 cosas
+  concretas que se tienen que ver, con referencias y la captura de partida, para que la IA sepa qué construir y llegue
+  a la primera.
+- **Ministros minimalistas**: una sola pantalla, un toque por ministro para darle objetivo. Empiezas con **2 ministros
+  básicos** (obras y abastos); el resto se desbloquea con requisitos fáciles de política o crecimiento.
+- **Clases**: el descontento baja tu fuerza política, provoca huelgas (no van a trabajar) y disturbios en la ciudad.
+- **Edificios repetidos**: se permiten ahora (sin créditos de Meshy); regla: cada familia con al menos un modelo propio
+  y repetidos con otro color o tamaño; más estricto cuando haya créditos.
+- **Mapa**: mucho más grande que el de Roma, realista, con pellizco continuo tipo Google Maps (referencia: Iberus,
+  `estudios/REF-ciudad-iberus.md`: de la casa a la comarca y a la región). Va a **AM1–AM2 (M1)**. Riesgo: fluidez en el móvil.
+- **Militares**: mejoras de ciencia propias que desbloquean tropas más fuertes y mejoran las que tienes (M2 y M3).
+- **Épocas**: se definen más adelante (objetivos de cada época por fijar).
+- **Descarga**: sin tope fijo; se puede pasar de 80 MB; se mide.
 
 ## 4. Orden — plan socialista de M1 (diseño, 25/11; sin construir)
 Pedido literal: «Pero diseña el /plan-socialista de la m1 para ver cómo quedaría antes. Igual el mapa vivo podría
