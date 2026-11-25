@@ -104,9 +104,9 @@
 #mn.apie #mn-hud{visibility:hidden}
 
 /* CG4b: Escaramuzas, «Falange a pie» y sus rivales (venían en css/guerra.css, retirado con la pantalla vieja) */
-#hoja button.esc-falange{width:100%;font:inherit;text-align:left;cursor:pointer;-webkit-appearance:none;appearance:none}
-#hoja button.esc-falange.on{background:linear-gradient(#f3e2b4,#d8bb80);border-color:var(--minio,#a33a22)}
-#hoja button.esc-falange.on i{transform:rotate(135deg);margin-top:-4px}
+#hoja button.esc-falange,#hoja button.esc-pliega{width:100%;font:inherit;text-align:left;cursor:pointer;-webkit-appearance:none;appearance:none}
+#hoja button.esc-falange.on,#hoja button.esc-pliega.on{background:linear-gradient(#f3e2b4,#d8bb80);border-color:var(--minio,#a33a22)}
+#hoja button.esc-falange.on i,#hoja button.esc-pliega.on i{transform:rotate(135deg);margin-top:-4px}
 #hoja .esc-rv{grid-column:1/-1;margin:0 0 2px;padding:8px;border-radius:6px;border:1px solid rgba(60,35,10,.35);background:rgba(255,245,215,.42)}
 #hoja .esc-rv-t{margin:0 0 6px;font:700 13px 'Cinzel',Georgia,serif;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta2)}
 #hoja .esc-rv-g{display:grid;grid-template-columns:1fr 1fr;gap:6px}
