@@ -13,7 +13,7 @@ description: Ministerio de Arte de AQVILA. Dueño de `tools/`, de las licencias 
 
 ## Taller común (ministerios por área, 23/11; `gobierno/MINISTERIOS.md`)
 - El taller guarda las reglas, las licencias, el presupuesto y las herramientas de **todo** el arte.
-- Cada área lleva el arte de lo suyo: **Batallas**, soldados y tropas (`assets/soldados/`, `units/`, `tools/blender/`); el taller, **edificios, mapa y menús** (`assets/static/`, `mapa/`, `fuentes/`, el resto de `tools/`).
+- Cada área lleva el arte de lo suyo: **Batallas**, soldados y tropas (`assets/soldados/`, `units/`, `tools/blender/`); **Arte de Mapas** (skill `arte-mapas`, 25/11), el mapa de campaña (`assets/mapa/`, `assets/mapa-*/`, `tools/mapa-*`); el taller, **edificios y menús** (`assets/static/`, `fuentes/`, el resto de `tools/`).
 - **Sonido y música**: Taller de Sonido (skill `sonido`, 23/11): `assets/sonido/`, `assets/musica/`, `tools/sonido*`. Usa estas mismas reglas de licencia.
 - Una sesión del taller trabaja por encargo de un área (un pase) y cierra con `node gobierno/juez-area.mjs arte`
   y las capturas de la pieza junto a un soldado. Dueño de cada archivo: `node gobierno/juez-area.mjs --dueno <ruta>`.

@@ -285,17 +285,14 @@
       "nombre": "Ministerio del Músculo: mapa, menús, manejo y fluidez",
       "en_vigor": true,
       "propios": [
-        "js/gfx/map3d.js",
         "js/gfx/ground.js",
         "js/gfx/statics.js",
         "js/gfx/fluidez.js",
         "js/gfx/movil.js",
-        "test/mapa.test.mjs",
         "test/movil.test.mjs",
         "test/ajustes.test.mjs",
         "test/avisos.test.mjs",
         "test/pausas.test.mjs",
-        "gobierno/captura-mapa.mjs",
         "gobierno/captura-mn2.mjs",
         "gobierno/captura-mr2c.mjs",
         "gobierno/captura-r2.mjs",
@@ -311,7 +308,6 @@
       "taller": [],
       "juez": {
         "logica": [
-          "test/mapa.test.mjs",
           "test/movil.test.mjs",
           "test/avisos.test.mjs",
           "test/pausas.test.mjs"
@@ -330,11 +326,10 @@
       "objetivo": "OBJETIVOS.md, órgano Músculo: aspecto cuidado y coherente; fluido y sin conexión en el móvil del usuario."
     },
     "arte": {
-      "nombre": "Taller de Arte común: reglas, licencias, presupuesto y herramientas; arte de edificios, mapa y menús",
+      "nombre": "Taller de Arte común: reglas, licencias, presupuesto y herramientas; arte de edificios y menús (el del mapa, en el Departamento de Arte de Mapas)",
       "en_vigor": true,
       "propios": [
         "assets/static/",
-        "assets/mapa/",
         "assets/fuentes/",
         "tools/",
         "gobierno/kits/",
@@ -478,6 +473,39 @@
           "gobierno/fichas.mjs"
         ]
       }
+    },
+    "mapas": {
+      "nombre": "Departamento de Arte de Mapas (dentro del Músculo, con el taller de Arte): mapa vivo de campaña, Grecia y sus polis, recursos sobre el mapa",
+      "en_vigor": true,
+      "propios": [
+        "js/gfx/map3d.js",
+        "js/gfx/mapa-*.js",
+        "assets/mapa/",
+        "assets/mapa-*/",
+        "test/mapa.test.mjs",
+        "test/mapa-*.mjs",
+        "gobierno/captura-mapa.mjs",
+        "gobierno/captura-mapa-*.mjs",
+        "gobierno/juez-mapas.mjs",
+        "tools/mapa-*",
+        "gobierno/maquetas/mapa*/"
+      ],
+      "taller": [],
+      "juez": {
+        "logica": [
+          "test/mapa.test.mjs"
+        ],
+        "navegador": [
+          "gobierno/juez-mapas.mjs"
+        ],
+        "si_toca_arte": [
+          "gobierno/arte.mjs"
+        ],
+        "al_subir": []
+      },
+      "guia": ".claude/skills/arte-mapas/SKILL.md",
+      "objetivo": "OBJETIVOS.md, órgano Músculo: aspecto cuidado y coherente. PLAN-2.0 M1: mapa vivo con nota ≥ 7 frente a referencias tipo Total War; recursos básicos en ≥ 3 zonas, lujo en 1–3 ciudades.",
+      "modelo": "AM1 y AM2 con Fable por excepción del usuario («Fable diseña y construye», 25/11); el resto, Opus."
     }
   }
 }
