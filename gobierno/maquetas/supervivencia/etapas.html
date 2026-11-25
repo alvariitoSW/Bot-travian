@@ -1,0 +1,22 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body{height:auto;min-height:844px;padding:12px 10px 16px;overflow:visible}
+h1{font-size:20px;text-align:center;margin:2px 0 2px}
+.sub{text-align:center;color:#cdbf9d;font-size:12.5px;margin-bottom:10px}
+.et{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.et svg{width:150px;height:150px;border-radius:12px;border:1.5px solid var(--fil);flex:none}
+.et div b{font:700 14px Cinzel,Georgia,serif;color:var(--oro)}
+.et div p{font-size:12.5px;color:#e4dac2;margin-top:3px}
+.et div small{display:block;margin-top:4px;color:#cdbf9d;font-size:11px}
+</style></head><body>
+<h1>El campamento crece</h1>
+<div class="sub">Lo levantan tus hombres, pieza a pieza. Sin colas.<br>Todo madera, tierra y cuero: nada de la ciudad.</div>
+<div class="et"><svg id="e0"></svg><div><b>1 · Vivac</b><p>Llegáis con dos carros. Hogueras, mantas y escudos apoyados.</p><small>Día 1 · 0 obras</small></div></div>
+<div class="et"><svg id="e1"></svg><div><b>2 · Tiendas</b><p>Tiendas en filas, leña y grano a cubierto, ánforas de agua.</p><small>Necesita leña y cuero · 1 día</small></div></div>
+<div class="et"><svg id="e2"></svg><div><b>3 · Foso</b><p>Se ve cavar. El foso frena a la mitad al que lo cruza.</p><small>12 hombres · 2 días</small></div></div>
+<div class="et"><svg id="e3"></svg><div><b>4 · Empalizada</b><p>Estacas que suben una a una. Solo se entra por la puerta… o por una brecha.</p><small>Estacas de la tala · 1 estación</small></div></div>
+<div class="et"><svg id="e4"></svg><div><b>5 · Torre y talleres</b><p>Torres en la puerta para tirar piedras. Fragua para reparar lanzas, horno para el pan.</p><small>Año 2 · se rompen y se reparan</small></div></div>
+<span class="sello" style="position:static;display:block;text-align:right;margin-top:6px">SUP1 · maqueta · las cinco etapas, mismo encuadre</span>
+<script src="escena.js"></script><script>
+for (let i = 0; i < 5; i++) escena(document.getElementById('e' + i), { etapa: i, hora: 'dia', ancho: 300, alto: 300, esc: 1.1, arboles: 45 });
+</script></body></html>

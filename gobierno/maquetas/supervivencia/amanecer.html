@@ -1,0 +1,38 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body{background:linear-gradient(#e7a96a 0,#b5704a 120px,#3a2618 300px,#15130f 420px)}
+.hoja{position:absolute;left:10px;right:10px;top:130px;bottom:12px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px}
+h1{font-size:22px;text-align:center}
+.lin{display:flex;justify-content:space-between;align-items:center;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.05)}
+.lin b{font-size:14px}.lin span{font-weight:800}
+.bien{color:var(--verde)}.mal{color:var(--rojo)}.amb{color:var(--ambar)}
+.sec{font:700 13px Cinzel,Georgia,serif;color:var(--oro);margin-top:2px}
+.prox{padding:9px;border-radius:12px;border:1.5px dashed var(--rojo);background:rgba(221,90,67,.1);font-size:13px}
+.elige{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.elige div{padding:7px;border-radius:11px;border:1.5px solid var(--fil);background:rgba(255,255,255,.05);font-size:12.5px}
+.elige div.on{border-color:var(--oro);background:rgba(233,192,99,.14)}
+.elige b{display:block;font-size:13.5px;color:var(--marmol)}
+</style></head><body>
+<svg viewBox="0 0 390 130" style="position:absolute;left:0;top:0;width:390px;height:130px">
+  <circle cx="195" cy="120" r="34" fill="#ffd88a" opacity=".9"/>
+  <path d="M0 105 Q60 88 120 100 T250 96 T390 92 L390 130 L0 130Z" fill="#3a2618"/>
+  <g fill="#2a1a10"><rect x="40" y="70" width="3" height="40"/><rect x="48" y="66" width="3" height="44"/><rect x="56" y="70" width="3" height="40"/><rect x="64" y="68" width="3" height="42"/><rect x="72" y="70" width="3" height="40"/><rect x="80" y="67" width="3" height="43"/><rect x="88" y="70" width="3" height="40"/><rect x="300" y="60" width="14" height="50"/><rect x="296" y="56" width="22" height="6"/><rect x="320" y="70" width="3" height="40"/><rect x="328" y="66" width="3" height="44"/><rect x="336" y="70" width="3" height="40"/></g>
+  <path d="M170 60 q8 -20 0 -40 M210 64 q-6 -18 2 -38" stroke="#d8d2c4" stroke-width="5" fill="none" opacity=".4"/>
+</svg>
+<div class="vidrio hoja">
+  <h1>Aguantasteis la noche 2</h1>
+  <div style="text-align:center;color:#cdbf9d;font-size:12.5px;margin-top:-6px">Los tracios huyeron al bosque al caer 27 de 54.</div>
+  <div class="sec">Tus hombres</div>
+  <div class="lin"><b>Muertos</b><span class="mal">3</span></div>
+  <div class="lin"><b>Heridos graves · fuera 2 estaciones</b><span class="amb">4</span></div>
+  <div class="lin"><b>Llegan de la polis por mar</b><span class="bien">+3</span></div>
+  <div class="sec">El campamento</div>
+  <div class="lin"><b>Empalizada norte · brecha de 3 m</b><span class="amb">reparar: 6 estacas</span></div>
+  <div class="lin"><b>Recogido esta estación</b><span>🪵 52 · 🍞 +14 días</span></div>
+  <div class="prox"><b class="mal">Próxima noche · Otoño:</b> los exploradores ven <b>80</b>, con escudos y hachas. Vendrán por el norte y el oeste.</div>
+  <div class="sec">Obra para esta estación <span style="font:500 11px system-ui;color:#cdbf9d">· elige una</span></div>
+  <div class="elige"><div class="on"><b>Doblar el foso</b>2 estaciones · 14 hombres</div><div><b>Torre del norte</b>1 estación · 30 estacas</div></div>
+  <div class="btn" style="margin-top:auto">Empezar el día</div>
+</div>
+<span class="sello">SUP1 · maqueta · hoja del amanecer (pasar estación)</span>
+</body></html>

@@ -1,0 +1,60 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body{background:radial-gradient(ellipse at 50% 18%,#4a3420,#15130f 70%)}
+.fondo{position:absolute;inset:0 0 auto 0;height:300px;padding:22px 16px}
+.fondo h1{font-size:34px;text-align:center;letter-spacing:3px}
+.menu{display:flex;flex-direction:column;gap:7px;margin-top:16px}
+.menu .btn{min-height:44px}
+.menu .nuevo{border-width:2px;box-shadow:0 0 0 3px rgba(233,192,99,.25)}
+.hoja{position:absolute;left:0;right:0;bottom:0;height:478px;padding:12px 12px 14px;background:linear-gradient(#241b12,#15100b);border-top:2px solid var(--oro);border-radius:20px 20px 0 0;display:flex;flex-direction:column;gap:8px}
+.hoja h2{font-size:19px;text-align:center}
+.tipos{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tipo{padding:7px 8px;border-radius:11px;border:1.5px solid var(--fil);background:rgba(255,255,255,.04);font-size:12px;color:#a89a7a}
+.tipo b{display:block;font-size:13.5px;color:#cdbf9d}
+.tipo.on{border-color:var(--oro);background:rgba(233,192,99,.14);color:#e4dac2}.tipo.on b{color:var(--marmol)}
+.lore{display:flex;gap:9px;padding:9px;border-radius:13px;border:1.5px solid var(--oro);background:rgba(233,192,99,.08)}
+.lore svg{width:118px;height:118px;flex:none;border-radius:10px}
+.lore b{font:700 15px Cinzel,Georgia,serif;color:var(--oro)}
+.lore p{font-size:12.5px;color:#e4dac2;margin-top:3px}
+.lore small{display:block;margin-top:5px;font-size:11px;color:#cdbf9d}
+.otros{display:flex;gap:6px}
+.otros div{flex:1;padding:6px;border-radius:10px;border:1.5px solid var(--fil);font-size:12px;color:#cdbf9d;text-align:center}
+</style></head><body>
+<div class="fondo">
+  <h1>AQVILA</h1>
+  <div class="menu">
+    <div class="btn gris">Continuar</div>
+    <div class="btn gris">Partida nueva</div>
+    <div class="btn nuevo">⛺ Supervivencia</div>
+    <div class="btn gris">Escaramuzas</div>
+  </div>
+</div>
+<span class="nota" data-n="1" style="left:12px;top:170px">Toque 1</span>
+<div class="hoja">
+  <h2>Supervivencia</h2>
+  <div class="tipos">
+    <div class="tipo on"><b>Mantener la posición</b>Aguanta 3 años</div>
+    <div class="tipo"><b>Supervivientes</b>Próximamente</div>
+    <div class="tipo"><b>Mitología</b>Más adelante</div>
+    <div class="tipo"><b>Libre</b>Sin fin · próximamente</div>
+  </div>
+  <div class="lore">
+    <svg viewBox="0 0 118 118">
+      <rect width="118" height="118" fill="#4f7f8c"/>
+      <path d="M0 0 H118 V38 Q90 44 70 36 T30 40 T0 34Z" fill="#8c8a52"/>
+      <path d="M0 0 H118 V30 Q90 36 70 28 T30 32 T0 26Z" fill="#a09a5e"/>
+      <path d="M52 62 q14 -10 26 0 q8 14 -4 24 q-14 8 -24 -4 q-6 -12 2 -20Z" fill="#9a9a5c" stroke="#e9c063" stroke-width="2"/>
+      <circle cx="66" cy="74" r="4" fill="#dd5a43"/>
+      <text x="12" y="20" font-size="9" fill="#2b1c0a" font-weight="700">TRACIA</text>
+      <text x="44" y="104" font-size="9" fill="#f1ead9" font-weight="700">TASOS</text>
+      <path d="M66 70 l4 -16 M66 70 l-10 -14 M66 70 l14 -6" stroke="#dd5a43" stroke-width="1.5" stroke-dasharray="3 2"/>
+    </svg>
+    <div><b>Tasos, 650 a.C.</b><p>Sois colonos de Paros. Habéis desembarcado frente a la costa de Tracia. Los tracios quieren la isla.</p><small>Enemigos: tracios con jabalina, luego guerreros con escudo de media luna, al final jinetes.</small></div>
+  </div>
+  <div class="otros"><div>‹ Frontera de Argos</div><div>Leontinos, Sicilia ›</div></div>
+  <div style="font-size:12px;color:#cdbf9d">48 hoplitas · tu oficial con 12 hombres · tu perro</div>
+  <div class="btn" style="margin-top:auto;min-height:52px;font-size:17px">Acampar</div>
+</div>
+<span class="nota" data-n="2" style="left:12px;top:762px">Toque 2</span>
+<span class="sello" style="bottom:4px;right:120px">SUP1 · maqueta · entrar en 2 toques</span>
+</body></html>
