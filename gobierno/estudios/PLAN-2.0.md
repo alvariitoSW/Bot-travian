@@ -56,6 +56,17 @@ en el 800ac y desde ahí cogiendo las cosas del 1.0 que hay hechas las pulimos c
 → Propuesta: las 5 metas se reordenan alrededor de «Partida nueva desde cero» (ver §3, versión 2). Choca con la regla
 de época de CLAUDE.md (280–146 a.C.): la cambia solo el usuario.
 
+### Vistas, arte y tiempo (usuario, 25/11, literal)
+«Después, hay que hacer algo con las diferentes visiones de la ciudad, no puede tener 5 visiones, los ciudadanos y los
+soldados usan texturas diferentes. La ciudad viva se siente artificial en roma, hay que rehacerla un poco de 0 con la de
+ciudad griega, y ya después lo fusionamos con la de Roma con las mejoras. Después el tema de los tiempos del juego hay
+que quitarlo, osea solo tener estaciones y que al principio de cada estación tengas los recursos que has recogido y con
+eso puedas construir tropas y edificios y se construyan durante la estación en la que estás según los tiempos que dure
+su creación».
+Lectura: hoy la ciudad tiene «Desde arriba / De cerca», «Ciudad entera», «Calle», «Tropas» y «Ver necesidades»
+(`js/ui.js`, menú de vistas). Propuesta: una sola vista con zoom (M1); personas y soldados con un solo estilo de arte
+(M2); ciudad viva griega rehecha desde cero (M2) y su fusión con Roma después de la 2.0; tiempo solo por estaciones (M1).
+
 ## 1. Críticas del usuario a la 1.0
 Literales y con fecha. Fuente: este chat y el botón «Juzgar la 1.0» del cuadro (colección `juicio`: vacía el 25/11 ~11:40).
 
