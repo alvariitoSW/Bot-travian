@@ -162,6 +162,8 @@ agricultura, mercado, caminos de victoria y batallas a pie (falange, hoplitas).
 | **M4 · Ganar** | Se gana por armas, comercio, política, ciudad y ciencia en esta partida; política griega (asamblea, consejo, arcontes) | Grande |
 | **M5 · Guerra** | Las batallas de la 1.0 enganchadas a la partida (hoplitas, falange) y un asedio corto | Medio |
 
+Decidido después (25/11): **«Una polis real»** (eliges Atenas, Esparta o Corinto y la levantas desde la aldea, cada una con su carácter) y **«Sí, con 3 épocas (Recomendado)»** (arcaica → clásica → helenística: del barro y la madera al mármol; abre edificios, tropas y saberes).
+
 Cada meta lleva su **estándar** (qué se mide, quién lo mide, valor para aprobar); se escriben meta a meta con el usuario.
 
 **Cambia una regla de CLAUDE.md** (época 280–146 a.C.): la Partida nueva va del 800 a.C. en adelante; el vigía la
