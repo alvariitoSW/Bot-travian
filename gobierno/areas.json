@@ -29,7 +29,9 @@
       "gobierno/fichas.mjs",
       "manifest.webmanifest",
       ".gitignore",
-      ".nojekyll"
+      ".nojekyll",
+      "test/campana-bot.js",
+      "test/sim-paralelo.js"
     ],
     "solo_vigia": [
       "gobierno/BITACORA.md",
@@ -133,7 +135,8 @@
         "test/tropas-precios.test.mjs",
         "test/es3-combinada.test.mjs",
         "test/es4-asculo.test.mjs",
-        "test/registro-lleva.test.mjs"
+        "test/registro-lleva.test.mjs",
+        "js/tropas.js"
       ],
       "taller": [],
       "juez": {

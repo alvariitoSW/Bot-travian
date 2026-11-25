@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 (vigía 4, noche): CG4c hecha. Su pregunta «Aníbal contra una Roma que no recluta (cae hacia el 215)»: aplicado lo recomendado (A, dejarlo: hay que prepararse para Aníbal); (B) sería recontar su ejército. Se le cuenta en el resumen de la mañana.
 - 25/11 (vigía 4, noche): CG4b hecha y unida (v169). Su pregunta «dureza de la campaña al delegar» (Roma cae hacia el 250 si delegas todo): aplicado lo recomendado (A, calibrar) por la orden de no preguntar de noche → CG4c. Se le cuenta en el resumen de la mañana.
 - 25/11/2026 ~01:20 — **Subido a `main` (SB6)**: `feeb264f`, caché **v168**; jueces completos APTO 43/43. Lleva CG9 (datos de tropas), CE12 (caminos), falange FU3–FU3c (othismos), FU4 (rivales y elefantes), FU5 (muro y orden abierto) y TH1 (tácticas). Detrás: CG4b (campaña, rama `cg4b-campana`), FU6 y UN3 (combinada), subida final.
 - 24/11/2026 ~23:50 — **Orden de subir** (botón «Subir lo terminado a mi móvil»): abierta SB6, que espera a UN2 y sube con jueces completos.
