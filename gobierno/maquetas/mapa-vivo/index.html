@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>AQVILA · mapa vivo de Grecia</title>
+<base href="../../../">
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#1c1610}#caja{position:fixed;inset:0}</style>
+</head>
+<body>
+<div id="caja"></div>
+<!-- AM2: el mapa vivo de Grecia tal como entra en el juego (js/gfx/mapa-grecia*.js), en una página suelta para verlo y probarlo.
+     Parámetros: ?estilo=a|b  &vista=entera|corazon|comarca|atenas|<id de polis>  &a=<ancho en decenas de km>  &rec=1  &t=<segundo fijo>  &fija=1 (sin bajar calidad) -->
+<script type="module">
+import { montarMapaGrecia } from './js/gfx/mapa-grecia-pantalla.js';
+const Q = new URLSearchParams(location.search), o = {};
+if (Q.get('estilo')) o.estilo = Q.get('estilo'); if (Q.get('vista')) o.vista = Q.get('vista'); if (Q.has('t')) o.tFijo = +Q.get('t'); if (Q.has('fija')) o.calidadFija = true; if (Q.has('dpr')) o.dpr = +Q.get('dpr');
+const p = await montarMapaGrecia(document.getElementById('caja'), o);
+if (Q.get('a')) p.mapa.V.upx = +Q.get('a') / 390; if (Q.get('rec') === '1') p.raiz.querySelector('[data-a="recursos"]').click();
+window.__mapa = p.mapa; window.__pantalla = p;
+</script>
+</body>
+</html>
