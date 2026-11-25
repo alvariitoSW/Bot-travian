@@ -28,5 +28,20 @@
    "agresivo": "7/16",
    "investiga": "6/16"
   }
+ },
+ {
+  "fecha": "2026-11-25T16:04:15.428Z",
+  "commit": "24d1d94",
+  "ok": true,
+  "segundos": 464,
+  "partidas": 48,
+  "victorias": 13,
+  "anioMedio": 212,
+  "denariosMedio": 7081,
+  "porBot": {
+   "pacifico": "0/16",
+   "agresivo": "7/16",
+   "investiga": "6/16"
+  }
  }
 ]

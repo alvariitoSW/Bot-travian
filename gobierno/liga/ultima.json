@@ -1,8 +1,8 @@
 {
- "fecha": "2026-11-25T15:23:21.479Z",
- "commit": "9ac05b1",
+ "fecha": "2026-11-25T16:04:15.428Z",
+ "commit": "24d1d94",
  "ok": true,
- "segundos": 387,
+ "segundos": 464,
  "nota": "Las victorias, años y economía se informan; no deciden. Vara: terminar sin error y seguir siendo serializable.",
  "comprobaciones": [
   {
@@ -95,7 +95,7 @@
    "ciudades": 1,
    "poblacion": 1724,
    "serializable": true,
-   "segundos": 11.2
+   "segundos": 10.6
   },
   {
    "ok": true,
@@ -111,7 +111,7 @@
    "ciudades": 1,
    "poblacion": 1729,
    "serializable": true,
-   "segundos": 11.1
+   "segundos": 10.3
   },
   {
    "ok": true,
@@ -127,7 +127,7 @@
    "ciudades": 7,
    "poblacion": 8608,
    "serializable": true,
-   "segundos": 56.8
+   "segundos": 51.5
   },
   {
    "ok": true,
@@ -143,7 +143,7 @@
    "ciudades": 9,
    "poblacion": 12554,
    "serializable": true,
-   "segundos": 63.2
+   "segundos": 60.8
   },
   {
    "ok": true,
@@ -159,7 +159,7 @@
    "ciudades": 7,
    "poblacion": 10613,
    "serializable": true,
-   "segundos": 65.1
+   "segundos": 67.2
   },
   {
    "ok": true,
@@ -175,7 +175,7 @@
    "ciudades": 0,
    "poblacion": 0,
    "serializable": true,
-   "segundos": 5.2
+   "segundos": 5
   },
   {
    "ok": true,
@@ -191,7 +191,7 @@
    "ciudades": 5,
    "poblacion": 9267,
    "serializable": true,
-   "segundos": 49.3
+   "segundos": 47.8
   },
   {
    "ok": true,
@@ -207,7 +207,7 @@
    "ciudades": 3,
    "poblacion": 5208,
    "serializable": true,
-   "segundos": 34
+   "segundos": 31
   },
   {
    "ok": true,
@@ -223,7 +223,7 @@
    "ciudades": 6,
    "poblacion": 8077,
    "serializable": true,
-   "segundos": 64.6
+   "segundos": 54.9
   },
   {
    "ok": true,
@@ -239,7 +239,7 @@
    "ciudades": 9,
    "poblacion": 14947,
    "serializable": true,
-   "segundos": 79
+   "segundos": 68
   },
   {
    "ok": true,
@@ -255,7 +255,7 @@
    "ciudades": 6,
    "poblacion": 9663,
    "serializable": true,
-   "segundos": 77.8
+   "segundos": 66.9
   },
   {
    "ok": true,
@@ -271,7 +271,7 @@
    "ciudades": 10,
    "poblacion": 17039,
    "serializable": true,
-   "segundos": 108.1
+   "segundos": 98.3
   },
   {
    "ok": true,
@@ -287,7 +287,7 @@
    "ciudades": 2,
    "poblacion": 1545,
    "serializable": true,
-   "segundos": 30.5
+   "segundos": 27.4
   },
   {
    "ok": true,
@@ -303,7 +303,7 @@
    "ciudades": 2,
    "poblacion": 1487,
    "serializable": true,
-   "segundos": 27.6
+   "segundos": 25.2
   },
   {
    "ok": true,
@@ -319,7 +319,7 @@
    "ciudades": 9,
    "poblacion": 16181,
    "serializable": true,
-   "segundos": 93
+   "segundos": 87.3
   },
   {
    "ok": true,
@@ -335,7 +335,7 @@
    "ciudades": 8,
    "poblacion": 12314,
    "serializable": true,
-   "segundos": 80.3
+   "segundos": 78.8
   },
   {
    "ok": true,
@@ -351,7 +351,7 @@
    "ciudades": 7,
    "poblacion": 8737,
    "serializable": true,
-   "segundos": 86
+   "segundos": 86.9
   },
   {
    "ok": true,
@@ -367,7 +367,7 @@
    "ciudades": 8,
    "poblacion": 12346,
    "serializable": true,
-   "segundos": 107.9
+   "segundos": 108.5
   },
   {
    "ok": true,
@@ -383,7 +383,7 @@
    "ciudades": 1,
    "poblacion": 1719,
    "serializable": true,
-   "segundos": 7.6
+   "segundos": 6.9
   },
   {
    "ok": true,
@@ -415,7 +415,7 @@
    "ciudades": 5,
    "poblacion": 6252,
    "serializable": true,
-   "segundos": 16
+   "segundos": 17.2
   },
   {
    "ok": true,
@@ -431,7 +431,7 @@
    "ciudades": 5,
    "poblacion": 6467,
    "serializable": true,
-   "segundos": 16.2
+   "segundos": 16.7
   },
   {
    "ok": true,
@@ -447,7 +447,7 @@
    "ciudades": 5,
    "poblacion": 6579,
    "serializable": true,
-   "segundos": 16.8
+   "segundos": 17.3
   },
   {
    "ok": true,
@@ -463,7 +463,7 @@
    "ciudades": 5,
    "poblacion": 8031,
    "serializable": true,
-   "segundos": 15.7
+   "segundos": 16.4
   },
   {
    "ok": true,
@@ -479,7 +479,7 @@
    "ciudades": 2,
    "poblacion": 3070,
    "serializable": true,
-   "segundos": 13.6
+   "segundos": 14.8
   },
   {
    "ok": true,
@@ -495,7 +495,7 @@
    "ciudades": 2,
    "poblacion": 3647,
    "serializable": true,
-   "segundos": 14.3
+   "segundos": 14.8
   },
   {
    "ok": true,
@@ -511,7 +511,7 @@
    "ciudades": 5,
    "poblacion": 5749,
    "serializable": true,
-   "segundos": 12
+   "segundos": 11.1
   },
   {
    "ok": true,
@@ -527,7 +527,7 @@
    "ciudades": 5,
    "poblacion": 5719,
    "serializable": true,
-   "segundos": 12.1
+   "segundos": 12.2
   },
   {
    "ok": true,
@@ -543,7 +543,7 @@
    "ciudades": 5,
    "poblacion": 5786,
    "serializable": true,
-   "segundos": 11.3
+   "segundos": 11.4
   },
   {
    "ok": true,
@@ -559,7 +559,7 @@
    "ciudades": 5,
    "poblacion": 6048,
    "serializable": true,
-   "segundos": 12.6
+   "segundos": 11.7
   },
   {
    "ok": true,
@@ -575,7 +575,7 @@
    "ciudades": 4,
    "poblacion": 6893,
    "serializable": true,
-   "segundos": 15.3
+   "segundos": 15.5
   },
   {
    "ok": true,
@@ -591,7 +591,7 @@
    "ciudades": 3,
    "poblacion": 4656,
    "serializable": true,
-   "segundos": 12.8
+   "segundos": 13.3
   },
   {
    "ok": true,
@@ -607,7 +607,7 @@
    "ciudades": 5,
    "poblacion": 7140,
    "serializable": true,
-   "segundos": 15.8
+   "segundos": 16.6
   },
   {
    "ok": true,
@@ -623,7 +623,7 @@
    "ciudades": 5,
    "poblacion": 8520,
    "serializable": true,
-   "segundos": 22.3
+   "segundos": 20.9
   },
   {
    "ok": true,
@@ -655,7 +655,7 @@
    "ciudades": 5,
    "poblacion": 9888,
    "serializable": true,
-   "segundos": 22.8
+   "segundos": 23.5
   },
   {
    "ok": true,
@@ -671,7 +671,7 @@
    "ciudades": 0,
    "poblacion": 0,
    "serializable": true,
-   "segundos": 3.8
+   "segundos": 3.5
   },
   {
    "ok": true,
@@ -703,7 +703,7 @@
    "ciudades": 5,
    "poblacion": 5928,
    "serializable": true,
-   "segundos": 20.2
+   "segundos": 19.7
   },
   {
    "ok": true,
@@ -719,7 +719,7 @@
    "ciudades": 0,
    "poblacion": 0,
    "serializable": true,
-   "segundos": 3.2
+   "segundos": 3.3
   },
   {
    "ok": true,
@@ -735,7 +735,7 @@
    "ciudades": 5,
    "poblacion": 6219,
    "serializable": true,
-   "segundos": 22.3
+   "segundos": 21.5
   },
   {
    "ok": true,
@@ -751,7 +751,7 @@
    "ciudades": 0,
    "poblacion": 0,
    "serializable": true,
-   "segundos": 3.2
+   "segundos": 3.6
   },
   {
    "ok": true,
@@ -767,7 +767,7 @@
    "ciudades": 0,
    "poblacion": 0,
    "serializable": true,
-   "segundos": 3.5
+   "segundos": 4
   },
   {
    "ok": true,
@@ -783,7 +783,7 @@
    "ciudades": 0,
    "poblacion": 0,
    "serializable": true,
-   "segundos": 3.5
+   "segundos": 3.1
   },
   {
    "ok": true,
@@ -799,7 +799,7 @@
    "ciudades": 5,
    "poblacion": 5928,
    "serializable": true,
-   "segundos": 20.3
+   "segundos": 18.5
   },
   {
    "ok": true,
@@ -815,7 +815,7 @@
    "ciudades": 0,
    "poblacion": 0,
    "serializable": true,
-   "segundos": 3.6
+   "segundos": 2.7
   },
   {
    "ok": true,
@@ -831,7 +831,7 @@
    "ciudades": 4,
    "poblacion": 5613,
    "serializable": true,
-   "segundos": 21.8
+   "segundos": 19.2
   },
   {
    "ok": true,
