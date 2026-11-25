@@ -2,7 +2,8 @@
 /* AQVILA — genera la página del cuadro de mando a partir de la lista de la 1.0, el tablero, la bitácora y las capturas.
    Uso:  node gobierno/cuadro.mjs   →  escribe gobierno/cuadro.html (no se guarda en git; se publica como Artifact).
    Regla del 18/11: el cuadro enseña el juego, no las tareas. La portada sale de gobierno/lista.json.
-   La página es estática salvo pedidos, sesiones y vigía, que viven en la base de datos del Artifact. */
+   La página es estática salvo pedidos, sesiones y vigía, que viven en la base de datos del Artifact.
+   J20b: la sección «Liga de bots» (vista Taller) sale de gobierno/liga/ultima.json e historial.json (node gobierno/liga.mjs). */
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -428,11 +429,33 @@ const htmlJuicio = organos.map(o => {
 }).join('');
 if (!lineas.length) avisa('CM5: no hay líneas que juzgar en lista.json');
 
+/* J20b: liga de bots (gobierno/liga.mjs): última pasada y tendencia de las anteriores */
+let htmlLiga = '<div class="ficha liga"><p class="nota">Sin pasadas aún.</p></div>';
+try {
+  const u = JSON.parse(await readFile(join(AQUI, 'liga', 'ultima.json'), 'utf8')); let hist = []; try { hist = JSON.parse(await readFile(join(AQUI, 'liga', 'historial.json'), 'utf8')); } catch (e) { }
+  const NB = { pacifico: 'Pacífico', agresivo: 'Agresivo', investiga: 'El que investiga' }, cuando = new Date(u.fecha);
+  const ant = hist.length > 1 ? hist[hist.length - 2] : null, num = v => v == null ? '—' : Number(v).toLocaleString('es-ES');
+  const delta = (k, v) => { if (!ant || !ant.porBot || !ant.porBot[k]) return ''; const a = +String(ant.porBot[k]).split('/')[0], d = v.victorias - a;
+    return d ? ' <span class="' + (d > 0 ? 'sube' : 'baja') + '">(' + (d > 0 ? '+' : '') + d + ')</span>' : ' <span class="nota">(=)</span>'; };
+  const bots = Object.entries(u.resumen.porBot).map(([k, v]) => '<li class="bot"><span>' + esc(NB[k] || k) + '</span><span class="cifra">' + v.victorias + '/' + v.total + ' victorias' + delta(k, v) + '</span>' +
+    '<span class="barra" aria-hidden="true"><span style="width:' + (v.total ? Math.round(100 * v.victorias / v.total) : 0) + '%"></span></span>' +
+    '<span class="nota">Acaba de media en el ' + num(v.anioMedio) + ' a.C. · ' + num(v.denariosMedio) + ' denarios · ' + num(v.ciudadesMedio) + ' ciudades</span></li>').join('');
+  const ult = hist.slice(-12), pct = h => h.partidas ? 100 * h.victorias / h.partidas : 0;
+  const linea = ult.length > 1 ? '<p class="nota">Victorias en las últimas ' + ult.length + ' pasadas (de ' + Math.round(Math.min(...ult.map(pct))) + ' % a ' + Math.round(Math.max(...ult.map(pct))) + ' %):</p><svg viewBox="0 0 100 40" preserveAspectRatio="none" role="img" aria-label="Victorias en las últimas ' + ult.length + ' pasadas"><polyline points="' +
+    ult.map((h, i) => (i * 100 / (ult.length - 1)).toFixed(1) + ',' + (38 - pct(h) * 0.36).toFixed(1)).join(' ') + '"/></svg>' : '';
+  const tend = ant ? 'Frente a la pasada anterior (' + new Date(ant.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + '): victorias ' + ant.victorias + '/' + ant.partidas + ' → ' + u.resumen.victorias + '/' + u.resumen.partidas + '; fin medio ' + num(ant.anioMedio) + ' → ' + num(u.resumen.anioMedio) + ' a.C.'
+    : 'Primera pasada: la tendencia sale a partir de la segunda.';
+  htmlLiga = '<div class="ficha liga"><p class="cab"><b>Última pasada</b><span class="nota">' + esc(cuando.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long' }) + ', ' + cuando.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' })) +
+    ' · ' + u.resumen.partidas + ' partidas · ' + (Math.round(u.segundos / 6) / 10).toLocaleString('es-ES') + ' min</span><span class="veredicto ' + (u.ok ? 'ok' : 'no') + '" style="color:var(' + (u.ok ? '--bien' : '--mal') + ')">' + (u.ok ? 'Todas acaban bien' : 'Alguna falla') + '</span></p>' +
+    '<ul class="bots">' + bots + '</ul>' + linea + '<p class="nota">' + esc(tend) + '</p></div>';
+} catch (e) { if (e.code !== 'ENOENT') avisa('J20b: no se lee gobierno/liga/ultima.json (' + e.message + ')'); }
+
 // CM6: la frase del estandarte es la de la fase en curso: «En una frase: *…*» del plan de la meta; si no hay, la de la lista de la 1.0
 let frase = lista.frase || '';
 if (FASE.meta && FASE.meta.plan) { try { const m = (await readFile(join(RAIZ, FASE.meta.plan), 'utf8')).match(/En una frase:\s*\*([^*]+)\*/); if (m) { const t = m[1].replace(/\s+/g, ' ').trim(); frase = t.charAt(0).toUpperCase() + t.slice(1); } } catch (e) { avisa('CM6: no se lee el plan ' + FASE.meta.plan); } }
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
+  LIGA: htmlLiga,
   FASE: htmlFase, V10_TITULO: esc(v10Titulo), EQUIPOS_CHIPS: htmlEqChips, EQUIPO_1: esc((EQ[0] || {}).id || ''), EQUIPO_1_NOMBRE: esc((EQ[0] || {}).nombre || ''), CAMINO_TITULO: caminoTitulo, CAMINO_ABRE: caminoAbre, CAMINO_CIERRA: caminoCierra, V10_ABRE: v10Abre, V10_CIERRA: v10Cierra, ORGANOS_TITULO: organosTitulo, JUZGAR_AVISO: juzgarAviso, HACIA2_TITULO: hacia2Titulo,
   PCT10: pct10, PCT10_QUEDA: 100 - pct10, PCT_LISTA: pctLista, PCT_LISTA_NOTA: lineas.filter(l => l.estado === 'hecha').length + ' hechas, ' + lineas.filter(l => l.estado === 'medias').length + ' a medias y ' + lineas.filter(l => l.estado === 'falta').length + ' por hacer, de ' + lineas.length + ' líneas', CAMINO: htmlCamino, CAMINO_MARCAS: htmlMarcasCamino, CAMINO_CUANDO: caminoCuando, RIESGOS: htmlRiesgos, JUICIO: htmlJuicio,
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(frase), VIGIA: esc(config.vigia || ''),

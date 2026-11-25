@@ -347,10 +347,11 @@ export function fundar(E, x, z) {
     c.unshift([x + e[0] * Math.cos(ang) - e[1] * Math.sin(ang), z + e[0] * Math.sin(ang) + e[1] * Math.cos(ang)]); nuevaVia(E, alisar(c), 3.6, 'via'); }
   /* franja sagrada del surco: nadie construye encima; las calles la cruzan por las puertas */
   for (let i = 0; i < NR; i++) { const a = E.surco[i], b = E.surco[(i + 1) % NR], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 0; s <= L; s += 2) for (const o of [-4, 0, 4]) { const t = Math.atan2(a[1] - z, a[0] - x), k = ci(a[0] + (b[0] - a[0]) * s / L + Math.cos(t) * o, a[1] + (b[1] - a[1]) * s / L + Math.sin(t) * o); if (k >= 0 && E.ocup[k] === 0) E.ocup[k] = 5; else if (k >= 0 && E.ocup[k] === 3) { const l = E.parcelas[E.lote[k] - 1]; if (l) quitarParcela(E, l); E.ocup[k] = 5; } } }
-  recinto(E); puertas(E); reparcelar(E); if (E.plano >= 3) urbe(E);
+  recinto(E); puertas(E); reparcelar(E); if (E.plano >= 3 && !E.sinUrbe) urbe(E);      // PN3: la ciudad de polis empieza sin la urbe de adorno
   /* las primeras chozas de los colonos, pegadas al foro */
-  const S = servicios(E), libres = E.parcelas.filter(l => !l.fuera && !l.arrabal).sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z)).slice(0, 20);
-  for (const l of libres) l.casa = { nivel: 1, desde: 0, nace: 0, ruina: 0 };
+  /* PN3: E.chozas0 = niveles de las primeras casas (partida de polis: 5 a 8, de nivel I y II); sin él, las 20 chozas de siempre */
+  const ch0 = Array.isArray(E.chozas0) ? E.chozas0 : null, S = servicios(E), libres = E.parcelas.filter(l => !l.fuera && !l.arrabal).sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z)).slice(0, ch0 ? ch0.length : 20);
+  libres.forEach((l, i) => { l.casa = { nivel: ch0 ? Math.min(4, Math.max(1, ch0[i] || 1)) : 1, desde: 0, nace: 0, ruina: 0 }; });
   E.sitio = { x, z }; E.rev++; return true;
 }
 /* ---------- CI3a (plano 3): la urbe a la vista ----------
@@ -658,8 +659,11 @@ export function aDatos(E) {
     piezas: E.edificios.map(e => { const o = { id: e.id, tipo: e.tipo, x: Math.round(e.x * 10) / 10, z: Math.round(e.z * 10) / 10, mejora: e.mejora || 0, mesN: e.desde }; if (e.ang) o.ang = Math.round(e.ang * 1000) / 1000; return o; }), muralla: E.diario.filter(d => d.a === 'm').map(d => d.n),
     barrios: E.barrios.map(b => ({ nombre: b.nombre, corto: b.corto })), acciones: E.diario.map(d => Object.assign({}, d)),
     ...(E.n0 === undefined ? {} : { n0: E.n0 }),      // solo una ciudad de plantilla (o de partida) lo trae: el diario arranca en ese mes y las piezas nacen terminadas
-    cultura: E.cultura || 'roma', tinte: E.tinte || E.cultura || 'roma', tam: E.tam || null, terreno: terr(E) };   // cultura/tinte/tam (CN9a) · terreno (CN19-A)
+    cultura: E.cultura || 'roma', tinte: E.tinte || E.cultura || 'roma', tam: E.tam || null, terreno: terr(E),   // cultura/tinte/tam (CN9a) · terreno (CN19-A)
+    ...(E.chozas0 ? { chozas0: E.chozas0.slice() } : {}), ...(E.sinUrbe ? { sinUrbe: true } : {}), ...(E.abre ? { abre: E.abre.slice() } : {}) };   // PN3: casas del arranque, sin urbe y piezas abiertas desde el principio
 }
+/* PN3: piezas abiertas desde el principio (el edificio propio de la polis), sin esperar a la población. Va tras fijarTerreno. */
+export function abrirPiezas(E, ids) { if (ids && ids.length) E.abre = ids.slice(); for (const id of E.abre || []) if (EDIF[id] && !E.abiertas.includes(id)) E.abiertas.push(id); return E.abiertas; }
 /* Rehace la misma ciudad: funda, y repite cada obra en su mes con los meses entre medias (la semilla manda el azar). */
 /* CI1b: plano 2 = calles con eje y campos sellados. CI3a: plano 3 = el 2 más la urbe a la vista. Se prueba el 3; si alguna obra no cabe, el 2 y (datos sin plano) el 1 */
 export function deDatos(datos) {
@@ -669,6 +673,7 @@ function rehacer(datos, plano) {
   const E = crear(datos.semilla); E.plano = plano; E.fallos = 0; E.modoJuego = datos.n0 !== undefined; if (E.modoJuego) E.n0 = datos.n0; E.mesN = datos.n0 || 0;
   E.cultura = datos.cultura || 'roma'; E.tinte = datos.tinte || E.cultura; E.tam = datos.tam || null;      // datos viejos sin cultura: romana
   fijarTerreno(E, datos.terreno || 'rio');      // datos viejos sin terreno: el valle del río
+  if (datos.chozas0) E.chozas0 = datos.chozas0.slice(); if (datos.sinUrbe) E.sinUrbe = true; abrirPiezas(E, datos.abre);      // PN3
   if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
   const ac = datos.acciones || [];
   for (let n = datos.n0 || 0; n <= datos.mesN; n++) {
@@ -770,9 +775,13 @@ export function fundarAuto(E, semilla) {
   const cand = []; for (let x = -240; x <= 240; x += 40) for (let z = -400; z <= 220; z += 40) { const n = notaFundar(E, x, z); const k = ci(x, z), dc = k < 0 ? 999 : E.dVia[k]; if (n.vale && drio(x, z) > 100 && !inundable(x, z, terr(E)) && dc >= 25 && dc <= 110) cand.push({ x, z, nota: n.nota }); }
   if (!cand.length) return null; const mejor = Math.max(...cand.map(c => c.nota)), r = azar((semilla || 0) * 104729 + 7);
   /* mejores notas primero, con un empujón de azar de la semilla (hasta 1.2 puntos) para que dos ciudades no caigan juntas (sin semilla, el orden de la rejilla) */
-  const top = cand.filter(c => c.nota >= mejor - 1).map(c => Object.assign(c, { u: semilla === undefined ? 0 : r() })).sort((a, b) => (b.nota + b.u * 1.2) - (a.nota + a.u * 1.2));
+  /* PN3: E.sitioLibre (ciudad de polis) abre el abanico: entra lo que esté a 3 puntos de la mejor y el azar pesa hasta 4, para que el ágora cambie de sitio entre partidas */
+  let top = cand.filter(c => c.nota >= mejor - 1).map(c => Object.assign(c, { u: semilla === undefined ? 0 : r() })).sort((a, b) => (b.nota + b.u * 1.2) - (a.nota + a.u * 1.2));
+  /* PN3: E.sitioLibre (ciudad de polis): sitios separados al menos 150 entre sí (los mejores de cada zona); la semilla elige por cuál se empieza */
+  if (E.sitioLibre) { const reps = []; for (const c of cand.slice().sort((a, b) => a.z - b.z || b.nota - a.nota)) if (c.nota >= mejor - 4 && reps.every(q => Math.hypot(q.x - c.x, q.z - c.z) >= 150)) reps.push(c);
+    const k = Math.floor(azar((semilla || 0) * 7841 + 3)() * reps.length); top = reps.slice(k).concat(reps.slice(0, k), top.filter(c => !reps.includes(c))); }
   /* ensayo en una ciudad desechable: vale si sale la calle del foro al camino y las 20 chozas (si no, se prueba el siguiente) */
-  let n = 0; for (const c of top) { if (n++ >= 10) break; const P = crear(E.semilla); topeRuta = 1200; let ok; try { ok = fundar(P, c.x, c.z) && P.vias.length >= 2 && poblacion(P) >= 250; } finally { topeRuta = Infinity; } if (ok && fundar(E, c.x, c.z)) return [c.x, c.z]; }
+  let n = 0; for (const c of top) { if (n++ >= 10) break; const P = crear(E.semilla); topeRuta = 1200; let ok; try { ok = fundar(P, c.x, c.z) && P.vias.length >= 2 && poblacion(P) >= (E.sitioLibre ? 150 : 250); /* PN3: la aldea de polis cabe en menos sitio */ } finally { topeRuta = Infinity; } if (ok && fundar(E, c.x, c.z)) return [c.x, c.z]; }
   for (const c of top) if (fundar(E, c.x, c.z)) return [c.x, c.z]; return null;
 }
 

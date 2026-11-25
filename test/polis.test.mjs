@@ -50,9 +50,8 @@ for (const id of IDS) t('partida con ' + id + ': nombre, leva, reclutas, bono y 
   assert.ok(Number.isFinite(c2.pop) && Object.values(c2.units).every(Number.isFinite), 'NaN en ciudad');
   assert.ok(G.myCities().includes('roma'));
 });
-t('el edificio propio empieza un nivel más alto', () => {
-  const sin = nueva(null).cities.roma.b;
-  for (const id of IDS) { const e = D.POLIS[id].edificio.id, b = nueva(id).cities.roma.b[e] || 0; assert.ok(b === (sin[e] || 0) + 1 || b >= 1, id + ' ' + e + ' ' + b); }
+t('PN3: arranque mínimo; el edificio propio no está construido (Tebas: dos granjas)', () => {
+  for (const id of IDS) { const e = D.POLIS[id].edificio.id, c = nueva(id).cities.roma, b = c.b[e] || 0; assert.ok(e === 'granja' ? b === 2 : b === 0, id + ' ' + e + ' ' + b); assert.strictEqual(c.b.foro, 1); }
 });
 t('la crónica dice con qué polis empiezas', () => {
   const s = nueva('atenas'); assert.ok(s.log.some(l => /Empiezas como Atenas: Plata del Laurion/.test(l.x)));

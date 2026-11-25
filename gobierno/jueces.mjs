@@ -7,7 +7,11 @@
          node gobierno/jueces.mjs --liga     (J20a: SOLO la liga, sin navegador ni guerra jugada: test/sim.test.js entero con sus bots de
               partida entera, el bot investigador y el de ajustes por nivel. Va aparte de la subida, que corre sim.test.js con
               SIM_SIN_BOTS=1 y se salta esos bloques; ninguna vara se relaja, solo cambia el comando. Con memoria JZ1; --todo la repite.
-              Informe en gobierno/capturas-liga/informe.json; no pisa gobierno/capturas/.)
+              Informe en gobierno/capturas-liga/informe.json; no pisa gobierno/capturas/.
+              J20b: la liga también acaba guardados de mitad de partida con cada bot: gobierno/liga.mjs, ver su cabecera.)
+   J20b: una liga lanzada aparte (`node gobierno/liga.mjs &`) no frena la subida: al empezar, la subida la pausa (SIGSTOP a su
+        grupo) y la reanuda al acabar, también si falla o se corta. La subida nunca lanza la liga.
+   J20b: la subida pasa el juez de aspecto (gobierno/juez-aspecto.mjs --todas) sobre todas las fichas de gobierno/aspecto/.
    J20a: las pruebas con reloj de pared (marcadas «solo») corren antes y en serie, sin nada compitiendo.
    JZ1: cada prueba guarda en gobierno/jueces-cache.json la huella de los archivos que lee al dar APTO; si no cambió ninguno, no
         se repite (gobierno/jueces-cache.mjs). La lógica corre a la vez que el navegador y test/sim.test.js reparte sus campañas
@@ -22,7 +26,7 @@ import { cierre, servido, huella, leer as leeMemoria, guardar as guardaMemoria }
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { readFile, mkdir, rm, writeFile } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, normalize, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -41,6 +45,22 @@ if (LIGA && AREA !== null) { console.error('--liga no se combina con --area.'); 
 if (AREA !== null && !['batallas', 'cerebro', 'musculo', 'mapas'].includes(AREA)) { console.error('Áreas con pasos de navegador: batallas, cerebro, musculo, mapas (AM0).'); process.exit(2); }
 const CAPS = AREA ? join(RAIZ, 'gobierno', 'capturas-area', AREA) : join(RAIZ, 'gobierno', LIGA ? 'capturas-liga' : 'capturas');
 const CAPS_TAREA = AREA ? CAPS : join(RAIZ, 'gobierno', 'capturas-tarea');   // R3 y R4 dejan ahí sus capturas fijas
+/* J20b: la liga de gobierno/liga.mjs no frena las subidas. Si hay una viva (candado gobierno/liga/.corre con su pid), la subida la
+   pausa entera (SIGSTOP a su grupo de procesos) y la reanuda (SIGCONT) al salir, también si falla o se corta con Ctrl+C o una señal.
+   Con --liga no se pausa nada. Un SIGKILL a la subida no se puede atender: entonces, a mano, `kill -CONT -<pid del candado>`. */
+const LIGA_PAUSADA = (() => {
+  if (LIGA) return null;
+  let c; try { c = JSON.parse(readFileSync(join(RAIZ, 'gobierno', 'liga', '.corre'), 'utf8')); } catch (e) { return null; }
+  const g = +c.grupo || +c.pid;
+  try { process.kill(c.pid, 0); if (!/liga\.mjs/.test(readFileSync('/proc/' + c.pid + '/cmdline', 'utf8'))) return null; } catch (e) { return null; }
+  try { const st = readFileSync('/proc/self/stat', 'utf8'); if (+st.slice(st.lastIndexOf(')') + 2).split(' ')[2] === g) return null; } catch (e) { }   // nunca pararse a sí misma
+  try { process.kill(-g, 'SIGSTOP'); } catch (e) { return null; }
+  const sigue = () => { try { process.kill(-g, 'SIGCONT'); } catch (e) { } };
+  process.on('exit', sigue);
+  for (const sg of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sg, () => { sigue(); process.exit(130); });
+  console.log('Liga en marcha (pid ' + c.pid + '): pausada mientras dura la subida; sigue al acabar.');
+  return g;
+})();
 const pasos = [];                       // { nombre, ok, detalle, captura }
 const errores = [];                     // errores de consola del navegador
 const t0 = Date.now();
@@ -79,7 +99,20 @@ const LOGICA = [
   { id: 'ajustes', nombre: 'Ajustes y dificultades (bot por nivel)', f: 'test/ajustes.test.mjs', t: 1800000, lee: ultima, liga: true },
   { id: 'diplomacia', nombre: 'Diplomacia (alianza, tributo, IA construye)', f: 'test/diplomacia.test.mjs', t: 60000, lee: bienMal },
   { id: 'sonido-ciudad', nombre: 'Sonido de la ciudad', f: 'test/sonido-ciudad.test.mjs', t: 60000, lee: ultima },
+  /* J20b: juez de aspecto en la subida: toda ficha gobierno/aspecto/<id>.md (nota ≥ 8,5, 8–12 cosas, referencias, captura de partida,
+     exámenes que cierran con nota). Sin navegador, segundos. Su memoria: las fichas y lo que citan (archivosAspecto), no todo lo servido */
+  { id: 'aspecto', nombre: 'Juez de aspecto (fichas de objetivo y notas)', f: 'gobierno/juez-aspecto.mjs', args: ['--todas'], t: 60000, archivos: () => archivosAspecto(), lee: r => r.status === 0 ? ultima(r)
+    : ((r.stdout || '').split('\n').filter(l => /FALLA|^· ficha/.test(l)).filter((l, i, a) => /FALLA/.test(l) || /FALLA/.test(a[i + 1] || '')).slice(0, 4).join(' | ') || ultima(r)).slice(0, 400) },
+  /* J20b: liga desde partidas a medias (gobierno/liga.mjs): acaba los guardados de gobierno/liga/partidas/ con cada bot. Sus partidas cuentan en la memoria */
+  { id: 'liga-mitad', nombre: 'Liga · bots desde partidas a medias', f: 'gobierno/liga.mjs', t: 1800000, liga: true, archivos: () => listaDe('gobierno/liga/partidas', /\.json$/), lee: ultima },
 ];
+/* J20b: archivos de los que dependen pasos con memoria propia */
+function listaDe(dir, re) { try { return readdirSync(join(RAIZ, dir)).filter(f => re.test(f)).map(f => dir + '/' + f); } catch (e) { return []; } }
+function archivosAspecto() {
+  const fichas = listaDe('gobierno/aspecto', /\.md$/), citados = [];
+  for (const f of fichas) for (const m of readFileSync(join(RAIZ, f), 'utf8').matchAll(/(?:gobierno|js|test|assets)\/[\w.\/-]+\.[a-z0-9]+/gi)) { try { if (statSync(join(RAIZ, m[0])).isFile()) citados.push(m[0]); } catch (e) { } }
+  return [...fichas, ...citados];
+}
 /* lanza un proceso sin parar a los demás; devuelve lo mismo que spawnSync (status, stdout, stderr) */
 function corre(args, timeout, env) {
   return new Promise(ok => {
@@ -93,8 +126,8 @@ function corre(args, timeout, env) {
 function preparaLogica() {
   const filas = LOGICA.filter(p => !!p.liga === LIGA);   // J20a: la liga y la subida no se mezclan
   /* si la prueba abre un navegador o recorre carpetas (o se marca con todo), depende de todo lo que se sirve */
-  const huellaDe = p => { const c = cierre([p.f]), todo = p.todo || c.some(x => /\.m?js$/.test(x) && /playwright|readdirSync|readdir\(/.test(readFileSync(join(RAIZ, x), 'utf8')));
-    return huella([...c, ...(p.extra || []), ...(todo ? servido() : []), 'gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs']); };
+  const huellaDe = p => { const c = cierre([p.f]), todo = !p.archivos && (p.todo || c.some(x => /\.m?js$/.test(x) && /playwright|readdirSync|readdir\(/.test(readFileSync(join(RAIZ, x), 'utf8'))));
+    return huella([...c, ...(p.extra || []), ...(todo ? servido() : []), ...(p.archivos ? p.archivos() : []), 'gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs']); };
   const cola = [];
   for (const p of filas) {
     p.huella = huellaDe(p); const m = MEMORIA[p.id];
@@ -105,7 +138,7 @@ function preparaLogica() {
   return cola;
 }
 async function correFila(p, nota) {
-  const t = Date.now(), r = await corre([p.f], p.t, p.env), ok = r.status === 0;
+  const t = Date.now(), r = await corre([p.f, ...(p.args || [])], p.t, p.env), ok = r.status === 0;
   apunta(p.nombre, ok, p.lee(r) + ' (' + Math.round((Date.now() - t) / 1000) + ' s' + (nota || '') + ')');
   if (ok) NUEVA[p.id] = { huella: p.huella, ok: true, fecha: new Date().toISOString() };
 }

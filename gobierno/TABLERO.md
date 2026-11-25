@@ -649,11 +649,13 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 ## Carril 2.0 · M1 Empezar de cero (aprobada por el usuario el 25/11; plan `gobierno/estudios/PLAN-2.0.md` §3–§4, rama `plan-2.0`)
 Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cerebro, de paso en comunes: ES20 → PN2 → PN3 → VI1 → VI2 → AM3; (c) Músculo: PN1; (d) Arte de Mapas: AM0 → AM1 → AM2 (**Fable** por excepción del usuario, «Fable diseña y construye», gasto medido). ≈20 M declarados (30–40 esperable).
   - ✅ J20a **Subidas en ≤15 min** — hecha el 25/11 (`c0ef320`, unida; 3,03 M): subida `--todo` de 45 min (NO APTO por carga) a **8,2 min APTO 41/41**; **liga** `--liga` aparte (sim.test completo, investigador, ajustes) APTO 3/3 en 26,6 min; pruebas con reloj primero y a solas; «Salir» del testudo espera a la escena; `--area mapas`. Ninguna vara tocada. Pase a J20b: liga sola con cifras al cuadro; juez de aspecto en la subida.
-  - 🔶 J20b **Liga de bots aparte** (desde partidas avanzadas, cifras al cuadro; juez de aspecto en la subida; sesión `session_01QiKC38cF8xXVYfdT1sK9EN`, rama `j20b-liga`).
+  - ✅ J20b **Liga de bots aparte** — hecha el 25/11 (`c88c8e4f`, unida; 2,47 M): `gobierno/liga.mjs` desde 8 partidas a medias, 48 partidas en ~7 min, cifras en `gobierno/liga/` y en el cuadro («Más» → «Liga de bots»); la liga se pausa si arranca una subida; paso `aspecto` en la subida (`juez-aspecto.mjs --todas`). Primera pasada: pacífico 0/16, agresivo 7/16, investigador 6/16.
+  - 🔶 JG2 **El juez de la maniobra falla con las estaciones** (bloquea toda subida: `jueces --todo` NO APTO 41/42, caso D · maniobra de `juez-guerra.mjs`; la marcha a Capua no llega con ES20). Sesión `session_01QiKC36Nvebw8Aud3yd4LPi`, rama `jg2-maniobra`.
   - ✅ ES20 **Solo estaciones por turnos** — hecha el 25/11 (`1cededd`, unida; caché v172 con el pase de AM2: botón «Ver el mapa de Grecia»; cerebro APTO, jueces rápidos APTO 16; ficha de objetivo, nota 8,5; economía corta agresivo 1/5 → 5/5; **19,3 M, +220 %**). Pases: Músculo (retirar `test/pausas.test.mjs`).
   - ✅ PN1 **Menú: Continuar · Partida nueva · Escaramuzas · Opciones** — hecha el 25/11 (`b733466` + arreglo `ed5ab0b6`, unidas; juez Músculo APTO; 1,41 M; ficha de objetivo de 12 puntos, nota 8,5): sin partida, «Empieza tu historia»; «Partida nueva» abre un aviso provisional de Grecia (PN2) y la campaña Roma–Cartago «En pausa». Pase aplicado a `jueces.mjs`.
   - ✅ PN2 **Ocho polis con su cultura** — hecha el 25/11 (unida; caché v173; cerebro APTO, rápidos APTO 16; aspecto 8,6; historia APTO CON NOTAS; 3,51 M, +113 %): elección de polis en Partida nueva con ficha, recurso de lujo y cultura reciclada. Pendientes con dueño: PN3 (comarca), AM3 (lujo), Historia (cotejar pasajes).
-  - 🔶 PN3 **Comarca aleatoria y arranque** (ágora, 5–8 casas, 100–200 personas; sesión `session_01QiKC39srHJGV1bes3reVNh`, rama `pn3-comarca`, de paso en comunes).
+  - 🔶 PN3 **Comarca aleatoria y arranque** — **a medias el 25/11** (unida, caché v174; cerebro APTO, rápidos APTO 17; 4,42 M, +33 %): comarca al azar por polis, ágora con 5–8 casas y 100–200 personas, 800 a.C. (`D.ANIO_POLIS`), Roma sin cambios. **Aspecto 7,5 (vara 8,5)** → PN3b. Pases: map3d (calzadas con `anioReglas`), arte (ágora arcaica).
+  - ⬜ PN3b **Comarca: aspecto a 8,5** (y mar en las polis de costa si el usuario dice A).
   - ⬜ VI1 **Dos vistas** («Desde arriba» y la ciudad 3D por la que te mueves).
   - ⬜ VI2 **Ver construir y entrenar** (andamios, obreros, reclutas).
   - ✅ AM0 **Montar el Departamento de Arte de Mapas** — hecha el 25/11 ~12:25 (`aa7e095a`, unida): skill `arte-mapas`, área `mapas` en `areas.json`, `gobierno/juez-mapas.mjs` (APTO 59 s); 0,6 M. Pases: `jueces.mjs --area mapas`; `avisos.test` de Músculo ya fallaba (lección de 87 caracteres).
@@ -673,3 +675,10 @@ Carriles a la vez: (a) Gobierno J20a → J20b → subidas SB20–SB24; (b) Cereb
   - ⬜ SUP4 **Trabajos y campamento en 5 etapas** (grande; 3 M, 5–6; necesita el tope de 60 MB).
   - ⬜ SUP5a **Reglas de las oleadas y bots** (medio; 1,5 M, 2–3; en paralelo desde SUP2).
   - ⬜ SUP5b **La pelea en vivo** (grande; 2,5 M, 4–5; espera al rediseño de la batalla).
+
+## Carril 2.0 · Batallas (plan A de EB1, aprobado por el usuario el 25/11: «1A»; `gobierno/estudios/EB1-estado-batallas.md`, rama `estado-batallas`)
+Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pruebas que miran lo que se ve → examen de jugabilidad por quien no construyó → nota del usuario ≥ 8,5. En espera: batalla rápida (R1), supervivencia (SUP2–SUP5), naval.
+  - 🔶 BT1 **Paso 1 · Lo común, una sola vez**: nada atraviesa nada (F0: las sarisas atraviesan a los compañeros), una sola barra de órdenes, etiquetas que no se pisan, un solo campo y una sola luz, testudo y manípulo a pie juntos en una prueba. Sesión `session_01QiKC37zgjc4vgjv1qazD4k`, rama `bt1-lo-comun`.
+  - ⬜ BT2 **Paso 2 · Las formaciones de cerca**: testudo como caparazón, falange con la sarisa del oficial y picas legibles, golpes con su movimiento (CB2b), vuelven vélites y triarios.
+  - ⬜ BT3 **Paso 3 · Una batalla entera**: batalla grande con soldados visibles, bloques prietos, aros, estandartes; Ásculo con la falange de «Falange a pie» y resultado a la campaña; un motor de golpes a pie (CB3) para todas.
+
