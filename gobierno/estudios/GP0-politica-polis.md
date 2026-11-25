@@ -104,7 +104,16 @@ Recomendado: **Mesa de la Polis**, pequeña, dentro del Cerebro (rama Política)
 Orden: GP1 → GP2 → GP3 → GP4 → GP5. GP1 y GP2 ya quitan lo que chirría; GP3–GP4 son M4.
 
 ## 5. Preguntas al usuario y respuestas
-(pendiente: se apuntan aquí, literales)
+Las cuatro preguntas (1 quién lo hace, 2 gobierno de arranque, 3 tirano, 4 votaciones) **quedan sin contestar**.
+Respuesta del usuario (25/11, literal): «Prefiero debatirlo más, antes de nada, me gustaría rehacer los menús, algo más
+minimalista pero que sea más visual y le de más jugabilidad que solo pulsar el botón para las votaciones, puede pensarlo
+en otra sesión fable».
+
+**Estado**: propuesta en debate, nada aprobado. Lo que pide primero: una sesión de diseño con **Fable** que rehaga los
+menús de la política: más minimalistas, más visuales y con más juego que pulsar «Votar». Esa sesión parte de este
+estudio y de su maqueta, y vuelve a traer al usuario las preguntas 1–4.
+Ojo para el vigía: la regla dice «sin Fable» (18/11), salvo excepciones dichas por el usuario. Esta frase es una
+excepción nueva, solo para esa sesión de diseño.
 
 ## 6. Cuentas
 Ver `node gobierno/gasto.mjs` al cerrar.
