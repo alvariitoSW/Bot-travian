@@ -1,0 +1,26 @@
+/* SUP1 · maquetas del modo supervivencia (solo diseño) */
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format('woff2')}
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2) format('woff2')}
+:root{--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--vidrio:rgba(18,15,11,.86);--fil:rgba(184,134,43,.55);--rojo:#dd5a43;--verde:#7cc65e;--ambar:#e6ac3c;--tierra:#6b4a26}
+*{box-sizing:border-box;margin:0}
+body{width:390px;height:844px;overflow:hidden;background:#15130f;color:var(--marmol);font:14px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;position:relative}
+body.h{width:844px;height:390px}
+h1,h2,.cin{font-family:Cinzel,Georgia,serif;color:var(--oro)}
+.vidrio{background:var(--vidrio);border:1.5px solid var(--fil);border-radius:14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:6px 12px;border-radius:12px;border:1.5px solid var(--oro);background:linear-gradient(#5e2118,#3b140f);color:var(--marmol);font-weight:800;font-size:15px}
+.btn.claro{background:rgba(233,192,99,.14);color:var(--oro)}
+.btn.gris{background:rgba(255,255,255,.06);border-color:var(--fil);color:#cdbf9d}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:9px;background:rgba(255,255,255,.08);font-weight:700;font-size:12.5px;white-space:nowrap}
+.barra{position:absolute;left:8px;right:8px;top:8px;display:flex;gap:6px;align-items:stretch;z-index:5}
+.barra .vidrio{padding:6px 9px}
+.reloj{flex:1;min-width:0}
+.reloj b{font:700 13px Cinzel,Georgia,serif;color:var(--oro)}
+.dia{display:flex;height:7px;border-radius:4px;overflow:clip;margin-top:4px}
+.dia i{display:block;height:100%}
+.dia .m{background:#e8c86a}.dia .t{background:#d0803a}.dia .n{background:#2c3566}
+.aguja{position:relative;height:0}
+.aguja::after{content:'';position:absolute;top:-11px;width:3px;height:11px;background:#fff;border-radius:2px;left:var(--x)}
+.aviso{position:absolute;left:50%;transform:translateX(-50%);padding:7px 13px;border-radius:12px;background:rgba(60,18,12,.92);border:1.5px solid var(--rojo);font-weight:800;text-align:center;white-space:nowrap;z-index:6}
+.nota{position:absolute;font:700 11px system-ui;color:#15130f;background:#e9c063;border-radius:8px;padding:2px 7px;z-index:9;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.nota::before{content:attr(data-n);display:inline-block;width:15px;height:15px;margin-right:4px;border-radius:50%;background:#15130f;color:#e9c063;text-align:center;line-height:15px;font-size:10px}
+.sello{position:absolute;right:8px;bottom:6px;font:600 9.5px system-ui;color:rgba(241,234,217,.55);z-index:9}

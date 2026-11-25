@@ -196,7 +196,7 @@
     switch (mid) {
       case 'ejercito': {
         const tropa = () => {
-          const romanas = ['hastati', 'principes', 'triarii', 'velites', 'equites'].filter(u => D.UNITS[u] && Object.keys(D.UNITS[u].req || {}).every(b => nivelB(C, b) >= D.UNITS[u].req[b]));
+          const romanas = (s.polis && D.POLIS && D.POLIS[s.polis] ? ['hoplitas', D.POLIS[s.polis].tropa.id].filter((u, i, a) => a.indexOf(u) === i) : ['hastati', 'principes', 'triarii', 'velites', 'equites']).filter(u => D.UNITS[u] && Object.keys(D.UNITS[u].req || {}).every(b => nivelB(C, b) >= D.UNITS[u].req[b]));
           return romanas.length ? { tipo: 'tropas', ciudad: mayor, u: romanas[0], n: 100 } : null;
         };
         const lista = [];

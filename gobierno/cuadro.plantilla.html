@@ -235,7 +235,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 #hoja .fila .boton { flex: 1; }
 
 /* barras fijas */
-.pestanas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; grid-template-columns: repeat(7, 1fr); background: var(--tabla); border-top: 1px solid var(--raya); padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.pestanas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--tabla); border-top: 1px solid var(--raya); padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
 .pestanas a { position: relative; min-width: 0; min-height: var(--barra); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: var(--tenue); font-size: 12px; font-weight: 500; }
 .pestanas svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .pestanas a[aria-current="page"] { color: var(--purpura); font-weight: 600; }
@@ -297,7 +297,8 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 .paso.p-si .pq { color: var(--tenue); }
 .riesgos { font-size: 14px; line-height: 1.4; background: var(--suave); border-left: 3px solid var(--aviso); padding: 8px 12px; border-radius: 0 8px 8px 0; }
 .aviso-j { font-size: 14px; font-weight: 600; color: var(--aviso); }
-.juzgar .plegable > summary, .hacia2 .plegable > summary { display: flex; flex-direction: column; }
+.juzgar .plegable > summary, .hacia2 .plegable > summary, .vista details.plegable > summary { display: flex; flex-direction: column; }
+.vista details.plegable > summary .sub { font-weight: 400; font-size: 13px; color: var(--tenue); }
 .juzgar .sub, .hacia2 .sub { font-weight: 400; font-size: 13px; color: var(--tenue); }
 .jlista { gap: 8px; } .jlista .rotulo { margin-top: 8px; }
 .juicio { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 1px dashed var(--raya); }
@@ -305,39 +306,22 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 .jq span { color: var(--tenue); font-size: 14px; }
 .jv.j-bien { color: var(--bien); font-weight: 600; } .jv.j-mal { color: var(--mal); font-weight: 600; }
 .boton.fino.elegido { border-color: var(--purpura); background: var(--purpura); color: var(--sobre-purpura); }
+  /* CM6: la meta en curso (fase sacada del tablero) */
+  .meta-t { list-style: none; padding: 0; margin: .6rem 0 0; display: grid; gap: .25rem; }
+  .meta-t li { display: flex; gap: .5rem; align-items: baseline; font-size: .95rem; }
+  .meta-t li b { min-width: 3.4rem; }
+  .meta-t li .marca { margin-left: auto; flex: none; }
+  details.v10 > summary { font-weight: 600; padding: .6rem 0; cursor: pointer; }
+  /* CM6 (1A): cuatro pestañas */
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px; }
+  .mas > details.plegable, .vista > details.plegable { margin: 10px 0; }
+  .meta-t li .boton { margin-left: auto; flex: none; }
 </style>
 
 <div class="hoja">
 
-  <div class="vista" data-vista="juego" id="juego">
-    <!-- CM5 (24/11): la 1.0 arriba del todo: cuánto falta, juzgarla y lo que viene después -->
-    <section class="ficha camino" aria-labelledby="t-camino">
-      <h2 id="t-camino">Camino a la 1.0</h2>
-      <div class="cpct"><b>{{PCT10}} %</b><span>hecho · queda {{PCT10_QUEDA}} %</span></div>
-      <div class="cbarra" role="img" aria-label="{{PCT10}} % hecho de la 1.0"><span style="width:{{PCT10}}%"></span>{{CAMINO_MARCAS}}</div>
-      <p class="nota">{{CAMINO_CUANDO}}</p>
-      <ol class="pasos">{{CAMINO}}</ol>
-      {{RIESGOS}}
-    </section>
-
-    <section class="ficha juzgar" aria-labelledby="t-juzgar">
-      <h2 id="t-juzgar">Juzgar la 1.0</h2>
-      <p class="aviso-j">Se juzga cuando la barra llegue al 100 %. Puedes adelantarte: los botones ya guardan.</p>
-      <details class="plegable"><summary><span data-jn>Pruebas en tu móvil: {{N_LINEAS}}</span><span class="sub">Una por línea de la 1.0. Toca para verlas.</span></summary>
-        <ul class="lista jlista">{{JUICIO}}</ul>
-      </details>
-    </section>
-
-    <section class="ficha hacia2" aria-labelledby="t-hacia2">
-      <h2 id="t-hacia2">Hacia la 2.0</h2>
-      <button class="boton lleno grande" data-abrir="p2">Proponer algo para la 2.0</button>
-      <div class="cambio" id="p2" hidden><label class="quien" for="p2-texto">Qué quieres en la 2.0</label><textarea id="p2-texto" placeholder="Por ejemplo: jugar con Cartago"></textarea>
-        <div class="fila"><button class="boton lleno" data-pedir="2.0" data-texto="p2-texto" data-titulo="Propuesta para la 2.0">Guardar propuesta</button></div></div>
-      <details class="plegable"><summary>Punto de partida: {{N_NEVERA}} ideas apuntadas para después de la 1.0</summary>
-        <ul class="nevera-l">{{NEVERA}}</ul>
-      </details>
-    </section>
-
+  <!-- CM6 (usuario 25/11, «1A»): cuatro pestañas. Para ti: lo que espera de ti. Ahora: lo que se hace. Tu móvil: qué tienes y subir. Más: lo demás, plegado. Un botón por acción. -->
+  <div class="vista" data-vista="parati" id="parati">
     <header class="estandarte">
       <div class="lema">
         <h1>AQVILA</h1>
@@ -351,90 +335,78 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 
     <section class="porap" data-porap hidden aria-live="polite">
       <div class="ficha vigia">
-        <p><b data-porap-t>Has pulsado cosas que aún no se han aplicado</b></p>
+        <p class="quien">El vigía · aplica lo que pulsas y abre las sesiones</p>
+        <p><b id="porap-t" data-porap-t>Todo lo que has pulsado está aplicado</b></p>
+        <ul id="porap-l" class="mini"></ul>
         <button class="boton lleno grande" data-llamar>Llamar al vigía ahora</button>
-        <p class="nota" data-llamar-estado>El vigía aplica lo que pulsas. Tarda unos minutos.</p>
+        <p class="nota" data-llamar-estado>El vigía no pasa solo: trabaja cuando lo llamas con este botón. Tarda unos minutos.</p>
       </div>
     </section>
 
-    <section aria-labelledby="t-organos">
-      <h2 id="t-organos">Cómo va el juego</h2>
-      <div class="organos">{{ORGANOS}}</div>
-    </section>
-
-    <section aria-labelledby="t-fin">
-      <h2 id="t-fin">La 1.0 está terminada cuando…</h2>
-      <ul class="lista">{{COMPROBACIONES}}</ul>
-    </section>
-
-    <section aria-label="Preguntas para ti">{{TE_ESPERAN}}</section>
-  </div>
-
-  <div class="vista" data-vista="lista" id="lista" hidden>
-    <p class="titulo">La 1.0 en {{N_LINEAS}} líneas</p>
-    {{LISTA_PROPUESTA}}
-    <p class="nota">Cada línea dice qué verás cuando esté hecha. Tócala para leerla, encargarla o pedir un cambio.</p>
-    {{LISTA}}
-    <section aria-labelledby="t-resto">
-      <h2 id="t-resto">El resto</h2>
-      <details class="resto"><summary>Qué pasa con el resto del tablero<span class="sub">{{RESTO_RESUMEN}}</span></summary>
-        <div class="grupos">{{RESTO}}</div>
-      </details>
-      <details class="resto"><summary>{{N_NEVERA}} ideas en la nevera, para después de la 1.0</summary>
-        <ul class="nevera-l">{{NEVERA}}</ul>
-      </details>
-      <label class="nota" for="nevera-texto">Apuntar una idea. Se guarda para después de la 1.0, sin abrir nada.</label>
-      <textarea id="nevera-texto" placeholder="Por ejemplo: que haya juegos en el circo"></textarea>
-      <div class="fila"><button class="boton lleno" data-pedir="nevera" data-texto="nevera-texto" data-titulo="Idea para después de la 1.0">A la nevera</button></div>
-    </section>
-  </div>
-
-  <div class="vista" data-vista="decidir" id="decidir" hidden>
-    <p class="titulo">Decidir</p>
-    <section class="porap" data-porap hidden aria-live="polite">
-      <div class="ficha vigia">
-        <p><b data-porap-t>Has pulsado cosas que aún no se han aplicado</b></p>
-        <button class="boton lleno grande" data-llamar>Llamar al vigía ahora</button>
-        <p class="nota" data-llamar-estado>El vigía aplica lo que pulsas. Tarda unos minutos.</p>
-      </div>
-    </section>
-    <section aria-label="Preguntas">
+    <section aria-labelledby="t-esperan" id="decidir">
+      <h2 id="t-esperan">Te esperan <span class="n">{{N_ESP}}</span></h2>
       <ul class="lista">{{ESPERA}}</ul>
       {{COLA}}
     </section>
+
+    <section class="ficha" aria-labelledby="t-pide" id="pide">
+      <h2 id="t-pide">Pide algo</h2>
+      <div class="chips" role="group" aria-label="Qué es">
+        <button class="chip" data-pide-tipo="nuevo" aria-pressed="true">Un pedido</button>
+        <button class="chip" data-pide-tipo="nevera" aria-pressed="false">Una idea para más adelante</button>
+      </div>
+      <label class="nota" for="pide-texto" id="pide-nota">Con tus palabras. El vigía lo coloca donde toca.</label>
+      <textarea id="pide-texto" placeholder="Por ejemplo: quiero que los barcos se vean en el puerto"></textarea>
+      <div class="fila"><button class="boton lleno" id="pide-enviar" data-pedir="nuevo" data-texto="pide-texto" data-titulo="Pedido libre">Enviar</button></div>
+    </section>
+
+    <section class="ficha juzgar" aria-labelledby="t-juzgar">
+      <h2 id="t-juzgar">Juzgar la 1.0</h2>
+      <p class="aviso-j">{{JUZGAR_AVISO}}</p>
+      <details class="plegable"><summary><span data-jn>Pruebas en tu móvil: {{N_LINEAS}}</span><span class="sub">Una por línea de la 1.0. Toca para verlas.</span></summary>
+        <ul class="lista jlista">{{JUICIO}}</ul>
+      </details>
+    </section>
   </div>
 
-  <div class="vista" data-vista="arte" id="arte" hidden>
-    <p class="titulo">El arte del juego</p>
-    <p class="nota">Las {{N_ARTE}} piezas que hay hoy, con su foto. Si quieres cambiar una, pulsa «Pedir cambio», escribe qué harías y se lo pasamos al equipo de Arte.</p>
-    <nav class="indice" aria-label="Grupos de arte">{{ARTE_INDICE}}</nav>
-    {{ARTE}}
-    <p class="nota">El sonido no tiene foto: para pedir cambios de sonido, ve a Equipos y pulsa «Recomendar mejora» en Sonido.</p>
-  </div>
-
-  <div class="vista" data-vista="equipos" id="equipos" hidden>
-    <p class="titulo">Equipos de trabajo</p>
-    <p class="nota" id="eq-nota">Qué hace cada equipo, lo último que entregó y lo que le toca después. Con «Recomendar mejora» le dejas una idea con tus palabras.</p>
-    <nav class="indice" aria-label="Equipos">{{EQUIPOS_INDICE}}</nav>
-    <section aria-label="Equipos" class="lista-equipos">{{EQUIPOS}}</section>
+  <div class="vista" data-vista="ahora" id="ahora" hidden>
+    {{FASE}}
+    <section aria-labelledby="t-marcha" id="sesiones-sec">
+      <h2 id="t-marcha">Trabajando ahora <span class="n" id="n-marcha">{{N_MARCHA}}</span></h2>
+      <p class="nota" id="ses-nota">Qué sesiones de Claude hay abiertas para el juego y qué hace cada una.</p>
+      <ul class="lista" id="sesiones">{{MARCHA}}</ul>
+      <div class="fila"><button class="boton fino" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado" id="ses-limpiar">Cerrar las que ya han acabado</button><button class="boton fino" data-pedir="orden" data-ref="parar" data-titulo="Parar todas las sesiones al acabar su tarea">Parar todas al acabar</button></div>
+    </section>
+    <section class="ficha" aria-labelledby="t-mejora" id="equipos">
+      <h2 id="t-mejora">Mejorar un equipo</h2>
+      <p class="nota" id="eq-nota">Elige el equipo y escribe qué mejorarías. Le llega con tus palabras.</p>
+      <div class="chips" role="group" aria-label="Equipo">{{EQUIPOS_CHIPS}}</div>
+      <textarea id="mejora-texto" placeholder="Por ejemplo: que las cargas se sientan más fuertes"></textarea>
+      <div class="fila"><button class="boton lleno" id="mejora-enviar" data-pedir="mejora" data-texto="mejora-texto" data-ref="{{EQUIPO_1}}" data-titulo="Mejora para el equipo de {{EQUIPO_1_NOMBRE}}">Recomendar mejora</button></div>
+    </section>
   </div>
 
   <div class="vista" data-vista="movil" id="movil" hidden>
-    <p class="titulo">Tu móvil y lo que falta</p>
+    <p class="titulo">Tu móvil</p>
     <section class="mcabeza" aria-label="Qué versión tienes">
       <p class="grande">{{MOVIL_CAB}}</p>
       <p><b>Llegará a tu móvil en la próxima subida</b> <span class="nota">({{N_LLEGA}})</span></p>
       <ul class="mllega">{{MOVIL_LLEGA}}</ul>
-      <!-- CM6 (24/11, pedido del usuario: «Habría que poner algún botón o algo para actualizarlo desde el propio artifact»):
-           el botón llama al vigía con la orden «sube» (VIGIA.md §6). Pide confirmación aquí mismo: subir a main publica el juego. -->
+      <!-- CM6 (24/11): el botón llama al vigía con la orden «sube» (VIGIA.md §6). Pide confirmación aquí mismo: subir a main publica el juego. -->
       <button class="boton lleno grande" data-subir-abrir>Subir lo terminado a mi móvil</button>
       <div class="cambio" id="subir-ok" hidden>
-        <p>El vigía pasará los jueces completos (alrededor de una hora) y, si salen bien, lo subirá a tu juego. Si algo falla, no sube nada y te lo dice.</p>
+        <p>El vigía pasará los jueces completos y, si salen bien, lo subirá a tu juego. Si algo falla, no sube nada y te lo dice.</p>
         <div class="fila"><button class="boton lleno" data-subir>Sí, súbelo</button><button class="boton fino" data-subir-no>Ahora no</button></div>
       </div>
       <p class="nota" data-subir-estado></p>
     </section>
-    <section aria-label="Qué significa cada color">
+    <section aria-labelledby="t-ensenar">
+      <h2 id="t-ensenar">Lo nuevo, en capturas</h2>
+      <p class="nota">Las que han dejado las sesiones al cerrar. Desliza hacia un lado.</p>
+      <div class="tira">{{ENSENAR}}</div>
+      <details class="plegable"><summary>Recorrido de los jueces<span class="sub">{{CAPTURAS_NOTA}}</span></summary><div class="tira">{{CAPTURAS}}</div></details>
+    </section>
+    <details class="plegable"><summary>Cada tarea, por colores<span class="sub">Qué está en tu móvil, qué falta subir y qué está en obra.</span></summary>
       <ul class="leyenda">
         <li class="m-movil"><i aria-hidden="true"></i>En tu móvil</li>
         <li class="m-subir"><i aria-hidden="true"></i>Hecho, sin subir</li>
@@ -442,103 +414,75 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
         <li class="m-rama"><i aria-hidden="true"></i>En una rama sin unir</li>
         <li class="m-falta"><i aria-hidden="true"></i>Falta</li>
       </ul>
-      <p class="nota">Cada barra es un apartado del juego; cada trozo, una de sus tareas. Toca una barra para ver sus tareas.</p>
-    </section>
-    {{MOVIL}}
-    <p class="nota">{{MOVIL_NOTA}}</p>
+      {{MOVIL}}
+      <p class="nota">{{MOVIL_NOTA}}</p>
+    </details>
   </div>
 
-  <div class="vista" data-vista="taller" id="taller" hidden>
-    <p class="titulo">Taller</p>
-    <section aria-labelledby="t-marcha">
-      <h2 id="t-marcha">Sesiones abiertas <span class="n" id="n-marcha">{{N_MARCHA}}</span></h2>
-      <p class="nota" id="ses-nota">Qué sesiones de Claude hay abiertas para el juego y qué hace cada una.</p>
-      <ul class="lista" id="sesiones">{{MARCHA}}</ul>
-      <div class="fila"><button class="boton fino" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado" id="ses-limpiar">Cerrar las que ya han acabado</button><button class="boton fino" data-pedir="orden" data-ref="refrescar" data-titulo="Refrescar la lista de sesiones">Refrescar la lista</button></div>
+  <div class="vista mas" data-vista="mas" id="mas" hidden>
+    <p class="titulo">Más</p>
+    <details class="plegable" id="arte"><summary>Arte · {{N_ARTE}} piezas<span class="sub">Una foto de cada pieza, con «Pedir cambio».</span></summary>
+      <nav class="indice" aria-label="Grupos de arte">{{ARTE_INDICE}}</nav>
+      {{ARTE}}
+      <p class="nota">El sonido no tiene foto: para pedir cambios de sonido, en «Ahora» elige el equipo Sonido y pulsa «Recomendar mejora».</p>
+    </details>
+    <details class="plegable" id="lista"><summary>{{V10_TITULO}}<span class="sub">Su camino, cómo quedó por órganos, sus líneas y cuándo se da por terminada.</span></summary>
+      <section class="ficha camino" aria-labelledby="t-camino">
+      <h2 id="t-camino">{{CAMINO_TITULO}}</h2>
+      <div class="cpct"><b>{{PCT10}} %</b><span>hecho · queda {{PCT10_QUEDA}} %</span></div>
+      <div class="cbarra" role="img" aria-label="{{PCT10}} % hecho de la 1.0"><span style="width:{{PCT10}}%"></span>{{CAMINO_MARCAS}}</div>
+      <p class="nota">{{CAMINO_CUANDO}}</p>
+      <ol class="pasos">{{CAMINO}}</ol>
+      {{RIESGOS}}
+      <!-- CM6 (25/11): el % de la lista va aparte y con su nombre; no es el del camino -->
+      <p class="nota" id="pct-lista">Otra cuenta, aparte: <b>Objetivos de la lista: {{PCT_LISTA}} %</b> ({{PCT_LISTA_NOTA}}; sale del tablero). Es el % que ves en el menú del juego.</p>
     </section>
-
-    <section aria-live="polite">
-      <div class="ficha vigia">
-        <p class="quien">El vigía · aplica lo que pulsas y abre las sesiones</p>
-        <p><b id="porap-t">Todo lo que has pulsado está aplicado</b></p>
-        <ul id="porap-l" class="mini"></ul>
-        <button class="boton lleno grande" data-llamar>Llamar al vigía ahora</button>
-        <p class="nota" data-llamar-estado>El vigía no pasa solo: trabaja cuando lo llamas con este botón. Tarda unos minutos.</p>
-      </div>
-    </section>
-
-    <section aria-labelledby="t-nuevo">
-      <h2 id="t-nuevo">Pedido libre</h2>
-      <label class="nota" for="nuevo-texto">Escribe lo que quieres, con tus palabras. Si es una idea nueva, mejor a la nevera (pestaña Lista).</label>
-      <textarea id="nuevo-texto" placeholder="Por ejemplo: quiero que los barcos se vean en el puerto"></textarea>
-      <div class="fila"><button class="boton lleno" data-pedir="nuevo" data-texto="nuevo-texto">Enviar pedido</button></div>
-    </section>
-    <section aria-labelledby="t-ordenes">
-      <h2 id="t-ordenes">Órdenes de un toque</h2>
-      <div class="ordenes">
-        <button class="boton" data-pedir="orden" data-ref="seguir" data-titulo="Que cada carril siga con su siguiente tarea">Que sigan los carriles</button>
-        <button class="boton" data-pedir="orden" data-ref="parar" data-titulo="Parar todas las sesiones al acabar su tarea">Parar al acabar la tarea</button>
-        <button class="boton" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado">Cerrar sesiones acabadas</button>
-        <button class="boton" data-pedir="orden" data-ref="capturas" data-titulo="Pasar los jueces y enseñarme capturas nuevas">Enséñame capturas nuevas</button>
-        <button class="boton" data-pedir="orden" data-ref="informe" data-titulo="Informe: a dónde vamos y qué queda">Informe: ¿a dónde vamos?</button>
-      </div>
-    </section>
-    <section aria-labelledby="t-pedidos">
-      <h2 id="t-pedidos">Tus pedidos</h2>
+      <section aria-labelledby="t-organos">
+        <h2 id="t-organos">{{ORGANOS_TITULO}}</h2>
+        <div class="organos">{{ORGANOS}}</div>
+      </section>
+      <section aria-labelledby="t-fin">
+        <h2 id="t-fin">La 1.0 está terminada cuando…</h2>
+        <ul class="lista">{{COMPROBACIONES}}</ul>
+      </section>
+      {{LISTA_PROPUESTA}}
+      {{LISTA}}
+    </details>
+    <details class="plegable" id="nevera"><summary>Ideas guardadas · {{N_NEVERA}}<span class="sub">La nevera: lo que apuntaste para más adelante.</span></summary>
+      <ul class="nevera-l">{{NEVERA}}</ul>
+    </details>
+    <details class="plegable" id="informes"><summary>Informes<span class="sub">«¿A dónde vamos?» y los informes guardados.</span></summary>
+      <div class="fila"><button class="boton" data-pedir="orden" data-ref="informe" data-titulo="Informe: a dónde vamos y qué queda">Pedir un informe: ¿a dónde vamos?</button></div>
+      <div class="informes">{{INFORMES}}</div>
+    </details>
+    <details class="plegable" id="tus-pedidos"><summary>Tus pedidos<span class="sub">Lo que has pulsado y qué se hizo.</span></summary>
       <p class="nota" id="pedidos-nota">Lo que pulses queda guardado aquí hasta que se aplique. Para que se aplique, llama al vigía o escribe «aplica el cuadro» en el chat de Claude.</p>
       <ul class="lista" id="pedidos"><li class="nota" id="pedidos-vacio">Aún no has pedido nada.</li></ul>
-    </section>
-
-    <section aria-labelledby="t-ensenar">
-      <h2 id="t-ensenar">Capturas nuevas</h2>
-      <p class="nota">Las que han dejado las sesiones al cerrar. Desliza hacia un lado.</p>
-      <div class="tira">{{ENSENAR}}</div>
-    </section>
-    <section aria-labelledby="t-capturas">
-      <h2 id="t-capturas">Recorrido de los jueces</h2>
-      <p class="nota">{{CAPTURAS_NOTA}}</p>
-      <div class="tira">{{CAPTURAS}}</div>
-    </section>
-    <section aria-labelledby="t-informes">
-      <h2 id="t-informes">Informes</h2>
-      <details class="informe"><summary>Ver los informes guardados</summary><div class="informes">{{INFORMES}}</div></details>
-    </section>
-
-    <section aria-labelledby="t-liga">
-      <h2 id="t-liga">Liga de bots</h2>
-      <p class="nota">Bots que acaban partidas ya avanzadas (Roma, Italia y partida corta). Las victorias se informan, no deciden.</p>
+    </details>
+    <details class="plegable" id="liga"><summary>Liga de bots<span class="sub">Bots que acaban partidas ya avanzadas. Las victorias se informan, no deciden.</span></summary>
       {{LIGA}}
-    </section>
-
-    <section aria-labelledby="t-archivo">
-      <h2 id="t-archivo">Archivo</h2>
-      <details class="plegable" id="archivo"><summary>Archivo: el tablero entero</summary>
-        <div class="archivo">
-          <p class="nota">Las tareas una a una, como las ve el director. No hace falta mirarlas: la lista de la 1.0 manda.</p>
-          <p><b>Por hacer</b> <span class="nota">· {{N_TODAS}}</span></p>
-          <input id="buscar" type="search" placeholder="Buscar: «general», «Q7», «arte»…" aria-label="Buscar tareas">
-          <div class="filtros" id="filtros"><button class="chip" data-filtro="todas" aria-pressed="true">Todas <b>{{N_TODAS}}</b></button><button class="chip" data-filtro="activas" aria-pressed="false">Sin pausa <b>{{N_ACTIVAS}}</b></button><button class="chip" data-filtro="pausa" aria-pressed="false">En pausa <b>{{N_PAUSA}}</b></button>{{CHIPS}}</div>
-          <div class="fila"><span class="nota" id="vistas"></span><button class="boton fino" id="selvis">Marcar las visibles</button></div>
-          <div id="pendiente">{{PENDIENTE}}</div>
-          <p><b>Ya hecho</b> <span class="nota">· {{N_HECHAS}}</span></p>
-          <div>{{CARRILES}}</div>
-          <ul class="hechos">{{HECHOS}}</ul>
-        </div>
-      </details>
-    </section>
+    </details>
+    <details class="plegable" id="archivo"><summary>El tablero entero<span class="sub">Para buscar una tarea y encargarla.</span></summary>
+      <div class="archivo">
+        <p><b>Por hacer</b> <span class="nota">· {{N_TODAS}}</span></p>
+        <input id="buscar" type="search" placeholder="Buscar: «general», «Q7», «arte»…" aria-label="Buscar tareas">
+        <div class="filtros" id="filtros"><button class="chip" data-filtro="todas" aria-pressed="true">Todas <b>{{N_TODAS}}</b></button><button class="chip" data-filtro="activas" aria-pressed="false">Sin pausa <b>{{N_ACTIVAS}}</b></button><button class="chip" data-filtro="pausa" aria-pressed="false">En pausa <b>{{N_PAUSA}}</b></button>{{CHIPS}}</div>
+        <p class="nota" id="vistas"></p>
+        <div id="pendiente">{{PENDIENTE}}</div>
+        <p><b>Ya hecho</b> <span class="nota">· {{N_HECHAS}}</span></p>
+        <div>{{CARRILES}}</div>
+        <ul class="hechos">{{HECHOS}}</ul>
+      </div>
+    </details>
   </div>
 </div>
 
 <nav class="pestanas" aria-label="Vistas">
-  <a href="#juego"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>Juego</a>
-  <a href="#lista"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Lista</a>
-  <a href="#decidir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg>Decidir<span class="n" {{TAB_DECIDIR_OCULTO}}>{{N_ESP}}</span></a>
-  <a href="#arte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v3c-3 2-4.5 4.5-4.5 8 0 3 2.5 7 6.5 7s6.5-4 6.5-7c0-3.5-1.5-6-4.5-8V3M6 12h12"/></svg>Arte</a>
-  <a href="#equipos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16.5 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M15.5 15c3 0 5.5 1.5 5.5 4"/></svg>Equipos<span class="n" id="tab-n-equipos" hidden>0</span></a>
-  <a href="#movil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2.5h8a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 20V4A1.5 1.5 0 0 1 8 2.5zM11 18.5h2"/></svg>Móvil</a>
-  <a href="#taller"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16 5l3 3L8 19zM14 7l3 3"/></svg>Taller<span class="n" id="tab-n-taller" hidden>0</span></a>
+  <a href="#parati"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg>Para ti<span class="n" id="tab-n-parati" data-base="{{N_ESP}}" {{TAB_DECIDIR_OCULTO}}>{{N_ESP}}</span></a>
+  <a href="#ahora"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>Ahora<span class="n" id="tab-n-ahora" hidden>0</span></a>
+  <a href="#movil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2.5h8a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 20V4A1.5 1.5 0 0 1 8 2.5zM11 18.5h2"/></svg>Tu móvil</a>
+  <a href="#mas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Más</a>
 </nav>
-<div id="lote" hidden><span class="cuenta" id="lote-n"></span><button class="boton lleno fino" data-lote="abrir">Abrir sesión</button><button class="boton fino" data-lote="priorizar">Dar prioridad</button><button class="boton fino" data-lote="quitar">Quitar marcas</button></div>
 <dialog id="hoja" aria-labelledby="hoja-t"><form method="dialog">
   <span class="quien" id="hoja-q"></span>
   <label id="hoja-t" for="hoja-texto"></label>
@@ -602,8 +546,8 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
       if (!l.length) { var v = document.createElement('li'); v.className = 'nota'; v.textContent = 'Ninguna sesión abierta ahora.'; ul.appendChild(v); }
       todos('[data-eq-n="' + id + '"]').forEach(function (n) { n.textContent = l.length || ''; });
     });
-    var n = $('tab-n-equipos'); n.textContent = vivas; n.hidden = !vivas;
-    $('eq-nota').textContent = vivas + (vivas === 1 ? ' sesión trabaja ahora' : ' sesiones trabajan ahora') + ' en los equipos. Con «Recomendar mejora» le dejas una idea a un equipo con tus palabras.';
+    var n = $('tab-n-ahora'); if (n) { n.textContent = vivas; n.hidden = !vivas; }
+    // CM6: «Mejorar un equipo» ya no tiene fichas; la nota se queda fija
   }
   // CM3: la hoja de escribir sirve para «Pedir cambio» (arte) y «Recomendar mejora» (equipo)
   function abrirHoja(b) {
@@ -635,7 +579,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
     var pendientes = filas.filter(function (x) { return x.estado !== 'aplicado'; });
     var aplicados = filas.filter(function (x) { return x.estado === 'aplicado'; }).slice(0, 5);
     var np = pendientes.length, lista = $('porap-l'); lista.textContent = '';
-    var cp = $('tab-n-taller'); cp.textContent = np; cp.hidden = !np;
+    var cp = $('tab-n-parati'), base = +(cp.dataset.base || 0); cp.textContent = base + np; cp.hidden = !(base + np);
     var frase = np ? 'Has pulsado ' + np + (np === 1 ? ' cosa que aún no se ha aplicado' : ' cosas que aún no se han aplicado') : 'Todo lo que has pulsado está aplicado';
     $('porap-t').textContent = frase;
     todos('[data-porap-t]').forEach(function (e) { e.textContent = frase; });
@@ -672,30 +616,24 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
     });
     $('vistas').textContent = 'Se ven ' + n + ' de ' + tareas.length;
   }
-  function marcadas() { return todos('.sel:checked'); }
-  function lote() { var n = marcadas().length; $('lote').hidden = !n; $('lote-n').textContent = n + (n === 1 ? ' elegida' : ' elegidas'); }
+  function marcadas() { return []; }
+  function lote() { }
   $('buscar').addEventListener('input', aplicar);
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest('[data-filtro]'); if (!b) return; filtro = b.dataset.filtro;
     todos('[data-filtro]').forEach(function (c) { c.setAttribute('aria-pressed', c.dataset.filtro === filtro ? 'true' : 'false'); }); aplicar();
   });
-  $('selvis').addEventListener('click', function () {
-    var vis = tareas.filter(function (t) { return !t.hidden; }).map(function (t) { return t.querySelector('.sel'); });
-    var todas = vis.length && vis.every(function (c) { return c.checked; });
-    vis.forEach(function (c) { c.checked = !todas; }); lote();
-  });
-  document.addEventListener('change', function (ev) { if (ev.target.classList && ev.target.classList.contains('sel')) lote(); });
   aplicar();
 
   // pestañas: una vista cada vez, con la dirección en el # para poder volver (#lista-cerebro abre Lista en ese órgano)
-  var VIEJAS = { hoy: 'juego', tareas: 'taller', ver: 'taller', pedir: 'taller' };
+  var VIEJAS = { hoy: 'parati', juego: 'parati', tareas: 'archivo', taller: 'ahora', ver: 'movil', pedir: 'pide' };
   function vista() {
     var h = (location.hash || '').slice(1); h = VIEJAS[h] || h;
     var el = h && /^[\w-]+$/.test(h) ? document.getElementById(h) : null, dentro = el && el.closest('[data-vista]');
-    var v = dentro ? dentro.dataset.vista : 'juego';
+    var v = dentro ? dentro.dataset.vista : 'parati';
+    for (var pa = el; pa && pa !== dentro; pa = pa.parentElement) if (pa.tagName === 'DETAILS') pa.open = true;
     todos('[data-vista]').forEach(function (s) { s.hidden = s.dataset.vista !== v; });
     todos('.pestanas a').forEach(function (a) { if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    if (v !== 'taller') $('lote').hidden = true; else lote();
     if (dentro && el !== dentro && el.scrollIntoView) el.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', vista); vista();
@@ -788,6 +726,13 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest('button'); if (!b) return;
+    if (b.dataset.pideTipo) { var nev = b.dataset.pideTipo === 'nevera', e = $('pide-enviar');
+      todos('[data-pide-tipo]').forEach(function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+      e.dataset.pedir = b.dataset.pideTipo; e.dataset.titulo = nev ? 'Idea para más adelante' : 'Pedido libre';
+      $('pide-nota').textContent = nev ? 'Se guarda en la nevera, sin abrir nada.' : 'Con tus palabras. El vigía lo coloca donde toca.'; return; }
+    if (b.dataset.mejoraEq) { var me = $('mejora-enviar');
+      todos('[data-mejora-eq]').forEach(function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+      me.dataset.ref = b.dataset.mejoraEq; me.dataset.titulo = 'Mejora para el equipo de ' + b.dataset.nombre; return; }
     if (b.hasAttribute('data-llamar')) { llamar(); return; }
     if (b.dataset.hoja) { abrirHoja(b); return; }
     if (b.hasAttribute('data-hoja-cerrar')) { cerrarHoja(); return; }

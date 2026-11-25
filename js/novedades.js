@@ -4,6 +4,10 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 173, fecha: '25/11/2026', cosas: [
+      'En Partida nueva eliges entre 8 polis griegas: Atenas, Esparta, Corinto, Argos, Tebas, Mégara, Mileto y Calcis.',
+      'Cada una tiene su rasgo, su edificio propio, su tropa y su lujo; la ciudad y el bando llevan su nombre.',
+      'De momento tu polis se juega sobre el mapa de Italia; su comarca en Grecia llega en la próxima versión.'] },
     { v: 172, fecha: '25/11/2026', cosas: [
       'El tiempo ya no corre solo: pasa por estaciones cuando pulsas «Pasar estación».',
       'Al empezar cada estación ves la hoja: lo que has recogido, lo que se ha acabado y lo que ha pasado.',
@@ -64,8 +68,8 @@
       'La ciudad se ve desde arriba, como un plano.',
       'Botones de Construir, Ministros y plan del Senado.'] }
   ];
-  /* AVANCE: lo escribe gobierno/avance.mjs desde gobierno/lista.json; no tocar a mano */
-  const AVANCE = {"hecho":69,"total":18,"hechas":8,"medias":9,"faltan":1,"pendientes":[{"t":"Camino del comercio","e":"a medias"},{"t":"Camino de la política: Príncipe del Senado","e":"a medias"},{"t":"Camino de las armas","e":"a medias"},{"t":"Una sola batalla, con un solo aspecto","e":"a medias"},{"t":"El testudo a pie, dentro del juego","e":"a medias"},{"t":"Escaramuzas: batallas sueltas desde el menú","e":"a medias"},{"t":"Fluido y sin conexión en tu móvil, y publicada","e":"por hacer"},{"t":"Formaciones en Escaramuzas","e":"a medias"},{"t":"Menús reordenados y con un solo aspecto antiguo","e":"a medias"},{"t":"Soldados nuevos, con licencia clara","e":"a medias"}]};
+  /* AVANCE: lo escribe gobierno/avance.mjs desde gobierno/lista.json y el tablero; no tocar a mano */
+  const AVANCE = {"hecho":100,"total":18,"hechas":18,"medias":0,"faltan":0,"pendientes":[]};
   /* FIN AVANCE */
   NOVEDADES.avance = AVANCE;
   root.NOVEDADES = NOVEDADES;

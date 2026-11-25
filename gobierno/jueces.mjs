@@ -80,6 +80,8 @@ const ultima = r => (((r.stdout || '') + (r.stderr || '')).trim().split('\n').fi
 const LOGICA = [
   { id: 'sim', nombre: 'Pruebas de lógica (sin los bots de partida entera: van a la liga)', f: 'test/sim.test.js', t: 5400000, env: { SIM_SIN_BOTS: '1' }, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
   { id: 'sim-liga', nombre: 'Liga · pruebas de lógica con los bots de partida entera', f: 'test/sim.test.js', t: 5400000, liga: true, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
+  // CM6: los % del cuadro y del menú del juego; también depende del tablero y de los .md que la memoria no sigue sola
+  { id: 'porcentajes', nombre: 'Porcentajes del cuadro y del menú (CM6)', f: 'test/cuadro-porcentajes.test.mjs', t: 180000, extra: ['gobierno/TABLERO.md', 'gobierno/BITACORA.md', 'gobierno/cuadro.mjs', 'gobierno/cuadro.json'], lee: bienMal },
   { id: 'pausas', nombre: 'Pausas del reloj con motivo', f: 'test/pausas.test.mjs', t: 120000, lee: bienMal },
   { id: 'encargos', nombre: 'Encargos del Senado e hitos', f: 'test/encargos.test.mjs', t: 60000, lee: bienMal },
   { id: 'movil', nombre: 'Copia de la partida, nota y parada', f: 'test/movil.test.mjs', t: 60000, lee: bienMal },
@@ -125,7 +127,7 @@ function preparaLogica() {
   const filas = LOGICA.filter(p => !!p.liga === LIGA);   // J20a: la liga y la subida no se mezclan
   /* si la prueba abre un navegador o recorre carpetas (o se marca con todo), depende de todo lo que se sirve */
   const huellaDe = p => { const c = cierre([p.f]), todo = !p.archivos && (p.todo || c.some(x => /\.m?js$/.test(x) && /playwright|readdirSync|readdir\(/.test(readFileSync(join(RAIZ, x), 'utf8'))));
-    return huella([...c, ...(todo ? servido() : []), ...(p.archivos ? p.archivos() : []), 'gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs']); };
+    return huella([...c, ...(p.extra || []), ...(todo ? servido() : []), ...(p.archivos ? p.archivos() : []), 'gobierno/jueces.mjs', 'gobierno/jueces-cache.mjs']); };
   const cola = [];
   for (const p of filas) {
     p.huella = huellaDe(p); const m = MEMORIA[p.id];

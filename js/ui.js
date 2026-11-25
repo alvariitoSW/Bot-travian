@@ -63,6 +63,7 @@ const obrasTxt = c => 'Obras ' + c.obras.length + '/' + G.huecosObra(c);
 const obraBarra = q => '<div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div><span class="rem"></span>';
 const costHtml = c => '<div class="cost as-costes">' + Object.keys(c).map(r => '<span class="as-coste' + asFalta(r, c[r]) + '">' + D.RES_ICON[r] + fmt(c[r]) + '</span>').join('') + '</div>';
 const pt = (k, col) => { const u = realPortrait(k, col || ROMA) || portrait(k, col || ROMA); return u ? '<img src="' + u + '" alt="">' : '<span style="display:grid;place-items:center;height:100%;font-size:22px">' + D.UNITS[k].g + '</span>'; };
+window.PORTADA_RETRATO = k => realPortrait(k, ROMA) || portrait(k, ROMA) || '';   // PN2: la ficha de polis enseña el retrato de su tropa propia
 const troopsHtml = (u, col) => { const k = Object.keys(u).filter(x => u[x] > 0); return k.length ? '<div class="troops">' + k.map(x => '<div class="troop">' + pt(x, col) + '<em>' + u[x] + '</em><b>' + D.UNITS[x].n + '</b></div>').join('') + '</div>' : '<div class="empty">Sin tropas.</div>'; };
 const S = () => G.state;
 const licHtml = o => o && o.lic ? '<div class="licl"><span class="lic">licencia de juego</span> ' + esc(o.lic) + '</div>' : '';
@@ -424,7 +425,7 @@ function entrarEn(id) { UI.city = id; if (UI.map && propiaEntrable(id) && !UI.ma
 /* I8b: antes de fundar, la barra muestra lo que traen los colonos (sin producción ni almacén aún); aún no se puede pasar estación */
 function hudFundando(s) {
   tiraPinta(s);
-  $('date').textContent = G.dateStr(s.t); $('turno').hidden = true;
+  $('date').textContent = (G.polis() ? D.POLIS[G.polis()].n + ' · ' : '') + G.dateStr(s.t); $('turno').hidden = true;
 }
 function tickUI() {
   const s = S(); if (s && !UI.camVic && !UI.modalOpen && s.caminos && s.caminos.victoria && !s.caminos.victoriaVista && window.CAMINOS_UI) camVictoria();   // CDe4: pantalla de victoria por caminos
@@ -437,7 +438,7 @@ function tickUI() {
   renderCuentas(); hojaPinta();
   const c = s.cities[cityOk()];
   hudDock();
-  $('date').textContent = G.dateStr(s.t);
+  $('date').textContent = (G.polis() ? D.POLIS[G.polis()].n + ' · ' : '') + G.dateStr(s.t);
   /* ES20: «Pasar estación» siempre a la vista (no con un modal ni con la hoja de estación abiertos; en batalla la pantalla es otra) */
   const sig = estSiguiente(s), tu = $('turno'); tu.hidden = !!(s.over || UI.modalOpen || UI.pasando || UI.hojaPend || $('inf')); tu.title = 'Pasar a la estación siguiente: ' + sig.toLowerCase();
   setTxt('turno', '<i class="tu-lacre">' + RO_LACRE + '</i><b>Pasar estación</b><span class="tu-est"> · ' + (ESTA_A[sig] || sig) + '</span>');
@@ -1310,7 +1311,7 @@ const gestosCiudad = {
 const bar = (label, v, max) => '<span>' + label + '</span><u><s style="width:' + Math.min(100, v / max * 100) + '%"></s></u>';
 const avisoMo = (c, n) => { const z = Math.round(G.manoObraDe(c, Math.max(0, (c.pop || 0) - n)) * 100); return z < 100 ? '<div class="ds" style="color:#e0a030">Los campos quedarán al ' + z + ' % (+' + n + ')</div>' : ''; };
 /* CN26: cola «En instrucción» y tarjetas de reclutar. Sin bid, todas las unidades (pestaña Ejército); con bid, solo las que pide ese edificio (ficha del Cuartel, del Establo…) */
-const reclutaDe = bid => Object.keys(D.UNITS).filter(k => D.UNITS[k].cost && (!bid || Object.keys(D.UNITS[k].req)[0] === bid));
+const reclutaDe = bid => Object.keys(D.UNITS).filter(k => D.UNITS[k].cost && G.reclutable(k) && (!bid || Object.keys(D.UNITS[k].req)[0] === bid));
 function reclutarHtml(c, bid) {
   const ks = reclutaDe(bid); let h = '';
   if (c.train.length) {
@@ -1319,9 +1320,9 @@ function reclutarHtml(c, bid) {
   }
   h += '<div class="sec">Reclutar</div>';
   for (const k of ks) {
-    const u = D.UNITS[k];
+    const u = D.UNITS[k], pf = G.polisFicha(), loc = pf && pf.tropa.id === k ? pf.tropa : null;   // PN2: la tropa propia de la polis lleva su nombre local
     const ok = G.unitOk(c, k), rb = Object.keys(u.req)[0], n = cohort(k), fe = (c.b[rb] || 0) >= u.req[rb] ? G.faltaEspecial('tropa', k) : null;
-    h += '<div class="card ' + (ok ? '' : 'locked') + '"><div class="pt">' + pt(k) + '</div><div class="bd"><div class="tt">' + u.n + '</div><div class="ds">' + u.d + '</div>' + licHtml(u) +
+    h += '<div class="card ' + (ok ? '' : 'locked') + '"><div class="pt">' + pt(k) + '</div><div class="bd"><div class="tt">' + (loc ? loc.n : u.n) + '</div><div class="ds">' + (loc ? loc.d : u.d) + '</div>' + licHtml(u) +
       '<div class="bars">' + bar('Ataque', u.ratk || u.atk, 16) + bar('Defensa', u.def, 16) + bar('Moral', u.mor, 100) + bar('Velocidad', u.spd, 85) + '</div>' + pagasHtml(G.loteCoste(c, k, n)) + '<div class="ds tarda">Tarda <b>' + mesesEst(G.trainDur(c, k, n)) + '</b></div>' + (ok ? avisoMo(c, n) : '') + '</div>' +
       (ok ? '<div class="btns"><button class="btn" data-act="train" data-v="' + k + '" data-n="' + n + '" data-need=\'' + JSON.stringify(G.loteCoste(c, k, n)) + '\'>+' + n + '<small>' + mesesEst(G.trainDur(c, k, n)) + '</small></button><button class="btn" data-act="train" data-v="' + k + '" data-n="' + n * 3 + '" data-need=\'' + JSON.stringify(G.loteCoste(c, k, n * 3)) + '\'>+' + n * 3 + '<small>' + mesesEst(G.trainDur(c, k, n * 3)) + '</small></button></div>'
         : fe ? faltaBtn(fe) : '<button class="btn no">' + D.BUILD[rb].n + '<small>nivel ' + u.req[rb] + '</small></button>') + '</div>';
@@ -1898,6 +1899,7 @@ document.addEventListener('click', function (e) {
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
     case 'new': case 'newregion': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'newpolis': { const pf = D.POLIS[v]; if (!pf) break; if (G.hasSave() && !confirm('Ya tienes una partida guardada. Empezar con ' + pf.n + ' la reemplaza. ¿Seguir?')) break; G.newGame(pf.heroe, 'italia', { polis: v, dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break; }   // PN2: empezar con una polis griega (sobre el mapa de Italia de momento)
     case 'cortaen': case 'cortafun': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
     case 'novedades': if (UI.menu && (!e.target.closest('.nv-hoja') || el.classList.contains('mvolver'))) { UI.novedades = !UI.novedades; showMenu(); } break;   // CDe3

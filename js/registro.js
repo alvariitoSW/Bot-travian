@@ -670,7 +670,21 @@
     /* UN2 (pase de TH1): tácticas de la época en el simulador (js/tacticas.js). Cotejo: gobierno/historia/TH1-tacticas.md (APTO CON NOTAS) */
     tacticas: f(SIN_REGLA, h('Livio 8.8.9-13 (triarios); Polibio 18.26 y 18.29-32 (falange); Polibio 3.115-116 y Livio 22.47-49 (Cannas); Polibio 2.33 y Livio 10.28.4 (furia gala)', 'probable', 'las cuatro ideas son de época; las cifras y cuándo saltan son licencia de juego. Citas pendientes de cotejar con el pasaje')),
   };
-  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia };
+  // ---- Polis griegas de «Partida nueva» (D.POLIS, PN2). Se casan por id. Los bonos y la leva son licencia de juego; la historia es lo que dice la fuente. ----
+  const SIN_POLIS = { sin: 'una polis es una ficha de datos; la lámina de la ficha es la de su edificio propio (arte de 0 A.D., CC BY-SA 3.0)' };
+  const LJP = ' Los bonos y las cifras del juego son licencia de juego, no vienen de la fuente. Pasaje por cotejar.';
+  const polis = {
+    atenas: f(SIN_POLIS, h('Heródoto 7.144; Aristóteles, Constitución de Atenas 22.7', 'probable', 'Temístocles y la plata del Laurion para construir la flota (Heródoto 7.144); el pasaje exacto, por cotejar.' + LJP, 'Las minas de plata del Laurion pagaron los trescientos barcos con que Atenas ganó en Salamina. El Pireo fue su puerto de guerra y de comercio.')),
+    esparta: f(SIN_POLIS, h('Plutarco, Licurgo 9 y 16; Jenofonte, República de los lacedemonios 2', 'probable', 'La moneda de hierro y la crianza de los niños (agogé) las cuenta Plutarco; son de época tardía y la tradición es dudosa.' + LJP, 'En Esparta los niños se criaban en común desde los siete años para ser soldados. Su moneda era de hierro, pesada y poco útil fuera de casa, para frenar el afán de riqueza.')),
+    corinto: f(SIN_POLIS, h('Estrabón 8.6.20-22; Tucídides 1.13', 'probable', 'Corinto «de los dos mares» (Estrabón); el díolkos para arrastrar barcos por el istmo, por cotejar su fecha en esta época.' + LJP, 'Corinto estaba en el istmo, entre dos mares, y cobraba por el paso de mercancías. Los barcos pequeños se arrastraban por tierra sobre una calzada, el díolkos.')),
+    argos: f(SIN_POLIS, h('Pausanias 2.17; Heródoto 6.77-83', 'probable', 'El Hereo era el gran santuario de Hera entre Argos y Micenas (Pausanias 2.17); Los Mil como cuerpo escogido, por cotejar.' + LJP, 'Entre Argos y Micenas se alzaba el Hereo, el santuario de Hera donde se reunía toda la comarca. Argos presumía de una llanura criadora de caballos y de un viejo pasado heroico.')),
+    tebas: f(SIN_POLIS, h('Tucídides 4.93-96; Jenofonte, Helénicas 6.4', 'probable', 'La batalla de Delio (424 a.C.) muestra la caballería y la infantería beocias (Tucídides 4.93-96); su fama como granero y los lagos, por cotejar.' + LJP, 'Tebas mandaba en Beocia, una llanura rica en cereal y en caballos. Sus jinetes y su infantería profunda eran temidos en todas las guerras de Grecia.')),
+    megara: f(SIN_POLIS, h('Heródoto 4.144; Estrabón 7.6.2', 'probable', 'Mégara fundó Calcedonia y Bizancio (Heródoto 4.144; Estrabón 7.6.2); Nisea como puerto, por cotejar.' + LJP, 'Mégara era una ciudad pequeña pero con mucho mar: fundó colonias lejanas como Calcedonia y Bizancio. Nisea era su puerto en el golfo Sarónico.')),
+    mileto: f(SIN_POLIS, h('Aristóteles, Política 2.8 (1267b); Heródoto 5.28-30', 'probable', 'Aristóteles atribuye a Hipódamo de Mileto el trazado de las ciudades en cuadrícula; el plano de Mileto es posterior al 479 a.C., por cotejar.' + LJP, 'Mileto fue una de las grandes ciudades de Jonia y estaba famosa por su lana. Se le atribuye el trazado de calles en cuadrícula, que enseñó Hipódamo.')),
+    calcis: f(SIN_POLIS, h('Estrabón 10.1.9; Heródoto 5.77', 'probable', 'Calcis, «la de bronce», con minas de cobre y hierro en Eubea y los Hipóbotas («criadores de caballos») (Estrabón 10.1.9; Heródoto 5.77); pasaje exacto, por cotejar.' + LJP, 'Calcis, en la isla de Eubea, trabajaba el bronce y el hierro de sus minas. Su clase dirigente de terratenientes se llamaba los Hipóbotas, los criadores de caballos.'))
+  };
+
+  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia, polis };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -711,6 +725,7 @@
     puerto: { tabla: 'PUERTOS', numericos: ['lon', 'lat'], textos: ['n', 'la'] },
     rumbo: { tabla: 'RUMBOS', numericos: [], textos: ['n'] },
     vida: { tabla: 'VIDA', numericos: [], textos: ['n', 'la'] },
+    polis: { tabla: 'POLIS', numericos: [], textos: ['n', 'color', 'sello', 'lema', 'lujo', 'lujoDe'] },   // PN2
     recurso: { tabla: 'RES_NOM', numericos: [], textos: [] },   // CE2
     veta: { tabla: 'VETAS_HIERRO', numericos: [], textos: [] },   // CE2: lista de ids de ciudad
     bien: { tabla: 'BIENES', numericos: ['precio'], textos: [] },
