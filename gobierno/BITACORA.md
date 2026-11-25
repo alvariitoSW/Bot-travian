@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 25/11 ~22:30 (vigía 4): Calcis con su mina de hierro (165–710 hombres a los 15 años): «A», se deja así; es su ventaja y su historia (la polis fácil para empezar).
 - 25/11 ~22:00 (vigía 4): «Si a lo recomendado»: (1) hierro en Grecia: veta de hierro en Calcis y la lección del arranque enseña a comprar hierro (PN3e); (2) la v177 no se sube sola: sube junto con el arreglo del hierro.
 - 25/11 ~21:40 (vigía 4): «Si a todo lo recomendado»: (1) v176 copiada a main (`8db92c60`); (2) quiere no tener que aprobar cada copia a main cuando los jueces den APTO entero (la protección automática de la sesión sigue pidiendo su «sí» en cada copia; se le pregunta en una línea); (3) la partida de polis entra en la revisión completa (JG3); (4) cada polis con su bien especial (PN3d).
 - 25/11 ~19:15 (vigía 4): «Sí, a lo recomendado»: (1) copiar la v175 a main (hecho, `992b09cf`); (2) el mapa de la partida de polis abre más lejos para ver las 8 polis (PN3c); (3) el juego se publica solo desde la versión revisada (`main`): el usuario cambia en GitHub → Settings → Pages la rama de origen a `main`; desde entonces lo que llega al móvil es lo que sube el vigía tras los jueces.
@@ -601,7 +602,6 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
-- **Calcis, ¿demasiado fuerte?**: con su mina, a los 15 años tiene 165–710 hombres, más del doble que las otras (13–276). (A) Dejarlo así: es su ventaja y su historia [recomendado]; (B) que su mina dé la mitad. Por qué: Calcis pasa a ser la polis fácil, buena para empezar.
 
 
 ## Propuestas por aprobar
