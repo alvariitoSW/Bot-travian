@@ -11,6 +11,7 @@ import { crearMando } from '../mando.js';
 import { crearTira } from '../tira-mando.js';
 import { montaTiradores, DETRAS } from '../../../../js/tiro.js';   /* ES3b: tus tiradores (reglas, sin pantalla) */
 import { crearVista } from '../tiradores.js';   /* ES3b: cómo se ven y se tocan */
+import { crearSarisas, pintaSarisas } from './falange.js';   /* BT1: las sarisas de los falangitas, las mismas que en la falange a pie */
 
 export const HOMBRES_FALANGE = 128;
 /* ES4: ?escenario=asculo&bando=pirro|roma. pirro: tu falange y dos manípulos itálicos contra la legión (tres manípulos y vélites rivales).
@@ -19,7 +20,22 @@ export function escenarioAsculo(q) { const e = q.get('escenario') === 'asculo', 
 export function crear() {
   const ASC = escenarioAsculo(new URLSearchParams(location.search)), ROMA = !!(ASC && ASC.bando === 'roma');
   let ctx = null, M = null, tira = null, vista = null, aros = [], tAro = 0;
+  let MS = null;   /* BT1: las sarisas de los bloques de falange (Ásculo) */
   const camaras = { v: { d: 110, alto: 88, ad: 30, fov: 56 }, h: { d: 52, alto: 34, ad: 22, fov: 44 } };
+  /* BT1: los falangitas de Ásculo (bloques 'falange' de js/bloque.js, pintados a hueco por tropas.js) llevan la sarisa de formaciones/falange.js
+     (pintaSarisas: mismo carril, mismo apartado). La bajan las cinco primeras filas al trabarse, al cargar o con el rival a menos de 30 m */
+  function sarisas(dt) {
+    const S = ctx.C.S, lista = [], baja = new Map();
+    for (const b of S.bloques) if (b.tipo === 'falange' && b.vis) baja.set(b, (b.contactos && b.contactos.length) || b.orden === 'cargar' || S.bloques.some(o => o.bando !== b.bando && o.estado !== 'fuera' && Math.hypot(o.x - b.x, o.z - b.z) < 30) ? 1 : 0);
+    for (const f of ctx.TR.figs) {
+      const b = f.b; if (!b || !baja.has(b) || f.slot === undefined) continue;
+      if (!f.tallaBT1) { f.talla = 1 + ((f.talla || 1) - 1) * 0.2; f.tallaBT1 = true; }   /* de una talla, como en la falange */
+      const h = f.hs || (f.hs = { i: Math.round(f.semilla * 7), kB: 0 }), cols = b.vis.cols; h.r = Math.floor(f.slot / cols); h.f = f.slot % cols; h.huye = b.estado === 'huye' || b.estado === 'fuera'; h.vivo = f.vivo !== false;
+      const quiere = h.r < 5 && !h.huye ? baja.get(b) : 0; h.kB += (quiere - h.kB) * Math.min(1, dt * 1.2); if (Math.abs(quiere - h.kB) < 0.002) h.kB = quiere;
+      lista.push({ h, f, kB: h.kB, pinta: true });
+    }
+    pintaSarisas(MS, lista, { H: ctx.H, Tm: S.T });
+  }
   function monta(c) {
     ctx = c; const { THREE } = c;
     if (tira) tira.quita(); if (vista) vista.quita(); vista = null;
@@ -37,6 +53,7 @@ export function crear() {
     if (X) { vista = crearVista({ ctx: c, M, X }); window.__bloque && (window.__bloque.tiradores = X, window.__bloque.proyecta = c.proyecta); }
     c.texto && c.texto(ASC ? ASC.objetivo : 'Rompe su centro con la falange y los dos manípulos');
     window.__bloque && (window.__bloque.mando = M);
+    if (MS) MS.quita(); MS = ASC ? crearSarisas(THREE, c.escena, 600) : null;
   }
   return {
     id: 'combinada', ordenes: ['avanzar', 'alto', 'cargar', 'retirada'], hud: { retirada: false }, objetivo: ASC ? ASC.objetivo : 'Rompe su centro con la falange y los dos manípulos', escenario: null, muroDelante: false, camaras,
@@ -56,7 +73,7 @@ export function crear() {
         const b = c.b, cx = b.x - Math.sin(b.ang) * b.fondo / 2, cz = b.z + Math.cos(b.ang) * b.fondo / 2;
         m.visible = true; m.position.set(cx, ctx.H(cx, cz) + 0.35, cz); m.rotation.z = -b.ang; m.scale.set((b.ancho / 2 + 1.5) * k, (b.fondo / 2 + 1.5) * k, 1);
       });
-      void S;
+      void S; if (MS) sarisas(dt);
     },
     despues(dt) { if (tira) tira.tick(dt); if (vista) vista.tick(dt); },
     alAviso() {}

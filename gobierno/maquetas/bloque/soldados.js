@@ -12,7 +12,8 @@
    solo los triángulos del escudo, la lanza o pila, la espada y la vaina de su malla, que son piezas hechas por código en
    AQVILA. Como todos comparten esqueleto y movimientos («escudo»), siguen las muñecas igual que en el que las presta. */
 import { THREE } from '../../../js/gfx/models.js';
-import { PUEBLOS } from '../../../js/gfx/soldado.js';
+import { PUEBLOS, cargarSoldado } from '../../../js/gfx/soldado.js';
+import { generaTabla, CJ } from '../falange/soldados.js';   /* BT1: tabla de gestos de brazos (FU3c), para la falange y para las espadas */
 
 export const SOLDADOS = {
   r: { tropa: ['hastatus'], oficial: 'centurion' },
@@ -108,4 +109,44 @@ export function paraFalange(nv) {
     g.setAttribute('position', P2); g.setAttribute('normal', N2); g.setAttribute('aSkinI', SI2); g.setAttribute('aSkinW', SW2);
   }
   return Object.assign({}, nv, { geo: g });
+}
+
+/* ---------- BT1 · gestos de brazos por tabla de huesos (FU3c), una sola vez para todas las formaciones ----------
+   kitGestos(t, carril): la tabla de una tropa (js/gfx/soldado.js tropa): las filas del modelo y, detrás, las posturas nuevas de
+   ../falange/soldados.js generaTabla (sarisa en el carril de cada fila, espada en guardia y el tajo). Pone a la tropa un material que lee esa
+   tabla (userData.huesos: la lee la medida de choques). → { tab, fig } o null (aún sin puños) o false (no se puede). preparaPunos() la arranca. */
+const KITS = new WeakMap(); let PUNOS = null, PREP = null;
+const aFloat = c => { const T = new Float32Array(c.length), h2f = THREE.DataUtils.fromHalfFloat; for (let i = 0; i < T.length; i++) T[i] = h2f(c[i]); return T; };
+const geoDe = nv => { const a = nv.geo.attributes; return { position: a.position.array, aSkinI: a.aSkinI.array, aSkinW: a.aSkinW.array }; };
+const CARRIL_0 = () => ({ x: 0.2, y: 1.0 });
+function conHuesos(mat, tex) { const m = mat.clone(), ob = mat.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob(sh, r); sh.uniforms.uHuesos = { value: tex }; }; m.customProgramCacheKey = mat.customProgramCacheKey; m.userData.huesos = tex.image.data; return m; }
+/* los puños del esqueleto fino (nivel 0 del falangita): los de lejos (36 huesos) los toman de él. Se prepara en segundo plano */
+export function preparaPunos() {
+  return PREP || (PREP = cargarSoldado('falangita').then(s => { const nv = s && s.niveles[0]; if (!nv) return; const tab = generaTabla(aFloat(nv.crudo), nv.j, geoDe(nv), CARRIL_0); PUNOS = { D: tab.esq.B.D.puno, I: tab.esq.B.I.puno }; }).catch(e => { console.warn('[FU3c] sin gestos de brazos', e); }));
+}
+export function kitGestos(t, carril = CARRIL_0) {
+  let k = KITS.get(t); if (k !== undefined) return k;
+  if (!PUNOS) { preparaPunos(); return null; }
+  try {
+    const nv = t.s, j = nv.j, tab = generaTabla(aFloat(nv.crudo), j, geoDe(nv), carril, PUNOS), nb = j.huesos.length;
+    const tex = new THREE.DataTexture(tab.T, nb * 3, tab.T.length / (nb * 12), THREE.RGBAFormat, THREE.FloatType); tex.minFilter = tex.magFilter = THREE.NearestFilter; tex.generateMipmaps = false; tex.needsUpdate = true;
+    t.malla.material = conHuesos(nv.mat, tex);
+    const q = j.clips.quieto; k = { tab, fig: { C: { idle: { start: q.ini, dur: (q.n - 1) / q.fps }, death: { start: 0 } }, tabla: tab } };
+  } catch (e) { console.warn('[FU3c] tabla de gestos', e); k = false; }
+  KITS.set(t, k); return k;
+}
+/* BT1: la espada en guardia y en el golpe. En el movimiento «guardia» de los modelos de espada (hastatus, galo y los que les toman las armas)
+   la hoja quedaba a 0,8 m a la derecha del hombre y entraba en el de al lado. Aquí, con la tabla de gestos, la mano derecha va delante del cuerpo
+   (dentro de su propio ancho) con la punta hacia el rival, y el golpe es el tajo de la tabla (al frente). La mano izquierda, con el escudo, al
+   pecho. Solo el dibujo: cuándo golpea lo deciden las reglas (el clip de tropas.js). En testudo no (su escudo va arriba). */
+const CON_ESPADA = { guardia: 1, golpear: 1, encajar: 1 }, DUR_GOLPE = 1.55;
+export function gestoEspada(f, t, i) {
+  if (!CON_ESPADA[f.clip] || (f.b && f.b.orden === 'testudo')) return;
+  const pz = t.s.j.piezas; if (!pz || !pz.espada_hoja) return;
+  const k = kitGestos(t); if (!k) return;
+  const tb = k.tab, cu = t.malla.geometry.attributes.aCuadro, fps = (t.s.j.clips.quieto || {}).fps || 30;
+  let a, b, x;
+  if (f.clip === 'golpear') { x = Math.min(1, Math.max(0, f.t / DUR_GOLPE)) * (CJ.tajo - 1); a = Math.floor(x); b = Math.min(a + 1, CJ.tajo - 1); a += tb.F_TAJO; b += tb.F_TAJO; }
+  else { x = (f.t * fps) % (CJ.guardia - 1); a = Math.floor(x); b = a + 1; a += tb.F_GUARD; b += tb.F_GUARD; }
+  cu.setXYZ(i, a, b, x - Math.floor(x)); cu.needsUpdate = true;
 }
