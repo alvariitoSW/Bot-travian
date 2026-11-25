@@ -414,6 +414,7 @@ partidas avanzadas griegas de la liga llegan con PN3.
 `ui.js`) son el cuello de botella; la comarca aleatoria es técnica nueva; el mapa vivo pesa en la descarga (tope ~80 MB).
 
 ## 5. Lo que queda fuera de la 2.0
+**Añadido el 25/11 (usuario, «Después de la 2.0 (Recomendado)»)**: batallas navales jugables en directo (trirremes, espolón, abordaje); en la 2.0 se simulan. Primera candidata a meta de la 3.0.
 **Añadido el 25/11 (usuario)**: los caminos de victoria por comercio, política, ciudad y ciencia (en la 2.0 solo se gana por armas).
 Propuesto (versión 2), en debate: mejoras de la campaña Roma contra Cartago (en pausa); Roma, Cartago y otras
 civilizaciones jugables (P160); mundo de 45 ciudades (P183); Roma 3D (RM1–7); mapa libre (C14, GM25); batallas
