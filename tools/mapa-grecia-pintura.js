@@ -1,8 +1,8 @@
-/* AQVILA · AM2 — pintura del suelo del mapa vivo de Grecia. Se ejecuta UNA VEZ en un navegador (tools/mapa-grecia/hornear.mjs)
+/* AQVILA · AM2 — pintura del suelo del mapa vivo de Grecia. Se ejecuta UNA VEZ en un navegador (tools/mapa-grecia-hornear.mjs)
    y deja en assets/mapa-grecia/ las texturas ya pintadas: suelo-a.webp (estilo A, relieve natural), suelo-b.webp (estilo B, carta
    antigua) y mascaras-a.webp y mascaras-b.webp (R = campos de labor, G = bosque, B = roca y cumbre en A, umbría para el rayado a tinta en B). El juego solo las carga: no pinta nada al arrancar.
    Todo el arte es propio (pintado aquí con cuentas sobre el relieve). Uso: ver hornear.mjs. */
-import { MARCO, ZONAS, COPAIS, pesoZonas } from '../../js/gfx/mapa-grecia-datos.js';
+import { MARCO, ZONAS, COPAIS, pesoZonas } from '../js/gfx/mapa-grecia-datos.js';
 
 export const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 export const mix = (a, b, t) => a + (b - a) * t;

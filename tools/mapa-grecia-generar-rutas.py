@@ -3,11 +3,11 @@
 Lee assets/mapa-grecia/alturas.png (canal B = distancia a la costa con signo; <0 es mar). Camino más corto por A* sobre la rejilla
 reducida x3 (720x640; una casilla es mar si sus 9 celdas lo son; las pegadas a la costa cuestan más), unido al punto de mar más
 cercano de cada extremo; se simplifica con Douglas-Peucker aceptando un tramo solo si pasa entero por mar en la rejilla fina.
-Uso: python3 -I tools/mapa-grecia/generar-rutas.py   (mismo formato que gobierno/maquetas/mapa-comun/rutas.js)"""
+Uso: python3 -I tools/mapa-grecia-generar-rutas.py   (mismo formato que gobierno/maquetas/mapa-comun/rutas.js)"""
 import heapq, json, math, os
 import numpy as np
 from PIL import Image
-RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SAL = os.path.join(RAIZ, 'assets', 'mapa-grecia')
 X0, X1, Y0, Y1 = 19.3, 28.3, 34.7, 41.0
 a = np.asarray(Image.open(os.path.join(SAL, 'alturas.png')).convert('RGB')).astype(np.int32)
@@ -109,5 +109,5 @@ if __name__ == '__main__':
     rutas = [{'n': n, 'de': u, 'a': v, 'l': camino(P[u], P[v])} for u, v, n in R]
     for r in rutas: print(r['n'], len(r['l']))
     comprobar(rutas); assert len(rutas) >= 16
-    open(os.path.join(SAL, 'rutas.js'), 'w', encoding='utf-8').write('/* AQVILA · AM2 — rutas de barcos por el mar (lon, lat). Generado con tools/mapa-grecia/generar-rutas.py a partir de alturas.png. */\nexport default ' + json.dumps(rutas, ensure_ascii=False, separators=(',', ':')) + ';\n')
+    open(os.path.join(SAL, 'rutas.js'), 'w', encoding='utf-8').write('/* AQVILA · AM2 — rutas de barcos por el mar (lon, lat). Generado con tools/mapa-grecia-generar-rutas.py a partir de alturas.png. */\nexport default ' + json.dumps(rutas, ensure_ascii=False, separators=(',', ':')) + ';\n')
     print('rutas.js', os.path.getsize(os.path.join(SAL, 'rutas.js')) // 1024, 'KB')

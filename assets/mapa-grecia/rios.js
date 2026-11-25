@@ -1,4 +1,4 @@
-// AQVILA · AM2 — ríos de Grecia. Generado por tools/mapa-grecia/generar-rios.py a partir de alturas.png (no editar a mano).
+// AQVILA · AM2 — ríos de Grecia. Generado por tools/mapa-grecia-generar-rios.py a partir de alturas.png (no editar a mano).
 // Cada tramo: n = nombre antiguo (si lo tiene), w = ancho 1..3 (área drenada 250-800 / 800-3000 / >3000 km²), l = [[lon,lat],…] aguas abajo.
 // Los afluentes acaban en un punto del río principal. Umbral 250 km². Derivado propio del relieve (dominio público); ver LICENSE.txt.
 export default [

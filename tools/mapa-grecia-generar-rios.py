@@ -2,7 +2,7 @@
 """AQVILA · AM2 — genera assets/mapa-grecia/rios.js: los ríos de Grecia sacados del propio relieve (alturas.png).
 Natural Earth solo trae 4 ríos en este marco; aquí los ríos bajan por el terreno: se rellenan los hoyos (priority-flood desde el
 mar, cada celda drena a la vecina que la alcanzó primero), se acumula el área drenada y se vectorizan las celdas con >= UMBRAL km².
-Uso: python3 -I tools/mapa-grecia/generar-rios.py [umbral km2 (250)] [tolerancia m (120)]
+Uso: python3 -I tools/mapa-grecia-generar-rios.py [umbral km2 (250)] [tolerancia m (120)]
 Marco igual que alturas.png: lon 19,3..28,3 y lat 34,7..41,0; 2160x1920 celdas; fila 0 = norte. Derivado propio del relieve (dominio público).
 """
 import heapq, math, os, sys, json
@@ -15,7 +15,7 @@ UMBRAL = float(sys.argv[1]) if len(sys.argv) > 1 else 250.0
 TOL_KM = (float(sys.argv[2]) if len(sys.argv) > 2 else 120.0) / 1000
 CELDA_KM2 = 0.134
 KMLON, KMLAT = 111.32 * math.cos(math.radians(38)), 110.57
-RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENT = os.path.join(RAIZ, 'assets', 'mapa-grecia', 'alturas.png')
 SAL = os.path.join(RAIZ, 'assets', 'mapa-grecia', 'rios.js')
 
@@ -149,7 +149,7 @@ for t in fin:
     o = {'n': t['nombre']} if t['nombre'] else {}
     o['w'] = t['w']; o['l'] = [[round(x, 3), round(y, 3)] for x, y in t['P']]
     trozos.append(json.dumps(o, ensure_ascii=False, separators=(',', ':')))
-cab = ('// AQVILA · AM2 — ríos de Grecia. Generado por tools/mapa-grecia/generar-rios.py a partir de alturas.png (no editar a mano).\n'
+cab = ('// AQVILA · AM2 — ríos de Grecia. Generado por tools/mapa-grecia-generar-rios.py a partir de alturas.png (no editar a mano).\n'
        f'// Cada tramo: n = nombre antiguo (si lo tiene), w = ancho 1..3 (área drenada 250-800 / 800-3000 / >3000 km²), l = [[lon,lat],…] aguas abajo.\n'
        f'// Los afluentes acaban en un punto del río principal. Umbral {UMBRAL:.0f} km². Derivado propio del relieve (dominio público); ver LICENSE.txt.\n')
 open(SAL, 'w', encoding='utf-8').write(cab + 'export default [\n' + ',\n'.join(trozos) + '\n];\n')

@@ -3,7 +3,7 @@
 Datos: Terrain Tiles (Terrarium, nivel 10) de Mapzen/Tilezen en AWS Open Data (https://registry.opendata.aws/terrain-tiles/).
 Fuentes que declaran las cabeceras x-amz-meta-x-imagery-sources de las teselas usadas (se imprimen al final y van a LICENSE.txt):
   SRTM, GMTED2010, ETOPO1 y las que salgan (dominio público; ver assets/mapa-grecia/LICENSE.txt). No se guarda fuentes.txt en el repo.
-Uso: python3 -I tools/mapa-grecia/generar-alturas.py <carpeta de caché FUERA del repo>
+Uso: python3 -I tools/mapa-grecia-generar-alturas.py <carpeta de caché FUERA del repo>
 Marco (igual que la maqueta AM1): lon 19,3..28,3 y lat 34,7..41,0; 2160x1920 celdas; fila 0 = norte.
   Espaciado uniforme en lon y en lat (la maqueta también lo es), no en Mercator: se promedia por área sobre el mosaico.
 PNG RGB de 8 bits:
@@ -24,7 +24,7 @@ n = 2 ** Z
 tx = lambda lon: (lon + 180) / 360 * n
 def ty(lat):
     r = math.radians(lat); return (1 - math.log(math.tan(r) + 1 / math.cos(r)) / math.pi) / 2 * n
-RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SALIDA = os.path.join(RAIZ, 'assets', 'mapa-grecia', 'alturas.png')
 def celda(lon, lat):   # (fila, columna) de un punto; mismo criterio que usa el test
     return (min(NZ - 1, max(0, int((Y1 - lat) / (Y1 - Y0) * NZ))), min(NX - 1, max(0, int((lon - X0) / (X1 - X0) * NX))))

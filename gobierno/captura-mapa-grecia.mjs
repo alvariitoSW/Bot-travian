@@ -54,7 +54,8 @@ async function dedos(page) {
   return { cdp, T, tp, estado,
     async pellizco(cx, cy, d0, d1, pasos, reg) {   // dos dedos en horizontal, simétricos respecto a (cx, cy)
       const par = d => tp([cx - d / 2, cy], [cx + d / 2, cy]); await T('touchStart', par(d0)); await page.waitForTimeout(40);
-      for (let k = 1; k <= pasos; k++) { const d = d0 + (d1 - d0) * k / pasos; await T('touchMove', par(d)); await page.waitForTimeout(70); if (reg) reg.push((await estado()).upx); }
+      for (let k = 1; k <= pasos; k++) { const d = d0 + (d1 - d0) * k / pasos; const antes = reg ? (await estado()).upx : 0; await T('touchMove', par(d)); await page.waitForTimeout(70);
+        if (reg) { let u = (await estado()).upx; for (let i = 0; i < 20 && u === antes; i++) { await page.waitForTimeout(50); u = (await estado()).upx; } reg.push(u); } }   // el navegador reparte los toques al ritmo de los cuadros: se espera a que el paso llegue
       await page.waitForTimeout(100); await T('touchEnd', []); await page.waitForTimeout(150);
     },
     async arrastre(x0, y, dx, pasos) {
