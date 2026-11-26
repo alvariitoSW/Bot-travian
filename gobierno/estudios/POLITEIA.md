@@ -6,6 +6,10 @@ Marcas: **✔** decidido por el usuario · **◐** propuesto, sin su sí expreso
 Pedido (literal): «Vale y como fusionamos todo lo que hemos estado hablando del juego de política? Como hacemos una
 única fusión integral de todo?».
 
+**APROBADO por el usuario el 26/11/2026** (literal: «Si lo apruebo»), a la pregunta «¿Lo apruebas así, o repasamos antes
+las seis decisiones?». Alcance (lectura de la sesión): aprueba este documento como rumbo y el arranque por la prueba P0
+(tareas PO1–PO5, ≈ 5 M). Lo marcado ◐ y ○ sigue sin decidir; el resto de tandas espera al resultado de la prueba.
+
 ## 0. Objetivo final
 **Que la política de tu polis sea un juego en sí mismo: entras en tu ciudad griega, pintada y viva, vas a sus lugares,
 tramas, hablas y das cuentas; lo que decides hace avanzar la ciudad en cultura y en política, cambia tus alianzas y tu
