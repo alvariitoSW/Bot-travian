@@ -58,17 +58,24 @@ Las tropas nuevas (arqueros jugables) son decisión del usuario: entran aquí o 
 3. Solo si llega (≥ 8), se copia la receta a la falange (imágenes 1–3), a los arqueros (6–7) y a la batalla de varios manípulos.
 4. Un constructor con navegador a la vez; capturas solo al final de cada vuelta; gasto medido y dicho antes de cada vuelta grande.
 
-## 8. Pasos propuestos (sustituyen el Plan A desde el paso 2)
-| Paso | Qué se ve al acabar | Estimación (M, Opus) |
-|---|---|---|
-| A · Pieza de muestra: testudo del centurión | Soldados romanos nuevos (cerca), manos en armas, scuta curvos en teja, jabalinas que se clavan, polvo y luz, plano corto; el usuario lo juega y lo puntúa | 20–30 |
-| B · La receta a la falange | Falangitas nuevos, pica en la mano, abanico alzado y bajado, cinco filas de puntas, choque con legionarios y elefantes | 15–25 |
-| C · Una batalla, dos alturas | Varios manípulos por bando en una sola escena, mandar desde arriba y bajar a la fila sin cambiar de mundo; se quita la batalla grande de números | 30–45 |
-| D · Tiradores jugables (si lo aprueba) | Mover y apostar, escaramuza automática, tirar tú, munición, salva | 10–20 |
-Estimaciones a ojo (BT1 costó 61 M); se miden con `gobierno/gasto.mjs` y se dicen antes de empezar cada paso.
+## 8. El camino (usuario, 26/11: «diseñar bien el camino para saber a dónde vamos a ir y lo que queremos hacer en cada momento y hasta donde podemos llegar»)
+**No sustituye a EB1 ni al Plan A: los continúa.** EB1 es la foto de partida (qué hay y qué falla, nota por nota); el Plan A es el orden;
+esta dirección pone la **vara** (sus imágenes) y el **destino** (§1–§4). Todo es el **mismo motor** de la escena a pie (FU1–FU6, CB3, la física
+de FI3/FI4), que se pule y se agranda; no se empieza otro juego.
+| Etapa | Plan A | Qué se ve al acabar | Hasta dónde llega | Notas de EB1 que cierra | Estimación (M) |
+|---|---|---|---|---|---|
+| 0 · Lo común (**hecha**, BT1) | paso 1 | Una barra de órdenes, etiquetas limpias, un campo y una luz, picas que no atraviesan | Sistemas listos; el aspecto sigue de prototipo (examen 6,0) | F0 G3 M4 M5 A5 G2 B1 T3 A4 M1 | 61 (gastado) |
+| 1 · Pieza de muestra: el testudo | paso 2 (empieza) | Legionarios nuevos de cerca, manos en el arma, scuta curvos en teja, jabalinas que se clavan, polvo y contraluz, plano corto, cámara del centurión | De cerca, un 7–8 frente a su imagen 4; los de lejos, sencillos | T1 T2 T4 T5 T7, caídos y escudos de BT1 | 20–30 |
+| 2 · La receta a todas las formaciones | paso 2 (sigue) | Falange (picas en las manos, abanico alzado y bajado, cinco filas de puntas, elefantes), manípulo con vélites y triarios, galos y cartagineses nuevos | El mismo nivel que el testudo en cada tropa | F1 F2 F3 F5 F6 M2 CB2b | 15–25 |
+| 3 · Una batalla, dos alturas | paso 3 | Varios manípulos por bando en una escena; mandar desde arriba y bajar a la fila sin cambiar de mundo; Ásculo como batalla de verdad; la de números solo para resolver | Unos cuantos manípulos por bando a la vez en su móvil (se mide; meta 1.000–2.000 hombres) | G1 G4 G5 G6 A1 A2 A3 | 30–45 |
+| 4 · Tropas que faltan (si las aprueba) | después del plan | Arqueros jugables (mover, apostar, escaramuza, tirar tú, munición); caballería jugable | Lo que el usuario apruebe, una a una | — | 10–20 cada una |
+| Después | — | Supervivencia, naval, asedios, batalla rápida nueva | Fuera de este camino | R1 | — |
+Cada etapa: ficha de objetivo con sus imágenes → construir → el usuario juega y puntúa en su móvil (≥ 8) → si no llega, otra vuelta
+**con el gasto dicho antes**. Estimaciones a ojo (BT1 costó 61 M); se miden con `gobierno/gasto.mjs`.
+**Lo que nunca llega en un móvil** (se dice y no se promete): mil hombres con detalle de cine a la vez, caras de película, suciedad y lluvia de cine.
 
 ## 9. Lo que decide el usuario
-1. ¿Aprueba esta dirección (una batalla, dos alturas; la de números solo para resolver sin jugar)?
+1. ¿Aprueba esta dirección y el camino de §8 (una batalla, dos alturas; la de números solo para resolver sin jugar)?
 2. ¿Empezamos por la pieza de muestra del testudo y la juzga él en su móvil?
 3. ¿Los arqueros jugables entran (paso D) o van a «Después»?
 4. ¿Cuánto quiere gastar en el paso A?
