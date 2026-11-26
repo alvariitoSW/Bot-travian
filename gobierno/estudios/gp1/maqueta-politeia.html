@@ -1,0 +1,243 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>GP1d · Politeia: el año político y sus lugares (maquetas)</title><style>
+*{box-sizing:border-box}body{margin:0;width:390px;background:#11151c;font-family:Georgia,serif;color:#1c120c}
+.scr{width:390px;height:800px;position:relative;overflow:hidden;background:#11151c;display:flex;flex-direction:column}
+.top{margin:26px 8px 0;padding:6px 14px;border-radius:20px;background:#1d2533;color:#eee;font-size:14px}
+.top small{color:#aab;letter-spacing:1px;font-size:10px;margin-left:8px}
+.vaso{flex:1;margin:8px;background:#d98a4a;border-radius:10px;border:2px solid #1c120c;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.greca{height:14px;flex:none;background:#e9b06e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='14'%3E%3Cpath d='M0 11.5h15V2.5H4.5v6h6.5V5.5' fill='none' stroke='%231c120c' stroke-width='1.7'/%3E%3C/svg%3E") repeat-x;border-top:2px solid #1c120c;border-bottom:2px solid #1c120c}
+.vaso>.greca:first-child{border-top:0}.vaso>.greca:last-child{border-bottom:0}
+.tabs{display:flex;justify-content:center;gap:26px;padding:8px 0 4px}
+.tabs div{text-align:center;font-size:10px;letter-spacing:1px;color:#3a2010}
+.tabs i{display:block;width:40px;height:40px;border-radius:50%;border:2px solid #1c120c;background:#e9b06e;font-style:normal;font-size:20px;line-height:36px;margin:0 auto 2px}
+.tabs .on i{background:#1c120c;box-shadow:0 0 0 3px #f0dfb8}.tabs .on{color:#1c120c;font-weight:bold}
+.cu{flex:1;padding:4px 12px 8px;display:flex;flex-direction:column;position:relative}
+.estela{align-self:center;background:#f0dfb8;border:2px solid #1c120c;border-radius:40px 40px 4px 4px;padding:8px 18px 6px;text-align:center;min-width:230px}
+.estela b{display:block;font-size:19px;font-variant:small-caps;letter-spacing:.5px}
+.estela span{font-size:12px;display:inline-block;margin:2px 3px 0;background:#d98a4a55;border-radius:9px;padding:1px 7px}
+.pied{display:flex;justify-content:center;gap:3px;margin:8px 0 2px;align-items:center}
+.pied i{width:10px;height:10px;border-radius:50%;border:1.5px solid #1c120c;background:transparent;display:block}
+.pied i.s{background:#f6ecd0}.pied i.n{background:#1c120c}.pied u{width:2px;height:18px;background:#7a1f1f;display:block;margin:0 2px}
+.cta{text-align:center;font-size:13px;margin-bottom:4px}.cta b{font-size:16px}
+.agora{flex:1;display:flex;border-top:2px solid #1c120c;position:relative;background:linear-gradient(#e39a58,#d98a4a)}
+.zona{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:4px 2px 6px;border-right:1.5px dashed #1c120c66}
+.zona:last-child{border-right:0}.zona h4{margin:0 0 auto;font-size:13px;letter-spacing:2px;font-weight:normal;padding-top:4px}
+.gr{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 0;max-width:122px}
+.f{display:block;margin:0 -1px}
+.cuerda{border-top:3px double #1c120c;padding:3px 8px 0;display:flex;align-items:flex-end;gap:0;opacity:.55;font-size:11px;font-style:italic}
+.cuerda span{margin-left:8px;padding-bottom:6px}
+.band{display:flex;align-items:center;gap:8px;background:#7a1f1f;color:#f6ecd0;border-radius:6px;padding:5px 10px;font-size:12.5px;margin-top:6px}
+.bandeja{display:flex;justify-content:space-around;align-items:flex-start;padding:8px 4px 0}
+.fic{width:74px;text-align:center;font-size:10.5px;line-height:1.15}
+.fic i{display:block;width:50px;height:50px;border-radius:50%;margin:0 auto 3px;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;font-style:normal;font-size:24px;line-height:46px}
+.fic.gas i{opacity:.3;box-shadow:none}
+.fant{position:absolute;width:50px;height:50px;border-radius:50%;background:#f0dfb8cc;border:2px dashed #1c120c;font-size:24px;line-height:46px;text-align:center}
+.glo{position:absolute;background:#1c120c;color:#f6ecd0;border-radius:10px;padding:3px 9px;font-size:12px;white-space:nowrap}
+.btns{display:flex;gap:8px;margin:0 8px 8px}.btns div{flex:1;text-align:center;padding:10px 4px;border-radius:8px;font-size:15px;color:#f6ecd0;min-height:48px;background:#3a2a1a;line-height:1.2}
+.btns .vot{flex:2.2;background:#7a1f1f;font-size:18px;font-variant:small-caps;letter-spacing:1px}.btns small{display:block;font-size:11px;font-variant:normal;letter-spacing:0;opacity:.85}
+.nav{display:flex;gap:3px;margin:0 8px 8px}.nav b{flex:1;text-align:center;font-size:9.5px;padding:9px 0;background:#2a2018;color:#e8d8b0;border-radius:4px}.nav b.on{outline:2px solid #b03a2a}
+.bema{position:relative;height:150px;border-top:2px solid #1c120c;background:linear-gradient(#e9a868,#e39a58)}
+.piedra{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:150px;height:44px;background:#f0dfb8;border:2px solid #1c120c;border-bottom:0;border-radius:6px 6px 0 0}
+.cleps{position:absolute;right:10px;top:10px;text-align:center;font-size:10px}
+.cleps b{display:block;font-size:20px;letter-spacing:2px}
+.publico{display:flex;justify-content:space-around;align-items:flex-end;padding:8px 2px 4px;border-top:2px solid #1c120c;background:#d98a4a}
+.publico>div{text-align:center;font-size:10.5px}.publico .gr{max-width:90px}
+.args{display:flex;gap:10px;margin-top:8px}
+.arg{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 4px 0 #1c120c;padding:8px 6px;text-align:center;clip-path:polygon(4% 0,96% 3%,100% 92%,88% 100%,6% 97%,0 12%);min-height:120px}
+.arg em{font-style:normal;font-size:30px;display:block}.arg b{font-size:15px;display:block;margin-bottom:4px;font-variant:small-caps;letter-spacing:1px}
+.arg .ef{display:flex;justify-content:center;align-items:flex-end;gap:2px;font-size:13px}.up{color:#2f6a22;font-weight:bold}.dn{color:#7a1f1f;font-weight:bold}
+.urnas{display:flex;justify-content:center;gap:50px;margin:10px 0 2px;text-align:center;font-size:12px;letter-spacing:2px}
+.filas{margin-top:6px}.fila{display:flex;align-items:center;gap:6px;padding:5px 6px;border-top:1.5px solid #1c120c55}
+.fila .p{display:flex;flex-wrap:wrap;gap:3px;flex:1}.fila .p i{width:14px;height:14px;border-radius:50%;border:1.5px solid #1c120c;display:block}
+.fila .p i.s{background:#f6ecd0}.fila .p i.n{background:#1c120c}
+.fila.sel{background:#f0dfb8;border:2px solid #1c120c;border-radius:8px}
+.trato{font-size:12px;background:#1c120c;color:#f6ecd0;border-radius:12px;padding:5px 9px;white-space:nowrap}
+.ostr{position:relative;flex:1}
+.os{position:absolute;background:#c9703a;border:2px solid #1c120c;padding:14px 10px 10px;text-align:center;font-size:12px;width:128px;box-shadow:3px 4px 0 #1c120c88}
+.os b{display:block;font-family:"Courier New",monospace;letter-spacing:2px;font-size:15px;color:#f6ecd0;text-shadow:0 0 1px #1c120c}
+.os small{display:block;margin-top:2px}
+.rueda{position:relative;height:330px;margin-top:2px}
+.nodo{position:absolute;width:104px;text-align:center;font-size:10.5px;line-height:1.15}
+.nodo i{display:block;width:54px;height:54px;border-radius:50%;margin:0 auto 2px;border:2px solid #1c120c;background:#e9b06e;font-style:normal;font-size:26px;line-height:50px}
+.nodo b{display:block;font-size:13px}.nodo.on i{background:#1c120c;box-shadow:0 0 0 4px #f0dfb8}
+.lin{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px}.lin span{background:#f0dfb8;border:1.5px solid #1c120c;border-radius:12px;padding:3px 9px;font-size:12px}
+.olla{display:flex;align-items:center;gap:8px;margin-top:8px;background:#7a1f1f;color:#f6ecd0;border-radius:8px;padding:7px 10px;font-size:12.5px}
+.olla .seg{display:flex;gap:3px}.olla .seg i{width:14px;height:14px;border-radius:50%;border:1.5px solid #f6ecd0;display:block}.olla .seg i.x{background:#f6ecd0}
+.esc{position:relative;flex:1}
+.pel{position:absolute;left:0;height:86px;background:#f0dfb8;border:2px solid #1c120c;border-left:0;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:11.5px;line-height:1.2}
+.pel em{font-style:normal;font-size:28px}.pel b{display:block;font-size:15px;font-variant:small-caps;letter-spacing:.5px}
+.pel.fut{background:#e9b06e;opacity:.75}
+.tit{position:absolute;left:0;top:0;background:#1c120c;color:#f0dfb8;font:bold 12px Arial;padding:3px 8px;border-radius:0 0 8px 0;z-index:9}
+
+.pasos{display:flex;justify-content:center;gap:8px;align-items:center;font-size:13px;margin-top:2px}
+.pasos i{width:18px;height:18px;border-radius:50%;border:2px solid #1c120c;background:#f0dfb8;display:block}.pasos i.g{background:transparent;opacity:.4}
+.sala{position:relative;flex:1;background:linear-gradient(#3a1d12,#5a2c18);border:2px solid #1c120c;border-radius:8px;margin-top:6px;overflow:hidden}
+.lecho{position:absolute;width:104px;background:#f0dfb8;border:2px solid #1c120c;border-radius:8px;padding:5px 4px 4px;text-align:center;font-size:11px;line-height:1.2;box-shadow:0 5px 0 #1c120c}
+.lecho b{display:block;font-size:13px}.lecho .f{margin:0 auto}
+.lecho.tu{background:#e9b06e}
+.sello{display:inline-block;background:#7a1f1f;color:#f6ecd0;border-radius:10px;padding:1px 7px;font-size:10.5px;margin-top:2px}
+.sello.ab{background:#2f6a22}
+.crat{position:absolute;left:50%;top:128px;transform:translateX(-50%);text-align:center;color:#f0dfb8;font-size:11px}
+.vino{width:150px;height:12px;border-radius:6px;border:1.5px solid #f0dfb8;background:linear-gradient(90deg,#9cc 0,#7a1f1f 100%);position:relative;margin:4px auto 2px}
+.vino u{position:absolute;left:64%;top:-5px;width:6px;height:20px;background:#f0dfb8;border:1.5px solid #1c120c;border-radius:3px}
+.acc{display:flex;gap:6px;margin-top:8px}.acc div{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;border-radius:8px;text-align:center;font-size:10.5px;padding:5px 2px;line-height:1.15}
+.acc em{display:block;font-style:normal;font-size:22px}.acc b{display:block;font-size:12.5px}
+.red{position:relative;height:330px}
+.per{position:absolute;width:76px;text-align:center;font-size:11px;line-height:1.1}
+.per i{display:block;width:50px;height:50px;border-radius:50%;margin:0 auto 1px;border:2px solid #1c120c;background:#e9b06e;overflow:hidden;padding-top:6px}
+.per i .f{margin:0 auto}.per.on i{background:#f0dfb8;box-shadow:0 0 0 4px #1c120c}
+.ficha{background:#f0dfb8;border:2px solid #1c120c;border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.45}
+.ficha b.n{font-size:16px;font-variant:small-caps;letter-spacing:.5px}
+
+.museo{flex:1;margin:8px;border-radius:10px;border:2px solid #1c120c;background:radial-gradient(ellipse at 50% 38%,#6b4a30 0,#2a1a10 62%,#120b07 100%);display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden}
+.cron{position:absolute;left:0;right:0;bottom:0;background:#120b07cc;color:#f0dfb8;font-size:12px;padding:6px 10px;border-top:1px solid #d98a4a;line-height:1.3}
+.cron b{color:#e9b06e}
+.gira{position:absolute;right:8px;top:8px;color:#f0dfb8;font-size:11px;text-align:center;opacity:.85}
+.pp{position:absolute;left:8px;top:8px;color:#f0dfb8;font-size:11px}.pp i{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid #f0dfb8;background:#f0dfb8;margin-right:3px;vertical-align:-3px}.pp i.g{background:transparent;opacity:.5}
+.friso{background:#d98a4a;border:2px solid #1c120c;border-radius:6px;overflow:hidden;display:block}
+.op{display:flex;gap:6px;margin-top:6px}.op div{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;border-radius:8px;font-size:11px;padding:6px 5px;line-height:1.25;text-align:center}
+.op b{display:block;font-size:13px}.op em{display:block;font-style:normal;font-size:20px}.op .sel{background:#fff7dc;outline:3px solid #7a1f1f}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:11.5px;margin-top:8px}
+.h5{font-size:11px;letter-spacing:2px;color:#5a2c18;margin:8px 0 3px;text-transform:uppercase}
+
+.anio{display:flex;gap:4px}.anio div{flex:1;text-align:center;font-size:10.5px;line-height:1.15;background:#d98a4a;border:2px solid #1c120c;border-radius:8px;padding:4px 2px}
+.anio em{display:block;font-style:normal;font-size:18px}.anio b{display:block;font-size:12px}.anio .on{background:#1c120c;color:#f0dfb8;box-shadow:0 0 0 3px #f0dfb8 inset}
+.lug{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.lug>div{background:#d98a4a;border:2px solid #1c120c;border-radius:8px;overflow:hidden;position:relative;font-size:10.5px;line-height:1.15;box-shadow:0 3px 0 #1c120c}
+.lug svg{display:block}.lug p{margin:0;padding:3px 6px 5px;background:#f0dfb8;border-top:2px solid #1c120c}.lug p b{display:block;font-size:13px;font-variant:small-caps;letter-spacing:.5px}
+.lug u{position:absolute;right:4px;top:4px;text-decoration:none;background:#7a1f1f;color:#f6ecd0;border-radius:9px;padding:1px 7px;font-size:10px}
+.lug .ap{opacity:.55}
+.pulso{margin-top:6px}.pul{display:flex;align-items:center;gap:4px;padding:5px 0;border-top:1.5px solid #1c120c55;font-size:12px}
+.pul span{width:104px;line-height:1.1}.pul .t{display:flex;gap:4px;flex:1;justify-content:space-between;align-items:center}
+.pul .t i{width:17px;height:17px;border-radius:50%;border:1.5px solid #1c120c;display:block}.pul .t i.x{background:#1c120c;box-shadow:0 0 0 3px #f0dfb8}.pul .t i.m{border-style:dashed}
+.pul .t i.a{background:#f0dfb8}.pul .t i.z{background:#7a1f1f}
+.mano{display:flex;gap:5px;margin-top:6px}.mano div{flex:1;background:#f0dfb8;border:2px solid #1c120c;box-shadow:0 3px 0 #1c120c;font-size:10px;line-height:1.15;text-align:center;padding:6px 3px 7px;clip-path:polygon(5% 0,95% 4%,100% 90%,86% 100%,7% 96%,0 10%)}
+.mano em{display:block;font-style:normal;font-size:19px}.mano b{display:block;font-size:11.5px}.mano .s{background:#7a1f1f;color:#f6ecd0}
+.bal{height:14px;border-radius:7px;border:2px solid #1c120c;background:linear-gradient(90deg,#f0dfb8 0 58%,#7a1f1f 58%);margin:6px 0 2px;position:relative}.bal u{position:absolute;left:50%;top:-5px;width:2px;height:20px;background:#1c120c}
+.tab{width:100%;border-collapse:collapse;font-size:10.5px;line-height:1.2}.tab td,.tab th{border:1.5px solid #1c120c;padding:3px 4px;vertical-align:top;background:#f0dfb8}.tab th{background:#1c120c;color:#f0dfb8;font-weight:normal;letter-spacing:.5px}.tab td:first-child{background:#d98a4a;font-weight:bold;font-size:11.5px}.tab tr.on td{background:#fff7dc}.tab tr.on td:first-child{background:#1c120c;color:#f0dfb8}
+.ofi{display:flex;gap:4px;margin-top:6px}.ofi div{flex:1;background:#f0dfb8;border:2px solid #1c120c;border-radius:6px;font-size:9.5px;line-height:1.15;text-align:center;padding:4px 2px}.ofi em{display:block;font-style:normal;font-size:17px}.ofi b{display:block;font-size:10.5px}.ofi .on{background:#1c120c;color:#f0dfb8}
+</style></head><body><script>
+const K='#1c120c',C='#f0dfb8';
+function fig(b,p,w){w=w||22;const k=p=='no'?'#7a1f1f':K;let s=`<svg class="f" width="${w}" height="${w*1.7}" viewBox="0 0 20 34">`;
+ if(b=='H')s+=`<path d="M17.5 3v29M16.3 4l1.2-3.5L18.7 4z" stroke="${k}" stroke-width="1" fill="${k}"/>`;
+ if(b=='P')s+=`<path d="M17 8v24" stroke="${k}" stroke-width="1.2"/><ellipse cx="17" cy="6.5" rx="1.9" ry="5" fill="${k}"/>`;
+ if(b=='N')s+=`<path d="M17.5 8v24" stroke="${k}" stroke-width="1.3"/><circle cx="17.5" cy="7" r="1.8" fill="${k}"/>`;
+ s+=`<circle cx="10" cy="5" r="3.6" fill="${k}"/><path d="${b=='P'?'M6.5 10h7l1.5 15h-10z':'M6 10h8l2.5 20h-13z'}" fill="${k}"/><path d="M7.5 ${b=='P'?25:30}v${b=='P'?8:3}M12.5 ${b=='P'?25:30}v${b=='P'?8:3}" stroke="${k}" stroke-width="2"/>`;
+ if(p=='si')s+=`<path d="M7.5 12L3 2.5" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(p=='tu')s+=`<path d="M13 12L21 8" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(b=='H')s+=`<circle cx="8.5" cy="19" r="5.4" fill="${k}" stroke="${C}" stroke-width="1"/><circle cx="8.5" cy="19" r="1.6" fill="${C}"/>`;
+ if(b=='N')s+=`<path d="M6.3 12.5L15 24M7 4.2h6" stroke="${C}" stroke-width="1.4"/>`;
+ if(b=='M')s+=`<path d="M.8 23c0-2.4 5.4-2.4 5.4 0 0 4-1 7-2.7 10C1.8 30 .8 27 .8 23zM2.3 21h2.4" fill="${k}" stroke="${C}" stroke-width=".8"/>`;
+ return s+'</svg>'}
+
+
+function fx(b,p,w,x,y,o){return fig(b,p,w).replace('<svg class="f"',`<svg x="${x}" y="${y}" ${o?'opacity="'+o+'"':''}`)}
+const TOP='<div class="top">🪙 270 &nbsp;🌾 450 &nbsp;🧱 800<small>ATENAS · OTOÑO · 594 a.C.</small></div>';
+const NAV='<div class="nav"><b>CIUDAD</b><b class="on">POLÍTICA</b><b>SABER</b><b>TROPAS</b><b>MAPA</b><b>POLIS</b></div>';
+function scr(id,tit,cu,btns){document.write(`<section id="${id}" class="scr"><div class="tit">${tit}</div>${TOP}<div class="vaso" style="background:#e9b06e"><div class="cu" style="padding-top:8px">${cu}</div></div>${btns?'<div class="btns">'+btns+'</div>':''}${NAV}</section>`)}
+const glo=(x,y,t,c)=>`<g><rect x="${x}" y="${y}" rx="8" width="${t.length*5.7+12}" height="16" fill="${c||'#f0dfb8'}" stroke="${K}" stroke-width="1.3"/><text x="${x+6}" y="${y+11.5}" font-size="10" font-family="Georgia" fill="${c?'#f6ecd0':K}">${t}</text></g>`;
+const G=(x,y,s,h)=>`<g transform="translate(${x} ${y}) scale(${s})">${h}</g>`;
+const TEMPLO=`<path d="M0 22L35 0L70 22zM3 24h64v4H3zM7 30h5v34H7zM20 30h5v34h-5zM33 30h5v34h-5zM46 30h5v34h-5zM59 30h5v34h-5zM-2 64h74v6h-74z" fill="${K}"/><circle cx="35" cy="14" r="3.5" fill="${C}"/>`;
+const TRIP=`<path d="M0 40L8 12M24 40L16 12M12 40V12M0 12h24M6 6c0-7 12-7 12 0z" stroke="${K}" stroke-width="2.4" fill="${K}"/><path d="M12 0c-6-8 6-10 0-20" fill="none" stroke="${K}" stroke-width="1.6" stroke-dasharray="3 3"/>`;
+const FUENTE=(d)=>`<g ${d?'fill="none" stroke-dasharray="4 3"':`fill="${K}"`} stroke="${K}" stroke-width="1.6"><path d="M0 40V12L22 0L44 12V40zM8 40V18h28v22"/><path d="M22 22v10M18 34c0 8 8 8 8 0z"/></g>`;
+const MURO=(w)=>`<path d="M0 40V10h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h${w-96}V40z" fill="${K}"/><path d="M0 22h${w}M0 31h${w}" stroke="#d98a4a" stroke-width="1"/>`;
+const TORRE=`<path d="M0 60V0h6v6h6V0h6v6h6V0h6v60z" fill="${K}"/><rect x="12" y="20" width="6" height="10" fill="#d98a4a"/>`;
+const OLIVO=`<path d="M10 40V20M10 28L4 20M10 26l7-7" stroke="${K}" stroke-width="2.5"/><ellipse cx="10" cy="12" rx="12" ry="11" fill="${K}"/><circle cx="5" cy="9" r="1.3" fill="${C}"/><circle cx="13" cy="14" r="1.3" fill="${C}"/><circle cx="12" cy="6" r="1.3" fill="${C}"/>`;
+const CASA=`<path d="M0 30V12L16 2L32 12V30z" fill="${K}"/><rect x="12" y="16" width="8" height="14" fill="#d98a4a"/>`;
+const STOA=`<path d="M0 6h80v6H0zM4 12h4v26H4zM20 12h4v26h-4zM36 12h4v26h-4zM52 12h4v26h-4zM68 12h4v26h-4zM0 38h80v4H0z" fill="${K}"/>`;
+const NAVE=`<path d="M0 22Q44 38 96 22L108 4L102 24Q50 44 8 30Z" fill="${K}"/><path d="M-10 26L6 24L4 30z" fill="${K}"/><circle cx="12" cy="26" r="2.6" fill="${C}"/><path d="M52 24V-20M34 -16h36" stroke="${K}" stroke-width="2.4"/><path d="M36 -14h32l-3 22H39z" fill="${C}" stroke="${K}" stroke-width="2"/><path d="M26 30l-5 14M38 32l-5 14M50 33l-5 14M62 32l-5 14M74 30l-5 14M86 27l-5 14" stroke="${K}" stroke-width="1.8"/>`;
+const OLAS=(x,y,n)=>`<path d="M${x} ${y}${'q5 -6 10 0t10 0'.repeat(n)}" fill="none" stroke="${K}" stroke-width="2"/>`;
+const CABALLO=`<path d="M10 30Q30 21 52 30Q50 39 30 39Q14 39 10 30z" fill="${K}"/><path d="M45 33Q51 14 62 5L69 10Q60 18 57 35z" fill="${K}"/><path d="M60 5L77 12L75 17L62 13zM58 0l4 6h-5z" fill="${K}"/><path d="M15 34L10 62M21 36l2 26M45 36l-2 26M52 34l7 28M11 30Q0 34 3 54" stroke="${K}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="66" cy="10" r="1.2" fill="${C}"/>`;
+const CARRO=`<path d="M0 0h6v26h34v6H0z" fill="${K}"/><circle cx="16" cy="38" r="14" fill="none" stroke="${K}" stroke-width="3.5"/><path d="M16 24v28M2 38h28M6 28l20 20M26 28L6 48" stroke="${K}" stroke-width="1.6"/><path d="M40 28L96 14" stroke="${K}" stroke-width="2.5"/>`;
+const LECHO=`<path d="M0 0h62v6H0zM3 6v14M59 6v14M0 0c0-10 10-10 12 0" stroke="${K}" stroke-width="2.5" fill="${K}"/>`;
+const CRAT=`<path d="M0 0h30c0 14-6 20-10 24h5v4H5v-4h5C6 20 0 14 0 0z" fill="${K}" stroke="${C}" stroke-width="1"/>`;
+const ESC=(l,c)=>`<circle cx="0" cy="0" r="17" fill="${c||K}" stroke="${C}" stroke-width="2"/><circle cx="0" cy="0" r="13" fill="none" stroke="${C}" stroke-width=".8"/><text x="0" y="6" text-anchor="middle" font-size="17" font-family="Georgia" font-weight="bold" fill="${C}">${l}</text>`;
+const BODY='M135 20H215V36C215 96 318 150 322 290C326 420 250 520 208 562H240V588H110V562H142C100 520 24 420 28 290C32 150 135 96 135 36Z';
+const PALM=[0,1,2,3,4,5,6].map(i=>`<path d="M${110+i*20} 108a8 8 0 0 1 16 0zM${118+i*20} 100v-7M${113+i*20} 101l-4-5M${123+i*20} 101l4-5" fill="${K}" stroke="${K}" stroke-width="1.5"/>`).join('');
+
+
+const HABAS=(n,sel)=>[...Array(n)].map((_,i)=>`<rect x="${(i%6)*21}" y="${Math.floor(i/6)*13}" width="18" height="10" rx="2" fill="${sel.includes(i)?C:'#b9743a'}" stroke="${K}" stroke-width="1.3"/>`).join('');
+const GRADA=(cx,cy,r,n,b,p)=>[...Array(n)].map((_,i)=>{const a=Math.PI*(0.08+0.84*i/(n-1));return fx(typeof b=='string'?b:b[i%b.length],p&&p.includes(i)?'si':(p===0?'':''),18,cx-r*Math.cos(a)-9,cy-r*Math.sin(a)*.62-30)}).join('');
+const PIEDRA=(x,y,w)=>`<path d="M${x} ${y}h${w}v-16q-${w/2}-8-${w} 0z" fill="${C}" stroke="${K}" stroke-width="2"/>`;
+const URNA=(x,y,c)=>`<g transform="translate(${x} ${y}) scale(.62)"><path d="M20 4h24v6c14 6 16 16 16 26 0 16-12 28-22 30H26C16 64 4 52 4 36c0-10 2-20 16-26z" fill="${c}" stroke="${K}" stroke-width="3"/></g>`;
+function lugar(svg,n,t,av,ap){return `<div class="${ap?'ap':''}"><svg width="167" height="74" viewBox="0 0 167 74">${svg}</svg>${av?`<u>${av}</u>`:''}<p><b>${n}</b>${t}</p></div>`}
+
+/* X1 · el año y los lugares */
+scr('x1','Politeia (1) · El año político y sus lugares',
+`<div class="anio"><div class="on"><em>🌱</em><b>Primavera</b>Consejo: qué se vota</div><div><em>☀️</em><b>Verano</b>guerra e intrigas</div><div><em>🍂</em><b>Otoño</b>Asamblea: el gran debate</div><div><em>❄️</em><b>Invierno</b>cuentas, cargos, ostracismo</div></div>
+<div class="lug">
+${lugar(GRADA(84,82,64,9,['N','N','M'],[1,2,5])+GRADA(84,86,38,5,'N',[0])+PIEDRA(70,74,28),'El Consejo','Se decide qué llega al pueblo','hoy')}
+${lugar(G(40,22,.75,STOA)+fx('N','si',18,14,40)+fx('P','',18,34,40)+fx('H','',18,60,40)+fx('M','no',18,110,40)+fx('P','no',18,130,40),'El Ágora','Rumores; en otoño, el debate','¡rumor!')}
+${lugar(G(20,48,1,LECHO)+fx('N','',18,36,16)+G(92,42,1,CRAT)+fx('M','',18,130,40),'Tu casa','Banquete, tu club, tus tramas','')}
+${lugar(G(18,14,1,`<g>${HABAS(18,[2,7,9,14])}</g>`)+fx('H','',18,146,40)+`<path d="M12 60h128" stroke="${K}" stroke-width="2"/>`,'El Tribunal','Jueces por sorteo. En invierno, tus cuentas','')}
+${lugar(G(50,4,.9,TEMPLO)+G(14,30,.9,TRIP)+G(132,32,1,OLIVO),'El Santuario','Oráculo, fiestas, poetas','')}
+${lugar(G(30,34,.9,NAVE)+OLAS(0,68,9),'El Puerto','Enviados, huéspedes, desterrados','Corinto')}
+${lugar(fx('N','',18,40,36)+fx('N','si',18,70,36)+`<circle cx="118" cy="50" r="12" fill="none" stroke="${K}" stroke-width="3"/>`,'La Palestra','Jóvenes, atletas, Olimpia','',1)}
+${lugar(`<path d="M0 50Q40 20 84 46T167 34V74H0z" fill="${K}"/>`+G(20,10,.8,OLIVO)+G(120,4,.7,CASA),'La comarca','Llanura, Costa y Monte: quién te apoya','',1)}
+</div>`,'');
+
+/* X2 · el consejo */
+scr('x2','Politeia (2) · El Consejo: se ve, y se pelea qué se vota',
+`<svg class="friso" width="342" height="196" viewBox="0 0 342 196"><rect width="342" height="196" fill="#e39a58"/>
+${[0,1,2,3,4,5,6].map(i=>`<path d="M${24+i*49} 0v20" stroke="${K}" stroke-width="9"/>`).join('')}<rect width="342" height="7" fill="${K}"/>
+${GRADA(171,196,150,15,['N','N','N','M','N'],[0,1,2,3,4,5])}${GRADA(171,200,112,11,['N','M','N'],[0,1,2,3])}${GRADA(171,204,74,7,'N',[0,1])}
+${PIEDRA(150,190,42)}${fx('N','tu',26,146,132)}${fx('N','no',26,182,132)}
+${glo(8,24,'los tuyos: 12')}${glo(250,24,'los de Filón: 14','#7a1f1f')}${glo(132,112,'tú y Filón')}
+</svg>
+<div class="h5">El pulso de la agenda · te quedan 3 empujones</div>
+<div class="pulso">
+<div class="pul"><span><b>Guerra a Mégara</b><br>⚔️ hoplitas</span><div class="t">Tú<i class="a"></i><i class="x"></i><i></i><i class="m"></i><i></i><i></i><i class="z"></i>Filón</div></div>
+<div class="pul"><span><b>Perdón de deudas</b><br>🧺 pobres</span><div class="t">Tú<i class="a"></i><i></i><i></i><i class="x m"></i><i></i><i></i><i class="z"></i>Filón</div></div>
+<div class="pul"><span><b>Fuente pública</b><br>⛲ obra</span><div class="t">Tú<i class="a"></i><i></i><i></i><i class="m"></i><i></i><i class="x"></i><i class="z"></i>Filón</div></div>
+</div>
+<div class="mano"><div><em>🗣️</em><b>Empujar</b>1 paso, gratis</div><div><em>🏺</em><b>Eudoro habla</b>2 pasos en obras · gastas su favor</div><div><em>🤫</em><b>Un secreto</b>Filón suelta un asunto</div><div><em>🚪</em><b>Enterrar</b>un asunto no sale este año</div></div>
+<div class="cta" style="margin-top:8px;font-size:12px">Lo que llegue a tu lado lo presentas tú en otoño. Lo que llegue al suyo, él.</div>`,
+'<div>Ceder</div><div class="vot">Empujar «Fuente pública»<small>te quedarían 2</small></div>');
+
+/* X3 · la asamblea */
+scr('x3','Politeia (3) · La Asamblea: discurso contra discurso, y piedras',
+`<div class="estela" style="min-width:270px"><b>Perdón de deudas</b><span>la presentas tú</span><span>ronda 2 de 3</span></div>
+<svg class="friso" style="margin-top:6px" width="342" height="170" viewBox="0 0 342 170"><rect width="342" height="170" fill="#e39a58"/>
+${PIEDRA(40,100,50)}${fx('N','tu',34,50,26)}${PIEDRA(252,100,50)}${fx('N','no',34,258,26)}
+${glo(96,20,'«¡Vencí en Mégara por vosotros!»')}${glo(150,56,'«¿Y quién paga?»','#7a1f1f')}
+${[0,1,2,3,4,5].map(i=>fx('P','si',18,10+i*17,128)).join('')}${[0,1,2,3].map(i=>fx('H',i<2?'si':'',18,122+i*18,128)).join('')}${[0,1,2].map(i=>fx('M','',18,204+i*18,128)).join('')}${[0,1,2,3].map(i=>fx('N','no',18,266+i*17,128)).join('')}
+</svg>
+<div class="bal"><u></u></div><div class="cta" style="font-size:12px">la sala se inclina a ti · quedan <b>7 que dudan</b></div>
+<div class="h5">Tus argumentos · los ganas jugando, no se repiten</div>
+<div class="mano"><div><em>⚔️</em><b>Victoria</b>ganada en Mégara<br>hoplitas ▲▲</div><div><em>⛲</em><b>«Os di agua»</b>por la fuente<br>pobres ▲▲</div><div class="s"><em>🗝️</em><b>Escándalo</b>Filón cobra de Mégara<br>nobles ▼▼ · arriesgado</div><div><em>🎵</em><b>En verso</b>tu poeta<br>todos ▲ · una vez al año</div></div>
+<svg width="342" height="62" viewBox="0 0 342 62" style="margin-top:6px">${URNA(100,6,'#f6ecd0')}${URNA(202,6,K)}
+<g font-family="Georgia" font-size="12" text-anchor="middle"><text x="120" y="60">SÍ</text><text x="222" y="60">NO</text><text x="42" y="30">11 dentro</text><text x="300" y="30">9 dentro</text></g>
+<circle cx="164" cy="14" r="5" fill="none" stroke="${K}" stroke-width="1.5"/><circle cx="176" cy="22" r="5" fill="none" stroke="${K}" stroke-width="1.5"/><circle cx="160" cy="30" r="5" fill="none" stroke="${K}" stroke-width="1.5"/><text x="170" y="48" font-size="10" font-family="Georgia" text-anchor="middle">7 por caer</text></svg>`,
+'<div>Callar</div><div class="vot">Decir «Os di agua»<small>después caen las piedras, una a una</small></div>');
+
+/* X4 · el tribunal */
+scr('x4','Politeia (4) · El Tribunal: al dejar el cargo, das cuentas',
+`<div class="estela" style="min-width:270px"><b>Tus cuentas de Agoránomo</b><span>te acusa Nicóstrato</span><span>11 jueces</span></div>
+<svg class="friso" style="margin-top:6px" width="342" height="150" viewBox="0 0 342 150"><rect width="342" height="150" fill="#e39a58"/>
+<rect x="12" y="14" width="138" height="92" rx="4" fill="${K}"/>${G(20,24,1,HABAS(30,[1,4,8,11,13,17,20,22,25,27,29]))}
+<path d="M156 14v80" stroke="${K}" stroke-width="7"/><circle cx="156" cy="100" r="6" fill="${C}" stroke="${K}" stroke-width="2"/><circle cx="156" cy="30" r="4" fill="${C}"/><circle cx="156" cy="44" r="4" fill="${K}" stroke="${C}"/><circle cx="156" cy="58" r="4" fill="${C}"/>
+${glo(14,112,'el sorteo elige a los jueces')}
+<path d="M196 40h34l-6 30h-22zM203 70h20v8h-20zM196 96h34l-4 22h-26z" fill="${K}"/><path d="M213 78v18" stroke="#7fb" stroke-width="2" stroke-dasharray="3 3"/>${glo(180,16,'reloj de agua')}
+${fx('H','no',30,262,56)}${fx('N','tu',30,300,56)}${glo(244,124,'él acusa · tú')}
+</svg>
+<div class="h5">De qué te acusan · solo lo que hiciste de verdad</div>
+<div class="ficha" style="padding:5px 10px">⚠️ <b>Compraste votos</b> en primavera <i>(lo sabe Eudoro: ¿hablará?)</i><br>⚠️ <b>Rompiste la promesa</b> «sin leva este año»<br>✔ Las cuentas del mercado cuadran</div>
+<div class="h5">Tu defensa · una por turno de agua</div>
+<div class="mano"><div><em>🙅</em><b>Negarlo</b>vale si nadie lo sabe</div><div><em>🪙</em><b>Pagar multa</b>80 de plata y se acaba</div><div class="s"><em>🗝️</em><b>Contraatacar</b>sacas un secreto suyo</div><div><em>👨‍👧</em><b>Dar pena</b>subes a tus hijos · jueces pobres ▲</div></div>
+<div class="cta" style="margin-top:8px;font-size:12px">Culpable: multa, pierdes el cargo o destierro. Libre: prestigio +5.</div>`,'');
+
+/* X5 · régimen y cargos */
+scr('x5','Politeia (5) · Régimen y cargos, definidos',
+`<div class="h5" style="margin-top:0">El régimen cambia las reglas del año</div>
+<table class="tab"><tr><th></th><th>Consejo</th><th>Asamblea</th><th>Cargos</th><th>Solo aquí</th></tr>
+<tr class="on"><td>🐎 Aristo-<br>cracia</td><td>ancianos nobles, de por vida</td><td>solo aclama la guerra, a gritos</td><td>se eligen entre nobles</td><td>bodas y venganzas entre casas</td></tr>
+<tr><td>⚖️ Oligar-<br>quía</td><td>los que pasan de cierta riqueza</td><td>votan los que tienen armas</td><td>se eligen entre ricos</td><td>comprar un asiento; clubes fuertes</td></tr>
+<tr><td>👑 Tiranía</td><td>tú pones la agenda</td><td>aclama lo tuyo</td><td>los nombras tú: cada uno te debe</td><td>guardia, grandes obras, conjura</td></tr>
+<tr><td>✋ Demo-<br>cracia</td><td>por sorteo: cada año, otros</td><td>decide todo; habla cualquiera</td><td>por sorteo, menos el de guerra</td><td>jurados del pueblo, ostracismo</td></tr></table>
+<div class="h5">Cambia por: discordia a 6 (revuelta o golpe) · una ley · o llamar a un legislador</div>
+<div class="h5">Cargos · un oficio por año, con poder de verdad</div>
+<div class="ofi"><div class="on"><em>⚖️</em><b>Agoránomo</b>fijas precios del mercado</div><div><em>🛡️</em><b>Polemarco</b>mandas el ejército</div><div><em>🏺</em><b>Arconte rey</b>fiestas y templos</div><div><em>🌿</em><b>Epónimo</b>presides; el año es tuyo</div><div><em>🏛️</em><b>Areópago</b>asiento de por vida</div></div>
+<div class="cta" style="font-size:11.5px;margin:6px 0 0">Al acabar el año, das cuentas en el Tribunal. Quien fue arconte entra en el Areópago.</div>
+<div class="h5">Ostracismo · una vez al año, en invierno, y solo en democracia</div>
+<div class="ficha" style="padding:5px 10px;font-size:12px">1 · El pueblo vota si <b>este año hay ostracismo</b>.<br>2 · Dos estaciones de campaña: tú y tus rivales <b>repartís tejos ya escritos</b> por los barrios.<br>3 · Se cuentan. El más nombrado se va 10 años. <b>Puede volverse contra quien lo pidió.</b></div>`,'');
+</script></body></html>
