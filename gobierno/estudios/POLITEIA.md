@@ -121,3 +121,31 @@ puede volverse contra quien lo pidió. ✔ Las instituciones clásicas se abren 
 De pie, con dibujos de relleno: https://claude.ai/artifact/YWR6vJtXPJEeLDyTDPi99n · Con las pinturas de referencia,
 apaisada y animada: https://claude.ai/artifact/J9vgS1qKEVkRbEmGm6xQFe · Falta la que una las dos: de pie, con una
 pintura por lugar. Archivos en `gobierno/estudios/gp1/`.
+
+## 14. Cómo entra en el plan socialista (propuesta; lo ordena el vigía con el sí del usuario)
+Pedido (literal): «Quiero ver cómo lo podemos integrar todo para hacer el plan socialista y ver cómo funcionaria y buscar
+entre todas las / que tenemos cuáles nos pueden ayudar ahora».
+El plan socialista es **una sesión, una tarea**, con presupuesto antes de gastar (tope 1,5 M por tarea), director que
+no construye (Opus) y agentes `constructor`, `revisor` y `verificador` (Sonnet). Politeia no cabe en una tarea: cada
+tanda de §11 se parte en tareas de ese tamaño.
+**Antes de la primera tarea** (una vez): el usuario aprueba este documento (skill `bitacora`) → el vigía actualiza M4
+y mete las tareas en el tablero → se crea el área «polis» en `gobierno/areas.json` con sus archivos y su juez, y la guía
+de una página de la Mesa de la Polis.
+**La prueba P0 (≈ 5 M) como cinco tareas**:
+| Tarea | Qué se ve al acabar | Tamaño | Quién | Gasto |
+|---|---|---|---|---|
+| PO1 | (No se ve: reglas en Node.) Un año de cuatro actos con cinco casas y dos rivales que juegan; un bot lo termina | grande | constructor → revisor | 1,2 M |
+| PO2 | (Reglas.) Secretos y atajos, duelo de preguntas, piedras y tribunal mínimo; el bot gana y pierde debates | grande | constructor → revisor | 1,2 M |
+| PO3 | La ciudad de pie con arte de relleno: se desliza, la cámara se acerca, pergamino; Consejo, casa y ágora jugables | grande | constructor → verificador | 1,3 M |
+| PO4 | Tribunal, santuario y puerto; la vasija con la crónica; el hito aparece en la ciudad | media | constructor | 0,8 M |
+| PO5 | Examen: una sesión que no construyó lo juega diez minutos y lo puntúa; historia; y lo prueba el usuario en su móvil | pequeña | director (Opus) | 0,5 M |
+Cada una cierra con el juez de su área, capturas a 390 px y su parte. Si PO5 dice «no apetece otro año», se para ahí.
+**Habilidades que ayudan, por momento**:
+- Aprobar y ordenar: `bitacora`, `cuadro-de-mando`. Cada tarea: `plan-socialista`. Cada cinco partes: `ahorro`.
+- Reglas: `ministerio-cerebro` (política y ciudades), `historia` (fuentes y dictamen), `ingenieria-reversa` (una mecánica de otro juego, p. ej. los debates).
+- Pantalla: `ministerio-musculo` (menús, móvil, sin conexión).
+- Ciudad y arte: `arte` (licencias y peso), `arte-mapas`, `radar` (arte libre). Para el camino «mezcla» (vistas de
+  nuestra ciudad 3D repintadas): `blender-director`, `environment-artist`, `archviz`, `lighting`, `rendering`,
+  `camera-cinematography`, `compositing`, `realistic-style`, `historical-worlds`, `qa-review`; necesitan Blender conectado.
+- Sonido: `sonido`, `sonido-musica`, `sonido-efectos`.
+- Revisar: `code-review`, `simplify`. Maquetas para el móvil del usuario: la comprobación de artefactos.
