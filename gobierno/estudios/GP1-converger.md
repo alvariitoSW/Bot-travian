@@ -156,3 +156,20 @@ ocho personas, cintas con el emblema de su casa; tocar acerca la cámara; el deb
    en la maqueta se conserva el aspecto y se juega con las reglas nuevas.
 5. **Arte**: hacen falta pinturas propias con licencia libre (taller de Arte): por polis, 2–3 etapas de ciudad y 6–8
    escenas. Es el coste grande de esta dirección; no está presupuestado.
+
+## 11. Interfaz animada y un ambiente por lugar (26/11)
+**Palabras del usuario** (literal): «Vale, y ahora en la interfaz se podría animar ? Y que al ir a casa lugar haya otra
+imagen u otra interfaz y sea una interfaz viva?».
+Respuesta: sí. Añadido a `gp1/politeia-ingame.html` (y al artefacto), todo con animación de hoja de estilos, sin vídeo:
+- **La pintura respira**: deriva lenta de cámara, sombra de nubes que cruza, rayo de sol, motas de polvo, pájaros,
+  antorchas que parpadean en la Asamblea.
+- **La gente se mueve**: las cintas de las personas pasean y a ratos «hablan»; los lugares con algo pendiente laten.
+- **El pergamino se desenrolla**; la ficha del pulso late.
+- **Cada lugar, su ambiente y su pieza viva**: Tu casa, de noche con lámpara y una mesa de invitados que se mecen más
+  cuanto más fuerte mezclas el vino; Santuario, humo y un oráculo que escribe letra a letra; Puerto, tinte de mar y un
+  barco que llega; Tribunal, las habas del sorteo caen una a una; Consejo y Tribunal, luz de sala.
+**Límite honrado**: solo hay dos pinturas. «Otra imagen por lugar» hoy es la misma pintura acercada y con otra luz.
+Para que cada lugar tenga su pintura hacen falta más imágenes (seis lugares × etapas de ciudad).
+**Cómo se haría de verdad** (para el constructor): cada escena, una pintura partida en 3–4 capas (cielo, fondo, medio,
+primer plano) para dar profundidad al mover; encima, capas vivas baratas (luz, humo, agua, estandartes, gente en
+siluetas o recortes animados). Sin vídeo ni 3D: ligero y sin conexión. Respeta «reducir movimiento» del móvil.
