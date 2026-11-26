@@ -1,0 +1,366 @@
+<title>Maqueta de la batalla griega 5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Maqueta 5 (comentarios del usuario en la 4): órdenes comunes + UNA habilidad propia por tropa con su jugabilidad;
+   en el campo, estandarte con símbolo, nombre, barra de vida y gotas de cansancio; fichas compactas que caben con ejércitos
+   grandes; vista del oficial casi en primera persona: mover el bloque con el pulgar, luchar leyendo al rival, y si caes, otro hombre. */
+:root{
+  --fondo:#ece6da; --tinta:#1d1a16; --tinta2:#5b5348; --borde:#b9ad98; --panel:#f7f3ec;
+  --hud:rgba(26,20,15,.88); --hudT:#f1e6c8; --oro:#e9c063; --vida:#7cc47f; --vidaM:#e0a84a; --vidaB:#d9584a;
+  --disp:'Cinzel',Georgia,serif; --texto:'Source Sans 3',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fondo:#14110d;--tinta:#efe7d8;--tinta2:#b5a993;--borde:#4a4033;--panel:#1f1a14;color-scheme:dark}}
+:root[data-theme="dark"]{--fondo:#14110d;--tinta:#efe7d8;--tinta2:#b5a993;--borde:#4a4033;--panel:#1f1a14;color-scheme:dark}
+body{background:var(--fondo);color:var(--tinta);font:16px/1.45 var(--texto)}
+[hidden]{display:none!important}
+.pag{max-width:720px;margin:0 auto;padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+h1{font:700 23px/1.15 var(--disp);margin:0;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--tinta2);font-size:15px}
+.escena{position:relative;border:1.5px solid var(--borde);overflow:hidden;background:#000;aspect-ratio:9/15;max-height:84vh;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;height:100%}
+button{font-family:var(--texto);cursor:pointer;color:var(--hudT)}
+button:focus-visible{outline:2px solid var(--oro);outline-offset:2px}
+.banda{position:absolute;top:0;left:0;right:0;display:grid;grid-template-columns:1fr auto;gap:3px 6px;padding:6px;background:linear-gradient(rgba(20,16,12,.93),rgba(20,16,12,.8));color:var(--hudT)}
+.obj{font:700 11.5px/1.25 var(--disp);color:var(--oro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ctl{display:flex;gap:4px;grid-row:span 2;align-items:center}
+.ctl button{background:#2a211a;border:1px solid #6d5532;min-width:40px;min-height:40px;font-weight:700;font-size:13px;padding:0 6px}
+.marcador{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:5px;align-items:center;font:600 11px var(--texto)}
+.marcador i{display:block;height:6px;background:#3a2f25;position:relative}.marcador i u{position:absolute;top:0;bottom:0}
+#mTu u{right:0;background:#5d8fe0}#mSu u{left:0;background:#e0675a}
+/* abajo: fichas compactas en tira desplazable + barra común + la propia */
+.abajo{position:absolute;left:0;right:0;bottom:0;padding:6px;display:grid;gap:6px;background:linear-gradient(transparent,rgba(20,16,12,.65) 25%)}
+.ordenes{display:grid;grid-template-columns:repeat(4,1fr) 1.35fr;gap:5px}
+.ord{min-height:46px;background:#2a211a;border:1.5px solid #6d5532;font:700 11.5px/1.1 var(--texto);display:grid;justify-items:center;align-content:center;gap:1px;padding:2px}
+.ord b{font-size:17px;line-height:1}
+.ord.propia{border:2px solid var(--oro);background:#3a2a17;color:var(--oro);position:relative;overflow:hidden}
+.ord.propia.on{background:#7a2a20;color:#fff}
+.ord .esp{position:absolute;inset:0;background:conic-gradient(rgba(0,0,0,.6) var(--p,0%),transparent 0);pointer-events:none}
+.fichas{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.fichas::-webkit-scrollbar{display:none}
+.fi{flex:0 0 auto;display:grid;grid-template-columns:28px auto;grid-template-rows:auto auto;column-gap:5px;align-items:center;background:rgba(26,20,15,.9);border:1.5px solid transparent;padding:3px 7px 3px 4px;min-height:40px;font:600 11.5px var(--texto);text-align:left}
+.fi.sel{border-color:var(--oro)}
+.fi svg{grid-row:span 2;width:28px;height:30px}
+.fi .vb{display:block;width:64px;height:5px;background:#3a2f25}.fi .vb u{display:block;height:100%}
+.fi .nm{display:flex;gap:4px;align-items:center;white-space:nowrap}
+.fi .go{font-size:10px;letter-spacing:-1px;color:#9cc4f0}
+.fi.huye{opacity:.45}
+/* rueda */
+.rueda{position:absolute;width:0;height:0}
+.rueda button{position:absolute;transform:translate(-50%,-50%);min-width:76px;height:44px;border-radius:22px;background:var(--hud);border:1.5px solid var(--oro);font:700 12px var(--texto);padding:0 8px}
+/* oficial: pulgar izquierdo mueve, derecha lucha */
+.of{position:absolute;left:0;right:0;bottom:0;height:42%;pointer-events:none}
+.palanca{position:absolute;left:14px;bottom:16px;width:116px;height:116px;border-radius:50%;border:2px solid rgba(233,192,99,.55);background:rgba(26,20,15,.35);pointer-events:auto;touch-action:none}
+.palanca i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(233,192,99,.75)}
+.palanca span{position:absolute;font:700 9.5px var(--texto);color:var(--hudT);text-shadow:0 1px 2px #000}
+.lucha{position:absolute;right:10px;bottom:14px;display:grid;grid-template-columns:auto auto;gap:8px;pointer-events:auto}
+.lucha button{width:64px;height:64px;border-radius:50%;background:var(--hud);border:2px solid #8a6d3f;font:700 11px var(--texto);display:grid;place-items:center;line-height:1.05}
+.lucha button.propia{border-color:var(--oro);color:var(--oro)}
+.lucha button.on{background:#7a2a20}
+.lucha .golpe{grid-column:span 2;width:auto;border-radius:32px;font-size:13px}
+.aviso{position:absolute;left:50%;top:27%;transform:translate(-50%,-50%);background:var(--hud);color:var(--hudT);border:1px solid #8a6d3f;padding:7px 12px;font:700 15px var(--disp);opacity:0;transition:opacity .2s;pointer-events:none;text-align:center;max-width:84%}
+.aviso.ve{opacity:1}
+.panel{background:var(--panel);border:1.5px solid var(--borde);padding:14px}
+.panel h2{font:700 17px/1.2 var(--disp);margin:0 0 8px}
+.panel ul{margin:0;padding-left:18px;display:grid;gap:6px}
+@media (prefers-reduced-motion:reduce){.aviso{transition:none}}
+</style>
+
+<main class="pag">
+  <header>
+    <h1>Maqueta 5: tus comentarios aplicados</h1>
+    <p class="sub">Órdenes comunes y una habilidad propia por tropa, estandartes con vida y cansancio, fichas compactas, y la vista del oficial que mueve y lucha. Dibujo en 2D para enseñar la idea.</p>
+  </header>
+
+  <section class="escena" id="escena" aria-label="Maqueta de la batalla">
+    <canvas id="lienzo"></canvas>
+    <div class="banda">
+      <div class="obj" id="obj">Haz huir a Argos</div>
+      <div class="ctl"><button type="button" id="vel">×1</button><button type="button" id="pausa" aria-label="Pausa">❚❚</button><button type="button" id="vista">Oficial</button></div>
+      <div class="marcador" aria-label="Moral de los dos bandos"><span>Tú</span><i id="mTu"><u></u></i><i id="mSu"><u></u></i><span>Argos</span></div>
+    </div>
+    <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+    <div class="abajo" id="abajo">
+      <div class="ordenes" id="ordenes">
+        <button type="button" class="ord" data-o="avanzar"><b>↑</b>Avanzar</button>
+        <button type="button" class="ord" data-o="alto"><b>≡</b>Alto</button>
+        <button type="button" class="ord" data-o="retroceder"><b>↓</b>Atrás</button>
+        <button type="button" class="ord" data-o="cargar"><b>⇈</b>Cargar</button>
+        <button type="button" class="ord propia" id="propia"><span class="esp"></span><b id="propiaI">⬢</b><span id="propiaT">Falange</span></button>
+      </div>
+      <div class="fichas" id="fichas"></div>
+    </div>
+    <div class="rueda" id="rueda" hidden></div>
+    <div class="of" id="of" hidden>
+      <div class="palanca" id="palanca" aria-label="Mover el bloque"><span style="left:42px;top:4px">Avanzar</span><span style="left:4px;top:52px">Girar</span><span style="right:6px;top:52px">Girar</span><span style="left:44px;bottom:4px">Atrás</span><i id="pomo"></i></div>
+      <div class="lucha">
+        <button type="button" id="bEscudo">Escudo<br><small>mantén</small></button>
+        <button type="button" class="propia" id="bPropia">Falange</button>
+        <button type="button" class="golpe" id="bGolpe">Golpear</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Qué cambia respecto a la 4</h2>
+    <ul>
+      <li><b>Órdenes comunes a todas las tropas</b>: Avanzar, Alto, Atrás, Cargar. Y <b>una habilidad propia</b> en dorado, con su jugabilidad: <b>Falange hoplita</b> (escudos solapados: aguanta de frente, lenta), <b>Jabalinas</b> de los peltastas (lanzan y se repliegan), <b>Arco</b> (tocas dónde cae; recargan solos).</li>
+      <li><b>En el campo</b>, nada de «firme»: cada tropa lleva su <b>estandarte con su símbolo</b>, su nombre, una <b>barra de vida</b> y <b>gotas de cansancio</b> (0 a 3). La moral y su causa, dentro de su ficha.</li>
+      <li><b>Fichas compactas</b>: estandarte, nombre, vida y gotas, en una tira que se desliza de lado; caben muchas tropas.</li>
+      <li><b>Vista del oficial, casi primera persona</b>: el <b>pulgar izquierdo mueve el bloque</b> (adelante, atrás, girar); a la derecha, <b>Golpear</b>, <b>Escudo</b> (mantén) y la <b>habilidad propia</b>. Lucha visual: el rival <b>levanta el arma</b> (rojo) → para con el escudo a tiempo y queda <b>abierto</b> (verde) → golpea. Si caes, pasas a <b>otro hombre de la fila</b>.</li>
+      <li>Lo demás sigue: moral como marcador, flanco, rueda al mantener el dedo, dibujar el frente, pausa y velocidad.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id), cv = $('lienzo'), cx = cv.getContext('2d'), esc = $('escena');
+  let W = 0, H = 0;
+  function tam() { const r = esc.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); W = r.width; H = r.height; cv.width = W * d; cv.height = H * d; cx.setTransform(d, 0, 0, d, 0, 0); }
+  addEventListener('resize', tam); tam();
+
+  /* tropas: tipo decide su habilidad propia y su símbolo */
+  const TIPOS = {
+    hop: { prop: 'Falange', ic: '⬢', sim: 'Λ', n: 120, vel: 2.2 },
+    pel: { prop: 'Jabalinas', ic: '➹', sim: '✦', n: 80, vel: 3 },
+    arq: { prop: 'Arco', ic: '➶', sim: '◎', n: 60, vel: 2.4 } };
+  const mk = (id, nom, bando, x, y, tipo) => { const n = TIPOS[tipo].n; return { id, nom, bando, x, y, tx: x, ty: y, tipo, n, n0: n, moral: 80, cans: 0, est: 'firme', causa: 'formados', baja: 0, contacto: null, flanco: false, prop: false, esp: 0, mun: tipo === 'hop' ? null : tipo === 'pel' ? 3 : 40, recarga: 0 }; };
+  const T = [mk(0, 'Hoplitas I', 'a', 24, 108, 'hop'), mk(1, 'Hoplitas II', 'a', 50, 108, 'hop'), mk(2, 'Peltastas', 'a', 78, 112, 'pel'), mk(3, 'Arqueros', 'a', 50, 128, 'arq'),
+             mk(4, 'Argos I', 'r', 22, 30, 'hop'), mk(5, 'Argos II', 'r', 50, 30, 'hop'), mk(6, 'Argos III', 'r', 78, 30, 'hop')];
+  const S = { sel: 1, vista: 'general', pausa: false, vel: 1, fin: '', t: 0, apunta: null, tiros: [], sacude: 0, paron: 0 };
+  const mios = () => T.filter(t => t.bando === 'a'), suyos = () => T.filter(t => t.bando === 'r'), vivo = t => t.est !== 'huye' && t.n > 4;
+  let tAv = 0; function aviso(s) { if (!s) return; const a = $('aviso'); a.textContent = s; a.classList.add('ve'); tAv = 1.5; }
+  const cercano = t => suyos().filter(vivo).sort((a, b) => Math.hypot(a.x - t.x, a.y - t.y) - Math.hypot(b.x - t.x, b.y - t.y))[0];
+
+  /* órdenes comunes */
+  function orden(t, o) {
+    if (!t || t.bando !== 'a') return; if (t.est === 'huye') return aviso(t.nom + ' huye: no obedece');
+    if (o === 'avanzar') t.ty = Math.max(20, t.y - 25);
+    if (o === 'alto') { t.tx = t.x; t.ty = t.y; }
+    if (o === 'retroceder') t.ty = Math.min(135, t.y + 25);
+    if (o === 'cargar') { const e = cercano(t); if (!e) return; t.tx = e.x; t.ty = e.y + 9; t.carga = 10; }
+    aviso({ avanzar: '¡Adelante!', alto: '¡Alto!', retroceder: '¡Atrás en orden!', cargar: '¡A la carga!' }[o]);
+  }
+  /* la habilidad propia, con su jugabilidad */
+  function propia(t) {
+    if (!t || t.est === 'huye') return;
+    if (t.tipo === 'hop') { t.prop = !t.prop; aviso(t.prop ? '¡Falange! Escudo con escudo' : 'Abrid filas'); }
+    if (t.tipo === 'pel') { if (t.esp > 0) return aviso('Jabalinas: espera ' + Math.ceil(t.esp) + ' s'); if (!t.mun) return aviso('Sin jabalinas');
+      const e = cercano(t); if (!e || Math.hypot(e.x - t.x, e.y - t.y) > 40) return aviso('Acércate: a menos de 40 m');
+      t.mun--; t.esp = 8; S.tiros.push({ x0: t.x, y0: t.y, x1: e.x, y1: e.y, t: 0, jab: 1 }); e.n -= 6; e.baja += 6; e.moral -= 6; t.ty = Math.min(135, t.y + 15); aviso('¡Lanzad y atrás!'); }
+    if (t.tipo === 'arq') { if (!t.mun) return aviso('Sin flechas'); S.apunta = t; aviso('Toca dónde cae la salva'); }
+  }
+  for (const b of document.querySelectorAll('.ord[data-o]')) b.addEventListener('click', () => orden(T[S.sel], b.dataset.o));
+  $('propia').addEventListener('click', () => propia(T[S.sel]));
+
+  /* simulación (moral como marcador, flanco) */
+  function paso(dt) {
+    if (S.pausa || S.fin) return; S.t += dt;
+    for (const e of suyos()) if (vivo(e)) { const m = mios().filter(t => t.tipo === 'hop' && vivo(t)).sort((a, b) => Math.abs(a.x - e.x) - Math.abs(b.x - e.x))[0]; if (m && !e.contacto) { e.tx = m.x; e.ty = m.y - 9; } }
+    for (const t of T) {
+      t.esp = Math.max(0, t.esp - dt); if (t.carga) t.carga = Math.max(0, t.carga - dt);
+      if (t.tipo === 'arq') { t.recarga += dt; if (t.recarga > 1.5 && t.mun < 40) { t.mun++; t.recarga = 0; } }   /* recargan solos */
+      if (t.tipo === 'pel' && t.mun < 3) { t.recarga += dt; if (t.recarga > 6) { t.mun++; t.recarga = 0; } }
+      if (t.est === 'huye') { t.ty = t.bando === 'a' ? 160 : -20; t.tx = t.x; }
+      const dx = t.tx - t.x, dy = t.ty - t.y, d = Math.hypot(dx, dy), v = (t.est === 'huye' ? 6 : t.carga ? 5 : TIPOS[t.tipo].vel) * (t.prop ? 0.55 : 1) * (1 - t.cans * 0.4);
+      if (d > 0.3) { t.x += dx / d * Math.min(d, v * dt); t.y += dy / d * Math.min(d, v * dt); t.cans = Math.min(1, t.cans + dt * 0.007 * (t.carga ? 4 : 1)); }
+      else if (!t.contacto) t.cans = Math.max(0, t.cans - dt * 0.006);
+      t.contacto = null; t.flanco = false; t.baja = Math.max(0, t.baja - dt * 0.08);
+    }
+    const pares = [];
+    for (const a of mios()) for (const r of suyos()) { if (!vivo(a) || !vivo(r) || a.tipo === 'arq') continue;
+      const dx = Math.abs(a.x - r.x), dy = a.y - r.y;
+      if (dx < 12 && dy > 4 && dy < 13) pares.push([a, r, 'frente']); else if (dx < 22 && dx >= 12 && Math.abs(dy) < 11) pares.push([a, r, 'flanco']); }
+    for (const [a, r, k] of pares) {
+      a.contacto = r; r.contacto = a; if (k === 'flanco') r.flanco = true;
+      const atkA = 30 + (a.carga ? 25 : 0) - a.cans * 15 + (a.tipo === 'pel' ? -10 : 0), defR = 40 - (r.flanco ? 25 : 0), atkR = 30 - r.cans * 15, defA = 40 + (a.prop ? 18 : 0) + (a.tipo === 'pel' ? -15 : 0);
+      const pa = Math.max(0.1, Math.min(0.9, 0.35 + (atkA - defR) / 100)), pr = Math.max(0.1, Math.min(0.9, 0.35 + (atkR - defA) / 100));
+      const mR = pa * dt * 2.2 * (k === 'flanco' ? 1.8 : 1), mA = k === 'flanco' ? 0 : pr * dt * 2.2;
+      r.n -= mR; r.baja += mR; a.n -= mA; a.baja += mA; a.cans = Math.min(1, a.cans + dt * 0.02); r.cans = Math.min(1, r.cans + dt * 0.02);
+    }
+    for (const t of T) {
+      if (t.n <= 4) { t.est = 'huye'; t.causa = 'aniquilados'; continue; }
+      const vecinoHuye = T.some(o => o !== t && o.bando === t.bando && o.est === 'huye' && Math.abs(o.x - t.x) < 35), causas = [];
+      let d = 0.6 * (t.contacto ? 0 : 1);
+      if (t.baja > 4) { d -= t.baja * 0.25; causas.push('bajas'); } if (t.flanco) { d -= 6; causas.push('flanco'); }
+      if (t.cans > 0.6) { d -= 1.2; causas.push('cansancio'); } if (vecinoHuye) { d -= 3; causas.push('vecino huye'); }
+      if (t.id === 1) { d += 0.8; causas.length || causas.push('oficial cerca'); }
+      t.moral = Math.max(0, Math.min(100, t.moral + d * dt)); const antes = t.est;
+      if (t.est === 'huye') { if (!t.contacto && t.moral > 35 && t.n > 20) t.est = 'se rehace'; }
+      else if (t.est === 'se rehace') { t.moral += dt * 2; if (t.moral > 50) t.est = 'firme'; }
+      else t.est = t.moral < 15 ? 'huye' : t.moral < 45 ? 'flaquea' : 'firme';
+      t.causa = causas[0] || (t.contacto ? 'trabados' : 'formados');
+      if (antes !== t.est && t.est === 'huye') aviso('¡Huye ' + t.nom + '! · ' + t.causa);
+    }
+    if (suyos().every(t => !vivo(t))) { S.fin = 'Victoria: Argos huye'; aviso(S.fin); }
+    else if (mios().filter(t => t.tipo === 'hop').every(t => !vivo(t))) { S.fin = 'Derrota'; aviso(S.fin); }
+  }
+
+  const aP = (x, y) => [W * 0.06 + x / 100 * W * 0.88, H * 0.12 + y / 140 * H * 0.55];
+  const deP = (px, py) => [(px - W * 0.06) / (W * 0.88) * 100, (py - H * 0.12) / (H * 0.55) * 140];
+  const colVida = f => f > 0.6 ? '#7cc47f' : f > 0.3 ? '#e0a84a' : '#d9584a';
+  const gotas = c => '●'.repeat(Math.round(c * 3)) + '○'.repeat(3 - Math.round(c * 3));
+
+  /* estandarte: símbolo en su bandera, nombre, barra de vida, gotas de cansancio */
+  function estandarte(t, px, py) {
+    const col = t.bando === 'a' ? '#2f5aa0' : '#a8322a', y = t.bando === 'a' ? py + 10 : py - 44, f = Math.max(0, t.n / t.n0);
+    cx.strokeStyle = '#d8c39a'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(px, y + 30); cx.lineTo(px, y); cx.stroke();
+    cx.fillStyle = col; cx.beginPath(); cx.moveTo(px, y); cx.lineTo(px + 18, y + 2); cx.lineTo(px + 15, y + 9); cx.lineTo(px + 18, y + 16); cx.lineTo(px, y + 16); cx.fill();
+    if (t.est === 'flaquea' || t.est === 'huye') { cx.fillStyle = 'rgba(217,88,74,.9)'; cx.fillRect(px, y + 16, 18, 2); }
+    cx.fillStyle = '#f1e6c8'; cx.font = '700 10px Cinzel, serif'; cx.textAlign = 'center'; cx.fillText(TIPOS[t.tipo].sim, px + 8, y + 12);
+    cx.font = '600 9.5px "Source Sans 3", sans-serif'; const nm = t.nom + ' ' + gotas(t.cans), w = Math.max(44, cx.measureText(nm).width + 8);
+    cx.fillStyle = 'rgba(26,20,15,.78)'; cx.fillRect(px + 20, y, w, 18); cx.fillStyle = '#f1e6c8'; cx.textAlign = 'left'; cx.fillText(nm, px + 24, y + 9);
+    cx.fillStyle = '#3a2f25'; cx.fillRect(px + 24, y + 12, w - 8, 3); cx.fillStyle = colVida(f); cx.fillRect(px + 24, y + 12, (w - 8) * f, 3);
+  }
+
+  function general() {
+    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#b7a77a'); g.addColorStop(1, '#8b7d52'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = '#9d8b62'; cx.beginPath(); cx.moveTo(0, H * 0.16); for (let x = 0; x <= W; x += 10) cx.lineTo(x, H * 0.16 - 14 - Math.sin(x / 40) * 8); cx.lineTo(W, 0); cx.lineTo(0, 0); cx.fill();
+    cx.fillStyle = '#c9b58a'; cx.beginPath(); cx.ellipse(W * 0.78, H * 0.12, W * 0.16, H * 0.045, 0, 0, 7); cx.fill();
+    const tx = W * 0.74, ty = H * 0.087; cx.fillStyle = '#efe3c6'; cx.fillRect(tx, ty, 28, 3); cx.beginPath(); cx.moveTo(tx - 2, ty); cx.lineTo(tx + 14, ty - 6); cx.lineTo(tx + 30, ty); cx.fill(); for (let i = 0; i < 5; i++) cx.fillRect(tx + 2 + i * 6, ty + 3, 2, 7);
+    cx.strokeStyle = 'rgba(110,85,50,.45)'; cx.lineWidth = 9; cx.beginPath(); cx.moveTo(W * 0.4, H); cx.bezierCurveTo(W * 0.6, H * 0.6, W * 0.3, H * 0.4, W * 0.55, H * 0.16); cx.stroke();
+    for (const [x, y] of [[0.06, 0.3], [0.1, 0.34], [0.92, 0.45], [0.95, 0.5], [0.07, 0.6], [0.94, 0.62]]) { cx.fillStyle = '#5d6e3e'; cx.beginPath(); cx.arc(W * x, H * y, 5.5, 0, 7); cx.fill(); }
+    for (const t of T) {
+      if (t.n <= 0.5) continue; const [px, py] = aP(t.x, t.y), w = W * 0.2 * Math.max(0.45, t.n / t.n0) ** 0.5, prieta = t.prop ? 0.7 : 1, abierto = t.tipo !== 'hop' ? 1.35 : 1;
+      cx.fillStyle = t.bando === 'a' ? '#2f5aa0' : '#a8322a'; cx.globalAlpha = t.est === 'huye' ? 0.45 : 1;
+      for (let i = 0; i < 36; i++) { const ix = (i % 12) / 11 - 0.5, iy = Math.floor(i / 12); let ox = ix * w * prieta * abierto, oy = (iy - 1) * 4.5 * prieta;
+        if (t.est === 'huye') ox += Math.sin(i * 7 + S.t * 3) * 6; cx.beginPath(); cx.arc(px + ox, py + oy, 2.1, 0, 7); cx.fill();
+        if (t.tipo === 'hop' && t.prop) { cx.fillStyle = '#e8d9a8'; cx.fillRect(px + ox - 0.5, py + oy - (t.bando === 'a' ? 6 : -1), 1, 5); cx.fillStyle = t.bando === 'a' ? '#2f5aa0' : '#a8322a'; } }
+      cx.globalAlpha = 1;
+      if (t.id === S.sel) { cx.strokeStyle = '#e9c063'; cx.lineWidth = 2; cx.strokeRect(px - w * prieta * abierto / 2 - 5, py - 9, w * prieta * abierto + 10, 18); }
+      if (t.contacto && t.bando === 'a') for (let i = 0; i < 5; i++) { cx.fillStyle = 'rgba(214,185,135,.18)'; cx.beginPath(); cx.arc(px + Math.sin(i * 2 + S.t) * 20, py - 12, 10 + i * 3, 0, 7); cx.fill(); }
+      estandarte(t, px - 8, py);
+    }
+    for (const tr of S.tiros) { const f = Math.min(1, tr.t / 1.1), [ax, ay] = aP(tr.x0, tr.y0), [bx, by] = aP(tr.x1, tr.y1); cx.strokeStyle = tr.jab ? 'rgba(200,170,110,.95)' : 'rgba(245,235,205,.9)'; cx.lineWidth = tr.jab ? 2 : 1.2;
+      for (let i = 0; i < (tr.jab ? 4 : 7); i++) { const ox = (i - 3) * 5, P = q => [ax + ox + (bx - ax) * q, ay + (by - ay) * q - Math.sin(q * Math.PI) * (tr.jab ? 22 : 50)], [x1, y1] = P(Math.max(0, f - 0.08)), [x2, y2] = P(f); cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke(); } }
+    if (S.apunta) { cx.fillStyle = 'rgba(233,192,99,.12)'; cx.fillRect(0, 0, W, H); }
+    if (raya) { cx.strokeStyle = '#e9c063'; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(raya.x0, raya.y0); cx.lineTo(raya.x1, raya.y1); cx.stroke(); }
+    const lg = cx.createLinearGradient(W, 0, 0, H); lg.addColorStop(0, 'rgba(255,190,110,.2)'); lg.addColorStop(1, 'rgba(60,40,20,.16)'); cx.fillStyle = lg; cx.fillRect(0, 0, W, H);
+  }
+
+  /* ---- vista del oficial, casi primera persona ---- */
+  const D = { escudo: false, fase: 'guardia', tf: 0, abierto: 0, heridas: 0, golpe: 0, vida: 1, hombre: 1, gx: 0, gy: 0 };
+  function rivalDe() { const yo = T[1]; return yo.contacto || (vivo(T[5]) && yo.y - T[5].y < 14 && Math.abs(yo.x - T[5].x) < 14 ? T[5] : null); }
+  function duelo(dt) {
+    const ene = rivalDe(); if (!ene || S.pausa) { D.fase = 'guardia'; return; }
+    D.tf -= dt; D.abierto = Math.max(0, D.abierto - dt);
+    if (D.fase === 'guardia' && D.tf <= 0) { D.fase = 'alza'; D.tf = 0.9; }
+    else if (D.fase === 'alza' && D.tf <= 0) { D.fase = 'golpea'; D.tf = 0.25;
+      if (D.escudo) { D.abierto = 1.1; S.paron = 0.07; aviso('¡Parado! Está abierto'); }
+      else { D.heridas++; S.sacude = 0.45; if (D.heridas >= 3) { D.heridas = 0; D.hombre++; aviso('Caes… ocupas el puesto de otro hombre'); } else aviso('¡Herido! (' + D.heridas + ' de 3)'); } }
+    else if (D.fase === 'golpea' && D.tf <= 0) { D.fase = 'guardia'; D.tf = 1 + Math.random() * 1.4; }
+  }
+  function golpear() { const ene = rivalDe(); if (!ene) return aviso('Aún no estáis trabados');
+    D.golpe = 0.3; S.sacude = 0.25; S.paron = 0.08;
+    const ok = D.abierto > 0 ? 0.95 : D.fase === 'alza' ? 0.45 : 0.2;
+    if (Math.random() < ok) { D.vida -= D.abierto > 0 ? 0.7 : 0.4; aviso(D.abierto > 0 ? '¡Golpe limpio!' : 'Le alcanzas'); if (D.vida <= 0) { D.vida = 1; ene.n -= 1; ene.baja += 1; ene.moral -= 1.5; aviso('¡Cae tu rival! Otro ocupa su sitio'); } }
+    else aviso('Lo para con el escudo'); D.abierto = 0; }
+  $('bGolpe').addEventListener('click', golpear);
+  const eb = $('bEscudo'); eb.addEventListener('pointerdown', e => { e.preventDefault(); D.escudo = true; eb.classList.add('on'); });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) eb.addEventListener(ev, () => { D.escudo = false; eb.classList.remove('on'); });
+  $('bPropia').addEventListener('click', () => { propia(T[1]); $('bPropia').classList.toggle('on', T[1].prop); });
+  /* palanca: el pulgar mueve el bloque */
+  const pal = $('palanca'), pomo = $('pomo'); let palId = null;
+  const palMueve = e => { const r = pal.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2), m = Math.min(1, Math.hypot(dx, dy) / 46), a = Math.atan2(dy, dx);
+    D.gx = Math.cos(a) * m; D.gy = Math.sin(a) * m; pomo.style.transform = 'translate(' + (D.gx * 36) + 'px,' + (D.gy * 36) + 'px)'; };
+  pal.addEventListener('pointerdown', e => { palId = e.pointerId; pal.setPointerCapture(e.pointerId); palMueve(e); });
+  pal.addEventListener('pointermove', e => { if (e.pointerId === palId) palMueve(e); });
+  for (const ev of ['pointerup', 'pointercancel']) pal.addEventListener(ev, () => { palId = null; D.gx = D.gy = 0; pomo.style.transform = ''; });
+
+  function oficial() {
+    const yo = T[1], ene = rivalDe(), hz = H * 0.4, gir = D.gx * 40;
+    const g = cx.createLinearGradient(0, 0, 0, hz); g.addColorStop(0, '#7086b6'); g.addColorStop(0.6, '#e8b67a'); g.addColorStop(1, '#f5d8a3'); cx.fillStyle = g; cx.fillRect(0, 0, W, hz);
+    const sg = cx.createRadialGradient(W * 0.75 - gir, hz * 0.75, 2, W * 0.75 - gir, hz * 0.75, W * 0.45); sg.addColorStop(0, 'rgba(255,240,200,1)'); sg.addColorStop(1, 'rgba(255,200,120,0)'); cx.fillStyle = sg; cx.fillRect(0, 0, W, hz);
+    cx.fillStyle = '#968670'; cx.beginPath(); cx.moveTo(0, hz); for (let x = 0; x <= W; x += 12) cx.lineTo(x, hz - 16 - Math.sin((x + gir) / 55) * 9); cx.lineTo(W, hz); cx.fill();
+    const tx = W * 0.64 - gir, ty = hz - 40; cx.fillStyle = '#d8c7a6'; cx.fillRect(tx, ty, 30, 3); cx.beginPath(); cx.moveTo(tx - 2, ty); cx.lineTo(tx + 15, ty - 6); cx.lineTo(tx + 32, ty); cx.fill(); for (let i = 0; i < 5; i++) cx.fillRect(tx + 2 + i * 6, ty + 3, 2, 8);
+    for (const x of [0.1, 0.16, 0.88, 0.94]) { cx.fillStyle = '#2f4a2a'; cx.beginPath(); cx.ellipse(W * x - gir, hz - 22, 5, 22, 0, 0, 7); cx.fill(); }
+    const gg = cx.createLinearGradient(0, hz, 0, H); gg.addColorStop(0, '#b6a072'); gg.addColorStop(1, '#6a5b38'); cx.fillStyle = gg; cx.fillRect(0, hz, W, H - hz);
+    const e = T[5], dist = Math.max(1.2, yo.y - e.y - 8), k = 34 / (0.6 + dist * 0.3), y0 = hz + 4 + (H * 0.56 - hz) / (1 + dist * 0.2);
+    if (e.n > 1) for (let f = 2; f >= 0; f--) for (let c = -4; c <= 4; c++) {
+      const s = k * (1 - f * 0.1), x = W / 2 + c * s * 1.55 - gir, y = y0 - f * s * 0.85; if (x < -30 || x > W + 30) continue;
+      const tu = f === 0 && c === 0 && ene, alza = tu && D.fase === 'alza', abierto = tu && D.abierto > 0;
+      cx.fillStyle = '#5a3b2a'; cx.fillRect(x - s * 0.2, y - s * 2.1, s * 0.4, s * 1.5);
+      cx.fillStyle = '#7a5d35'; cx.beginPath(); cx.arc(x, y - s * 2.25, s * 0.24, 0, 7); cx.fill();
+      cx.fillStyle = '#c23a2b'; cx.beginPath(); cx.arc(x - s * (abierto ? 0.6 : 0.12), y - s * 1.25, s * 0.6, 0, 7); cx.fill(); cx.strokeStyle = '#e0c070'; cx.lineWidth = Math.max(1, s * 0.05); cx.stroke();
+      if (f === 0 && dist < 6) { cx.strokeStyle = alza ? '#ff6a50' : '#a57f45'; cx.lineWidth = Math.max(1, s * (alza ? 0.12 : 0.08)); cx.beginPath();
+        if (alza) { cx.moveTo(x + s * 0.3, y - s * 1.8); cx.lineTo(x + s * 0.2, y - s * 3.4); } else { cx.moveTo(x + s * 0.3, y - s * 1.5); cx.lineTo(x + s * 0.5, y - s * 1.5 + s * 1.6); } cx.stroke(); }
+      if (tu) { cx.strokeStyle = abierto ? '#7cc47f' : alza ? '#ff6a50' : 'rgba(241,230,200,.6)'; cx.lineWidth = 3; cx.beginPath(); cx.arc(x, y - s * 1.3, s * 1.05, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * D.vida); cx.stroke(); }
+    }
+    if (ene) for (let i = 0; i < 16; i++) { cx.fillStyle = 'rgba(214,180,128,.07)'; cx.beginPath(); cx.arc((i * 83 + S.t * 25) % W, y0 - 12 + Math.sin(i + S.t) * 5, 22 + (i % 4) * 8, 0, 7); cx.fill(); }
+    /* tus dos compañeros de fila a los lados: lanza en la mano; tú, el escudo y la lanza en primer plano */
+    const baja = dist < 14 ? 1 : 0;
+    for (const [x, yb, sc] of [[W * 0.12, H * 0.66, 34], [W * 0.88, H * 0.66, 34]]) {
+      const mano = [x + sc * 0.4, yb - sc * 1.15], pt = baja ? [W / 2 + (x - W / 2) * 0.3 - gir, y0 - 6] : [mano[0], mano[1] - H * 0.35];
+      cx.strokeStyle = '#b48a4d'; cx.lineWidth = sc * 0.11; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(mano[0] - (pt[0] - mano[0]) * 0.18, mano[1] - (pt[1] - mano[1]) * 0.18); cx.lineTo(pt[0], pt[1]); cx.stroke();
+      cx.fillStyle = '#2b3f6e'; cx.fillRect(x - sc * 0.45, yb - sc * 1.4, sc * 0.9, sc * 1.6); cx.fillStyle = '#c9a15c'; cx.beginPath(); cx.arc(x, yb - sc * 1.62, sc * 0.3, 0, 7); cx.fill();
+      cx.fillStyle = '#f2efe6'; cx.beginPath(); cx.ellipse(x, yb - sc * 2.0, sc * 0.08, sc * 0.3, 0, 0, 7); cx.fill(); cx.fillStyle = '#8a6a3a'; cx.beginPath(); cx.arc(mano[0], mano[1], sc * 0.13, 0, 7); cx.fill();
+      cx.fillStyle = '#2f5aa0'; cx.beginPath(); cx.arc(x - sc * 0.55 * Math.sign(W / 2 - x) * -1, yb - sc * 1.0, sc * 0.66, 0, 7); cx.fill(); cx.strokeStyle = '#e0c070'; cx.lineWidth = 2; cx.stroke(); }
+    const sy = D.escudo ? H * 0.56 : H * 0.95; cx.fillStyle = '#2f5aa0'; cx.beginPath(); cx.ellipse(W * 0.5, sy, W * 0.26, H * 0.13, -0.1, 0, 7); cx.fill(); cx.strokeStyle = '#e0c070'; cx.lineWidth = 4; cx.stroke();
+    cx.fillStyle = '#f1e6c8'; cx.font = '700 40px Cinzel, serif'; cx.textAlign = 'center'; cx.fillText('Λ', W * 0.5, sy + 14); cx.textAlign = 'left';
+    const em = D.golpe * 130; cx.strokeStyle = '#a57f45'; cx.lineWidth = 9; cx.beginPath(); cx.moveTo(W * 0.82, H * 1.02); cx.lineTo(W * 0.56, (baja ? y0 + 6 : H * 0.34) - em); cx.stroke();
+    cx.fillStyle = '#8a6a3a'; cx.beginPath(); cx.arc(W * 0.78, H * 0.9, 13, 0, 7); cx.fill();
+    if (T[1].prop) { cx.fillStyle = 'rgba(47,90,160,.25)'; cx.fillRect(0, H * 0.55, W, 6); }
+    const lg = cx.createRadialGradient(W * 0.75, H * 0.3, 10, W * 0.5, H * 0.5, W); lg.addColorStop(0, 'rgba(255,200,120,.16)'); lg.addColorStop(1, 'rgba(40,25,10,.3)'); cx.fillStyle = lg; cx.fillRect(0, 0, W, H);
+    cx.font = '600 12px "Source Sans 3", sans-serif'; cx.fillStyle = 'rgba(20,16,12,.8)'; cx.fillRect(8, H * 0.43, 150, 20); cx.fillStyle = '#f1e6c8';
+    cx.fillText('Hombre ' + D.hombre + ' · Heridas ' + '●'.repeat(D.heridas) + '○'.repeat(3 - D.heridas), 14, H * 0.43 + 14);
+  }
+
+  /* ---- fichas compactas ---- */
+  const banderaSVG = (t) => '<svg viewBox="0 0 28 30" aria-hidden="true"><line x1="3" y1="2" x2="3" y2="29" stroke="#d8c39a" stroke-width="2"/><path d="M4 3h20l-4 6 4 6H4z" fill="' + (t.bando === 'a' ? '#2f5aa0' : '#a8322a') + '"/><text x="13" y="13" font-size="9" text-anchor="middle" fill="#f1e6c8" font-family="Cinzel,serif" font-weight="700">' + TIPOS[t.tipo].sim + '</text></svg>';
+  function pinta() {
+    const ofi = S.vista === 'oficial'; $('abajo').hidden = ofi; $('of').hidden = !ofi; $('rueda').hidden = true;
+    const fs = $('fichas'); fs.textContent = '';
+    for (const t of mios()) { const b = document.createElement('button'); b.type = 'button'; b.className = 'fi' + (t.id === S.sel ? ' sel' : ''); b.dataset.id = t.id; b.setAttribute('aria-label', t.nom);
+      b.innerHTML = banderaSVG(t) + '<span class="nm"><span class="tx"></span><span class="go"></span></span><span class="vb"><u></u></span>';
+      b.addEventListener('click', () => { S.sel = t.id; pinta(); }); fs.appendChild(b); }
+    const t = T[S.sel]; $('propiaI').textContent = TIPOS[t.tipo].ic; $('propiaT').textContent = TIPOS[t.tipo].prop; $('bPropia').textContent = TIPOS[T[1].tipo].prop;
+    refresca();
+  }
+  function refresca() {
+    for (const b of $('fichas').children) { const t = T[+b.dataset.id], f = Math.max(0, t.n / t.n0);
+      b.querySelector('.tx').textContent = t.nom + (t.mun != null ? ' · ' + t.mun + TIPOS[t.tipo].ic : '') + (t.est !== 'firme' ? ' · ' + t.est : '');
+      b.querySelector('.go').textContent = gotas(t.cans); const u = b.querySelector('.vb u'); u.style.width = Math.round(f * 100) + '%'; u.style.background = colVida(f);
+      b.classList.toggle('huye', t.est === 'huye'); b.title = t.nom + ': ' + t.est + ' (' + t.causa + ')'; }
+    const t = T[S.sel]; $('propia').classList.toggle('on', !!t.prop); $('propia').querySelector('.esp').style.setProperty('--p', t.tipo === 'pel' ? Math.round(t.esp / 8 * 100) + '%' : '0%');
+    const tot = l => l.reduce((s, t) => s + (t.est === 'huye' ? 0 : t.moral * t.n0), 0) / l.reduce((s, t) => s + 100 * t.n0, 0);
+    $('mTu').firstChild.style.width = Math.round(tot(mios()) * 100) + '%'; $('mSu').firstChild.style.width = Math.round(tot(suyos()) * 100) + '%';
+  }
+  pinta(); setInterval(refresca, 300);
+
+  /* campo: tocar elige, arrastrar dibuja el frente, mantener abre la rueda; con Arco, tocar apunta */
+  let pulso = null, raya = null;
+  const pos = e => { const r = esc.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  esc.addEventListener('pointerdown', e => { if (e.target !== cv || S.vista !== 'general') return; const [px, py] = pos(e), [mx, my] = deP(px, py);
+    const t = mios().find(t => Math.abs(t.x - mx) < 12 && Math.abs(t.y - my) < 8);
+    pulso = { px, py, t, mueve: false, tm: setTimeout(() => { if (pulso && !pulso.mueve && t) { rueda(t, px, py); pulso = null; } }, 450) }; });
+  esc.addEventListener('pointermove', e => { if (!pulso) return; const [px, py] = pos(e); if (Math.hypot(px - pulso.px, py - pulso.py) > 12) { pulso.mueve = true; clearTimeout(pulso.tm); raya = { x0: pulso.px, y0: pulso.py, x1: px, y1: py }; } });
+  esc.addEventListener('pointerup', () => { if (!pulso) return; clearTimeout(pulso.tm); const p = pulso; pulso = null;
+    if (S.apunta) { const a = S.apunta; S.apunta = null; const [mx, my] = deP(p.px, p.py), k = Math.min(a.mun, 10); a.mun -= k; S.tiros.push({ x0: a.x, y0: a.y, x1: mx, y1: my, t: 0 });
+      for (const e of suyos()) if (Math.hypot(e.x - mx, e.y - my) < 10) { e.n -= k * 0.8; e.baja += k * 0.8; } aviso('¡Soltad!'); return; }
+    if (p.mueve && raya) { const s = T[S.sel]; if (s && s.est !== 'huye') { const [ax, ay] = deP(raya.x0, raya.y0), [bx, by] = deP(raya.x1, raya.y1); s.tx = Math.max(5, Math.min(95, (ax + bx) / 2)); s.ty = Math.max(15, Math.min(135, (ay + by) / 2)); aviso(s.nom + ': a la raya'); } raya = null; return; }
+    if (p.t) { S.sel = p.t.id; pinta(); } });
+  function rueda(t, px, py) { const ru = $('rueda'); ru.textContent = ''; ru.hidden = false; ru.style.left = Math.max(80, Math.min(W - 80, px)) + 'px'; ru.style.top = Math.max(110, Math.min(H - 180, py)) + 'px'; S.sel = t.id; pinta(); ru.hidden = false;
+    [['Avanzar', () => orden(t, 'avanzar')], [TIPOS[t.tipo].prop, () => propia(t)], ['Atrás', () => orden(t, 'retroceder')], ['Alto', () => orden(t, 'alto')]].forEach(([txt, fn], i) => {
+      const a = -Math.PI / 2 + i * Math.PI / 2, b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.style.left = Math.cos(a) * 80 + 'px'; b.style.top = Math.sin(a) * 60 + 'px';
+      b.addEventListener('click', ev => { ev.stopPropagation(); fn(); ru.hidden = true; }); ru.appendChild(b); }); }
+
+  $('pausa').addEventListener('click', () => { S.pausa = !S.pausa; $('pausa').textContent = S.pausa ? '▶' : '❚❚'; aviso(S.pausa ? 'Pausa: da órdenes con calma' : ''); });
+  $('vel').addEventListener('click', () => { S.vel = S.vel === 1 ? 2 : S.vel === 2 ? 4 : 1; $('vel').textContent = '×' + S.vel; });
+  $('vista').addEventListener('click', () => { S.vista = S.vista === 'general' ? 'oficial' : 'general'; $('vista').textContent = S.vista === 'general' ? 'Oficial' : 'General'; pinta(); });
+
+  let prev = performance.now();
+  function bucle(now) {
+    let dt = Math.min(0.05, (now - prev) / 1000); prev = now; const dr = dt; if (S.paron > 0) { S.paron -= dt; dt = 0; }
+    if (S.vista === 'oficial' && (D.gx || D.gy)) { const yo = T[1]; yo.tx = Math.max(5, Math.min(95, yo.x + D.gx * 4)); yo.ty = Math.max(15, Math.min(135, yo.y + D.gy * 4)); }
+    paso(dt * 1.6 * S.vel); if (S.vista === 'oficial') duelo(dt);
+    for (const tr of S.tiros) tr.t += dr; S.tiros = S.tiros.filter(tr => tr.t < 1.4); S.sacude = Math.max(0, S.sacude - dr); D.golpe = Math.max(0, D.golpe - dr);
+    if (tAv > 0 && (tAv -= dr) <= 0) $('aviso').classList.remove('ve');
+    const yo = T[1], t = T[S.sel];
+    $('obj').textContent = S.fin || (S.vista === 'oficial' ? 'Tú, en ' + yo.nom + ' · ' + yo.est + ' (' + yo.causa + ')' : 'Haz huir a Argos · ' + t.nom + ': ' + t.est + ' (' + t.causa + ')');
+    if (S.vista === 'oficial') { cx.save(); if (S.sacude > 0) cx.translate((Math.random() - 0.5) * 12 * S.sacude, (Math.random() - 0.5) * 8 * S.sacude); oficial(); cx.restore(); } else general();
+    requestAnimationFrame(bucle);
+  }
+  requestAnimationFrame(bucle);
+})();
+</script>
