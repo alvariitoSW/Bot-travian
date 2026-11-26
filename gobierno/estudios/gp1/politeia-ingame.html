@@ -1,0 +1,123 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Politeia · en juego</title><style>
+:root{--fondo:#0d0a07;--perg:#ead7ab;--tinta:#2a1c0e;--oro:#d9a441;--gran:#7a1f1f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fondo:#0d0a07}}:root[data-theme="dark"]{--fondo:#0d0a07}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;height:100%;background:var(--fondo);overflow:hidden;font-family:Georgia,serif;color:var(--tinta)}
+#app{position:absolute;left:50%;top:50%;width:844px;height:390px;overflow:clip;background:#3a2a1a;transform-origin:center}
+.fondo{position:absolute;inset:0;transition:transform 1s cubic-bezier(.3,.1,.2,1),opacity 1s;background:linear-gradient(#e8b97a,#b9834e 55%,#6b4a2e)}
+.fondo img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+#f2{opacity:0;pointer-events:none}#f2 img{object-position:center}#app.deb #f2{opacity:1}#app.deb #capa{opacity:0;pointer-events:none}
+#velo{position:absolute;inset:0;pointer-events:none;transition:background 1.2s;mix-blend-mode:multiply}
+#capa{position:absolute;inset:0;transition:transform 1s cubic-bezier(.3,.1,.2,1),opacity .6s}
+.lug{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer}
+.lug b{display:block;background:#1a120acc;color:#f3e2b8;border:1px solid var(--oro);border-radius:4px;padding:2px 8px;font-size:11px;letter-spacing:1.5px;font-variant:small-caps;white-space:nowrap}
+.lug i{display:block;width:30px;height:30px;margin:0 auto 2px;border-radius:50%;background:radial-gradient(#f6e6b8,#d9a441);border:2px solid #1a120a;font-style:normal;font-size:16px;line-height:26px;box-shadow:0 0 0 0 #d9a44188}
+.lug.av i{animation:late 1.6s infinite}@keyframes late{to{box-shadow:0 0 0 12px #d9a44100}}
+.per{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:3px;background:#f3e2b8e8;border:1px solid #1a120a;border-radius:10px;padding:1px 7px 1px 2px;font-size:10.5px;white-space:nowrap;pointer-events:none}
+.per u{text-decoration:none;display:inline-block;width:17px;height:17px;border-radius:50%;background:#1a120a;text-align:center;line-height:17px;font-size:10px}
+#hud{position:absolute;left:0;right:0;top:0;height:34px;display:flex;align-items:center;gap:14px;padding:0 10px 0 6px;background:linear-gradient(#1a120af2,#1a120ab0 70%,#1a120a00);color:#f3e2b8;font-size:12px}
+#hud .em{width:30px;height:30px;border-radius:50%;border:2px solid var(--oro);background:#2a1c0e;text-align:center;line-height:26px;font-size:16px}
+#hud b{font-size:14px;display:block;line-height:1}#hud small{font-size:9.5px;opacity:.75}#hud .sp{flex:1}
+#actos{display:flex;gap:3px}#actos span{padding:3px 7px;border-radius:10px;border:1px solid #f3e2b855;font-size:10.5px;cursor:pointer}#actos span.on{background:var(--oro);color:#1a120a;border-color:var(--oro);font-weight:bold}
+.red{position:absolute;bottom:8px;width:54px;height:54px;border-radius:50%;background:radial-gradient(#3a2a1a,#1a120a);border:2px solid var(--oro);color:#f3e2b8;text-align:center;font-size:9.5px;padding-top:6px;cursor:pointer;line-height:1.1}.red em{display:block;font-style:normal;font-size:20px}
+#perg{position:absolute;left:50%;bottom:6px;width:590px;max-height:236px;overflow:auto;transform:translate(-50%,130%);transition:transform .5s;background:linear-gradient(#f0deb4,#e2cb98);border:2px solid #7a5a30;outline:1px solid #2a1c0e;border-radius:6px;padding:8px 12px;font-size:12px;line-height:1.3;box-shadow:0 6px 18px #000a}
+#perg.v{transform:translate(-50%,0)}#perg h3{margin:0 0 3px;text-align:center;font-size:16px;font-variant:small-caps;letter-spacing:1px}
+#perg h3:before,#perg h3:after{content:" ❖ ";color:#7a5a30;font-size:10px}
+.ops,.cartas{display:flex;gap:6px;margin-top:6px}.ops button,.cartas button{flex:1;font:11.5px Georgia;background:#f6e8c4;color:var(--tinta);border:1px solid #7a5a30;outline:1px solid #7a5a3055;outline-offset:-4px;border-radius:4px;padding:8px 6px;min-height:44px;line-height:1.2;cursor:pointer}
+.ops button b,.cartas button b{display:block;font-size:13px}.ops button.p{background:var(--gran);color:#f6e6c8}.ops button.g{flex:.5;background:#0000;border-style:dashed}
+.cartas button:disabled{opacity:.35}.cartas.col{flex-direction:column;gap:4px}.cartas.col button{min-height:32px;padding:5px}
+.pul{display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px solid #7a5a3066}.pul span{width:120px;font-weight:bold}.pul .t{display:flex;flex:1;justify-content:space-between;align-items:center;font-size:10px}
+.pul .t i{width:14px;height:14px;border-radius:50%;border:1.5px solid #2a1c0e;display:block}.pul .t i.x{background:#2a1c0e;box-shadow:0 0 0 3px var(--oro)}.pul .t i.a{background:#fff}.pul .t i.z{background:var(--gran)}
+.pul button{font:11px Georgia;background:#2a1c0e;color:#f3e2b8;border:0;border-radius:4px;padding:6px 10px;cursor:pointer}
+.bal{height:12px;border-radius:6px;border:1.5px solid #2a1c0e;background:var(--gran);margin:5px 0 3px;position:relative;overflow:hidden}.bal i{position:absolute;left:0;top:0;bottom:0;background:#f6e8c4;transition:width .6s}.bal u{position:absolute;left:50%;top:0;width:2px;height:100%;background:#2a1c0e}
+.urn{display:flex;justify-content:center;gap:26px;align-items:center}.urn b{font-size:20px;margin-right:4px}.pd{display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid #2a1c0e;margin:1px}.pd.s{background:#fff}.pd.n{background:#2a1c0e}
+.cron{margin:2px 0;padding-left:16px}.hitos{display:flex;gap:4px;margin:4px 0;text-align:center;font-size:10px}.hitos div{flex:1;border:1px solid #7a5a30;border-radius:4px;padding:3px 1px}.hitos .h1{background:#2a1c0e;color:#f3e2b8}.hitos .h2{background:#fff7dc;outline:2px solid var(--gran)}
+#rot{display:none}input[type=range]{width:100%;accent-color:#7a1f1f}
+</style></head><body><div id="app">
+<div class="fondo" id="f1"><img src="ref/agora.jpg" alt="" onerror="this.remove()"></div>
+<div id="capa"></div>
+<div class="fondo" id="f2"><img src="ref/asamblea.jpg" alt="" onerror="this.remove()"></div>
+<div id="velo"></div>
+<div id="hud"><div class="em">🐝</div><div><b>Atenas</b><small id="reg">Aristocracia · Casa de la Abeja</small></div><div>🪙 <b style="display:inline" id="pl">270</b></div><div>🔥 <span id="di"></span></div><div>🚶 <span id="pa"></span></div><div class="sp"></div><div id="actos"></div></div>
+<div class="red" style="left:8px" id="bcam"><em>📜</em>Camino</div><div class="red" style="right:8px" id="bvas"><em>🏺</em>Vasija</div>
+<div id="perg"></div></div>
+<script>
+const $=q=>document.querySelector(q),app=$('#app'),perg=$('#perg'),capa=$('#capa'),f1=$('#f1');
+function encaja(){const w=innerWidth,h=innerHeight,r=h>w;const k=r?Math.min(h/844,w/390):Math.min(w/844,h/390);app.style.transform=`translate(-50%,-50%) ${r?'rotate(90deg) ':''}scale(${k})`}
+addEventListener('resize',encaja);encaja();
+const ACT=[['🌱 Agenda','Primavera. El Consejo decide qué llegará al pueblo.','#fff0'],['☀️ Intrigas','Verano. Tus hoplitas salen; en la ciudad se trama.','#f0a23c2a'],['🍂 Debate','Otoño. El gran debate en la Asamblea.','#b5522b33'],['❄️ Cuentas','Invierno. Das cuentas ante el tribunal.','#5a7fa066']];
+const S={acto:0,pasos:3,disc:4,plata:270,secreto:false,favor:true,tripode:false,emp:3,ag:{guerra:1,deudas:3,fuente:5},tuyo:null,corinto:false,cron:['Filón cenó anoche con un enviado de Mégara.','Los remeros murmuran junto a la fuente a medio hacer.'],cargos:[],escenas:['600 · Vences a Mégara'],hito:null,fuente:false};
+const NOM={guerra:'Guerra a Mégara',deudas:'Perdón de deudas',fuente:'Fuente pública'};
+const L=[{id:'santuario',x:66,y:20,ic:'🏛️',n:'Santuario'},{id:'consejo',x:86,y:40,ic:'⚖️',n:'Consejo'},{id:'agora',x:46,y:62,ic:'💬',n:'Ágora'},{id:'casa',x:60,y:47,ic:'🍷',n:'Tu casa'},{id:'tribunal',x:27,y:40,ic:'🏺',n:'Tribunal'},{id:'puerto',x:6,y:55,ic:'⛵',n:'← Puerto'}];
+const G=[['🐎','Filón',91,72],['🐬','Eudoro',13,74],['🐏','Demo',33,82],['🐓','Nicóstrato',59,80],['🐎','Calescro',74,60]];
+function pintaCapa(){capa.innerHTML=L.map(l=>`<div class="lug ${abierto(l.id)?'av':''}" data-id="${l.id}" style="left:${l.x}%;top:${l.y}%"><i>${l.ic}</i><b>${l.n}</b></div>`).join('')+G.map(g=>`<div class="per" style="left:${g[2]}%;top:${g[3]}%"><u>${g[0]}</u>${g[1]}</div>`).join('')+(S.fuente?`<div class="per" style="left:40%;top:44%"><u>⛲</u>Fuente de la polis</div>`:'')+(S.hito=='hecho'?`<div class="per" style="left:52%;top:70%"><u>📜</u>Estela de las leyes</div>`:'')}
+const abierto=id=>({consejo:S.acto==0,agora:S.acto==2||S.acto==1,tribunal:S.acto==3,casa:S.acto==1,puerto:S.acto==1&&!S.corinto,santuario:false})[id];
+function hud(){$('#pl').textContent=S.plata;$('#di').textContent='discordia '+S.disc+'/6';$('#pa').textContent=S.pasos+' pasos';$('#velo').style.background=ACT[S.acto][2];$('#actos').innerHTML=ACT.map((a,i)=>`<span class="${i==S.acto?'on':''}" data-i="${i}">${a[0]}</span>`).join('');pintaCapa()}
+function cam(l){const t=l?`scale(1.9)`:'';const o=l?`${l.x}% ${l.y}%`:'50% 50%';for(const e of[f1,capa]){e.style.transformOrigin=o;e.style.transform=t}capa.style.opacity=l?0:1;capa.style.pointerEvents=l?'none':''}
+const ops=(...o)=>`<div class="ops">${o.map(([a,t,c,d])=>`<button class="${c||''}" data-a="${a}"><b>${t}</b>${d||''}</button>`).join('')}<button class="g" data-a="x">Alejar</button></div>`;
+const paso=()=>{S.pasos=Math.max(0,S.pasos-1);hud()};
+const P={
+puerto:()=>`<h3>El puerto</h3>Un barco de Corinto. Su enviado pide pagar menos en tu puerto y ofrece 20 remeros contra Mégara.`+ops(['remeros','Aceptar el trato','p','Corinto contigo · los nobles, recelosos'],['invitar','Invitarlo al banquete','','mejor trato, más tarde']),
+agora:()=>S.acto==2?`<h3>La Asamblea se reúne</h3>${S.tuyo?`Presentas tú: <b>${NOM[S.tuyo]}</b>.`:'No ganaste la agenda: presenta Filón «Guerra a Mégara». Aun así puedes preguntar.'} Será un duelo de preguntas: gana quien sabe más del otro.`+ops(['debate','Subir a la tribuna ▶','p','la cámara entra en la Asamblea'])
+ :`<h3>Ágora de Atenas</h3>Demo, del Carnero, murmura contra los nobles junto a la fuente a medio hacer.`+ops(['rumor','Escuchar el corrillo','p','1 paso · una pista']),
+consejo:()=>{if(S.acto!=0)return `<h3>El Consejo</h3>Cerrado hasta la primavera. ${S.tuyo?'Este año presentas «'+NOM[S.tuyo]+'».':''}`+ops();
+ let h=`<h3>El Consejo · pulso de la agenda</h3>Te quedan <b>${S.emp}</b> empujones. Lo que llegue a tu lado, lo presentas tú.`;
+ for(const k in S.ag)h+=`<div class="pul"><span>${NOM[k]}</span><div class="t">Tú${[0,1,2,3,4,5,6].map(i=>`<i class="${i==S.ag[k]?'x':i==0?'a':i==6?'z':''}"></i>`).join('')}Filón</div>${S.emp&&S.ag[k]>0&&S.ag[k]<6?`<button data-a="emp" data-k="${k}">◀ empujar</button>`:''}</div>`;
+ return h+ops(...(S.emp?[...(S.favor?[['favor','Eudoro habla','','fuente ◀◀ · gastas su favor']]:[]),...(S.secreto?[['chant','Usar tu secreto','p','Filón suelta «deudas»']]:[])]:[]))},
+tribunal:()=>S.acto==3?`<h3>El tribunal · tus cuentas</h3>Once jueces, sacados por sorteo. Te acusa Nicóstrato, del Gallo.<ul class="cron">${(S.cargos.length?S.cargos:['Nada grave: las cuentas cuadran']).map(c=>`<li>${S.cargos.length?'⚠️':'✔'} ${c}</li>`).join('')}</ul>`+ops(['negar','Negarlo','','vale si nadie lo sabe'],['multa','Pagar la multa','','80 de plata'],...(S.secreto?[['contra','Contraatacar','p','sacas el secreto de Filón']]:[]))
+ :`<h3>El tribunal</h3>En invierno darás cuentas de lo que hagas este año. Hoy hay ${S.cargos.length} cosas apuntadas contra ti.`+ops(),
+casa:()=>`<h3>Banquete en tu casa</h3>Invitas a Filón, Eudoro y Nicóstrato. Tú mezclas el vino: <input id="vino" type="range" min="1" max="3" value="2"><div style="display:flex;justify-content:space-between;font-size:10.5px"><span>aguado: nadie habla</span><span>fuerte: lenguas sueltas</span><span>puro: riña</span></div>`+ops(['lengua','Tirar de la lengua a Filón','p','1 paso'],['brindar','Brindar','','amistad con el Delfín']),
+santuario:()=>`<h3>El santuario</h3>El oráculo habla a medias. Un trípode de regalo lo inclina… y eso sería un secreto tuyo.`+ops(['oraculo','Consultar','','una pista'],['tripode','Regalar un trípode','p','+1 en el debate · queda apuntado']),
+vasija:()=>`<h3>Tu vasija · capítulo 3</h3><i>El año de las deudas.</i><br><b>Crónica</b><ul class="cron">${S.cron.slice(-3).map(c=>`<li>${c}</li>`).join('')}</ul><b>Escenas pintadas</b><ul class="cron">${S.escenas.map(c=>`<li>🏺 ${c}</li>`).join('')}</ul><div class="ops"><button data-a="casas"><b>Las casas</b></button><button class="g" data-a="x">Cerrar</button></div>`,
+camino:()=>`<h3>El camino de Atenas</h3><div class="hitos">${[['📜','Leyes escritas',1],['⚖️','Las deudas',S.hito=='hecho'?1:2],['⛲','Agua y obras',S.fuente?1:0],['🎭','Grandes fiestas',0],['🦉','Moneda',0],['✋','Vota el pueblo',0]].map(h=>`<div class="h${h[2]}"><div style="font-size:15px">${h[0]}</div>${h[1]}</div>`).join('')}</div>
+${S.hito?`Elegiste: <b>${S.hito=='solon'?'como Solón':S.hito=='tierra'?'repartir el monte':S.hito=='nada'?'dejarlo estar':'hito cumplido'}</b>. ${S.hito=='hecho'?'La estela con las leyes está en el ágora.':'Hay que llevarlo al Consejo y ganarlo en la Asamblea.'}<div class="ops"><button class="g" data-a="x">Cerrar</button></div>`
+:`<b>Hito del capítulo: las deudas.</b> <i>En la historia real (594 a.C.), Solón perdonó las deudas y prohibió hacer esclavo al deudor. Luego se marchó diez años.</i> Ningún camino es gratis:<div class="cartas"><button data-a="hito" data-h="solon"><b>Como Solón</b>perdonar las deudas<br>🐏 ▲▲ · 🐎 ▼▼</button><button data-a="hito" data-h="tierra"><b>Torcer la historia</b>repartir el monte<br>🐏 ▲▲▲ · 🐓 ▼ · discordia +1</button><button data-a="hito" data-h="nada"><b>Dejarlo estar</b>nada cambia<br>🐎 ▲ · discordia sube cada año</button></div>`}`,
+casas:()=>`<h3>Las casas de Atenas</h3>${[['🐎','Caballo','Llanura · nobles viejos · Filón','La tierra recuerda','arrastra una maldición'],['🐬','Delfín','Costa · mercaderes · Eudoro','El mar no pregunta apellidos','debe plata a Corinto'],['🐏','Carnero','Monte · pobres · Demo','Somos más','su jefe no sabe leer; su hija, sí'],['🐓','Gallo','hoplitas · Nicóstrato','Primero en la fila','juró matar a un Caballo'],['🐝','Abeja','la tuya, nueva','Poco a poco','tus secretos: '+S.cargos.length]].map(c=>`<div style="border-top:1px solid #7a5a3066;padding:2px 0"><b>${c[0]} ${c[1]}</b> · ${c[2]} · <i>«${c[3]}»</i> · ${c[4]}</div>`).join('')}<div class="ops"><button class="g" data-a="x">Cerrar</button></div>`};
+let cur=null;
+function abre(id){cur=id;perg.innerHTML=P[id]();perg.classList.add('v')}
+function entra(id){const l=L.find(l=>l.id==id);cam(l);abre(id)}
+function sale(){cam(null);cur=null;perg.classList.remove('v')}
+function di(t,esc){S.cron.push(t);if(esc)S.escenas.push(esc);perg.innerHTML=`<h3>Hecho</h3>${t}<div class="ops"><button class="g" data-a="x">Alejar</button></div>`;pintaCapa()}
+function filon(){const k=Object.keys(S.ag).filter(k=>S.ag[k]>0&&S.ag[k]<6).sort((a,b)=>S.ag[b]-S.ag[a])[0];if(k)S.ag[k]++}
+function cierra(){if(S.emp>0)return;const mio=Object.keys(S.ag).filter(k=>S.ag[k]<=2);S.tuyo=(S.hito&&S.hito!='nada'&&mio.includes('deudas'))?'deudas':mio.includes('fuente')?'fuente':mio[0]||null;S.cron.push(S.tuyo?`Ganaste la agenda: en otoño presentas «${NOM[S.tuyo]}».`:'Filón se llevó la agenda.')}
+capa.onclick=e=>{const l=e.target.closest('.lug');if(l)entra(l.dataset.id);else if(cur)sale()};
+$('#bvas').onclick=()=>abre('vasija');$('#bcam').onclick=()=>abre('camino');
+$('#actos').onclick=e=>{const i=e.target.dataset.i;if(i==null)return;S.acto=+i;S.pasos=3;sale();hud();perg.innerHTML=`<h3>${ACT[S.acto][0]}</h3>${ACT[S.acto][1]}<div class="ops"><button class="g" data-a="x">Vale</button></div>`;perg.classList.add('v')};
+perg.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+ if(a=='x')return sale();
+ if(a=='emp'){S.ag[b.dataset.k]--;S.emp--;filon();cierra();return abre('consejo')}
+ if(a=='favor'){S.favor=false;S.ag.fuente=Math.max(0,S.ag.fuente-2);S.emp--;filon();cierra();return abre('consejo')}
+ if(a=='chant'){S.ag.deudas=Math.max(0,S.ag.deudas-2);S.emp--;S.cargos.push('Chantajeaste a Filón en el Consejo');cierra();return abre('consejo')}
+ if(a=='rumor'){paso();return di('Rumor: «Filón recibe plata de Mégara». Con vino fuerte, quizá lo suelte.')}
+ if(a=='remeros'){paso();S.corinto=true;return di('Corinto te da 20 remeros. Ganas una pregunta para el debate.')}
+ if(a=='invitar'){paso();return di('El enviado cenará en tu casa. Los del Caballo lo miran mal.')}
+ if(a=='brindar'){paso();return di('Brindáis. El Delfín te aprecia un poco más.')}
+ if(a=='lengua'){paso();const v=+$('#vino').value;if(v==1)return di('Con vino aguado, Filón no suelta nada.');S.secreto=true;if(v==3){S.disc++;hud();return di('Vino puro: Filón confiesa que cobra de Mégara… y acaba a golpes con Nicóstrato. Discordia +1. Ya tienes la prueba.')}return di('Filón, con la lengua suelta, confiesa que cobra de Mégara. Ya tienes la prueba.')}
+ if(a=='oraculo'){paso();return di('El oráculo: «Quien da agua, gana la plaza».')}
+ if(a=='tripode'){paso();S.tripode=true;S.plata-=40;hud();S.cargos.push('Regalaste un trípode al oráculo');return di('El oráculo hablará a tu favor en el debate. Queda apuntado: te lo pueden sacar.')}
+ if(a=='casas')return abre('casas');
+ if(a=='hito'){const h=b.dataset.h;S.hito=h;if(h=='solon'){S.ag.deudas=2;S.cron.push('Anuncias que perdonarás las deudas. La Casa del Caballo te la guarda.')}if(h=='tierra'){S.ag.deudas=2;S.disc++;NOM.deudas='Reparto del monte';S.cron.push('Prometes repartir el monte. Los hoplitas temen por sus lindes.')}if(h=='nada')S.cron.push('Dejas las deudas como están. Los pobres no olvidan.');hud();return abre('camino')}
+ if(a=='debate')return debate();
+ if(a=='negar')return di(S.cargos.length?'Eudoro habla. Los jueces no te creen: multa de 120 y pierdes el cargo.':'Nadie sabe nada. Libre: prestigio +5.',S.cargos.length?null:'594 · Sales limpio del tribunal');
+ if(a=='multa'){S.plata-=80;hud();return di('Pagas 80 de plata y el asunto se cierra.')}
+ if(a=='contra'){S.disc++;hud();return di('Sacas el secreto de Filón ante los jueces. Te absuelven; él queda marcado. Discordia +1.','594 · Hundes a Filón en el tribunal')}
+ if(a=='volver'){app.classList.remove('deb');return sale()}
+};
+function debate(){let b=S.tripode?1:0,quien=null,n=0;const as=S.tuyo||'guerra';app.classList.add('deb');
+ const Q=[['¿Quién pagará las deudas de los pobres?','Dice la verdad: «Nadie». Los pobres le silban.',1,'plata'],
+  S.secreto?['¿De quién es la plata que llevas encima?','Miente… y tú enseñas la prueba de Mégara. Se hunde.',3,'plata']:['¿Con quién cenaste anoche?','Miente con aplomo. No tienes prueba: no pasa nada.',0,''],
+  ['¿Qué has hecho tú por esta ciudad?','Calla. Los que dudan lo notan.',1,'']];
+ if(S.corinto)Q.push(['¿Por qué Corinto se fía de mí y no de ti?','No sabe qué contestar.',2,'plata']);
+ const pon=(dijo,resp,z)=>{perg.innerHTML=`<h3>${NOM[as]} · duelo de preguntas</h3><div class="bal"><i style="width:${Math.max(4,Math.min(96,50+b*8))}%"></i><u></u></div>${dijo?`<b>${dijo}</b> ${resp}`:''}<div id="zona">${z}</div>`;perg.classList.add('v');return $('#zona')};
+ const elige=()=>{pon('','',`¿Quién sube a la tribuna?<div class="cartas"><button data-q="tu"><b>🐝 Tú</b>si ganas, el hito lleva tu nombre</button><button data-q="poeta"><b>🎵 Tu poeta</b>la primera pregunta vale +1</button><button data-q="eudoro" ${S.favor?'':'disabled'}><b>🐬 Eudoro</b>+1 en las de plata · gastas su favor</button></div>`).onclick=e=>{const t=e.target.closest('[data-q]');if(!t||t.disabled)return;quien=t.dataset.q;if(quien=='eudoro')S.favor=false;pregunta()}};
+ const pregunta=(dijo,resp)=>{if(n==2)return suya(dijo,resp);pon(dijo||'',resp||'',`<div style="margin-top:3px">Tu pregunta ${n+1} de 2 a Filón. Él puede mentir, callar o decir la verdad.</div><div class="cartas col">${Q.map((q,i)=>`<button data-c="${i}" ${q[4]?'disabled':''}>«${q[0]}»</button>`).join('')}</div>`).onclick=e=>{const t=e.target.closest('[data-c]');if(!t||t.disabled)return;const q=Q[+t.dataset.c];q[4]=1;let v=q[2];if(quien=='poeta'&&n==0)v++;if(quien=='eudoro'&&q[3]=='plata')v++;b+=v;n++;pregunta('«'+q[0]+'»',q[1]+(v?' <b>+'+v+'</b>':''))}};
+ const suya=(dijo,resp)=>{const c=S.cargos[0];pon(dijo,resp,`<div style="margin-top:4px;color:#7a1f1f"><b>Ahora pregunta Filón:</b> «${c?'¿Es verdad que '+c.toLowerCase()+'?':'¿Y tú qué ganas con esto?'}»</div><div class="cartas"><button data-r="m"><b>Mentir</b>${c?'arriesgado: alguien lo sabe':'nadie puede desmentirte'}</button><button data-r="c"><b>Callar</b>pierdes a algunos que dudan</button><button data-r="v"><b>La verdad</b>${c?'duele hoy; ya no podrán usarlo en el tribunal':'«Gano una ciudad en paz»'}</button></div>`).onclick=e=>{const t=e.target.closest('[data-r]');if(!t)return;const r=t.dataset.r;let txt;if(r=='m'){if(c){b-=2;txt='Te desmienten delante de todos. <b>−2</b>'}else txt='Cuela.'}if(r=='c'){b-=1;txt='Silencio incómodo. <b>−1</b>'}if(r=='v'){if(c){b-=1;S.cargos.shift();txt='Lo admites. <b>−1</b>, pero queda limpio para el invierno.'}else{b+=1;txt='La Asamblea asiente. <b>+1</b>'}}piedras(pon('Respondes a Filón.',txt,''))}};
+ const piedras=z=>{let si=9+Math.max(-3,Math.min(3,b)),no=20-si-5,q=5;const p2=()=>z.innerHTML=`<div class="urn"><div><b>${si}</b>${'<i class="pd s"></i>'.repeat(si)} SÍ</div><div>${q?q+' por caer':''}</div><div><b>${no}</b>${'<i class="pd n"></i>'.repeat(no)} NO</div></div>`;p2();
+  const t=setInterval(()=>{if(q==0){clearInterval(t);const g=si>no;S.cron.push(g?`La Asamblea aprueba «${NOM[as]}»${quien=='tu'?', y lleva tu nombre':''}.`:`La Asamblea rechaza «${NOM[as]}».`);if(g)S.escenas.push('594 · '+NOM[as]);if(g&&as=='fuente')S.fuente=true;if(g&&as=='deudas')S.hito='hecho';if(!g)S.disc++;hud();
+    z.innerHTML+=`<div style="text-align:center"><b style="font-size:15px">${g?'Sale adelante':'No sale'}: ${si} a ${no}.</b> ${g?(as=='fuente'?'La fuente se termina: mírala en la ciudad.':as=='deudas'?'Hito cumplido: una estela con las leyes se alza en el ágora.':'Se pinta en tu vasija.'):'Discordia +1.'}</div><div class="ops"><button class="p" data-a="volver"><b>Volver a la ciudad</b></button></div>`;return}
+   q--;(Math.random()<.5+b*.12)?si++:no++;p2()},650)};
+ elige()}
+hud();perg.innerHTML=`<h3>Capítulo 3 · El año de las deudas</h3>Los pobres del monte deben más de lo que cosechan, y la Casa del Caballo cobra en hombres. Cuatro casas esperan a ver qué hace la tuya, la Abeja.<div class="ops"><button class="p" data-a="x"><b>Empezar</b></button></div>`;perg.classList.add('v');
+perg.addEventListener('click',e=>{if(e.target.closest('[data-a=x]')&&!S._ini){S._ini=1}});
+window._p={entra,sale,debate,S,hud};
+</script></body></html>

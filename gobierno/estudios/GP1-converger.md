@@ -126,3 +126,33 @@ Añadido a `gp1/politeia-modelo.html` (capturas `gp1/m1`–`m8`; mismo enlace de
   verdad (duele hoy, pero ya no podrán usarlo en el tribunal). Al final caen las piedras.
 Historia (de memoria, por cotejar): maldición por matar suplicantes, Heródoto 5.71 y Tucídides 1.126; Solón, *Const.
 aten.* 6 y 11; emblemas de escudo, cerámica ática de figuras negras.
+
+## 10. Dos imágenes de referencia del usuario y maqueta «en juego» (26/11)
+**Palabras del usuario** (literal): «Mira te mando dos imágenes de lo que seria el in game del juego de política y
+actualizamos la maqueta a ver cómo quedaría».
+Las imágenes **no se guardan en el repositorio** (regla del 19/11: origen y licencia sin verificar). Ficha de ideas:
+- **Imagen 1, la Asamblea**: escena pintada a pantalla completa, luz de atardecer, gradas llenas, orador en una tribuna
+  de mármol, estandartes con la lechuza, la acrópolis al fondo. Barra fina arriba (emblema, ciudad y régimen, tres
+  cifras, año y turno). Cartel a la derecha con la propuesta. Abajo, un pergamino con tres tarjetas de decisión.
+- **Imagen 2, el Ágora**: mercado vivo con toldos, estatua de Atenea, pórtico con estandartes, mucha gente. Panel
+  «Estado de la ciudad» a la izquierda, aviso «un nuevo debate dentro de 2 turnos», pergamino con cuatro acciones con
+  precio, y dos botones redondos en las esquinas (Ciudad, Mapa).
+- **Ideas que se toman**: escena pintada realista a pantalla completa; interfaz mínima (barra arriba, pergamino abajo,
+  dos botones redondos); móvil **tumbado**; estandartes y emblemas como identidad de la casa.
+
+Maqueta nueva: `gp1/politeia-ingame.html` (en el repositorio va **sin** las imágenes y cae a un fondo liso; con ellas,
+solo en el artefacto privado del usuario: https://claude.ai/artifact/J9vgS1qKEVkRbEmGm6xQFe).
+Mismas reglas que la maqueta modelo (capítulo, camino, casas, Consejo, banquete, duelo de preguntas, piedras, tribunal,
+vasija), con el aspecto de las imágenes: el ágora pintada es la ciudad; los lugares son medallones sobre la pintura; las
+ocho personas, cintas con el emblema de su casa; tocar acerca la cámara; el debate funde a la imagen de la Asamblea.
+
+**Choques con lo ya decidido, para que el usuario elija** (no los resuelvo yo):
+1. **Móvil tumbado** (imágenes) frente a **de pie** (respuesta 24).
+2. **Pintura realista** (imágenes) frente a **figuras de vasija sobre ciudad pintada** (respuestas 6 y cuestionario).
+3. **Atenas clásica, 452 a.C., Partenón, dracmas** (imágenes) frente a la partida desde **800 a.C.**: el Partenón es
+   de 447–432 a.C. y la moneda llega hacia 600 a.C. La ciudad pintada tendría que **crecer por épocas** (aldea de
+   nobles → ciudad arcaica → ciudad clásica), una pintura por etapa y por polis.
+4. **Las tarjetas «Aprobar / Rechazar»** de la imagen 1 son el «solo pulsar un botón» que el usuario quiso dejar atrás;
+   en la maqueta se conserva el aspecto y se juega con las reglas nuevas.
+5. **Arte**: hacen falta pinturas propias con licencia libre (taller de Arte): por polis, 2–3 etapas de ciudad y 6–8
+   escenas. Es el coste grande de esta dirección; no está presupuestado.
