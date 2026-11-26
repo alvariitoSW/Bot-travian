@@ -49,3 +49,18 @@ cuentas, y lo que haces allí cambia tu ciudad y tus alianzas.**
 4. Que el vigía **actualice M4** en el plan con esto.
 5. La **prueba jugable** (≈ 5 M): diez minutos sobre la ciudad viva, con agenda y debate de verdad.
 Tamaño de todo: ≈ 40 M + arte. Gasto de esta sesión de diseño: ≈ 1,5 M.
+
+## 6. Maqueta modelo: todo junto y jugable (26/11)
+Pedido del usuario (literal): «Como sería juntar todo lo que has creado en una maqueta modeloca ver cómo quedaría con
+/anthropic-skills:artifact-emulator».
+`gp1/politeia-modelo.html` une las cinco vueltas en una sola pantalla que se juega de punta a punta (capturas `gp1/z1`–`z5`):
+- **Ciudad viva** que se desliza; tocar acerca la cámara; barra de los **cuatro actos** (cambia la luz y qué está abierto).
+- **Consejo** (primavera): pulso de tres asuntos con tres empujones; Filón empuja de vuelta; favor de Eudoro; chantaje si tienes su secreto.
+- **Tu casa**: banquete con mezcla de vino; con vino fuerte sale el secreto de Filón (y con puro, además riña y discordia).
+- **Puerto y santuario**: el trato con Corinto da un argumento; el trípode al oráculo ayuda en el debate y queda apuntado contra ti.
+- **Ágora** (otoño): funde a la escena; tres rondas con los argumentos que ganaste; luego caen las piedras una a una.
+  Si se aprueba la fuente, **la fuente se termina en la ciudad**.
+- **Tribunal** (invierno): te acusan solo de lo que hiciste; negar, pagar o contraatacar.
+- **La vasija**: régimen, discordia, crónica y escenas pintadas de tu partida.
+Es maqueta: dibujos de relleno, cifras sin equilibrar, un solo año, sin guardar. Comprobada en el visor de artefactos:
+arranca sin errores. Aún no está publicada como artefacto.
