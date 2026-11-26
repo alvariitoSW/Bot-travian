@@ -33,3 +33,6 @@ Las apunta la sesión BT1 al dictado, literal, para recopilar y definir después
 - Sus 7 imágenes objetivo (origen y licencia sin confirmar; todo el repositorio se publica con el juego): en su Google Drive, carpeta
   «AQVILA · Imágenes objetivo de las batallas (BT1, 26-11-2026)» (1–3 falange, 4–5 testudo, 6–7 arqueros). Lo que se ve en cada una: `estudios/REF-batallas-referencias.md`.
 - Nueva dirección propuesta con todo esto: `estudios/BT1-direccion-batallas.md`.
+
+7. **Cómo hacerlo (26/11)**, literal: «no puedes pedir a meshy más cosas tienes que tirar con lo que ya hay hecho y reusarlo. Lo de las animaciones ya hay unas animaciones en la app que no se cómo mejorar y habría que crear el departamento de animaciones de batalla para encargarse de mejorar esto. El motor de guerra es lo que hay que mejorar quiero saber cómo funciona exactamente lo que hemos creado. Los gráficos me aparecen bien y habría que meterle eso como si tuviera mods. Falta la jugabilidad y los menús cambiarlos por qué hay botones que han perdido funcionalidad. Los paisajes y los mapas habría que encargarse de hacerlos bien para las batallas y que se vea desde la visión del oficial exactamente como te he mandado en las imágenes».
+   Y antes (26/11): «¡Pero ahora no estamos en roma estamos en Grecia!» → la pieza de muestra pasa a ser el muro de hoplitas (pendiente de su «sí»).
