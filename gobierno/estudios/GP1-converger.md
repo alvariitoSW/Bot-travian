@@ -96,3 +96,33 @@ Vida larga, sí (generaciones, leyes que duran, cada polis su sabor, historia). 
 en cultura y en política, y se aprende la historia de cada polis.** Referencia de intrigas: Juego de Tronos (ideas, no su contenido).
 Segunda ronda propuesta: «El camino de la polis» (hitos de cultura y política ganados con actos políticos; cada polis
 con su camino real, que puedes seguir o torcer) y casas con emblema, herederos, bodas y traiciones.
+
+## 9. Maqueta mejorada: camino de la polis, casas y duelo de preguntas (26/11)
+**Palabras del usuario** (literal): «1- a ver cómo sería una maqueta 2- bueno, a parte de la historia real deberíamos crear
+como un guión de historia para la política, y más que salirte de la historia te castigue sino que haya decisiones que te
+perjudiquen de algún lado. 3- lo de las casas no lose, improvisa y sorprendeme 4- prueba con mejorar la maqueta que hay con
+estas ideas definidas».
+Lectura (mía): no se castiga torcer la historia; **toda decisión cuesta por algún lado**. Además de la historia real,
+hace falta un **guion propio** de la política. Las casas, a mi criterio.
+
+Añadido a `gp1/politeia-modelo.html` (capturas `gp1/m1`–`m8`; mismo enlace de artefacto):
+- **Guion por capítulos.** La partida abre con «Capítulo 3 · El año de las deudas» y su gancho en dos frases. Cada
+  capítulo trae un hito, un conflicto entre casas y un final abierto. Propuesta de guion para Atenas: 1 «La sangre en
+  el altar» (un golpe fallido y una maldición) · 2 «Leyes de sangre» (leyes escritas) · 3 «El año de las deudas» ·
+  4 «Tres comarcas» (Llanura, Costa y Monte se parten la ciudad) · 5 «El carro y la diosa» (el tirano) · 6 «Los hijos
+  del tirano» · 7 «El pueblo cuenta» (vota el pueblo). Cada polis, su guion; los nombres de las casas, inventados.
+- **El camino de la polis** (botón de la vasija): seis hitos de Atenas. En el hito del capítulo, el juego cuenta en dos
+  frases lo que pasó de verdad y da **tres salidas, ninguna gratis**: como Solón (pobres ▲▲, nobles ▼▼), torcer la
+  historia (repartir el monte: pobres ▲▲▲, hoplitas ▼, discordia +1) o dejarlo estar (nobles ▲, la discordia sube cada
+  año). Si el hito se gana en el ágora, **aparece en la ciudad** (una estela con las leyes).
+- **Las casas** (cinco, con emblema, comarca, lema y una grieta): Caballo (Llanura, nobles viejos, «La tierra
+  recuerda», arrastra una maldición), Delfín (Costa, mercaderes, «El mar no pregunta apellidos», debe plata a Corinto),
+  Carnero (Monte, pastores y pobres, «Somos más», su jefe no sabe leer y su hija sí), Gallo (hoplitas, «Primero en la
+  fila», juró matar a un Caballo) y la tuya, la Abeja (nueva, «Poco a poco»). El emblema va junto al nombre de cada
+  persona en la ciudad. Los emblemas salen de los que se pintaban en los escudos (licencia de juego en el detalle).
+- **Duelo de preguntas**: eliges quién sube a la piedra (tú, tu poeta o un aliado; cada uno con su ventaja); haces dos
+  preguntas de las que tienes, que salen de lo que sabes; él miente, calla o dice la verdad, y todo le cuesta (si
+  tienes la prueba y miente, se hunde). Luego **pregunta él**, con lo que sabe de tus atajos: mentir, callar o decir la
+  verdad (duele hoy, pero ya no podrán usarlo en el tribunal). Al final caen las piedras.
+Historia (de memoria, por cotejar): maldición por matar suplicantes, Heródoto 5.71 y Tucídides 1.126; Solón, *Const.
+aten.* 6 y 11; emblemas de escudo, cerámica ática de figuras negras.

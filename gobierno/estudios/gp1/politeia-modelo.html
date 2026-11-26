@@ -47,7 +47,7 @@ input[type=range]{width:100%;accent-color:#7a1f1f}
 <div class="top">🪙 270 &nbsp;🌾 450 &nbsp;🧱 800<small>ATENAS · PRIMAVERA · 594 a.C.</small></div>
 <div id="esc"><svg id="sv" width="374" height="600"><g id="mundo"></g></svg>
 <div id="hud"><div id="h1"></div><div id="h2"></div></div>
-<div id="vasija">🏺<br>tu vasija<br>crónica</div>
+<div id="vasija">🏺<br>vasija y<br>camino</div>
 <div id="ficha"></div>
 <div id="ilus"></div></div>
 <div class="actos" id="actos"></div>
@@ -125,10 +125,11 @@ ${G(1070,440,1.1,LECHO)}${G(1160,436,1,CRAT)}<rect x="1196" y="388" width="18" h
 /* pueblo que anda */
 H+=anda('P',250,432,90,11)+anda('P',330,434,-50,8,'no')+anda('H',470,432,60,10)+anda('M',180,424,60,13)+anda('P',520,434,-70,12,'no')+anda('N',800,432,-90,14)+anda('H',980,432,50,9)+anda('P',1010,434,-60,10)+anda('M',560,434,40,12)+anda('P',300,436,40,7)+anda('H',1250,432,-40,9)+anda('P',360,430,60,15,'si')+anda('N',700,470,60,12)+anda('P',900,470,-80,13);
 /* 8 con nombre */
-H+=per('M','',176,420,'Enviado de Corinto')+per('M','',256,426,'Eudoro')+per('P','no',340,426,'Demo')+per('H','',424,404,'Nicóstrato')+per('N','no',548,426,'Calescro')+per('N','no',796,404,'Filón')+per('N','',1092,400,'Tu poeta',22)+per('N','tu',1004,426,'Tú');
+H+=per('M','',176,420,'Enviado de Corinto')+per('M','',256,426,'🐬 Eudoro')+per('P','no',340,426,'🐏 Demo')+per('H','',424,404,'🐓 Nicóstrato')+per('N','no',548,426,'🐎 Calescro')+per('N','no',796,404,'🐎 Filón')+per('N','',1092,400,'Tu poeta',22)+per('N','tu',1004,426,'🐝 Tú');
 /* letreros de lugar y avisos */
 H+=lug(120,360,'PUERTO')+lug(366,322,'ÁGORA')+lug(685,258,'CONSEJO')+lug(900,318,'TRIBUNAL')+lug(1140,298,'TU CASA')+lug(690,92,'SANTUARIO')+tag(510,396,'fuente: en obras')
  +aviso(210,400,'⛵')+aviso(690,300,'⚖️')+aviso(330,404,'💬')+aviso(1210,330,'🍷');
+H+=`<g id="estela" style="display:none"><path d="M462 470v-52q11-12 22 0v52z" fill="${M}" stroke="${K}" stroke-width="2.5"/><path d="M467 428h12M467 436h12M467 444h12M467 452h12" stroke="${K}" stroke-width="1.2"/>${tag(473,398,'Leyes de la polis')}</g>`;
 /* zonas tocables */
 const L=[
 {id:'puerto',x:0,y:340,w:250,h:260,cx:150,cy:440,s:1.9,n:'El puerto',t:'Un barco de Corinto. Su enviado pide pagar menos en tu puerto y ofrece 20 remeros contra Mégara.',o:['Invitarlo al banquete','Llevarlo al Consejo']},
@@ -155,7 +156,7 @@ const ops=(...o)=>`<div class="ops">${o.map(([a,t,c])=>`<button class="${c||''}"
 const paso=()=>{S.pasos=Math.max(0,S.pasos-1);hud()};
 const P={
 puerto:()=>`<b class="n">El puerto</b>Un barco de Corinto. Su enviado pide pagar menos en tu puerto; ofrece 20 remeros contra Mégara.`+ops(['remeros','Aceptar el trato','p'],['invitar','Invitarlo al banquete']),
-agora:()=>S.acto==2?`<b class="n">El ágora · hoy se debate</b>${S.tuyo?`Presentas tú: <b>${NOM[S.tuyo]}</b>.`:'No ganaste la agenda: presenta Filón «Guerra a Mégara». Aun así puedes hablar.'} Tienes ${S.args.length+(S.secreto?1:0)} argumentos.`+ops(['debate','Subir a la piedra ▶','p'])
+agora:()=>S.acto==2?`<b class="n">El ágora · hoy se debate</b>${S.tuyo?`Presentas tú: <b>${NOM[S.tuyo]}</b>.`:'No ganaste la agenda: presenta Filón «Guerra a Mégara». Aun así puedes preguntar.'} Será un duelo de preguntas: gana quien sabe más del otro.`+ops(['debate','Subir a la piedra ▶','p'])
  :`<b class="n">El ágora</b>Demo murmura contra los nobles junto a la fuente a medio hacer. En otoño, aquí se debate.`+ops(['rumor','Escuchar el corrillo','p']),
 consejo:()=>{if(S.acto!=0)return `<b class="n">El Consejo</b>Cerrado hasta la primavera. ${S.tuyo?'Este año presentas «'+NOM[S.tuyo]+'».':''}`+ops();
  let h=`<b class="n">El Consejo · el pulso de la agenda</b>Te quedan <b>${S.emp}</b> empujones. Lo que llegue a tu lado, lo presentas tú.`;
@@ -165,13 +166,17 @@ tribunal:()=>S.acto==3?`<b class="n">El tribunal · tus cuentas</b>Once jueces, 
  :`<b class="n">El tribunal</b>En invierno darás cuentas de lo que hagas este año. Hoy lleva ${S.cargos.length} cosas apuntadas contra ti.`+ops(),
 casa:()=>`<b class="n">Tu casa · banquete</b>Invitas a Filón, Eudoro y Nicóstrato. Tú mezclas el vino:<input id="vino" type="range" min="1" max="3" value="2"><div style="display:flex;justify-content:space-between;font-size:11px"><span>aguado</span><span>fuerte</span><span>puro</span></div>`+ops(['lengua','Tirar de la lengua a Filón','p'],['brindar','Brindar']),
 santuario:()=>`<b class="n">El santuario</b>El oráculo habla a medias. Un trípode de regalo lo inclina… y eso sería un secreto tuyo.`+ops(['oraculo','Consultar'],['tripode','Regalar un trípode','p']),
-vasija:()=>`<b class="n">Tu vasija</b><b>Régimen:</b> Aristocracia · mandan los nobles · discordia ${S.disc} de 6${S.disc>=5?' · <b>se agrieta</b>':''}<br><b>Crónica</b><ul class="cron">${S.cron.slice(-4).map(c=>`<li>${c}</li>`).join('')}</ul><b>Escenas pintadas</b><ul class="cron">${S.escenas.map(c=>`<li>🏺 ${c}</li>`).join('')}</ul>`+`<div class="ops"><button class="g" data-a="x">Cerrar</button></div>`};
+vasija:()=>`<b class="n">Tu vasija · capítulo 3</b><i>El año de las deudas.</i> Régimen: Aristocracia · discordia ${S.disc} de 6${S.disc>=5?' · <b>se agrieta</b>':''}<br><b>Crónica</b><ul class="cron">${S.cron.slice(-3).map(c=>`<li>${c}</li>`).join('')}</ul><b>Escenas pintadas</b><ul class="cron">${S.escenas.map(c=>`<li>🏺 ${c}</li>`).join('')}</ul><div class="ops"><button data-a="camino" class="p">El camino de la polis</button><button data-a="casas">Las casas</button><button class="g" data-a="x">Cerrar</button></div>`,
+camino:()=>`<b class="n">El camino de Atenas</b><div style="display:flex;gap:3px;margin:4px 0;font-size:10px;text-align:center;line-height:1.15">${[['📜','Leyes escritas',1],['⚖️','Las deudas',S.hito=='hecho'?1:2],['⛲','Agua y obras',S.fuente?1:0],['🎭','Grandes fiestas',0],['🦉','Moneda',0],['✋','Vota el pueblo',0]].map(h=>`<div style="flex:1;padding:4px 1px;border-radius:6px;border:2px solid #1c120c;background:${h[2]==1?'#1c120c;color:#f0dfb8':h[2]==2?'#fff7dc;outline:3px solid #7a1f1f':'#d98a4a55'}"><div style="font-size:17px">${h[0]}</div>${h[1]}</div>`).join('')}</div>
+${S.hito?`Elegiste: <b>${S.hito=='solon'?'como Solón':S.hito=='tierra'?'repartir el monte':'hito cumplido'}</b>. Ahora hay que llevarlo al Consejo y ganarlo en el ágora.<div class="ops"><button class="g" data-a="x">Cerrar</button></div>`
+:`<b>Hito de este capítulo: las deudas.</b> <i>En la historia real (594 a.C.), Solón perdonó las deudas y prohibió hacer esclavo al deudor. Luego se marchó diez años.</i><br>Ningún camino es gratis:<div class="cartas"><button data-a="hito" data-h="solon"><b>Como Solón</b>perdonar las deudas<br>🐏 pobres ▲▲ · 🐎 nobles ▼▼</button><button data-a="hito" data-h="tierra"><b>Torcer la historia</b>repartir tierras del monte<br>🐏 ▲▲▲ · 🐓 hoplitas ▼ · discordia +1</button><button data-a="hito" data-h="nada"><b>Dejarlo estar</b>nada cambia<br>🐎 ▲ · la discordia sube cada año</button></div>`}`,
+casas:()=>`<b class="n">Las casas de Atenas</b><div style="font-size:11.5px;line-height:1.3">${[['🐎','Casa del Caballo','Llanura · nobles viejos · Filón','«La tierra recuerda»','Arrastra una maldición antigua: mataron a suplicantes en un altar.'],['🐬','Casa del Delfín','Costa · mercaderes · Eudoro','«El mar no pregunta apellidos»','Deben plata a Corinto.'],['🐏','Casa del Carnero','Monte · pastores y pobres · Demo','«Somos más»','Su jefe no sabe leer; su hija, sí.'],['🐓','Casa del Gallo','hoplitas · Nicóstrato','«Primero en la fila»','Juró matar a un Caballo.'],['🐝','Tu casa: la Abeja','nueva, sin abuelos ilustres','«Poco a poco»','Tus secretos: '+S.cargos.length+'.']].map(c=>`<div style="border-top:1.5px solid #1c120c44;padding:3px 0"><b>${c[0]} ${c[1]}</b> · ${c[2]}<br><i>${c[3]}</i> · ${c[4]}</div>`).join('')}</div>El emblema va en el nombre de cada persona de la ciudad.<div class="ops"><button class="g" data-a="x">Cerrar</button></div>`};
 function abre(id){cur=id;ficha.innerHTML=P[id]();ficha.classList.add('v')}
 function entra(l){zoom=l;mundo.classList.remove('arr');pinta();abre(l.id);$('#vasija').style.opacity=0}
 function sale(){zoom=null;cur=null;pinta();ficha.classList.remove('v');$('#vasija').style.opacity=1}
 function di(t,escena){S.cron.push(t);if(escena)S.escenas.push(escena);ficha.innerHTML=`<b class="n">Hecho</b>${t}<div class="ops"><button class="g" data-a="x">Alejar</button></div>`}
 function filon(){const k=Object.keys(S.ag).filter(k=>S.ag[k]>0&&S.ag[k]<6).sort((a,b)=>S.ag[b]-S.ag[a])[0];if(k)S.ag[k]++}
-function cierra(){if(S.emp>0)return;const mio=Object.keys(S.ag).filter(k=>S.ag[k]<=2);S.tuyo=mio.includes('fuente')?'fuente':mio[0]||null;S.cron.push(S.tuyo?`Ganaste la agenda: en otoño presentas «${NOM[S.tuyo]}».`:'Filón se llevó la agenda.')}
+function cierra(){if(S.emp>0)return;const mio=Object.keys(S.ag).filter(k=>S.ag[k]<=2);S.tuyo=(S.hito&&S.hito!='nada'&&mio.includes('deudas'))?'deudas':mio.includes('fuente')?'fuente':mio[0]||null;S.cron.push(S.tuyo?`Ganaste la agenda: en otoño presentas «${NOM[S.tuyo]}».`:'Filón se llevó la agenda.')}
 ficha.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
  if(a=='x')return sale();
  if(a=='emp'){S.ag[b.dataset.k]--;S.emp--;filon();cierra();return abre('consejo')}
@@ -184,32 +189,42 @@ ficha.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.da
  if(a=='lengua'){paso();const v=+$('#vino').value;if(v==1)return di('Con vino aguado, Filón no suelta nada.');S.secreto=true;if(v==3){S.disc++;hud();return di('Vino puro: Filón confiesa que cobra de Mégara… y acaba a golpes con Nicóstrato. Discordia +1. Ganas «Escándalo».')}return di('Filón, con la lengua suelta, confiesa que cobra de Mégara. Ganas el argumento «Escándalo».')}
  if(a=='oraculo'){paso();return di('El oráculo: «Quien da agua, gana la plaza».')}
  if(a=='tripode'){paso();S.tripode=true;S.plata-=40;S.cargos.push('Regalaste un trípode al oráculo');return di('El oráculo hablará a tu favor en el debate (+1). Queda apuntado: te lo pueden sacar en invierno.')}
+ if(a=='camino'||a=='camino0'){zoom=zoom||{s:1,cx:cam+VW/2,cy:660-VH/2};return abre('camino')}if(a=='casas')return abre('casas');
+ if(a=='hito'){const h=b.dataset.h;S.hito=h;if(h=='solon'){S.ag.deudas=2;S.cron.push('Anuncias que perdonarás las deudas. La Casa del Caballo te la guarda.')}if(h=='tierra'){S.ag.deudas=2;S.disc++;NOM.deudas='Reparto del monte';S.cron.push('Prometes repartir el monte. Los hoplitas temen por sus lindes.')}if(h=='nada'){S.cron.push('Dejas las deudas como están. Los pobres no olvidan.')}hud();return abre('camino')}
  if(a=='debate')return debate();
  if(a=='negar')return di(S.cargos.length?'Eudoro habla. Los jueces no te creen: multa de 120 y pierdes el cargo.':'Nadie sabe nada. Libre: prestigio +5.',S.cargos.length?null:'594 · Sales limpio del tribunal');
  if(a=='multa'){S.plata-=80;return di('Pagas 80 de plata y el asunto se cierra.')}
  if(a=='contra'){S.disc++;hud();return di('Sacas el secreto de Filón ante los jueces. Te absuelven; él queda marcado. Discordia +1.','594 · Hundes a Filón en el tribunal')}
 };
-/* debate: funde a la «ilustración» y se juega encima */
-function debate(){let b=S.tripode?1:0,r=1;const mano=[...S.args.map(a=>[...a,0])];if(S.secreto)mano.push(['🗝️','Escándalo','nobles',3,1]);mano.push(['🎵','En verso','todos',1,0]);
- const dibuja=(dijo,resp)=>{ilus.innerHTML=`<svg width="340" height="210" viewBox="0 0 340 210" style="background:#e39a58;border:3px solid #f0dfb8;border-radius:6px">
-<path d="M40 130h50v-18q-25-10-50 0zM250 130h50v-18q-25-10-50 0z" fill="${M}" stroke="${K}" stroke-width="2"/>${fx('N','tu',40,46,44)}${fx('N','no',40,256,44)}
-${dijo?`<g class="tag"><rect x="92" y="18" rx="8" width="${dijo.length*6+14}" height="18"/><text x="${99+dijo.length*3}" y="31" text-anchor="middle">${dijo}</text></g>`:''}${resp?`<g class="tag"><rect x="${240-resp.length*6}" y="46" rx="8" width="${resp.length*6+14}" height="18" style="fill:#7a1f1f"/><text x="${247-resp.length*3}" y="59" text-anchor="middle" style="fill:#f6ecd0">${resp}</text></g>`:''}
-${[...Array(14)].map((_,i)=>fx('PPHHMN'[i%6],i<7+b?'si':(i>10+b/2?'no':''),20,14+i*22,160)).join('')}</svg>
-<b style="font-size:15px;margin-top:6px">${NOM[S.tuyo||'guerra']} · ronda ${Math.min(r,3)} de 3</b><div class="bal"><i style="width:${50+b*8}%"></i><u></u></div>
-<div id="zona" style="width:330px"></div>`;
-  const z=$('#zona');if(r<=3){z.innerHTML=`<div class="cartas">${mano.map((c,i)=>`<button data-c="${i}" class="${c[4]?'s':''}" ${c[5]?'disabled':''}>${c[0]}<b>${c[1]}</b>${c[2]} ▲${c[3]>1?'▲':''}</button>`).join('')}</div><p style="font-size:11px;opacity:.8">Cada argumento se gasta. Los ganaste jugando.</p>`;
-   z.onclick=e=>{const t=e.target.closest('[data-c]');if(!t)return;const c=mano[+t.dataset.c];c[5]=1;b+=c[3];if(c[4]){S.disc++;hud()}const re=['«¿Y quién paga?»','«Palabras de niño»','«Los dioses no lo quieren»'][r-1];b-=r==2?2:1;r++;dibuja('«'+c[1]+'»',re)}}
-  else piedras(z)};
+/* debate: funde a la «ilustración»; duelo de preguntas */
+function debate(){let b=S.tripode?1:0,quien=null,n=0;const as=S.tuyo||'guerra';
+ const Q=[['¿Quién pagará las deudas de los pobres?','Dice la verdad: «Nadie». Los pobres le silban.',1,'plata'],
+  S.secreto?['¿De quién es la plata que llevas encima?','Miente… y tú enseñas la prueba de Mégara. Se hunde.',3,'plata']:['¿Con quién cenaste anoche?','Miente con aplomo. No tienes prueba: no pasa nada.',0,''],
+  ['¿Qué has hecho tú por esta ciudad?','Calla. Los que dudan lo notan.',1,'']];
+ if(S.args.length>1)Q.push(['¿Por qué Corinto se fía de mí y no de ti?','No sabe qué contestar.',2,'plata']);
+ const pon=(dijo,resp,zona)=>{ilus.innerHTML=`<svg width="340" height="200" viewBox="0 0 340 200" style="background:#e39a58;border:3px solid #f0dfb8;border-radius:6px">
+<path d="M40 130h50v-18q-25-10-50 0zM250 130h50v-18q-25-10-50 0z" fill="${M}" stroke="${K}" stroke-width="2"/>${fx(quien=='eudoro'?'M':'N','tu',40,46,44)}${fx('N','no',40,256,44)}
+<text x="65" y="148" text-anchor="middle" font-size="10" font-family="Georgia">${quien=='poeta'?'tu poeta':quien=='eudoro'?'🐬 Eudoro':'🐝 tú'}</text><text x="275" y="148" text-anchor="middle" font-size="10" font-family="Georgia">🐎 Filón</text>
+${[...Array(14)].map((_,i)=>fx('PPHHMN'[i%6],i<7+b?'si':(i>10+b/2?'no':''),20,14+i*22,156)).join('')}</svg>
+<b style="font-size:15px;margin-top:6px">${NOM[as]} · duelo de preguntas</b><div class="bal"><i style="width:${Math.max(4,Math.min(96,50+b*8))}%"></i><u></u></div>
+${dijo?`<p style="margin:4px 0;max-width:330px"><b>${dijo}</b><br>${resp}</p>`:''}<div id="zona" style="width:330px">${zona}</div>`;return $('#zona')};
+ const elige=()=>{const z=pon('','',`<p style="margin:4px 0">¿Quién sube a la piedra?</p><div class="cartas"><button data-q="tu">🐝<b>Tú</b>si ganas, el hito lleva tu nombre</button><button data-q="poeta">🎵<b>Tu poeta</b>la primera pregunta vale +1</button><button data-q="eudoro" ${S.favor?'':'disabled'}>🐬<b>Eudoro</b>+1 en las de plata · gastas su favor</button></div>`);
+  z.onclick=e=>{const t=e.target.closest('[data-q]');if(!t||t.disabled)return;quien=t.dataset.q;if(quien=='eudoro')S.favor=false;pregunta()}};
+ const pregunta=(dijo,resp)=>{if(n==2)return suya(dijo,resp);const z=pon(dijo||'',resp||'',`<p style="margin:4px 0">Tu pregunta ${n+1} de 2 · él puede mentir, callar o decir la verdad</p><div class="cartas" style="flex-direction:column">${Q.map((q,i)=>`<button data-c="${i}" style="min-height:40px" ${q[4]?'disabled':''}>«${q[0]}»</button>`).join('')}</div>`);
+  z.onclick=e=>{const t=e.target.closest('[data-c]');if(!t||t.disabled)return;const q=Q[+t.dataset.c];q[4]=1;let v=q[2];if(quien=='poeta'&&n==0)v++;if(quien=='eudoro'&&q[3]=='plata')v++;b+=v;n++;pregunta('«'+q[0]+'»',q[1]+(v?' <b>+'+v+'</b>':''))}};
+ const suya=(dijo,resp)=>{const c=S.cargos[0];const z=pon(dijo,resp,`<p style="margin:4px 0;color:#f6b0a0"><b>Ahora pregunta Filón:</b> «${c?'¿Es verdad que '+c.toLowerCase()+'?':'¿Y tú qué ganas con esto?'}»</p><div class="cartas"><button data-r="m"><b>Mentir</b>${c?'arriesgado: alguien lo sabe':'nadie puede desmentirte'}</button><button data-r="c"><b>Callar</b>pierdes a algunos que dudan</button><button data-r="v"><b>La verdad</b>${c?'duele hoy, pero ya no podrán usarlo en el tribunal':'«Gano una ciudad en paz»'}</button></div>`);
+  z.onclick=e=>{const t=e.target.closest('[data-r]');if(!t)return;const r=t.dataset.r;let txt;if(r=='m'){if(c){b-=2;txt='Te desmienten delante de todos. <b>−2</b>'}else txt='Cuela.'}if(r=='c'){b-=1;txt='Silencio incómodo. <b>−1</b>'}if(r=='v'){if(c){b-=1;S.cargos.shift();txt='Lo admites. <b>−1</b>, pero queda limpio para el invierno.'}else{b+=1;txt='La plaza asiente. <b>+1</b>'}}piedras(pon('Respondes a Filón',txt,''))}};
  const piedras=z=>{let si=9+Math.max(-3,Math.min(3,b)),no=20-si-5,q=5;const pinta2=()=>z.innerHTML=`<div class="urn"><div><b>${si}</b>${'<i class="pd s"></i>'.repeat(si)}<br>SÍ</div><div style="opacity:.8">${q?q+' por caer':'&nbsp;'}</div><div><b>${no}</b>${'<i class="pd n"></i>'.repeat(no)}<br>NO</div></div>`;pinta2();
-  const t=setInterval(()=>{if(q==0){clearInterval(t);const g=si>no;const as=S.tuyo||'guerra';S.cron.push(g?`La asamblea aprueba «${NOM[as]}».`:`La asamblea rechaza «${NOM[as]}».`);if(g)S.escenas.push('594 · '+NOM[as]);if(g&&as=='fuente')fuente();
-    z.innerHTML+=`<p><b style="font-size:16px">${g?'Sale adelante':'No sale'}: ${si} a ${no}</b><br>${g?(as=='fuente'?'La fuente se termina: mírala en la ciudad.':'Se pinta en tu vasija.'):'Discordia +1.'}</p><button>Volver a la ciudad</button>`;if(!g){S.disc++;hud()}z.querySelector('button').onclick=()=>{ilus.classList.remove('v');sale()};return}
+  const t=setInterval(()=>{if(q==0){clearInterval(t);const g=si>no;S.cron.push(g?`La asamblea aprueba «${NOM[as]}»${quien=='tu'?', y lleva tu nombre':''}.`:`La asamblea rechaza «${NOM[as]}».`);if(g)S.escenas.push('594 · '+NOM[as]);if(g&&as=='fuente')fuente();if(g&&as=='deudas'){S.hito='hecho';$('#estela').style.display=''}
+    z.innerHTML+=`<p><b style="font-size:16px">${g?'Sale adelante':'No sale'}: ${si} a ${no}</b><br>${g?(as=='fuente'?'La fuente se termina: mírala en la ciudad.':as=='deudas'?'Hito cumplido: una estela con las leyes se alza en el ágora.':'Se pinta en tu vasija.'):'Discordia +1.'}</p><button>Volver a la ciudad</button>`;if(!g){S.disc++;hud()}z.querySelector('button').onclick=()=>{ilus.classList.remove('v');sale()};return}
    q--;(Math.random()<.5+b*.12)?si++:no++;pinta2()},650)};
- dibuja();ilus.classList.add('v')}
-function fuente(){const g=mundo.querySelector('g[stroke-dasharray="5 4"]');if(g){g.setAttribute('stroke-dasharray','');g.querySelector('path').setAttribute('fill',M)}const t=[...mundo.querySelectorAll('.tag text')].find(t=>t.textContent.includes('en obras'));if(t)t.textContent='Fuente de la polis'}
+ elige();ilus.classList.add('v')}
+function fuente(){S.fuente=true;const g=mundo.querySelector('g[stroke-dasharray="5 4"]');if(g){g.setAttribute('stroke-dasharray','');g.querySelector('path').setAttribute('fill',M)}const t=[...mundo.querySelectorAll('.tag text')].find(t=>t.textContent.includes('en obras'));if(t)t.textContent='Fuente de la polis'}
 let d=null;
 esc.addEventListener('pointerdown',e=>{if(e.target.closest('#ficha,#ilus,#vasija'))return;d={x:e.clientX,c:cam,m:0,t:e.target};mundo.classList.add('arr')});
 esc.addEventListener('pointermove',e=>{if(!d||zoom)return;d.m=Math.abs(e.clientX-d.x);cam=Math.max(0,Math.min(W-VW,d.c-(e.clientX-d.x)));pinta()});
 esc.addEventListener('pointerup',e=>{if(!d)return;mundo.classList.remove('arr');if(d.m<8){const id=d.t.dataset&&d.t.dataset.id;if(zoom)sale();else if(id)entra(L.find(l=>l.id==id));else if(ficha.classList.contains('v'))sale()}d=null});
 $('#vasija').onclick=()=>{zoom={s:1,cx:cam+VW/2,cy:660-VH/2};abre('vasija')};
-pinta();hud();window._p={entra:id=>entra(L.find(l=>l.id==id)),sale,debate,S,cam:v=>{cam=v;pinta()},hud};
+pinta();hud();ficha.innerHTML=`<b class="n">Capítulo 3 · El año de las deudas</b>Los pobres del monte deben más de lo que cosechan, y la Casa del Caballo cobra en hombres. Cuatro casas esperan a ver qué hace la tuya.<div class="ops"><button class="p" data-a="camino0">Ver el camino de la polis</button><button class="g" data-a="x">Empezar</button></div>`;ficha.classList.add('v');
+window._p={entra:id=>entra(L.find(l=>l.id==id)),sale,debate,S,cam:v=>{cam=v;pinta()},hud};
 </script></body></html>
