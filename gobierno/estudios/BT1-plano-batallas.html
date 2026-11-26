@@ -1,0 +1,196 @@
+<title>Plano de las batallas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Plano de cianotipo: papel azul de arquitecto, tinta clara y bronce para lo que manda el usuario. Una columna; el plano en SVG arriba. */
+:root{
+  --papel:#e9eef4; --tinta:#13253d; --tinta2:#4a5d76; --linea:#9fb1c7; --bronce:#a86b1f; --hoja:#f6f8fb;
+  --si:#2f7a4a; --medio:#b07a12; --no:#a3362b;
+  --disp:'Cinzel',Georgia,serif; --texto:'Source Sans 3',system-ui,sans-serif; --dato:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --papel:#0f2240; --tinta:#e6eefb; --tinta2:#a8bbd6; --linea:#3c5a85; --bronce:#e0a24c; --hoja:#16305a;
+  --si:#6fcf91; --medio:#f0c060; --no:#f08a7d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --papel:#0f2240; --tinta:#e6eefb; --tinta2:#a8bbd6; --linea:#3c5a85; --bronce:#e0a24c; --hoja:#16305a;
+  --si:#6fcf91; --medio:#f0c060; --no:#f08a7d; color-scheme:dark}
+body{background:var(--papel);color:var(--tinta);font:16px/1.5 var(--texto);
+  background-image:linear-gradient(var(--linea) 1px,transparent 1px),linear-gradient(90deg,var(--linea) 1px,transparent 1px);
+  background-size:24px 24px;background-attachment:fixed}
+.pag{max-width:760px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+.hoja{background:var(--hoja);border:1.5px solid var(--tinta);padding:18px 16px;min-width:0}
+h1{font:700 clamp(26px,7vw,38px)/1.1 var(--disp);margin:0;letter-spacing:.02em;text-wrap:balance}
+h2{font:700 20px/1.2 var(--disp);margin:0 0 12px;letter-spacing:.03em;text-wrap:balance}
+.rot{font:500 11px/1 var(--dato);letter-spacing:.12em;text-transform:uppercase;color:var(--tinta2)}
+p{margin:0}
+.lema{font-size:18px;margin-top:10px;max-width:60ch}
+.marca{color:var(--bronce);font-weight:700}
+.dibujo{overflow-x:auto}
+.dibujo svg{display:block;width:100%;min-width:340px;height:auto}
+.dibujo text{font-family:var(--texto);fill:var(--tinta)}
+.leyenda{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:13px;color:var(--tinta2)}
+.leyenda i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--tinta);margin-right:6px;vertical-align:-2px}
+.critica{display:grid;gap:8px;padding:14px 0;border-top:1px dashed var(--linea)}
+.critica:first-of-type{border-top:0;padding-top:0}
+.critica h3{margin:0;font:700 16px/1.3 var(--texto)}
+.critica h3 b{font-family:var(--dato);font-weight:500;color:var(--bronce);margin-right:6px}
+.cita{font-style:italic;color:var(--tinta2)}
+.fila{display:grid;grid-template-columns:92px 1fr;gap:4px 10px;font-size:15px}
+.fila dt{font:500 11px/1.6 var(--dato);letter-spacing:.08em;text-transform:uppercase;color:var(--tinta2);padding-top:2px}
+.fila dd{margin:0;min-width:0}
+.hito{display:grid;grid-template-columns:40px 1fr;gap:10px;padding:12px 0;border-top:1px dashed var(--linea)}
+.hito:first-of-type{border-top:0}
+.n{font:700 22px/1 var(--disp);color:var(--bronce);text-align:center;border:1.5px solid var(--bronce);height:40px;display:grid;place-items:center}
+.hito h3{margin:0 0 4px;font:700 16px/1.3 var(--texto)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font:500 11px/1 var(--dato);padding:5px 7px;border:1px solid currentColor;letter-spacing:.05em}
+.c-s{color:var(--si)} .c-m{color:var(--medio)} .c-n{color:var(--no)} .c-t{color:var(--tinta2)}
+.freno{margin-top:8px;padding:10px 12px;border:1.5px solid var(--no);color:var(--tinta);font-size:15px}
+.tres{display:grid;gap:12px}
+@media (min-width:640px){.tres{grid-template-columns:repeat(3,1fr)}}
+.col h3{margin:0 0 6px;font:700 14px/1.2 var(--dato);letter-spacing:.06em;text-transform:uppercase}
+.col ul{margin:0;padding-left:18px;font-size:15px;display:grid;gap:4px}
+ol.decide{margin:0;padding-left:22px;display:grid;gap:8px}
+.pie{font-size:13px;color:var(--tinta2)}
+</style>
+
+<main class="pag">
+  <header class="hoja">
+    <p class="rot">AQVILA · Plano de las batallas · 26/11/2026</p>
+    <h1>Una batalla griega en la que estás dentro</h1>
+    <p class="lema">Mezcla de <span class="marca">Rome 2</span> (mandar el ejército desde arriba) y <span class="marca">Ryse</span> (luchar desde el hombro del oficial, con peso), <b>en el mismo mundo</b>. Une tus 7 críticas con los dos informes de Fable 5.2.</p>
+  </header>
+
+  <section class="hoja" aria-labelledby="t-plano">
+    <p class="rot">El plano</p>
+    <h2 id="t-plano">Un mundo, dos alturas, un solo motor</h2>
+    <div class="dibujo">
+      <svg viewBox="0 0 680 560" role="img" aria-label="Esquema: arriba las dos vistas del mismo campo; debajo las capas del motor único, de los hombres a la pantalla">
+        <defs><marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--bronce)"/></marker></defs>
+        <!-- vista de general -->
+        <rect x="10" y="10" width="320" height="190" fill="none" stroke="var(--tinta)" stroke-width="1.5"/>
+        <text x="22" y="34" font-size="15" font-weight="700">VISTA DE GENERAL · Rome 2</text>
+        <g fill="#3a64a8" stroke="var(--tinta)" stroke-width="1"><rect x="40" y="130" width="60" height="22"/><rect x="120" y="130" width="60" height="22"/><rect x="200" y="130" width="60" height="22"/></g>
+        <g fill="#b23a2a" stroke="var(--tinta)" stroke-width="1"><rect x="50" y="64" width="60" height="22"/><rect x="130" y="64" width="60" height="22"/><rect x="210" y="64" width="60" height="22"/></g>
+        <path d="M150 128 L150 92" stroke="var(--bronce)" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#fl)"/>
+        <text x="22" y="186" font-size="13" fill="var(--tinta2)">Varios bloques por bando · mandas cada uno</text>
+        <!-- vista del oficial -->
+        <rect x="350" y="10" width="320" height="190" fill="none" stroke="var(--tinta)" stroke-width="1.5"/>
+        <text x="362" y="34" font-size="15" font-weight="700">VISTA DEL OFICIAL · Ryse</text>
+        <g stroke="var(--tinta)" stroke-width="1.5" fill="none">
+          <circle cx="510" cy="150" r="20" fill="#3a64a8"/><circle cx="465" cy="158" r="16" fill="#3a64a8"/><circle cx="555" cy="158" r="16" fill="#3a64a8"/>
+          <path d="M510 130 L560 70 M470 142 L515 78 M550 142 L600 82"/>
+          <circle cx="470" cy="80" r="11" fill="#b23a2a"/><circle cx="520" cy="72" r="11" fill="#b23a2a"/><circle cx="570" cy="80" r="11" fill="#b23a2a"/><circle cx="615" cy="88" r="9" fill="#b23a2a"/>
+        </g>
+        <text x="362" y="186" font-size="13" fill="var(--tinta2)">Tú en la fila · duelo con el dedo</text>
+        <!-- pellizco -->
+        <path d="M332 92 C340 80 342 80 348 92" stroke="var(--bronce)" stroke-width="2" fill="none" marker-end="url(#fl)"/>
+        <path d="M348 118 C340 130 338 130 332 118" stroke="var(--bronce)" stroke-width="2" fill="none" marker-end="url(#fl)"/>
+        <text x="340" y="112" font-size="11" text-anchor="middle" fill="var(--bronce)" font-weight="700">pellizco</text>
+        <!-- flecha al motor -->
+        <path d="M340 205 L340 238" stroke="var(--tinta)" stroke-width="1.5" marker-end="url(#fl)"/>
+        <text x="352" y="228" font-size="12" fill="var(--tinta2)">las dos miran el mismo campo</text>
+        <!-- capas -->
+        <g font-size="14">
+          <rect x="10" y="244" width="660" height="44" fill="var(--hoja)" stroke="var(--bronce)" stroke-width="2"/>
+          <text x="22" y="264" font-weight="700">1 · NÚCLEO: cada hombre es la verdad</text><text x="22" y="281" font-size="12" fill="var(--tinta2)">aliento, aplomo y miedo · 20 pasos por segundo · igual mires donde mires · corre en Node</text>
+          <rect x="10" y="294" width="325" height="44" fill="none" stroke="var(--tinta)" stroke-width="1.5"/>
+          <text x="22" y="314" font-weight="700">2 · Cuerpos</text><text x="22" y="331" font-size="12" fill="var(--tinta2)">empujar, ceder suelo, nada atraviesa</text>
+          <rect x="345" y="294" width="325" height="44" fill="none" stroke="var(--tinta)" stroke-width="1.5"/>
+          <text x="357" y="314" font-weight="700">3 · Lucha</text><text x="357" y="331" font-size="12" fill="var(--tinta2)">golpe, parada, herida, cae donde le dan</text>
+          <rect x="10" y="344" width="325" height="44" fill="none" stroke="var(--tinta)" stroke-width="1.5"/>
+          <text x="22" y="364" font-weight="700">4 · Moral</text><text x="22" y="381" font-size="12" fill="var(--tinta2)">miedo que se contagia; huyen desde atrás</text>
+          <rect x="345" y="344" width="325" height="44" fill="none" stroke="var(--tinta)" stroke-width="1.5"/>
+          <text x="357" y="364" font-weight="700">5 · Tropas como datos</text><text x="357" y="381" font-size="12" fill="var(--tinta2)">hoplita, peltasta, arquero, sarisa, Roma</text>
+          <rect x="10" y="400" width="660" height="44" fill="none" stroke="var(--tinta)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="22" y="420" font-weight="700">6 · Animación</text><text x="22" y="437" font-size="12" fill="var(--tinta2)">A: movimientos mezclados al cargar (todos) · B: manos en el arma, pies sin patinar (20–40 de cerca)</text>
+          <rect x="10" y="450" width="660" height="44" fill="none" stroke="var(--tinta)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="22" y="470" font-weight="700">7 · Dibujo</text><text x="22" y="487" font-size="12" fill="var(--tinta2)">soldado fino cerca, sencillo lejos, cartón al fondo · polvo, luz de tarde · «mods» de calidad</text>
+          <rect x="10" y="500" width="660" height="44" fill="none" stroke="var(--tinta)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="22" y="520" font-weight="700">8 · Pantalla</text><text x="22" y="537" font-size="12" fill="var(--tinta2)">la barra de seis órdenes (BT1) · dedos del duelo · nada en el centro</text>
+        </g>
+      </svg>
+    </div>
+    <div class="leyenda"><span><i style="border-color:var(--bronce);border-width:2px"></i>decide la batalla</span><span><i></i>reglas que se calculan</span><span><i style="border-style:dashed"></i>solo dibuja: no cambia quién gana</span></div>
+  </section>
+
+  <section class="hoja" aria-labelledby="t-crit">
+    <p class="rot">Tus críticas → por qué pasa → cómo se arregla</p>
+    <h2 id="t-crit">Las siete críticas en el plano</h2>
+
+    <article class="critica"><h3><b>1</b>La batalla grande</h3>
+      <p class="cita">«quitar esta mierda que funciona mal y no puede apenas mover a las tropas»</p>
+      <dl class="fila"><dt>Por qué</dt><dd>Se calcula con números (rectángulos) y «Bajar a pie» abre otra página dentro de un marco.</dd>
+      <dt>Arreglo</dt><dd>Se quita como forma de jugar: la vista de general pasa a ser una cámara sobre el mismo mundo. Los números quedan solo para resolver sin jugar.</dd>
+      <dt>Hito</dt><dd>4 y 5</dd></dl></article>
+
+    <article class="critica"><h3><b>2</b>Las maquetas de otras batallas</h3>
+      <p class="cita">«se pueden aprovechar»</p>
+      <dl class="fila"><dt>Arreglo</dt><dd>Sí, por piezas: el motor de golpes, la rejilla y los proyectiles de la física, dibujar el frente, el duelo del oficial, la técnica de dibujo de soldados. Lo de Ryse (cámara pegada, voces) se rescata. No se reviven enteras.</dd></dl></article>
+
+    <article class="critica"><h3><b>3</b>Falange: «de PS1», muñecos, lanzas que vuelan</h3>
+      <p class="cita">«desde arriba un 8, cuando se mueven un 4»</p>
+      <dl class="fila"><dt>Por qué</dt><dd>La vista del oficial pinta el soldado de lejos (4.000 polígonos) y nunca el bueno (14.000, con dedos). La lanza es una pieza aparte junto al hombro, no va en la mano.</dd>
+      <dt>Arreglo</dt><dd>Soldado fino cerca; el hoplita ya lleva lanza y aspis en su propia malla; manos atadas al arma; pies que no patinan.</dd>
+      <dt>Hito</dt><dd>1</dd></dl></article>
+
+    <article class="critica"><h3><b>4</b>Imágenes objetivo de la falange</h3>
+      <p class="cita">«quiero que el juego sea lo más parecido a lo que te mando»</p>
+      <dl class="fila"><dt>Arreglo</dt><dd>Cascos de cimera, escudo redondo pintado, cinco filas de puntas, polvo dorado, pantalla limpia. Es la vara de cada hito.</dd>
+      <dt>Hito</dt><dd>1, 3 y 5</dd></dl></article>
+
+    <article class="critica"><h3><b>5</b>Testudo «tipo Ryse»</h3>
+      <p class="cita">«tiene que sentirse así como las imágenes… y lo de ryse son of rome»</p>
+      <dl class="fila"><dt>Por qué</dt><dd>Losas planas iguales; la cámara se mete entre ellas.</dd>
+      <dt>Arreglo</dt><dd>Es romano: llega con Roma, como datos sobre el mismo motor (escudos curvos en teja, jabalinas clavadas, cresta). Antes, el muro de hoplitas usa la misma receta.</dd>
+      <dt>Hito</dt><dd>6</dd></dl></article>
+
+    <article class="critica"><h3><b>6</b>Tropas de tiro jugables</h3>
+      <p class="cita">«moverla y apostarla… que se alejen… disparar las flechas y ver la munición»</p>
+      <dl class="fila"><dt>Arreglo</dt><dd>Peltastas y arqueros como tropa de datos: mover y apostar, escaramuza automática, tirar tú con el dedo, munición a la vista.</dd>
+      <dt>Hito</dt><dd>6 (si lo apruebas)</dd></dl></article>
+
+    <article class="critica"><h3><b>7</b>Cómo hacerlo</h3>
+      <p class="cita">«reusar lo que hay · departamento de animación · saber cómo funciona el motor · gráficos como mods · menús · paisajes como en mis imágenes»</p>
+      <dl class="fila"><dt>Arreglo</dt><dd>Nada nuevo de Meshy. Animación tiene su departamento (capas A y B). Motor explicado en el plano de arriba. «Mods» = interruptores de calidad. Paisaje griego de batalla (colinas, olivos, acrópolis). Menús: falta que digas qué botones fallan.</dd>
+      <dt>Hito</dt><dd>1, 5 y aparte</dd></dl></article>
+  </section>
+
+  <section class="hoja" aria-labelledby="t-ruta">
+    <p class="rot">Hoja de ruta · cada hito lo puntúas tú en tu móvil</p>
+    <h2 id="t-ruta">Siete hitos, de lo barato y visible a lo grande</h2>
+    <div class="hito"><div class="n">1</div><div><h3>El hoplita de cerca</h3><p>Doce hoplitas con el soldado fino, lanza y aspis en la mano, pies sin patinar, vista del oficial. Sin lucha.</p><p class="cita">¿Parecen hombres y andan sin patinar?</p><div class="chips"><span class="chip c-s">S</span><span class="chip c-s">riesgo bajo</span></div></div></div>
+    <div class="hito"><div class="n">2</div><div><h3>El duelo con peso</h3><p>Cinco contra cinco: rival de verdad, parada que casa con el golpe, parón, sacudida, sonido, cae hacia donde le dan.</p><p class="cita">¿Pesa el golpe? ¿Sé cuándo parar?</p><div class="chips"><span class="chip c-m">M</span><span class="chip c-m">riesgo medio</span></div>
+      <p class="freno"><b>Freno:</b> si no llega a un 7 en dos vueltas, se para y se replantea.</p></div></div>
+    <div class="hito"><div class="n">3</div><div><h3>Muro contra muro</h3><p>Dos muros de hoplitas: empuje, relevo de fila, miedo que se contagia, la línea que cede y rompe sin letreros.</p><div class="chips"><span class="chip c-n">L</span><span class="chip c-n">riesgo alto</span></div></div></div>
+    <div class="hito"><div class="n">4</div><div><h3>Mandar y subir</h3><p>Órdenes desde la fila que se ven pasar por las filas; pellizco hasta la vista de general sin cambiar de mundo.</p><div class="chips"><span class="chip c-m">M</span><span class="chip c-m">riesgo medio</span></div></div></div>
+    <div class="hito"><div class="n">5</div><div><h3>La batalla</h3><p>Tres o cuatro bloques por bando, general rival, medido en tu móvil, «mods» de calidad, paisaje griego.</p><div class="chips"><span class="chip c-n">L</span><span class="chip c-n">riesgo alto</span></div></div></div>
+    <div class="hito"><div class="n">6</div><div><h3>Más tropas, como datos</h3><p>Peltastas y arqueros jugables; luego la sarisa; el testudo cuando llegue Roma.</p><div class="chips"><span class="chip c-m">M cada una</span><span class="chip c-s">riesgo bajo</span></div></div></div>
+    <div class="hito"><div class="n">7</div><div><h3>Escala y remate</h3><p>De cientos a unos mil por bando; cartones al fondo; se quita lo viejo.</p><div class="chips"><span class="chip c-n">L</span><span class="chip c-m">riesgo medio</span></div></div></div>
+  </section>
+
+  <section class="hoja" aria-labelledby="t-hasta">
+    <p class="rot">Opinión sincera de Fable</p>
+    <h2 id="t-hasta">Hasta dónde se llega en un móvil</h2>
+    <div class="tres">
+      <div class="col"><h3 class="c-s">Sí</h3><ul><li>Cada hombre lucha, empuja, se cansa y cae donde le dan</li><li>Compañeros luchando a tus lados (20–40 con detalle)</li><li>Mandar desde arriba y bajar sin cambiar de escena</li><li>Duelo del oficial con peso: hasta un 7</li></ul></div>
+      <div class="col"><h3 class="c-m">A medias</h3><ul><li>Animación «real»: 12 movimientos genéricos; techo 7, no 9</li><li>800–1.200 hombres por bando: probable, sin medir</li></ul></div>
+      <div class="col"><h3 class="c-n">No</h3><ul><li>Ejecuciones de película de Ryse</li><li>10.000 hombres luchando uno a uno</li><li>Caras de Elden Ring</li><li>Sombras reales para todo el ejército</li></ul></div>
+    </div>
+  </section>
+
+  <section class="hoja" aria-labelledby="t-dec">
+    <p class="rot">Lo que decides tú</p>
+    <h2 id="t-dec">Antes de empezar</h2>
+    <ol class="decide">
+      <li>¿Te vale este plano: una batalla griega, dos alturas, un solo motor?</li>
+      <li>¿Empezamos por el hito 1, el hoplita de cerca, con un tope de unos 15 M?</li>
+      <li>¿Los arqueros jugables entran en el hito 6 o van para después?</li>
+      <li>¿Qué botones has visto que perdieron su función?</li>
+      <li>Historia: el muro de hoplitas clásico es del 700–650 a.C., no del 800. ¿Se marca como licencia de juego?</li>
+    </ol>
+  </section>
+
+  <p class="pie">Fuentes: tus críticas (gobierno/partes/2026-11-25-BT1-criticas-usuario.md), informe del motor y diseño del motor de Fable 5.2 (gobierno/estudios/BT1-informe-motor-fable.md y BT1-diseno-motor-fable.md). Imágenes objetivo en tu Google Drive.</p>
+</main>
