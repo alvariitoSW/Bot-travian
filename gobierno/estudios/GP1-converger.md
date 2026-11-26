@@ -64,3 +64,20 @@ Pedido del usuario (literal): «Como sería juntar todo lo que has creado en una
 - **La vasija**: régimen, discordia, crónica y escenas pintadas de tu partida.
 Es maqueta: dibujos de relleno, cifras sin equilibrar, un solo año, sin guardar. Comprobada en el visor de artefactos:
 arranca sin errores. Aún no está publicada como artefacto.
+
+## 7. Respuestas a las preguntas 17–24 (26/11, en cuadro de preguntas)
+Pidió (literal): «Mándame la maqueta y las preguntas sean formato pregunta».
+| N.º | Pregunta | Respuesta |
+|---|---|---|
+| 17 | Año político de cuatro actos | Sí (la recomendada) |
+| 18 | Qué lugares primero | Seis: Consejo, Ágora, Tu casa, Tribunal, Santuario y Puerto (la recomendada) |
+| 19 | Debate con argumentos ganados y piedras una a una | **«Otra idea»** (pendiente de que la cuente) |
+| 20 | Instituciones clásicas en una partida desde 800 a.C. | Se abren poco a poco (la recomendada) |
+| 21 | Prueba jugable de ≈ 5 M antes de todo | Sí, prueba primero (la recomendada) |
+| 22 | Una sola ciudad viva | Sí (la recomendada) |
+| 23 | Cómo caduca lo que no espera | Al acabar la estación (la recomendada) |
+| 24 | Móvil de pie o tumbado | De pie (la recomendada) |
+**Queda abierto**: el debate (19) y, sin respuesta expresa, régimen, cargos y ostracismo (GP1d §5).
+**Aprobado como rumbo**: una ciudad viva de pie, año de cuatro actos, seis lugares, instituciones que se abren poco a
+poco, lo pequeño caduca con la estación, y **prueba jugable de ≈ 5 M antes de construir nada más**.
+Maqueta publicada para su móvil (artefacto privado): https://claude.ai/artifact/YWR6vJtXPJEeLDyTDPi99n
