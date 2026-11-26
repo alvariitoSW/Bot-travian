@@ -27,3 +27,9 @@ Las apunta la sesión BT1 al dictado, literal, para recopilar y definir después
 6. **Tropas de tiro jugables (26/11)**, literal: «la parte de las tropas de tiro no la veo, habría que crear la funcionalidad de esta nueva tropa para poder jugarla, te doy una imagen pero estaría bien que pudieras moverla y apostarla en algún lado o que tengan en modo escaramuza y se alejen automáticamente de los enemigos para poder disparar de lejos y que tú puedas también disparar las flechas y ver la munición que tienes».
    Pide: (a) mover a los tiradores y apostarlos en un sitio; (b) modo escaramuza: se alejan solos del enemigo y tiran de lejos; (c) disparar tú las flechas (vista del oficial/arquero); (d) ver la munición. Hoy solo existen como cuerpo de apoyo dentro de Ásculo (`bloque/tiradores.js`, `js/tiro.js`: «Tirar», «Hostigar», «Retirarse», munición en la ficha). Es tropa jugable NUEVA: por la regla de la 1.0 y del Plan A («nada nuevo»), la decide el usuario al recopilar (entra en un paso o va a «Después»).
    + 2 imágenes objetivo de arqueros: ficha en `estudios/REF-batallas-referencias.md` («BT1 · Imagen objetivo de los arqueros»).
+
+## Dónde está todo guardado (pedido del usuario, 26/11: «guarda absolutamente todas las imágenes con las notas que te he hecho y las críticas»)
+- Sus capturas jugando (nuestro juego): `gobierno/capturas-tarea/BT1-usuario-c1-grande-01.jpg`, `BT1-usuario-c3-falange-01…08.jpg`, `BT1-usuario-c5-testudo-01…16.jpg` (reducidas a 600 px).
+- Sus 7 imágenes objetivo (origen y licencia sin confirmar; todo el repositorio se publica con el juego): en su Google Drive, carpeta
+  «AQVILA · Imágenes objetivo de las batallas (BT1, 26-11-2026)» (1–3 falange, 4–5 testudo, 6–7 arqueros). Lo que se ve en cada una: `estudios/REF-batallas-referencias.md`.
+- Nueva dirección propuesta con todo esto: `estudios/BT1-direccion-batallas.md`.
