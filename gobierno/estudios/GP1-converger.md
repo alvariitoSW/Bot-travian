@@ -81,3 +81,18 @@ Pidió (literal): «Mándame la maqueta y las preguntas sean formato pregunta».
 **Aprobado como rumbo**: una ciudad viva de pie, año de cuatro actos, seis lugares, instituciones que se abren poco a
 poco, lo pequeño caduca con la estación, y **prueba jugable de ≈ 5 M antes de construir nada más**.
 Maqueta publicada para su móvil (artefacto privado): https://claude.ai/artifact/YWR6vJtXPJEeLDyTDPi99n
+
+## 8. Lluvia de ideas: de maqueta a juego (26/11)
+Pidió (literal): «Mmm, debería tener un brain storming y ver cómo evolucionamos está maqueta a un juego de verdad de politica».
+Se le propusieron: rivales que juegan, tu casa como ficha, la palabra dada como moneda, metas secretas, discordia como
+reloj compartido, crisis, guerra y política que se muerden; cuatro debates (A duelo de preguntas, B hablan los tuyos,
+C la sala manda, D sin debate jugado); vida larga (generaciones, leyes que duran, cada polis un sabor, historia).
+**Respuesta del usuario** (literal): «1- la A puede ser original, la B puede ser una funcionalidad, la C no la veo como
+quedaria ni la d no se cómo quedaría al final. Lo de las ideas para la vida larga me gusta . Lo de sentir jugando nose,
+me gustaría sentir que con el juego de política la ciudad va avanzando a nivel cultural y político y sea un juego
+entretenido mientras aprendo algo de historia y política de cada ciudad. Y el juego o serie de intrigas sería juego de tronos».
+Lectura (mía): debate = **duelo de preguntas (A)**, con **mandar a los tuyos (B)** como función; fuera C y D.
+Vida larga, sí (generaciones, leyes que duran, cada polis su sabor, historia). **Sensación buscada: la ciudad avanza
+en cultura y en política, y se aprende la historia de cada polis.** Referencia de intrigas: Juego de Tronos (ideas, no su contenido).
+Segunda ronda propuesta: «El camino de la polis» (hitos de cultura y política ganados con actos políticos; cada polis
+con su camino real, que puedes seguir o torcer) y casas con emblema, herederos, bodas y traiciones.
