@@ -1,0 +1,280 @@
+<title>Maqueta de la batalla griega</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Maqueta jugable: escenario arriba (lienzo), barra común de seis órdenes, y debajo «qué he entendido» enlazado a cada crítica. */
+:root{
+  --fondo:#ece6da; --tinta:#1d1a16; --tinta2:#5b5348; --borde:#b9ad98; --panel:#f7f3ec;
+  --bronce:#a8661c; --azul:#2f5aa0; --rojo:#a8322a; --boton:#2a211a; --botonT:#f1e6c8;
+  --disp:'Cinzel',Georgia,serif; --texto:'Source Sans 3',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fondo:#14110d;--tinta:#efe7d8;--tinta2:#b5a993;--borde:#4a4033;--panel:#1f1a14;--bronce:#e3a456;--boton:#2a211a;--botonT:#f1e6c8;color-scheme:dark}}
+:root[data-theme="dark"]{--fondo:#14110d;--tinta:#efe7d8;--tinta2:#b5a993;--borde:#4a4033;--panel:#1f1a14;--bronce:#e3a456;--boton:#2a211a;--botonT:#f1e6c8;color-scheme:dark}
+body{background:var(--fondo);color:var(--tinta);font:16px/1.45 var(--texto)}
+.pag{max-width:720px;margin:0 auto;padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+h1{font:700 24px/1.15 var(--disp);margin:0;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--tinta2);font-size:15px}
+.escena{position:relative;border:1.5px solid var(--borde);overflow:hidden;background:#000;aspect-ratio:9/13;max-height:78vh;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;height:100%}
+.arriba{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;align-items:flex-start;pointer-events:none}
+.obj{flex:1;min-width:0;background:rgba(30,24,18,.82);color:#f1e6c8;border:1px solid #b08a4a;padding:6px 9px;font-size:13px;line-height:1.25}
+.obj b{font:700 12px/1.2 var(--disp);color:#e9c063;display:block;letter-spacing:.03em}
+.vista{pointer-events:auto;background:rgba(30,24,18,.82);color:#f1e6c8;border:1px solid #b08a4a;font:600 13px var(--texto);padding:8px 10px;min-height:40px;cursor:pointer}
+.vista:focus-visible,.o:focus-visible{outline:2px solid #e9c063;outline-offset:2px}
+.duelo{position:absolute;left:8px;right:8px;bottom:84px;display:flex;justify-content:center;pointer-events:none}
+.duelo span{background:rgba(30,24,18,.75);color:#f1e6c8;font-size:12px;padding:4px 8px}
+.barra{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px 6px 8px;background:linear-gradient(transparent,rgba(0,0,0,.55))}
+.o{display:grid;justify-items:center;gap:2px;background:none;border:0;color:#f1e6c8;font:700 9.5px/1.1 var(--disp);letter-spacing:.02em;cursor:pointer;padding:0;min-width:0}
+.o i{display:grid;place-items:center;width:46px;height:46px;max-width:100%;aspect-ratio:1;border-radius:50%;background:var(--boton);border:2px solid #b08a4a;font-style:normal;font-size:18px}
+.o.propia i{border:3px double #e9c063}
+.o.luz i{box-shadow:0 0 0 3px rgba(233,192,99,.55)}
+.o.vig i{background:#8a2a22}
+.o.apag{opacity:.38}
+.aviso{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);background:rgba(30,24,18,.88);color:#f1e6c8;border:1px solid #b08a4a;padding:8px 12px;font:700 16px var(--disp);opacity:0;transition:opacity .2s;pointer-events:none;text-align:center;max-width:80%}
+.aviso.ve{opacity:1}
+.panel{background:var(--panel);border:1.5px solid var(--borde);padding:14px}
+.panel h2{font:700 17px/1.2 var(--disp);margin:0 0 10px}
+.lista{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.lista li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.lista .c{font:700 12px var(--texto);color:var(--bronce);border:1px solid var(--bronce);padding:2px 6px;white-space:nowrap}
+.lista p{margin:0}
+.nota{font-size:13px;color:var(--tinta2)}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.aviso{transition:none}}
+</style>
+
+<main class="pag">
+  <header>
+    <h1>Lo que he entendido: tu batalla griega</h1>
+    <p class="sub">Maqueta jugable, dibujada a mano en 2D para enseñar la idea. No es el juego ni su arte: sirve para ver si coincide con lo que pides.</p>
+  </header>
+
+  <section class="escena" id="escena" aria-label="Maqueta de la batalla">
+    <canvas id="lienzo"></canvas>
+    <div class="arriba">
+      <div class="obj"><b>Rompe el muro de Argos</b><span id="marcha">Argos a 40 m</span></div>
+      <button class="vista" id="vista" type="button" aria-label="Cambiar de vista">Oficial ▾</button>
+    </div>
+    <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+    <div class="duelo" id="ayuda" hidden><span>Toca: estocada · Mantén: escudo · Desliza arriba: empujón</span></div>
+    <nav class="barra" id="barra" aria-label="Órdenes"></nav>
+  </section>
+
+  <section class="panel">
+    <h2>Lo que se ve, y de dónde sale</h2>
+    <ul class="lista">
+      <li><span class="c">Crít. 1 · Rome 2</span><p><b>Una sola batalla, dos alturas.</b> «Oficial ▾» o pellizcar cambia de vista sobre el mismo campo y los mismos hombres. No hay otra página ni otro mundo.</p></li>
+      <li><span class="c">Crít. 3 y 4</span><p><b>Cada lanza sale de una mano.</b> En la vista del oficial, las astas nacen en los brazos de las filas de delante; las de atrás van alzadas en abanico hasta que bajas picas.</p></li>
+      <li><span class="c">Ryse</span><p><b>Tú eres un hombre de la fila.</b> Toca para estocada, mantén para escudo, desliza arriba para empujar. El golpe pesa: parón corto y sacudida.</p></li>
+      <li><span class="c">Informe 2</span><p><b>Los hombres mandan.</b> Desde arriba, cada punto es un hombre: caen cuando les dan y el muro cede cuando empujan más, sin cuentas ocultas.</p></li>
+      <li><span class="c">BT1</span><p><b>La misma barra en todo.</b> Tu orden propia a la izquierda (Bajar picas), luego Avanzar, Cargar, Alto, Relevo, Retirada. La que no vale se apaga y no cambia de nombre.</p></li>
+      <li><span class="c">Crít. 7</span><p><b>Paisaje griego de tarde</b>: colinas, cipreses, acrópolis con templo, sol bajo y polvo donde chocan. Pantalla limpia: nada en el centro.</p></li>
+      <li><span class="c">Grecia</span><p><b>Polis contra polis</b>: hoplitas de escudo redondo (azul, lambda) contra hoplitas de Argos (rojo). El testudo y Roma, más adelante.</p></li>
+    </ul>
+    <p class="nota">Lo que la maqueta no enseña: soldados en 3D, animación real ni miles de hombres. Eso es el trabajo de los siete hitos del plano.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const cv = document.getElementById('lienzo'), cx = cv.getContext('2d'), esc = document.getElementById('escena');
+  const $ = id => document.getElementById(id);
+  let W = 0, H = 0, DPR = 1;
+  function tam() { const r = esc.getBoundingClientRect(); DPR = Math.min(2, window.devicePixelRatio || 1); W = r.width; H = r.height; cv.width = W * DPR; cv.height = H * DPR; cx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+  window.addEventListener('resize', tam); tam();
+
+  /* ---- el mundo: dos muros de hoplitas, hombres de verdad (puntos) ---- */
+  const COLS = 16, FILAS = 6, DX = 0.9, DZ = 1.0;
+  const S = { gap: 28, picas: false, orden: 'alto', retira: false, relevos: 2, empuje: 0, t: 0, vista: 'oficial', fin: null, miedoR: 0, miedoA: 0 };
+  const hombres = [];
+  for (const bando of ['a', 'r']) for (let f = 0; f < FILAS; f++) for (let c = 0; c < COLS; c++)
+    hombres.push({ bando, f, c, vivo: true, cae: 0, dx: 0, rnd: Math.random() });
+  const vivosDe = b => hombres.filter(h => h.bando === b && h.vivo);
+
+  /* ---- órdenes (la barra común de BT1) ---- */
+  const ORD = [
+    { id: 'picas', t: 'Bajar picas', ic: '⟋', propia: true },
+    { id: 'avanzar', t: 'Avanzar', ic: '↑' }, { id: 'cargar', t: 'Cargar', ic: '⇈' },
+    { id: 'alto', t: 'Alto', ic: '≡' }, { id: 'relevo', t: 'Relevo', ic: '⇅' }, { id: 'retirada', t: 'Retirada', ic: '↓' }];
+  const barra = $('barra');
+  for (const o of ORD) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'o' + (o.propia ? ' propia' : ''); b.dataset.o = o.id;
+    b.innerHTML = '<i aria-hidden="true">' + o.ic + '</i>' + o.t; b.setAttribute('aria-label', o.t);
+    b.addEventListener('pointerdown', e => e.stopPropagation());
+    b.addEventListener('click', e => { e.stopPropagation(); orden(o.id); });
+    barra.appendChild(b);
+  }
+  function puede(id) {
+    if (S.fin) return 'La batalla ha terminado';
+    const choque = S.gap <= 1.2;
+    if (id === 'avanzar' && choque) return 'Ya estáis trabados';
+    if (id === 'cargar' && S.gap > 12) return 'Cargar, a menos de 12 m';
+    if (id === 'relevo' && S.relevos <= 0) return 'No quedan filas frescas';
+    if (id === 'retirada' && !choque) return 'Retirada, solo trabados';
+    return '';
+  }
+  function orden(id) {
+    const no = puede(id); if (no) return aviso(no);
+    if (id === 'picas') { S.picas = !S.picas; return aviso(S.picas ? '¡Bajad picas!' : '¡Alzad picas!'); }
+    if (id === 'relevo') { S.relevos--; for (const h of vivosDe('a')) if (h.f === 0) h.dx = -0.6; return aviso('¡Segunda fila, adelante!'); }
+    S.orden = id; aviso({ avanzar: '¡Adelante, paso a paso!', cargar: '¡A la carga!', alto: '¡Alto! ¡Aguantad!', retirada: '¡Atrás en orden!' }[id]);
+  }
+  let tAv = 0; function aviso(t) { const a = $('aviso'); a.textContent = t; a.classList.add('ve'); tAv = 1.4; }
+  function pintaBarra() {
+    const util = S.gap > 12 ? (S.picas ? 'avanzar' : 'picas') : S.gap > 1.2 ? 'cargar' : (S.empuje < -0.2 && S.relevos ? 'relevo' : '');
+    for (const b of barra.children) { const id = b.dataset.o;
+      b.classList.toggle('apag', !!puede(id) && id !== 'picas');
+      b.classList.toggle('vig', id === 'picas' ? S.picas : S.orden === id);
+      b.classList.toggle('luz', id === util); }
+  }
+
+  /* ---- vistas: botón y pellizco, mismo mundo ---- */
+  function ponVista(v) { S.vista = v; $('vista').textContent = v === 'oficial' ? 'General ▴' : 'Oficial ▾'; $('ayuda').hidden = v !== 'oficial'; }
+  $('vista').addEventListener('click', () => ponVista(S.vista === 'oficial' ? 'general' : 'oficial'));
+  ponVista('oficial');
+  const dedos = new Map(); let d0 = 0;
+  /* ---- duelo con el dedo (vista del oficial) ---- */
+  const D = { escudo: false, golpe: 0, empuja: 0, paron: 0, sacude: 0, rival: 1, tuVida: 3, abajo: 0, y0: 0 };
+  esc.addEventListener('pointerdown', e => {
+    dedos.set(e.pointerId, e); if (dedos.size === 2) { const [a, b] = [...dedos.values()]; d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); return; }
+    if (S.vista !== 'oficial') return; D.abajo = performance.now(); D.y0 = e.clientY; D.hold = setTimeout(() => { D.escudo = true; }, 220);
+  });
+  esc.addEventListener('pointermove', e => { if (!dedos.has(e.pointerId)) return; dedos.set(e.pointerId, e);
+    if (dedos.size === 2 && d0) { const [a, b] = [...dedos.values()]; const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      if (d < d0 * 0.7) { ponVista('general'); d0 = 0; } else if (d > d0 * 1.4) { ponVista('oficial'); d0 = 0; } } });
+  const suelta = e => { const ini = dedos.get(e.pointerId); dedos.delete(e.pointerId); if (!ini || S.vista !== 'oficial' || dedos.size) return;
+    clearTimeout(D.hold); const dur = performance.now() - D.abajo, dy = D.y0 - e.clientY;
+    if (D.escudo) { D.escudo = false; return; }
+    if (S.gap > 1.2) return;
+    if (dy > 40) { D.empuja = 0.35; S.empuje += 0.25; D.paron = 0.08; D.sacude = 0.25; return; }
+    if (dur < 260) { D.golpe = 0.3; D.paron = 0.09; D.sacude = 0.3; if (Math.random() < 0.55) { D.rival -= 0.4; if (D.rival <= 0) { D.rival = 1; matar('r', true); aviso('¡Cae!'); } } }
+  };
+  esc.addEventListener('pointerup', suelta); esc.addEventListener('pointercancel', e => dedos.delete(e.pointerId));
+
+  function matar(b, delante) { const v = vivosDe(b).filter(h => !delante || h.f === Math.min(...vivosDe(b).map(x => x.f))); if (!v.length) return;
+    const h = v[(Math.random() * v.length) | 0]; h.vivo = false; h.cae = 0.001; }
+
+  /* ---- un paso del mundo: los hombres mandan ---- */
+  function paso(dt) {
+    S.t += dt; if (S.fin) return;
+    const vel = S.orden === 'cargar' ? 3.2 : S.orden === 'avanzar' ? 1.3 : S.orden === 'retirada' ? -1 : 0;
+    if (S.gap > 1.2) S.gap = Math.max(1.2, S.gap - (vel + 1.8) * dt);   /* Argos avanza despacio */
+    else if (S.orden === 'retirada') S.gap += 1.0 * dt;
+    if (S.gap <= 1.2) {   /* trabados: empuje y golpes por columna */
+      const a = vivosDe('a').length, r = vivosDe('r').length;
+      const fuerza = (a / r) * (S.picas ? 1.35 : 0.9) * (S.orden === 'cargar' ? 1.2 : 1) - 1;
+      S.empuje += (fuerza * 0.25 + (Math.random() - 0.5) * 0.05) * dt;
+      if (Math.random() < dt * (0.9 + (S.picas ? 0.6 : 0))) matar('r', true);
+      if (Math.random() < dt * (S.picas ? 0.7 : 1.1)) { matar('a', true); if (Math.random() < 0.15) { D.tuVida--; D.sacude = 0.4; aviso('¡Herido!'); } }
+      S.miedoR = Math.max(0, 1 - r / (COLS * FILAS) * 1.6 + S.empuje); S.miedoA = Math.max(0, 1 - a / (COLS * FILAS) * 1.6 - S.empuje);
+      if (S.miedoR > 0.9) { S.fin = 'gana'; aviso('¡Argos rompe y huye!'); }
+      else if (S.miedoA > 0.9 || D.tuVida <= 0) { S.fin = 'pierde'; aviso('Tu falange cede'); }
+    }
+    for (const h of hombres) { if (h.cae > 0 && h.cae < 1) h.cae = Math.min(1, h.cae + dt * 2.2); h.dx *= Math.pow(0.2, dt); }
+    for (const k of ['golpe', 'empuja', 'sacude']) D[k] = Math.max(0, D[k] - dt);
+    $('marcha').textContent = S.fin ? (S.fin === 'gana' ? 'Victoria: Argos huye' : 'Derrota') : S.gap > 1.2 ? 'Argos a ' + Math.round(S.gap) + ' m' :
+      (S.empuje > 0.15 ? 'Su muro cede' : S.empuje < -0.15 ? 'Tu muro cede' : 'Muro contra muro');
+  }
+
+  /* ---- dibujo común: cielo, sol, colinas, acrópolis, cipreses ---- */
+  function cielo(hz) {
+    const g = cx.createLinearGradient(0, 0, 0, hz); g.addColorStop(0, '#6f86b8'); g.addColorStop(0.55, '#e9b77a'); g.addColorStop(1, '#f6d7a2');
+    cx.fillStyle = g; cx.fillRect(0, 0, W, hz);
+    const sx = W * 0.78, sy = hz * 0.72, sg = cx.createRadialGradient(sx, sy, 2, sx, sy, W * 0.5);
+    sg.addColorStop(0, 'rgba(255,240,200,1)'); sg.addColorStop(0.08, 'rgba(255,225,160,.9)'); sg.addColorStop(1, 'rgba(255,200,120,0)');
+    cx.fillStyle = sg; cx.fillRect(0, 0, W, hz);
+    cx.fillStyle = '#9c8a74'; cx.beginPath(); cx.moveTo(0, hz); for (let x = 0; x <= W; x += 10) cx.lineTo(x, hz - 18 - Math.sin(x / 60) * 10 - Math.sin(x / 23) * 4); cx.lineTo(W, hz); cx.fill();
+    cx.fillStyle = '#86755f'; cx.beginPath(); cx.moveTo(W * 0.55, hz); cx.quadraticCurveTo(W * 0.72, hz - 64, W * 0.9, hz); cx.fill();
+    const tx = W * 0.66, ty = hz - 52; cx.fillStyle = '#d8c7a6';   /* el templo de la acrópolis */
+    cx.fillRect(tx, ty, 34, 3); cx.beginPath(); cx.moveTo(tx - 2, ty); cx.lineTo(tx + 17, ty - 7); cx.lineTo(tx + 36, ty); cx.fill();
+    for (let i = 0; i < 6; i++) cx.fillRect(tx + 1 + i * 6, ty + 3, 2, 9); cx.fillRect(tx - 1, ty + 12, 36, 2);
+    for (const [x, h] of [[0.08, 46], [0.13, 38], [0.86, 52], [0.93, 40], [0.48, 30]]) { cx.fillStyle = '#2f4a2a'; cx.beginPath(); cx.ellipse(W * x, hz - h / 2, 5, h / 2, 0, 0, 7); cx.fill(); }
+  }
+  function polvo(y, fuerza) { for (let i = 0; i < 26; i++) { const x = (i * 97 + S.t * 30) % W, r = 18 + (i % 5) * 7;
+    cx.fillStyle = 'rgba(214,180,128,' + (0.05 + fuerza * 0.06).toFixed(3) + ')'; cx.beginPath(); cx.arc(x, y + Math.sin(i + S.t) * 6, r, 0, 7); cx.fill(); } }
+
+  /* ---- vista de general: los mismos hombres desde arriba ---- */
+  function general() {
+    const hz = H * 0.16; cielo(hz);
+    const g = cx.createLinearGradient(0, hz, 0, H); g.addColorStop(0, '#a99a6a'); g.addColorStop(1, '#7c6f45'); cx.fillStyle = g; cx.fillRect(0, hz, W, H - hz);
+    cx.strokeStyle = 'rgba(120,90,50,.5)'; cx.lineWidth = 10; cx.beginPath(); cx.moveTo(W * 0.45, H); cx.bezierCurveTo(W * 0.5, H * 0.6, W * 0.35, H * 0.4, W * 0.5, hz); cx.stroke();
+    const esc = Math.min(W / (COLS * DX + 6), 14), cxm = W / 2, mid = H * 0.46, sep = S.gap * esc * 0.35;
+    const pos = h => { const lado = h.bando === 'a' ? 1 : -1, avance = h.bando === 'a' ? S.empuje * 6 : S.empuje * 6;
+      return [cxm + (h.c - (COLS - 1) / 2) * DX * esc, mid + lado * (sep / 2 + h.f * DZ * esc + esc * 0.5) - avance * esc * 0.3 + (h.dx || 0) * esc]; };
+    for (const h of hombres) { const [x, y] = pos(h); if (!h.vivo) { cx.fillStyle = 'rgba(60,40,30,.55)'; cx.fillRect(x - 3, y - 1, 6, 2.5); continue; }
+      cx.fillStyle = h.bando === 'a' ? '#2f5aa0' : '#a8322a'; cx.beginPath(); cx.arc(x, y, esc * 0.32, 0, 7); cx.fill();
+      if (h.bando === 'a' && S.picas && h.f < 3) { cx.strokeStyle = '#d8c39a'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x, y - esc * (2.2 + (2 - h.f) * 0.3)); cx.stroke(); } }
+    if (S.gap <= 1.2) polvo(mid, 1);
+    /* estandartes con su palabra */
+    const pal = (b, m) => (m > 0.6 ? 'cede' : m > 0.3 ? 'cansada' : 'firme');
+    est(cxm, Math.min(H - 120, mid + sep / 2 + FILAS * esc + 26), 'Tu falange · ' + pal('a', S.miedoA), '#2f5aa0');
+    est(cxm, mid - sep / 2 - FILAS * esc - 14, 'Argos · ' + pal('r', S.miedoR), '#a8322a');
+  }
+  function est(x, y, t, col) { cx.font = '600 12px Source Sans 3, sans-serif'; const w = cx.measureText(t).width + 14;
+    cx.fillStyle = 'rgba(30,24,18,.8)'; cx.fillRect(x - w / 2, y - 16, w, 20); cx.fillStyle = col; cx.fillRect(x - w / 2, y - 16, 4, 20);
+    cx.fillStyle = '#f1e6c8'; cx.textAlign = 'center'; cx.fillText(t, x + 2, y - 2); cx.textAlign = 'left'; }
+
+  /* ---- vista del oficial: por encima del hombro, en la 2.ª fila ---- */
+  function oficial() {
+    const sh = D.sacude > 0 ? (Math.random() - 0.5) * 10 * D.sacude : 0, sy = D.sacude > 0 ? (Math.random() - 0.5) * 6 * D.sacude : 0;
+    cx.save(); cx.translate(sh, sy);
+    const hz = H * 0.42; cielo(hz);
+    const g = cx.createLinearGradient(0, hz, 0, H); g.addColorStop(0, '#b8a273'); g.addColorStop(1, '#6d5e3a'); cx.fillStyle = g; cx.fillRect(-10, hz, W + 20, H - hz);
+    for (let i = 0; i < 60; i++) { const x = (i * 53) % W, y = hz + ((i * 37) % (H - hz)); cx.strokeStyle = 'rgba(210,190,120,.5)'; cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x + 2, y - 6 - (y - hz) * 0.04); cx.stroke(); }
+    /* el muro de Argos: más grande cuanto más cerca */
+    const d = Math.max(1.2, S.gap), k = 30 / (0.6 + d * 0.35), y0 = hz + 6 + (H * 0.6 - hz) / (1 + d * 0.22);
+    const r = vivosDe('r'), cede = Math.max(0, S.empuje) * 30;
+    for (let f = FILAS - 1; f >= 0; f--) for (let c = 0; c < COLS; c++) {
+      const h = hombres.find(x => x.bando === 'r' && x.f === f && x.c === c); if (!h || !h.vivo) continue;
+      const s = k * (1 - f * 0.08) * 0.9, x = W / 2 + (c - (COLS - 1) / 2) * s * 1.6 - 0, y = y0 - f * s * 0.9 - cede * (f ? 0.3 : 1);
+      if (x < -40 || x > W + 40) continue;
+      cx.fillStyle = '#5a3b2a'; cx.fillRect(x - s * 0.22, y - s * 2.2, s * 0.44, s * 1.6);
+      cx.fillStyle = '#7a5d35'; cx.beginPath(); cx.arc(x, y - s * 2.35, s * 0.25, 0, 7); cx.fill();   /* casco */
+      cx.fillStyle = '#c23a2b'; cx.beginPath(); cx.ellipse(x - s * 0.15, y - s * 1.3, s * 0.62, s * 0.62, 0, 0, 7); cx.fill();   /* aspis roja */
+      cx.strokeStyle = '#e0c070'; cx.lineWidth = Math.max(1, s * 0.06); cx.stroke();
+      if (f === 0 && c === 7) { cx.fillStyle = 'rgba(255,255,255,' + (0.35 * (1 - D.rival)).toFixed(2) + ')'; cx.fill(); }
+    }
+    /* caídos entre los muros */
+    let n = 0; for (const h of hombres) if (!h.vivo && h.f === 0 && n < 10) { const x = W * (0.12 + (h.c / COLS) * 0.76), y = y0 + 20 + (h.rnd * 30);
+      cx.fillStyle = h.bando === 'r' ? 'rgba(120,40,30,.8)' : 'rgba(40,60,110,.8)'; cx.beginPath(); cx.ellipse(x, y, 18 * h.cae, 5, h.rnd, 0, 7); cx.fill(); n++; }
+    if (S.gap <= 1.2) polvo(y0 - 10, 1);
+    /* tus compañeros y TUS picas: cada asta sale de una mano */
+    const baja = S.picas ? 1 : 0, filas = [[0, H * 0.70, 1.2], [1, H * 0.84, 1.55]];
+    for (const [f, yb, s] of filas) for (let c = -2; c <= 2; c++) {
+      const x = W / 2 + c * W * 0.26 * (f ? 1.15 : 0.85) + (f ? W * 0.13 : 0), sc = s * 26;
+      if (f === 1 && c === 0) continue;   /* tú estás aquí: la cámara */
+      const mano = [x + sc * 0.35, yb - sc * 1.1];
+      const pt = baja ? [W / 2 + c * W * 0.05 + (f ? 10 : 0), y0 - 8 - f * 6] : [mano[0] + (c * 18), mano[1] - H * 0.55];   /* alzada: en abanico */
+      cx.strokeStyle = '#b48a4d'; cx.lineWidth = sc * 0.1; cx.lineCap = 'round';
+      const golpe = (f === 0 && c === 0 && D.golpe) ? D.golpe * 60 : 0;
+      cx.beginPath(); cx.moveTo(mano[0] - (pt[0] - mano[0]) * 0.25, mano[1] - (pt[1] - mano[1]) * 0.25); cx.lineTo(pt[0] + golpe * 0.2, pt[1] - golpe * 0.1); cx.stroke();
+      cx.fillStyle = '#ddd'; cx.beginPath(); cx.arc(pt[0] + golpe * 0.2, pt[1] - golpe * 0.1, sc * 0.08, 0, 7); cx.fill();
+      cx.fillStyle = '#2b3f6e'; cx.fillRect(x - sc * 0.45, yb - sc * 1.4, sc * 0.9, sc * 1.4);   /* manto azul */
+      cx.fillStyle = '#c9a15c'; cx.beginPath(); cx.arc(x, yb - sc * 1.62, sc * 0.3, 0, 7); cx.fill();   /* casco de bronce */
+      cx.fillStyle = '#f2efe6'; cx.beginPath(); cx.ellipse(x, yb - sc * 2.0, sc * 0.08, sc * 0.32, 0, 0, 7); cx.fill();   /* cimera blanca */
+      cx.fillStyle = '#8a6a3a'; cx.beginPath(); cx.arc(mano[0], mano[1], sc * 0.12, 0, 7); cx.fill();   /* la mano agarra el asta */
+      const ex = x - sc * 0.55; cx.fillStyle = '#2f5aa0'; cx.beginPath(); cx.ellipse(ex, yb - sc * 1.0, sc * 0.65, sc * 0.7, 0, 0, 7); cx.fill();
+      cx.strokeStyle = '#e0c070'; cx.lineWidth = 2; cx.stroke(); cx.fillStyle = '#f1e6c8'; cx.font = '700 ' + Math.round(sc * 0.6) + 'px Cinzel, serif'; cx.textAlign = 'center'; cx.fillText('Λ', ex, yb - sc * 0.8); cx.textAlign = 'left';
+    }
+    /* tu escudo y tu lanza (primera persona) */
+    const sc = 46; if (D.escudo) { cx.fillStyle = '#2f5aa0'; cx.beginPath(); cx.ellipse(W * 0.42, H * 0.82, W * 0.34, H * 0.2, -0.1, 0, 7); cx.fill(); cx.strokeStyle = '#e0c070'; cx.lineWidth = 4; cx.stroke(); }
+    cx.strokeStyle = '#a57f45'; cx.lineWidth = 10; cx.beginPath(); const pe = D.golpe * 120 + D.empuja * 40;
+    cx.moveTo(W * 0.72, H * 1.02); cx.lineTo(W * 0.55 - pe * 0.1, (baja ? y0 : H * 0.35) - pe); cx.stroke();
+    cx.fillStyle = '#8a6a3a'; cx.beginPath(); cx.arc(W * 0.69, H * 0.93, 16, 0, 7); cx.fill();
+    cx.restore();
+    /* tus heridas, abajo y pequeño */
+    cx.font = '600 12px Source Sans 3, sans-serif'; cx.fillStyle = 'rgba(30,24,18,.75)'; cx.fillRect(8, H - 132, 108, 20);
+    cx.fillStyle = '#f1e6c8'; cx.fillText('Heridas ' + '●'.repeat(3 - Math.max(0, D.tuVida)) + '○'.repeat(Math.max(0, D.tuVida)), 14, H - 118);
+  }
+
+  let tPrev = performance.now();
+  function bucle(t) {
+    let dt = Math.min(0.05, (t - tPrev) / 1000); tPrev = t;
+    if (D.paron > 0) { D.paron -= dt; dt = 0; }   /* el parón: el golpe pesa */
+    paso(dt); if (tAv > 0 && (tAv -= dt) <= 0) $('aviso').classList.remove('ve');
+    pintaBarra(); (S.vista === 'oficial' ? oficial : general)();
+    requestAnimationFrame(bucle);
+  }
+  requestAnimationFrame(bucle);
+})();
+</script>
