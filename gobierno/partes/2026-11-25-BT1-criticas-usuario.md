@@ -39,3 +39,5 @@ Las apunta la sesión BT1 al dictado, literal, para recopilar y definir después
 
 8. **Tras ver la maqueta jugable (26/11)**, literal: «el menú de abajo hay que cambiarlo entero, no sirve, luego en motor de lucha hay que reformularlo y enfocarlo a /ingenieria-reversa con el del rome 2 total war. Luego el tema del hud desde la visión del oficial hay que mejorarlo para que no se vean mil picas y no tenga sentido y esa visión mejorarla».
    (a) la barra de seis órdenes de BT1 no sirve: rehacer el mando entero; (b) motor de lucha: ingeniería inversa de Rome 2 (`estudios/IR-rome2-motor-lucha.md`); (c) vista del oficial: menos picas sin sentido, que se lea.
+
+9. **Mando nuevo (26/11)**, literal: «vamos a cambiar todo lo del menú, lo de las opciones en combate y el menú en pantalla hay que cambiarlo, y hacemos los arreglos en la maqueta». Elecciones: base «Una mezcla de A y C»; órdenes «Formaciones, Mover dibujando, Habilidades, Velocidad y pausa»; en pantalla «Banda superior». → Maqueta 3 (`estudios/BT1-maqueta3-batalla.html`).

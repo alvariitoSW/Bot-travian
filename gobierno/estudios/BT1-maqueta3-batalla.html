@@ -1,0 +1,331 @@
+<title>Maqueta de la batalla griega 3</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Maqueta 3: banda superior (objetivo, moral de los dos bandos, velocidad, pausa, vista); abajo tarjetas finas + tira de habilidades
+   de la tropa elegida; mantener el dedo sobre una tropa abre la rueda (órdenes y formaciones); arrastrar desde tu tropa dibuja su frente. */
+:root{
+  --fondo:#ece6da; --tinta:#1d1a16; --tinta2:#5b5348; --borde:#b9ad98; --panel:#f7f3ec;
+  --hud:rgba(28,22,17,.86); --hudT:#f1e6c8; --oro:#e9c063; --azul:#2f5aa0; --rojo:#a8322a;
+  --disp:'Cinzel',Georgia,serif; --texto:'Source Sans 3',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fondo:#14110d;--tinta:#efe7d8;--tinta2:#b5a993;--borde:#4a4033;--panel:#1f1a14;color-scheme:dark}}
+:root[data-theme="dark"]{--fondo:#14110d;--tinta:#efe7d8;--tinta2:#b5a993;--borde:#4a4033;--panel:#1f1a14;color-scheme:dark}
+body{background:var(--fondo);color:var(--tinta);font:16px/1.45 var(--texto)}
+[hidden]{display:none!important}
+.pag{max-width:720px;margin:0 auto;padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+h1{font:700 23px/1.15 var(--disp);margin:0;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--tinta2);font-size:15px}
+.escena{position:relative;border:1.5px solid var(--borde);overflow:hidden;background:#000;aspect-ratio:9/14;max-height:82vh;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;height:100%}
+button{font-family:var(--texto);cursor:pointer}
+button:focus-visible{outline:2px solid var(--oro);outline-offset:2px}
+/* banda superior */
+.banda{position:absolute;top:0;left:0;right:0;display:grid;grid-template-columns:1fr auto;gap:4px 6px;padding:6px 6px 5px;background:linear-gradient(rgba(20,16,12,.92),rgba(20,16,12,.78));color:var(--hudT)}
+.obj{font:700 11.5px/1.25 var(--disp);color:var(--oro);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctl{display:flex;gap:4px;grid-row:span 2;align-items:center}
+.ctl button{background:#2a211a;color:var(--hudT);border:1px solid #6d5532;min-width:40px;min-height:40px;font-weight:700;font-size:13px;padding:0 6px}
+.ctl button[aria-pressed="true"]{background:#7a2a20;border-color:var(--oro)}
+.marcador{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:5px;align-items:center;font:600 11px var(--texto);min-width:0}
+.marcador i{display:block;height:6px;background:#3a2f25;position:relative}
+.marcador i u{position:absolute;top:0;bottom:0;transition:width .3s}
+#mTu u{left:auto;right:0;background:#5d8fe0}#mSu u{left:0;background:#e0675a}
+/* abajo: tira de habilidades y tarjetas */
+.abajo{position:absolute;left:0;right:0;bottom:0;padding:6px;display:grid;gap:6px;background:linear-gradient(transparent,rgba(20,16,12,.6) 30%)}
+.habs{display:flex;gap:6px;align-items:center;justify-content:center;min-height:52px}
+.hab{position:relative;width:52px;height:52px;border-radius:50%;background:#2a211a;border:2px solid #8a6d3f;color:var(--hudT);font-size:20px;display:grid;place-items:center;padding:0;overflow:hidden}
+.hab small{position:absolute;bottom:-1px;left:0;right:0;font:700 8.5px/1.2 var(--texto);text-align:center;background:rgba(0,0,0,.45)}
+.hab .esp{position:absolute;inset:0;background:conic-gradient(rgba(0,0,0,.65) var(--p,0%),transparent 0)}
+.hab.on{border-color:var(--oro);box-shadow:0 0 0 3px rgba(233,192,99,.4)}
+.hab.form{border-radius:10px;width:auto;padding:0 10px;font:700 12px var(--texto);height:44px}
+.habNom{font:600 12px var(--texto);color:var(--hudT);margin-right:4px;max-width:28%;line-height:1.15}
+.tarjetas{display:flex;gap:4px}
+.tj{flex:1;min-width:0;height:46px;background:rgba(28,22,17,.9);border:1.5px solid transparent;color:var(--hudT);display:grid;align-content:center;gap:3px;padding:2px 5px;font:600 11px var(--texto);text-align:left}
+.tj.sel{border-color:var(--oro)}
+.tj i{display:block;height:4px;background:#333}.tj i u{display:block;height:100%}
+/* rueda */
+.rueda{position:absolute;width:0;height:0}
+.rueda button{position:absolute;transform:translate(-50%,-50%);min-width:74px;height:44px;border-radius:22px;background:var(--hud);color:var(--hudT);border:1.5px solid var(--oro);font:700 12px var(--texto);padding:0 8px}
+.rueda .centro{min-width:0;width:44px;border-radius:50%;border-color:#8a6d3f}
+/* oficial */
+.of{position:absolute;left:8px;right:8px;bottom:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.of button{background:var(--hud);color:var(--hudT);border:1.5px solid #8a6d3f;font:700 14px var(--disp);min-height:52px}
+.aviso{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);background:var(--hud);color:var(--hudT);border:1px solid #8a6d3f;padding:7px 12px;font:700 15px var(--disp);opacity:0;transition:opacity .2s;pointer-events:none;text-align:center;max-width:84%}
+.aviso.ve{opacity:1}
+.panel{background:var(--panel);border:1.5px solid var(--borde);padding:14px}
+.panel h2{font:700 17px/1.2 var(--disp);margin:0 0 8px}
+.panel ul{margin:0;padding-left:18px;display:grid;gap:6px}
+.nota{font-size:13px;color:var(--tinta2);margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){.aviso{transition:none}}
+</style>
+
+<main class="pag">
+  <header>
+    <h1>Maqueta 3: el mando nuevo</h1>
+    <p class="sub">Tarjetas abajo, rueda al mantener el dedo, habilidades, formaciones, dibujar el frente, banda arriba. Dibujo en 2D para enseñar la idea.</p>
+  </header>
+
+  <section class="escena" id="escena" aria-label="Maqueta de la batalla">
+    <canvas id="lienzo"></canvas>
+    <div class="banda">
+      <div class="obj" id="obj">Haz huir a Argos</div>
+      <div class="ctl">
+        <button type="button" id="vel" aria-label="Velocidad">×1</button>
+        <button type="button" id="pausa" aria-pressed="false" aria-label="Pausa">❚❚</button>
+        <button type="button" id="vista">Oficial</button>
+      </div>
+      <div class="marcador" aria-label="Moral de los dos bandos"><span>Tú</span><i id="mTu"><u></u></i><i id="mSu"><u></u></i><span>Argos</span></div>
+    </div>
+    <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+    <div class="abajo" id="abajo">
+      <div class="habs" id="habs"></div>
+      <div class="tarjetas" id="tarjetas"></div>
+    </div>
+    <div class="rueda" id="rueda" hidden></div>
+    <div class="of" id="of" hidden><button type="button" data-g="empujar">Empujar</button><button type="button" data-g="aguantar">Aguantar</button><button type="button" data-g="atras">Paso atrás</button></div>
+  </section>
+
+  <section class="panel">
+    <h2>Cómo se manda</h2>
+    <ul>
+      <li><b>Elegir</b>: toca su tarjeta abajo o la tropa en el campo.</li>
+      <li><b>Mover dibujando</b>: arrastra el dedo por el campo. La raya es su nuevo frente: ancho y sitio.</li>
+      <li><b>Rueda</b>: mantén el dedo sobre tu tropa. Avanzar, Alto, Retirada y Formación (falange, orden abierto, cuña).</li>
+      <li><b>Habilidades</b>: los botones redondos sobre las tarjetas, con su tiempo de espera. Hoplitas: Carga, Grito de guerra, Empuje. Arqueros: Salva, Escaramuza (se alejan solos) y Tiro libre.</li>
+      <li><b>Banda de arriba</b>: objetivo, la moral de los dos bandos (gana quien hace huir al otro), velocidad ×1 ×2 ×4, pausa y vista del oficial.</li>
+      <li><b>Moral con causa</b>: cada tropa dice su estado y por qué (bajas, flanco, cansancio, vecino que huye). El flanco mata: dos contra uno.</li>
+    </ul>
+    <p class="nota">Ideas del estudio de Rome II y del diseño de Fable; cifras inventadas para la maqueta.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id), cv = $('lienzo'), cx = cv.getContext('2d'), esc = $('escena');
+  let W = 0, H = 0;
+  function tam() { const r = esc.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); W = r.width; H = r.height; cv.width = W * d; cv.height = H * d; cx.setTransform(d, 0, 0, d, 0, 0); }
+  addEventListener('resize', tam); tam();
+
+  const mk = (id, nom, bando, x, y, tipo) => ({ id, nom, bando, x, y, tx: x, ty: y, tipo, n: 120, n0: 120, moral: 80, cans: 0, est: 'firme', causa: 'formados', orden: 'alto', baja: 0, contacto: null, flanco: false, tRehace: 0, forma: 'falange', ancho: 22, esp: {}, act: {} });
+  const T = [mk(0, 'Izquierda', 'a', 22, 110, 'hop'), mk(1, 'Centro', 'a', 50, 110, 'hop'), mk(2, 'Derecha', 'a', 78, 110, 'hop'), mk(3, 'Arqueros', 'a', 50, 128, 'arq'),
+             mk(4, 'Argos izq.', 'r', 22, 30, 'hop'), mk(5, 'Argos centro', 'r', 50, 30, 'hop'), mk(6, 'Argos der.', 'r', 78, 30, 'hop')];
+  T[3].n = T[3].n0 = 60; T[3].mun = 40; T[3].forma = 'abierto'; T[3].ancho = 26;
+  const S = { sel: 1, vista: 'general', pausa: false, vel: 1, fin: '', t: 0, gesto: '', tGesto: 0 };
+  const mios = () => T.filter(t => t.bando === 'a'), suyos = () => T.filter(t => t.bando === 'r');
+  const vivo = t => t.est !== 'huye' && t.n > 4;
+  const FORMAS = { falange: { n: 'Falange', def: 12, atk: 0, vel: 0.8, tiro: 1 }, abierto: { n: 'Orden abierto', def: -10, atk: 0, vel: 1.2, tiro: 0.5 }, cuna: { n: 'Cuña', def: -5, atk: 10, vel: 1, tiro: 1.1 } };
+  const HABS = {
+    hop: [['carga', '⇈', 'Carga', 30], ['grito', '✺', 'Grito', 40], ['empuje', '⇶', 'Empuje', 25]],
+    arq: [['salva', '➶', 'Salva', 12], ['escaramuza', '↺', 'Escaram.', 0], ['libre', '◎', 'Tiro libre', 0]] };
+  let tAv = 0; function aviso(s) { if (!s) return; const a = $('aviso'); a.textContent = s; a.classList.add('ve'); tAv = 1.5; }
+  const cercano = t => suyos().filter(vivo).sort((a, b) => Math.hypot(a.x - t.x, a.y - t.y) - Math.hypot(b.x - t.x, b.y - t.y))[0];
+
+  function orden(t, o) {
+    if (!t || t.bando !== 'a') return; if (t.est === 'huye') return aviso(t.nom + ' huye: no obedece');
+    if (o === 'avanzar') t.ty = Math.max(20, t.y - 25);
+    if (o === 'alto') { t.tx = t.x; t.ty = t.y; }
+    if (o === 'retirada') { t.ty = Math.min(135, t.y + 30); }
+    t.orden = o; aviso({ avanzar: '¡Adelante!', alto: '¡Alto!', retirada: '¡Atrás en orden!' }[o]);
+  }
+  function forma(t, f) { t.forma = f; t.cambio = 2; aviso(FORMAS[f].n + ' · formando'); }
+  function habilidad(t, h) {
+    const [id, , nom, espera] = HABS[t.tipo].find(x => x[0] === h);
+    if (espera && (t.esp[id] || 0) > 0) return aviso(nom + ': espera ' + Math.ceil(t.esp[id]) + ' s');
+    if (t.est === 'huye') return aviso(t.nom + ' huye');
+    if (id === 'carga') { const e = cercano(t); if (!e) return; t.tx = e.x; t.ty = e.y + 9; t.act.carga = 10; aviso('¡A la carga!'); }
+    if (id === 'grito') { for (const o of mios()) if (Math.abs(o.x - t.x) < 35) o.moral = Math.min(100, o.moral + 18); t.act.grito = 3; aviso('¡Alalá!'); }
+    if (id === 'empuje') { if (!t.contacto) return aviso('Empuje, solo trabados'); t.act.empuje = 8; aviso('¡Othismos! ¡Empujad!'); }
+    if (id === 'salva') { if (!t.mun) return aviso('Sin flechas'); const e = cercano(t); if (!e || Math.hypot(e.x - t.x, e.y - t.y) > 80) return aviso('Fuera de alcance'); const k = Math.min(t.mun, 10); t.mun -= k; e.n -= k * 0.6 * FORMAS[e.forma].tiro; e.baja += k * 0.6; t.act.salva = 1.2; aviso('¡Soltad!'); }
+    if (id === 'escaramuza') { t.escaramuza = !t.escaramuza; aviso(t.escaramuza ? 'Escaramuza: se alejan solos' : 'Escaramuza, no'); }
+    if (id === 'libre') { t.libre = !t.libre; aviso(t.libre ? 'Tiro libre: tiran solos' : 'Tiro libre, no'); }
+    if (espera) t.esp[id] = espera;
+  }
+
+  function paso(dt) {
+    if (S.pausa || S.fin) return; S.t += dt;
+    for (const e of suyos()) if (vivo(e)) { const m = mios().filter(t => t.tipo === 'hop' && vivo(t)).sort((a, b) => Math.abs(a.x - e.x) - Math.abs(b.x - e.x))[0]; if (m && !e.contacto) { e.tx = m.x; e.ty = m.y - 9; } }
+    for (const t of T) {
+      for (const k in t.esp) t.esp[k] = Math.max(0, t.esp[k] - dt); for (const k in t.act) t.act[k] = Math.max(0, t.act[k] - dt);
+      if (t.cambio) t.cambio = Math.max(0, t.cambio - dt);
+      if (t.est === 'huye') { t.ty = t.bando === 'a' ? 160 : -20; t.tx = t.x; }
+      if (t.tipo === 'arq' && t.escaramuza) { const e = cercano(t); if (e && Math.hypot(e.x - t.x, e.y - t.y) < 35) { t.ty = Math.min(138, t.y + 12); t.tx = t.x + (t.x < 50 ? -6 : 6); } }
+      if (t.tipo === 'arq' && t.libre && t.mun > 0 && Math.random() < dt * 0.8) { const e = cercano(t); if (e && Math.hypot(e.x - t.x, e.y - t.y) < 80) { t.mun--; e.n -= 0.6 * FORMAS[e.forma].tiro; e.baja += 0.6; } }
+      const dx = t.tx - t.x, dy = t.ty - t.y, d = Math.hypot(dx, dy), v = (t.est === 'huye' ? 6 : t.act.carga ? 5 : 2.2) * FORMAS[t.forma].vel * (1 - t.cans * 0.4) * (t.cambio ? 0.2 : 1);
+      if (d > 0.3) { t.x += dx / d * Math.min(d, v * dt); t.y += dy / d * Math.min(d, v * dt); t.cans = Math.min(1, t.cans + dt * 0.006 * (t.act.carga ? 4 : 1)); }
+      else t.cans = Math.max(0, t.cans - dt * 0.004);
+      t.contacto = null; t.flanco = false; t.baja = Math.max(0, t.baja - dt * 0.08);
+    }
+    const pares = [];
+    for (const a of mios()) for (const r of suyos()) { if (!vivo(a) || !vivo(r) || a.tipo !== 'hop') continue;
+      const dx = Math.abs(a.x - r.x), dy = a.y - r.y;
+      if (dx < 12 && dy > 4 && dy < 13) pares.push([a, r, 'frente']); else if (dx < 22 && dx >= 12 && Math.abs(dy) < 11) pares.push([a, r, 'flanco']); }
+    for (const [a, r, k] of pares) {
+      a.contacto = r; r.contacto = a; if (k === 'flanco') r.flanco = true;
+      const atkA = 30 + (a.act.carga ? 25 : 0) + (a.act.empuje ? 15 : 0) + FORMAS[a.forma].atk - a.cans * 15, defR = 40 + FORMAS[r.forma].def - (r.flanco ? 25 : 0);
+      const atkR = 30 - r.cans * 15, defA = 40 + FORMAS[a.forma].def;
+      const pa = Math.max(0.1, Math.min(0.9, 0.35 + (atkA - defR) / 100)), pr = Math.max(0.1, Math.min(0.9, 0.35 + (atkR - defA) / 100));
+      const mR = pa * dt * 2.2 * (k === 'flanco' ? 1.8 : 1), mA = k === 'flanco' ? 0 : pr * dt * 2.2;
+      r.n -= mR; r.baja += mR; a.n -= mA; a.baja += mA; a.cans = Math.min(1, a.cans + dt * (a.act.empuje ? 0.05 : 0.02)); r.cans = Math.min(1, r.cans + dt * 0.02);
+    }
+    for (const t of T) {
+      if (t.n <= 4) { t.est = 'huye'; t.causa = 'aniquilados'; continue; }
+      const vecinoHuye = T.some(o => o !== t && o.bando === t.bando && o.est === 'huye' && Math.abs(o.x - t.x) < 35), causas = [];
+      let d = 0.6 * (t.contacto ? 0 : 1);
+      if (t.baja > 4) { d -= t.baja * 0.25; causas.push('bajas'); }
+      if (t.flanco) { d -= 6; causas.push('flanco'); }
+      if (t.cans > 0.6) { d -= 1.2; causas.push('cansancio'); }
+      if (vecinoHuye) { d -= 3; causas.push('vecino huye'); }
+      if (t.bando === 'a' && t.id === 1) { d += 0.8; causas.length || causas.push('oficial cerca'); }
+      t.moral = Math.max(0, Math.min(100, t.moral + d * dt));
+      const antes = t.est;
+      if (t.est === 'huye') { if (!t.contacto && t.moral > 35 && t.n > 20) { t.est = 'se rehace'; t.tRehace = 6; } }
+      else if (t.est === 'se rehace') { t.tRehace -= dt; t.moral += dt * 2; if (t.tRehace <= 0) t.est = 'firme'; }
+      else t.est = t.moral < 15 ? 'huye' : t.moral < 45 ? 'flaquea' : 'firme';
+      t.causa = causas[0] || (t.contacto ? 'trabados' : 'formados');
+      if (antes !== t.est && t.est === 'huye') aviso((t.bando === 'a' ? '¡Huyen tus ' : '¡Huye ') + t.nom.toLowerCase() + '! · ' + t.causa);
+    }
+    if (suyos().every(t => !vivo(t))) { S.fin = 'Victoria: Argos huye'; aviso(S.fin); }
+    else if (mios().filter(t => t.tipo === 'hop').every(t => !vivo(t))) { S.fin = 'Derrota: tu falange huye'; aviso(S.fin); }
+  }
+
+  const Y0 = () => H * 0.12, YH = () => H * 0.56;
+  const aP = (x, y) => [W * 0.06 + x / 100 * W * 0.88, Y0() + y / 140 * YH()];
+  const deP = (px, py) => [(px - W * 0.06) / (W * 0.88) * 100, (py - Y0()) / YH() * 140];
+  const colEst = e => e === 'firme' ? '#6fbf73' : e === 'flaquea' ? '#e0a84a' : e === 'se rehace' ? '#7fb3e0' : '#d9584a';
+  let raya = null;
+
+  function general() {
+    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#b7a77a'); g.addColorStop(1, '#8b7d52'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    cx.strokeStyle = 'rgba(110,85,50,.45)'; cx.lineWidth = 9; cx.beginPath(); cx.moveTo(W * 0.4, H); cx.bezierCurveTo(W * 0.6, H * 0.6, W * 0.3, H * 0.4, W * 0.55, 0); cx.stroke();
+    for (const [x, y] of [[0.05, 0.25], [0.95, 0.35], [0.08, 0.62], [0.93, 0.6]]) { cx.fillStyle = '#3d5a34'; cx.beginPath(); cx.arc(W * x, H * y, 6, 0, 7); cx.fill(); }
+    for (const t of T) {
+      if (t.n <= 0.5) continue; const [px, py] = aP(t.x, t.y), sc = W / 100 * 0.88, fil = t.forma === 'cuna' ? 0 : t.forma === 'abierto' ? 1 : 2;
+      const w = t.ancho * sc * Math.max(0.45, t.n / t.n0) ** 0.5, h = t.tipo === 'arq' ? 6 : 12, sepX = t.forma === 'abierto' ? 1.5 : 1;
+      cx.fillStyle = t.bando === 'a' ? '#2f5aa0' : '#a8322a'; cx.globalAlpha = t.est === 'huye' ? 0.45 : 1;
+      for (let i = 0; i < 24; i++) { let ix = (i % 12) / 11 - 0.5, iy = Math.floor(i / 12);
+        let ox = ix * w * sepX, oy = (iy - 0.5) * h * 0.6; if (t.forma === 'cuna') oy += Math.abs(ix) * h * 1.4 * (t.bando === 'a' ? 1 : -1);
+        if (t.est === 'huye') ox += Math.sin(i * 7 + S.t * 3) * 6;
+        cx.beginPath(); cx.arc(px + ox, py + oy, 2.4, 0, 7); cx.fill(); }
+      cx.globalAlpha = 1;
+      if (t.id === S.sel) { cx.strokeStyle = '#e9c063'; cx.lineWidth = 2; cx.strokeRect(px - w * sepX / 2 - 5, py - h / 2 - 4, w * sepX + 10, h + 8 + (t.forma === 'cuna' ? h : 0));
+        if (Math.hypot(t.tx - t.x, t.ty - t.y) > 1) { const [qx, qy] = aP(t.tx, t.ty); cx.setLineDash([5, 4]); cx.beginPath(); cx.moveTo(px, py); cx.lineTo(qx, qy); cx.stroke(); cx.setLineDash([]); } }
+      if (t.act.salva) { const e = cercano(t); if (e) { const [ex, ey] = aP(e.x, e.y); cx.strokeStyle = 'rgba(240,230,200,.8)'; cx.lineWidth = 1; for (let i = 0; i < 8; i++) { const f = (1.2 - t.act.salva) / 1.2, ox = (i - 4) * 4; cx.beginPath(); cx.moveTo(px + ox + (ex - px) * f, py + (ey - py) * f - Math.sin(f * Math.PI) * 30); cx.lineTo(px + ox + (ex - px) * (f + 0.05), py + (ey - py) * (f + 0.05) - Math.sin((f + 0.05) * Math.PI) * 30); cx.stroke(); } } }
+      if (t.contacto && t.bando === 'a') { cx.fillStyle = 'rgba(220,190,130,.35)'; cx.beginPath(); cx.arc(px, py - 12, 16, 0, 7); cx.fill(); }
+      const txt = (t.id === S.sel ? t.nom + ' · ' : '') + t.est + (t.est !== 'firme' || t.causa !== 'formados' ? ' · ' + t.causa : '');
+      cx.font = '600 10px Source Sans 3, sans-serif'; const tw = cx.measureText(txt).width + 10, ry = py + (t.bando === 'a' ? 14 : -22);
+      cx.fillStyle = 'rgba(28,22,17,.78)'; cx.fillRect(px - tw / 2, ry, tw, 14); cx.fillStyle = colEst(t.est); cx.fillRect(px - tw / 2, ry, 3, 14);
+      cx.fillStyle = '#f1e6c8'; cx.textAlign = 'center'; cx.fillText(txt, px + 1, ry + 10.5); cx.textAlign = 'left';
+    }
+    if (raya) { cx.strokeStyle = '#e9c063'; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(raya.x0, raya.y0); cx.lineTo(raya.x1, raya.y1); cx.stroke();
+      const mx = (raya.x0 + raya.x1) / 2, my = (raya.y0 + raya.y1) / 2; cx.fillStyle = '#e9c063'; cx.beginPath(); cx.moveTo(mx, my - 12); cx.lineTo(mx - 7, my - 2); cx.lineTo(mx + 7, my - 2); cx.fill(); }
+  }
+
+  /* ---- vista del oficial: tú, 2.ª fila del bloque del centro ---- */
+  function oficial() {
+    const yo = T[1], frente = yo.contacto, hz = H * 0.42;
+    const g = cx.createLinearGradient(0, 0, 0, hz); g.addColorStop(0, '#7086b6'); g.addColorStop(0.6, '#e8b67a'); g.addColorStop(1, '#f5d8a3'); cx.fillStyle = g; cx.fillRect(0, 0, W, hz);
+    const sg = cx.createRadialGradient(W * 0.75, hz * 0.75, 2, W * 0.75, hz * 0.75, W * 0.45); sg.addColorStop(0, 'rgba(255,240,200,1)'); sg.addColorStop(1, 'rgba(255,200,120,0)'); cx.fillStyle = sg; cx.fillRect(0, 0, W, hz);
+    cx.fillStyle = '#968670'; cx.beginPath(); cx.moveTo(0, hz); for (let x = 0; x <= W; x += 12) cx.lineTo(x, hz - 16 - Math.sin(x / 55) * 9); cx.lineTo(W, hz); cx.fill();
+    const tx = W * 0.64, ty = hz - 40; cx.fillStyle = '#d8c7a6'; cx.fillRect(tx, ty, 30, 3); cx.beginPath(); cx.moveTo(tx - 2, ty); cx.lineTo(tx + 15, ty - 6); cx.lineTo(tx + 32, ty); cx.fill(); for (let i = 0; i < 5; i++) cx.fillRect(tx + 2 + i * 6, ty + 3, 2, 8);
+    const gg = cx.createLinearGradient(0, hz, 0, H); gg.addColorStop(0, '#b6a072'); gg.addColorStop(1, '#6a5b38'); cx.fillStyle = gg; cx.fillRect(0, hz, W, H - hz);
+    /* el enemigo de enfrente: distancia real hasta Argos centro */
+    const e = T[5], dist = Math.max(1.2, yo.y - e.y - 8), k = 34 / (0.6 + dist * 0.3), y0 = hz + 4 + (H * 0.58 - hz) / (1 + dist * 0.2), cede = S.gesto === 'empujar' ? 8 : 0;
+    if (e.n > 1) for (let f = 2; f >= 0; f--) for (let c = -4; c <= 4; c++) {
+      const s = k * (1 - f * 0.1), x = W / 2 + c * s * 1.55, y = y0 - f * s * 0.85 - cede; if (x < -30 || x > W + 30) continue;
+      if (e.est === 'huye' && f === 0 && (c + 9) % 3 === 0) continue;
+      cx.fillStyle = '#5a3b2a'; cx.fillRect(x - s * 0.2, y - s * 2.1, s * 0.4, s * 1.5);
+      cx.fillStyle = '#7a5d35'; cx.beginPath(); cx.arc(x, y - s * 2.25, s * 0.24, 0, 7); cx.fill();
+      cx.fillStyle = '#c23a2b'; cx.beginPath(); cx.arc(x - s * 0.12, y - s * 1.25, s * 0.6, 0, 7); cx.fill(); cx.strokeStyle = '#e0c070'; cx.lineWidth = Math.max(1, s * 0.05); cx.stroke();
+      if (f === 0 && dist < 6) { cx.strokeStyle = '#a57f45'; cx.lineWidth = Math.max(1, s * 0.08); cx.beginPath(); cx.moveTo(x + s * 0.3, y - s * 1.5); cx.lineTo(x + s * 0.5, y - s * 1.5 + s * 1.6); cx.stroke(); }   /* su lanza, hacia ti */
+    }
+    if (yo.contacto) for (let i = 0; i < 18; i++) { cx.fillStyle = 'rgba(214,180,128,.07)'; cx.beginPath(); cx.arc((i * 83 + S.t * 25) % W, y0 - 12 + Math.sin(i + S.t) * 5, 22 + (i % 4) * 8, 0, 7); cx.fill(); }
+    /* tu fila: TRES compañeros delante y a los lados; una lanza por mano, nada más */
+    const sh = S.tGesto > 0 && S.gesto === 'empujar' ? (Math.random() - 0.5) * 6 : 0;
+    cx.save(); cx.translate(sh, 0);
+    const baja = dist < 14 ? 1 : 0;
+    for (const [x, yb, sc] of [[W * 0.16, H * 0.8, 30], [W * 0.5, H * 0.72, 26], [W * 0.84, H * 0.8, 30]]) {
+      const mano = [x + sc * 0.4, yb - sc * 1.15], pt = baja ? [W / 2 + (x - W / 2) * 0.25, y0 - 6] : [mano[0] + (x - W / 2) * 0.08, mano[1] - H * 0.42];
+      cx.strokeStyle = '#b48a4d'; cx.lineWidth = sc * 0.11; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(mano[0] - (pt[0] - mano[0]) * 0.18, mano[1] - (pt[1] - mano[1]) * 0.18); cx.lineTo(pt[0], pt[1]); cx.stroke();
+      cx.fillStyle = '#ddd'; cx.beginPath(); cx.arc(pt[0], pt[1], sc * 0.08, 0, 7); cx.fill();
+      cx.fillStyle = '#2b3f6e'; cx.fillRect(x - sc * 0.45, yb - sc * 1.4, sc * 0.9, sc * 1.6);
+      cx.fillStyle = '#c9a15c'; cx.beginPath(); cx.arc(x, yb - sc * 1.62, sc * 0.3, 0, 7); cx.fill();
+      cx.fillStyle = '#f2efe6'; cx.beginPath(); cx.ellipse(x, yb - sc * 2.0, sc * 0.08, sc * 0.3, 0, 0, 7); cx.fill();
+      cx.fillStyle = '#8a6a3a'; cx.beginPath(); cx.arc(mano[0], mano[1], sc * 0.13, 0, 7); cx.fill();
+      cx.fillStyle = '#2f5aa0'; cx.beginPath(); cx.arc(x - sc * 0.55, yb - sc * 1.0, sc * 0.66, 0, 7); cx.fill(); cx.strokeStyle = '#e0c070'; cx.lineWidth = 2; cx.stroke();
+      cx.fillStyle = '#f1e6c8'; cx.font = '700 ' + Math.round(sc * 0.6) + 'px Cinzel, serif'; cx.textAlign = 'center'; cx.fillText('Λ', x - sc * 0.55, yb - sc * 0.8); cx.textAlign = 'left';
+    }
+    /* tu lanza y tu escudo */
+    const ag = S.gesto === 'aguantar' && S.tGesto > 0;
+    cx.fillStyle = '#2f5aa0'; cx.beginPath(); cx.ellipse(W * 0.2, H * (ag ? 0.86 : 0.97), W * 0.3, H * 0.16, 0, 0, 7); cx.fill(); cx.strokeStyle = '#e0c070'; cx.lineWidth = 3; cx.stroke();
+    cx.strokeStyle = '#a57f45'; cx.lineWidth = 9; cx.beginPath(); const em = S.gesto === 'empujar' ? S.tGesto * 50 : 0;
+    cx.moveTo(W * 0.78, H * 1.02); cx.lineTo(W * 0.56, (baja ? y0 + 4 : H * 0.36) - em); cx.stroke();
+    cx.fillStyle = '#8a6a3a'; cx.beginPath(); cx.arc(W * 0.74, H * 0.93, 13, 0, 7); cx.fill();
+    cx.restore();
+  }
+
+
+
+  /* ---- interfaz ---- */
+  $('pausa').addEventListener('click', () => { S.pausa = !S.pausa; $('pausa').setAttribute('aria-pressed', String(S.pausa)); $('pausa').textContent = S.pausa ? '▶' : '❚❚'; aviso(S.pausa ? 'Pausa: da órdenes con calma' : ''); });
+  $('vel').addEventListener('click', () => { S.vel = S.vel === 1 ? 2 : S.vel === 2 ? 4 : 1; $('vel').textContent = '×' + S.vel; });
+  $('vista').addEventListener('click', () => { S.vista = S.vista === 'general' ? 'oficial' : 'general'; $('vista').textContent = S.vista === 'general' ? 'Oficial' : 'General'; pinta(); });
+  for (const b of $('of').children) b.addEventListener('click', () => { S.gesto = b.dataset.g; S.tGesto = 0.5; const yo = T[1];
+    if (S.gesto === 'empujar' && yo.contacto) { yo.contacto.n -= 2; yo.contacto.baja += 2; yo.cans = Math.min(1, yo.cans + 0.03); aviso('¡Empujad!'); }
+    if (S.gesto === 'aguantar') { yo.forma = 'falange'; aviso('¡Aguantad!'); } if (S.gesto === 'atras') { yo.ty = Math.min(135, yo.y + 4); aviso('Un paso atrás'); } });
+
+  function pinta() {
+    const ofi = S.vista === 'oficial'; $('abajo').hidden = ofi; $('of').hidden = !ofi; if (ofi) $('rueda').hidden = true;
+    const tj = $('tarjetas'); tj.textContent = '';
+    for (const t of mios()) { const b = document.createElement('button'); b.type = 'button'; b.className = 'tj' + (t.id === S.sel ? ' sel' : '');
+      b.innerHTML = '<span></span><i><u></u></i><i><u style="background:#c9b27a"></u></i>'; b.setAttribute('aria-label', t.nom);
+      b.addEventListener('click', e => { e.stopPropagation(); S.sel = t.id; pinta(); }); tj.appendChild(b); }
+    refresca();
+    const hb = $('habs'); hb.textContent = ''; const t = T[S.sel]; if (!t) return;
+    const nm = document.createElement('span'); nm.className = 'habNom'; nm.textContent = t.nom + ' · ' + FORMAS[t.forma].n; hb.appendChild(nm);
+    for (const [id, ic, nom] of HABS[t.tipo]) { const b = document.createElement('button'); b.type = 'button'; b.className = 'hab'; b.dataset.h = id; b.setAttribute('aria-label', nom);
+      b.innerHTML = '<span class="esp"></span>' + ic + '<small>' + nom + '</small>'; b.addEventListener('click', e => { e.stopPropagation(); habilidad(t, id); }); hb.appendChild(b); }
+  }
+  function refresca() {
+    const bs = $('tarjetas').children; mios().forEach((t, i) => { const b = bs[i]; if (!b) return;
+      b.firstChild.textContent = t.nom + ' · ' + Math.round(Math.max(0, t.n)) + (t.mun != null ? ' · ' + t.mun + '➶' : '');
+      const m = b.children[1].firstChild; m.style.width = Math.round(t.moral) + '%'; m.style.background = colEst(t.est); b.children[2].firstChild.style.width = Math.round((1 - t.cans) * 100) + '%'; });
+    const t = T[S.sel]; if (t) for (const b of document.querySelectorAll('.hab')) { const id = b.dataset.h, def = HABS[t.tipo].find(x => x[0] === id);
+      b.querySelector('.esp').style.setProperty('--p', def && def[3] ? Math.round((t.esp[id] || 0) / def[3] * 100) + '%' : '0%');
+      b.classList.toggle('on', !!(t.act[id] || (id === 'escaramuza' && t.escaramuza) || (id === 'libre' && t.libre))); }
+    const tot = l => l.reduce((s, t) => s + (t.est === 'huye' ? 0 : t.moral * t.n0), 0) / l.reduce((s, t) => s + 100 * t.n0, 0);
+    $('mTu').firstChild.style.width = Math.round(tot(mios()) * 100) + '%'; $('mSu').firstChild.style.width = Math.round(tot(suyos()) * 100) + '%';
+  }
+  pinta(); setInterval(refresca, 300);
+
+  /* toques en el campo: tocar elige, arrastrar dibuja el frente, mantener abre la rueda */
+  let pulso = null;
+  const pos = e => { const r = esc.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  esc.addEventListener('pointerdown', e => { if (e.target !== cv || S.vista !== 'general') return; const [px, py] = pos(e), [mx, my] = deP(px, py);
+    const t = mios().find(t => Math.abs(t.x - mx) < 12 && Math.abs(t.y - my) < 8); $('rueda').hidden = true;
+    pulso = { px, py, t, mueve: false, tm: setTimeout(() => { if (pulso && !pulso.mueve && t) { rueda(t, px, py); pulso = null; } }, 450) }; });
+  esc.addEventListener('pointermove', e => { if (!pulso) return; const [px, py] = pos(e);
+    if (Math.hypot(px - pulso.px, py - pulso.py) > 12) { pulso.mueve = true; clearTimeout(pulso.tm); raya = { x0: pulso.px, y0: pulso.py, x1: px, y1: py }; } });
+  esc.addEventListener('pointerup', e => { if (!pulso) return; clearTimeout(pulso.tm); const p = pulso; pulso = null;
+    if (p.mueve && raya) { const sel = T[S.sel]; if (sel && sel.est !== 'huye') { const [ax, ay] = deP(raya.x0, raya.y0), [bx, by] = deP(raya.x1, raya.y1);
+        sel.tx = Math.max(5, Math.min(95, (ax + bx) / 2)); sel.ty = Math.max(15, Math.min(135, (ay + by) / 2)); sel.ancho = Math.max(12, Math.min(40, Math.hypot(bx - ax, (by - ay) * 0.6))); sel.orden = 'mover'; aviso(sel.nom + ': a la raya'); }
+      raya = null; return; }
+    if (p.t) { S.sel = p.t.id; pinta(); } });
+  function rueda(t, px, py) { const ru = $('rueda'); ru.textContent = ''; ru.hidden = false; ru.style.left = Math.max(80, Math.min(W - 80, px)) + 'px'; ru.style.top = Math.max(110, Math.min(H - 160, py)) + 'px'; S.sel = t.id; pinta();
+    const pon = (lista) => { ru.textContent = ''; const c = document.createElement('button'); c.type = 'button'; c.className = 'centro'; c.textContent = '✕'; c.setAttribute('aria-label', 'Cerrar'); c.style.left = '0px'; c.style.top = '0px'; c.addEventListener('click', ev => { ev.stopPropagation(); ru.hidden = true; }); ru.appendChild(c);
+      lista.forEach(([txt, fn], i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / lista.length, b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+        b.style.left = Math.cos(a) * 78 + 'px'; b.style.top = Math.sin(a) * 62 + 'px'; b.addEventListener('click', ev => { ev.stopPropagation(); fn(); }); ru.appendChild(b); }); };
+    const cierra = f => () => { f(); ru.hidden = true; pinta(); };
+    pon([['Avanzar', cierra(() => orden(t, 'avanzar'))], ['Formación', () => pon([['Falange', cierra(() => forma(t, 'falange'))], ['Abierto', cierra(() => forma(t, 'abierto'))], ['Cuña', cierra(() => forma(t, 'cuna'))]])],
+         ['Retirada', cierra(() => orden(t, 'retirada'))], ['Alto', cierra(() => orden(t, 'alto'))]]); }
+
+  let prev = performance.now();
+  function bucle(now) {
+    const dt = Math.min(0.05, (now - prev) / 1000); prev = now; paso(dt * 1.6 * S.vel);
+    if (S.tGesto > 0) S.tGesto -= dt; if (tAv > 0 && (tAv -= dt) <= 0) $('aviso').classList.remove('ve');
+    const yo = T[1], t = T[S.sel];
+    $('obj').textContent = S.fin || (S.vista === 'oficial' ? 'Tu bloque: ' + yo.est + ' · ' + yo.causa + ' · ' + Math.round(yo.n) : 'Haz huir a Argos' + (t ? ' · ' + t.nom + ': ' + t.est + ' (' + t.causa + ')' : ''));
+    (S.vista === 'oficial' ? oficial : general)(); requestAnimationFrame(bucle);
+  }
+  requestAnimationFrame(bucle);
+})();
+</script>
