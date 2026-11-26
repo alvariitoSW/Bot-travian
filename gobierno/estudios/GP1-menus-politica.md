@@ -110,7 +110,31 @@ gobierno de arranque, tirano, votaciones»). Las 5–7 son las de los menús.
 7. ¿Régimen como rueda, cargos como escalera y ostracismo con tejos? **(A, recomendada)** sí · (B) listas sencillas. Por qué: se entiende de un vistazo.
 
 ### Respuestas del usuario
-*(pendientes; se apuntan aquí literales en cuanto conteste)*
+Contestadas el 25–26/11 en cuadro de preguntas. Entre comillas, lo que el usuario escribió de su mano; el resto, la opción que pulsó.
+| N.º | Pregunta | Respuesta |
+|---|---|---|
+| 1 | Quién lo construye | Mesa de la Polis (la recomendada) |
+| 2 | Gobierno de arranque | Cada una el suyo (la recomendada) |
+| 3 | Quién es el tirano | Tú (la recomendada) |
+| 4 | Cuánto se vota | «Esto hay que replantearlo» |
+| 5 | Forma de votar | «B y C» (el discurso y las piedras; **no** eligió el ágora A) |
+| 6 | Aspecto de vasija griega | Sí (la recomendada) |
+| 7 | Rueda, escalera y tejos | «Esto hay que replantearlo» |
+| 8 | Seguir con «La vasija» (intrigas) | «Hay que reformularlo» |
+| 9 | Cuándo | no se preguntó: la cubre la 15 |
+| 10 | Personas con nombre | «Mezcla» (inventadas y reales) |
+| 11 | Se puede perder | Sí (la recomendada) |
+| 12 | Jugarlo suelto desde el menú | Sí (la recomendada) |
+| 13 | La vasija rehecha | Otra vuelta |
+| 14 | Peso sobre ciudad y diplomacia | Mucho, con salida (la recomendada) |
+| 15 | Dónde entra en el plan | «Que se puede absorber de la M4 y actualizar el proyecto con este cambio para no empezar a diverger» |
+| 16 | Escenas grandes | Ilustraciones del taller (de Arte) |
+Antes de responder dijo (literal): «Hazme las preguntas en formato pregutna y luego vemos que mejorar de esto de las vasijas y el juego».
+
+**Estado**: aprobado el rumbo (1, 2, 3, 6, 10, 11, 12, 14, 16) y que la política nueva **se absorba en M4** (15).
+**Abierto, a debatir con él**: cuánto se vota (4), cómo unir discurso y piedras (5), los menús de régimen, cargos y
+ostracismo (7), la reformulación del juego de intrigas (8) y otra vuelta al dibujo de la vasija (13).
+Nada se construye todavía. El reparto GP2–GP8 e IN1–IN13 queda en suspenso hasta cerrar lo abierto.
 
 ## 8. Cuentas
 `node gobierno/gasto.mjs` al cerrar: ver el parte `gobierno/partes/2026-11-25-GP1-menus.md`.

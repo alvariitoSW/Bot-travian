@@ -92,4 +92,4 @@ Siguen abiertas las 1–7 (`GP1-menus-politica.md`) y las 8–12 (`GP1b-juego-de
 16. ¿Las escenas grandes? **(A, recomendada)** dibujadas con código en estilo de vasija, como en la maqueta · (B) encargar ilustraciones más ricas al taller de Arte (más caro y más lento). Por qué: el estilo propio ya luce y no pesa.
 
 ### Respuestas del usuario
-*(pendientes; se apuntan aquí literales en cuanto conteste)*
+Todas las respuestas (1–16) están juntas en `GP1-menus-politica.md` §7.

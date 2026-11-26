@@ -94,4 +94,4 @@ minutos de jugarlo no divierte, se para ahí.
 12. ¿Jugarlo también suelto desde el menú («Una vida en la polis», 30 minutos)? **(A, recomendada)** sí · (B) solo dentro de la campaña. Por qué: es lo que lo hace «otro juego aparte», y cuesta poco más.
 
 ### Respuestas del usuario
-*(pendientes; se apuntan aquí literales en cuanto conteste)*
+Todas las respuestas (1–16) están juntas en `GP1-menus-politica.md` §7.
