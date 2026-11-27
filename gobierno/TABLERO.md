@@ -692,3 +692,5 @@ Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pru
   - ⬜ BT2 **Paso 2 · Las formaciones de cerca**: testudo como caparazón, falange con la sarisa del oficial y picas legibles, golpes con su movimiento (CB2b), vuelven vélites y triarios.
   - ⬜ BT3 **Paso 3 · Una batalla entera**: batalla grande con soldados visibles, bloques prietos, aros, estandartes; Ásculo con la falange de «Falange a pie» y resultado a la campaña; un motor de golpes a pie (CB3) para todas.
 
+## Gobierno · método
+  - 🔶 SK1 **Mezclar el método de spec-kit con el plan socialista** (especificar → aclarar → plan → analizar → construir → converger; paso «analizar» que cruza decisiones con tareas; propuesta de reglas para el usuario; rama `sk1-metodo`).
