@@ -694,4 +694,4 @@ Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pru
 
 ## Gobierno · método
   - ✅ SK1 **Método mezclado (spec-kit + plan socialista)** — hecha el 27/11 (`91cca762`, unida; 1,39 M): `gobierno/METODO.md`, plantilla `gobierno/plantillas/especificacion.md`, comprobador `gobierno/analizar.mjs` (0,06 s), en prueba hasta el «sí» del usuario. Primer análisis: 3 críticos (MN4a, MD1, CD7 sin tarea), 5 altos, 17 medios, 23 bajos.
-  - 🔶 AR2 **Revisar NVIDIA SimReady para el juego** (taller de Arte; solo estudio: licencia, inventario útil, prueba de conversión USD→glTF, veredicto; rama `ar2-simready`).
+  - ✅ AR2 **Revisar NVIDIA SimReady** — hecha el 27/11 (solo estudio, unida; ~0,8 M): CC BY 4.0 limpia (compatible con 0 A.D., crédito a NVIDIA); de 2.919 piezas sirven ~60 (ollas de barro, cestas, panes, fruta, queso, sardina, madera); sin árboles, rocas, animales, ánforas, barriles ni sacos; USD→GLB con Blender: 800 triángulos, 43–75 KB por pieza. Bloqueo: el arte pesa 55,6 de 56 MB. Pregunta al usuario.
