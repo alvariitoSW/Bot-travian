@@ -694,3 +694,4 @@ Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pru
 
 ## Gobierno · método
   - ✅ SK1 **Método mezclado (spec-kit + plan socialista)** — hecha el 27/11 (`91cca762`, unida; 1,39 M): `gobierno/METODO.md`, plantilla `gobierno/plantillas/especificacion.md`, comprobador `gobierno/analizar.mjs` (0,06 s), en prueba hasta el «sí» del usuario. Primer análisis: 3 críticos (MN4a, MD1, CD7 sin tarea), 5 altos, 17 medios, 23 bajos.
+  - 🔶 AR2 **Revisar NVIDIA SimReady para el juego** (taller de Arte; solo estudio: licencia, inventario útil, prueba de conversión USD→glTF, veredicto; rama `ar2-simready`).
