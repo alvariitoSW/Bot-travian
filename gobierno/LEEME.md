@@ -30,12 +30,16 @@ node gobierno/arte.mjs              # peso, triángulos y licencias del arte
 node gobierno/fichas.mjs            # cada pieza de data.js tiene su ficha (arte + fuente histórica) en js/registro.js
 node gobierno/cuadro.mjs            # genera gobierno/cuadro.html para publicarlo
 node gobierno/arte-fotos.mjs        # lista y fotos pequeñas de las piezas de arte, para la pestaña «Arte» del cuadro
+node gobierno/analizar.mjs          # repaso de coherencia: decisiones, planes, partes y specs contra el tablero (segundos)
 ```
 
 ## Una sesión, de principio a fin
 1. Leer `CLAUDE.md`, `BITACORA.md` y `TABLERO.md`.
 2. Aplicar los pedidos que el usuario dejó en el cuadro de mando.
 3. Elegir una tarea y repartirla según su tamaño.
+   **En prueba (SK1, hasta el «sí» del usuario; `METODO.md`)**: especificar (`specs/<ID>.md` desde `plantillas/especificacion.md`)
+   → aclarar (máx. 3 preguntas, antes de construir) → plan → analizar (`node gobierno/analizar.mjs --spec specs/<ID>.md --estricto`)
+   → construir → converger (repetir hasta cumplir los criterios; tope = presupuesto × 2, y al pasarlo se pregunta).
 4. Construir, verificar mirando capturas a 390 px, revisar el código.
 5. Jueces APTO. Tablero, bitácora y parte. Publicar el cuadro. Commit y push.
 6. Contarle al usuario, en llano y con capturas, qué cambia.

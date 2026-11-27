@@ -18,6 +18,10 @@ Tú eres el **director**. Una sesión, una tarea. No se empieza otra aunque sobr
 3. Elige la tarea: la que diga el usuario; si no, el «Encargo de la próxima sesión» de la bitácora.
 4. Si la tarea pide una decisión del usuario (reglas, arquitectura, quitar cosas, aspecto grande), **pregunta antes**.
 5. Escribe en dos o tres frases qué se va a ver distinto en el móvil al terminar. Eso es el criterio de hecho.
+6. **Especificar y aclarar** (método mezclado, `gobierno/METODO.md`; propuesta SK1, en prueba hasta el «sí» del usuario):
+   copia `gobierno/plantillas/especificacion.md` a `gobierno/specs/<ID>.md`. Pon el punto 5 en «Qué verá el jugador», las
+   decisiones del usuario **literales** (D1…; también las dichas en el chat) y criterios comprobables (CA1…, cada uno con
+   «Se comprueba:»). Las dudas (máx. 3) se preguntan ahora, en (A)/(B), no al final.
 
 ## 2. Presupuesto antes de gastar (obligatorio)
 Unidad: **M** = millones de tokens equivalentes, lo que imprime `node gobierno/gasto.mjs`. Referencia medida: montar
@@ -27,7 +31,9 @@ el gobierno (G1) costó 0,75 M de Fable.
 2. Hacienda (tú mismo, sin agentes): quita el agente que sobra, baja de modelo lo que copia algo ya hecho, parte el
    encargo si pasa de una pieza.
 3. Si el total pasa de **1,5 M**, o de lo que el usuario aprobó, no empieces: díselo.
-4. Antes de cada vuelta de arreglos y al cerrar: `node gobierno/gasto.mjs --desde <hora de inicio> --presupuesto N`.
+4. **Analizar antes de construir**: `node gobierno/analizar.mjs --spec gobierno/specs/<ID>.md --estricto`. Con un CRÍTICO
+   (decisión o criterio sin tarea, dudas en una spec aprobada, tope pasado) no se construye: se arregla la spec o se pregunta.
+5. Antes de cada vuelta de arreglos y al cerrar: `node gobierno/gasto.mjs --desde <hora de inicio> --presupuesto N`.
    Con «ALERTA +25 %» se para y se cuenta al usuario. No se sigue gastando.
 
 **Política de modelos (una sola).** El director es el modelo de la sesión y **no construye**: encarga, mira capturas y
@@ -50,6 +56,9 @@ falla dos veces; entonces se para y se pregunta antes de subir de modelo. Haiku 
 - Al **revisor** se le da el diff (`git diff`), no las conclusiones del constructor.
 - Lo que digan se comprueba: un agente puede equivocarse con el mismo aplomo con el que acierta.
 - Si verificador o revisor encuentran fallos, vuelve al constructor **una vez**. Si sigue mal, para y apúntalo.
+- **Converger**: tras cada vuelta, una fila en «Convergencia» de la spec (M gastados, CA cumplidos, qué falta) y otra vez
+  `analizar`. Se sigue hasta cumplir todos los CA; al pasar el **tope (presupuesto × 2)** o con 3 vueltas sin subir la nota,
+  se para y se pregunta al usuario: seguir, recortar o dejarlo.
 
 ## 4. Rama
 La rama es la que asigne la sesión. Si no asigna ninguna, la de `CLAUDE.md` §5. Nunca a otra sin permiso. Sin PR.
@@ -73,10 +82,11 @@ Si el usuario pide «termina todo lo que queda», se lanza todo lo posible en es
 ## Plantilla del parte
 ```
 # Parte · <ID> <título> · <fecha>
-**Resultado**: hecho / a medias / bloqueado.
+**Resultado**: hecho / a medias / bloqueado. («Hecho» solo con todos los CA de la spec ✔ o el «Bien» del usuario.)
 **Qué cambia para el jugador**: …
 **Archivos**: …
 **Jueces**: APTO n/n · arte APTO (si aplica).
+**Spec**: `gobierno/specs/<ID>.md` · CA cumplidos n/n · vueltas v · `analizar` APTO.
 **Cuentas**: presupuesto N M · gastado X M (±P %) · por modelo: … · dónde se fue y cómo se ahorraría la próxima vez.
 **Queda pendiente**: …
 **Decide el usuario**: …
