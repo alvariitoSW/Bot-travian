@@ -693,4 +693,4 @@ Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pru
   - ⬜ BT3 **Paso 3 · Una batalla entera**: batalla grande con soldados visibles, bloques prietos, aros, estandartes; Ásculo con la falange de «Falange a pie» y resultado a la campaña; un motor de golpes a pie (CB3) para todas.
 
 ## Gobierno · método
-  - 🔶 SK1 **Mezclar el método de spec-kit con el plan socialista** (especificar → aclarar → plan → analizar → construir → converger; paso «analizar» que cruza decisiones con tareas; propuesta de reglas para el usuario; rama `sk1-metodo`).
+  - ✅ SK1 **Método mezclado (spec-kit + plan socialista)** — hecha el 27/11 (`91cca762`, unida; 1,39 M): `gobierno/METODO.md`, plantilla `gobierno/plantillas/especificacion.md`, comprobador `gobierno/analizar.mjs` (0,06 s), en prueba hasta el «sí» del usuario. Primer análisis: 3 críticos (MN4a, MD1, CD7 sin tarea), 5 altos, 17 medios, 23 bajos.
