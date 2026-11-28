@@ -698,8 +698,8 @@ Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pru
   - ✅ AR3 **Fuentes libres nuevas y puesto del mercado** — hecha el 28/11 (unida; 1,77 M de 2 M; arte APTO 55,9 de 57 MB): `assets/mercado/mercado.glb` (300 KB, 10 piezas de NVIDIA, CC BY 4.0, crédito en README y menú); estudio `gobierno/estudios/AR3-fuentes.md` con recomendación (armas griegas de gamekorp CC0; pino y ciprés de OpenGameArt). Pase a Cerebro: colocar el puesto en la ciudad (`city3d.js`, `fachadas.js`), `sw.js` y ficha en `registro.js`.
 
 ## Carril 2.0 · Politeia (POLITEIA.md, aprobado por el usuario el 26/11; prueba P0 arrancada el 28/11, «vale»)
-  - 🔶 PL1 **Un año jugable en reglas con bots** (cuatro actos, cinco casas, dos rivales; solo Node; presupuesto 1,2 M, tope 2,4 M; rama `pl1-politeia-reglas`).
-  - ⬜ PL2 **Secretos, duelo de preguntas, piedras y tribunal mínimo** (reglas; 1,2 M).
+  - ✅ PL1 **Un año jugable en reglas con bots** — hecha el 28/11 (unida; 6/6 criterios, `test/politeia.test.mjs` 22/22, rápidos APTO; 1,30 M sobre 1,2: opus 0,63 · sonnet 0,67). Área `polis` y guía `mesa-polis` dadas de alta; juez en la lógica de la subida.
+  - 🔶 PL2 **Secretos, duelo de preguntas, piedras y tribunal mínimo** (reglas; 1,2 M).
   - ⬜ PL3 **La ciudad de pie con arte de relleno**: Consejo, casa y ágora jugables (1,3 M).
   - ⬜ PL4 **Tribunal, santuario y puerto; la vasija con la crónica** (0,8 M).
   - ⬜ PL5 **Examen**: lo juega diez minutos quien no lo construyó, y tú en el móvil; si no apetece otro año, se para (0,5 M).
