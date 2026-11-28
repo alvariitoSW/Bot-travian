@@ -1,0 +1,129 @@
+{
+ "archivo": "mercado.glb",
+ "kb": 300,
+ "atlas": "1024×768 JPEG, una sola textura y un solo material",
+ "unidades": "metros, base en el suelo y centrada (y hacia arriba)",
+ "piezas": {
+  "olla": {
+   "nombre": "Olla de barro",
+   "malla": "olla",
+   "triangulos": 500,
+   "tamano_m": [
+    0.279,
+    0.28,
+    0.246
+   ],
+   "nvidia": "cookware_pot_clay_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/cookware_pot_clay_a01"
+  },
+  "cuenco": {
+   "nombre": "Cuenco de barro (teñido en AQVILA; el original es loza azul)",
+   "malla": "cuenco",
+   "triangulos": 300,
+   "tamano_m": [
+    0.128,
+    0.128,
+    0.08
+   ],
+   "nvidia": "dishware_bowl_decor_old_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/dishware_bowl_decor_old_a01"
+  },
+  "cesta": {
+   "nombre": "Cesta de mimbre",
+   "malla": "cesta",
+   "triangulos": 600,
+   "tamano_m": [
+    0.335,
+    0.214,
+    0.122
+   ],
+   "nvidia": "utensil_breadBasket_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/utensil_breadBasket_a01"
+  },
+  "pan_redondo": {
+   "nombre": "Pan redondo",
+   "malla": "pan_redondo",
+   "triangulos": 400,
+   "tamano_m": [
+    0.171,
+    0.176,
+    0.084
+   ],
+   "nvidia": "food_prepared_bread_panDiCasa_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/food_prepared_bread_panDiCasa_a01"
+  },
+  "pan_hogaza": {
+   "nombre": "Hogaza",
+   "malla": "pan_hogaza",
+   "triangulos": 399,
+   "tamano_m": [
+    0.169,
+    0.089,
+    0.107
+   ],
+   "nvidia": "food_prepared_bread_farmerSourdough_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/food_prepared_bread_farmerSourdough_a01"
+  },
+  "uvas": {
+   "nombre": "Racimo de uvas",
+   "malla": "uvas",
+   "triangulos": 599,
+   "tamano_m": [
+    0.212,
+    0.093,
+    0.067
+   ],
+   "nvidia": "food_produce_grape_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/food_produce_grape_a01"
+  },
+  "pera": {
+   "nombre": "Pera",
+   "malla": "pera",
+   "triangulos": 198,
+   "tamano_m": [
+    0.06,
+    0.134,
+    0.062
+   ],
+   "nvidia": "food_produce_pear_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/food_produce_pear_a01"
+  },
+  "queso": {
+   "nombre": "Cuña de queso",
+   "malla": "queso",
+   "triangulos": 150,
+   "tamano_m": [
+    0.09,
+    0.109,
+    0.069
+   ],
+   "nvidia": "food_dairy_cheese_h01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/food_dairy_cheese_h01"
+  },
+  "sardina": {
+   "nombre": "Sardina",
+   "malla": "sardina",
+   "triangulos": 200,
+   "tamano_m": [
+    0.039,
+    0.25,
+    0.086
+   ],
+   "nvidia": "food_fish_spottedSardine_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/food_fish_spottedSardine_a01"
+  },
+  "estera": {
+   "nombre": "Estera tejida",
+   "malla": "estera",
+   "triangulos": 2,
+   "tamano_m": [
+    0.467,
+    0.468,
+    0.0
+   ],
+   "nvidia": "decor_placeMat_table_woven_a01",
+   "enlace": "https://huggingface.co/datasets/nvidia/simready-assets/tree/main/decor_placeMat_table_woven_a01"
+  }
+ },
+ "triangulos": 3348
+}

@@ -1,0 +1,25 @@
+Piezas del puesto de mercado de AQVILA (AR3, 28/11/2026): mercado.glb, con un atlas de una sola textura.
+La lista de piezas, su carpeta de origen y sus triángulos está en mercado.json.
+
+Origen: NVIDIA Corporation, «SimReady Assets» (https://huggingface.co/datasets/nvidia/simready-assets).
+Licencia: Creative Commons Atribución 4.0 Internacional (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/
+Cada pieza trae ese mismo texto en su carpeta original (.metadata/LICENSE.txt). Crédito: «NVIDIA Corporation, SimReady Assets».
+
+Obras usadas (una carpeta de Hugging Face cada una):
+  cookware_pot_clay_a01 (olla de barro)
+  dishware_bowl_decor_old_a01 (cuenco)
+  utensil_breadBasket_a01 (cesta de mimbre)
+  food_prepared_bread_panDiCasa_a01 (pan redondo)
+  food_prepared_bread_farmerSourdough_a01 (hogaza)
+  food_produce_grape_a01 (uvas)
+  food_produce_pear_a01 (pera)
+  food_dairy_cheese_h01 (queso)
+  food_fish_spottedSardine_a01 (sardina)
+  decor_placeMat_table_woven_a01 (estera)
+
+Cambios hechos en AQVILA (tools/blender/mercado_simready.py): reducidas de 7.296–188.704 a 2–600 triángulos cada una;
+solo la textura de color, reducida a 250 px y juntada en un atlas de 1024×768; el cuenco, teñido de azul, pasado a barro
+cocido; la estera, convertida en un rectángulo; base en el suelo y centradas; convertidas de USD a glTF (.glb).
+NVIDIA no patrocina ni respalda este juego.
+
+Este archivo se comparte con la misma licencia CC BY 4.0, citando a NVIDIA.
