@@ -438,13 +438,17 @@
   function escenas(P) {
     const tipoDe = c => /se aprueba|se rechaza/.test(c.texto) ? 'voto' : /absuelven|Condena de|te condenan|destierran/.test(c.texto) ? 'veredicto' : /te acusa ante/.test(c.texto) ? 'juicio'
       : /^El año acaba|revuelta|^Los jueces te condenan/.test(c.texto) ? 'fin' : c.quien === 'tuya' ? 'tuya' : c.quien === 'ciudad' || c.quien === 'pueblo' ? 'ciudad' : 'rival';
-    const PESO = { fin: 6, veredicto: 6, voto: 5, juicio: 5, tuya: 3, rival: 2, ciudad: 1 };
-    const vistos = new Set(), l = [];
-    P.cronica.forEach((c, i) => { if (vistos.has(c.texto) || /^Llega el /.test(c.texto)) return; vistos.add(c.texto); const tipo = tipoDe(c); l.push({ i, estacion: c.estacion, quien: c.quien, texto: c.texto, tipo, pt: PESO[tipo] + (tipo === 'tuya' && /oráculo|huésped|boda|testigo/.test(c.texto) ? 1 : 0) - (/^(Dejas pasar el tiempo|No preguntas nada)/.test(c.texto) ? 2.5 : 0) }); });
+    const PESO = { fin: 6, veredicto: 6, voto: 5, juicio: 5, tuya: 3, ciudad: 1, rival: 0.5 };
+    // PL4b: lo tuyo, los votos y el veredicto mandan; de los rivales, como mucho una banda (más solo si una estación no tiene otra cosa).
+    // Dos frases que empiezan igual («Das un banquete…» y «Das un banquete… Entre copas…») cuentan como una.
+    const vistos = new Set(), l = [], clave = t => t.split(/[.:;]/)[0].trim();
+    P.cronica.forEach((c, i) => { if (vistos.has(clave(c.texto)) || /^Llega el /.test(c.texto)) return; vistos.add(clave(c.texto)); const tipo = tipoDe(c); l.push({ i, estacion: c.estacion, quien: c.quien, texto: c.texto, tipo, pt: PESO[tipo] + (tipo === 'tuya' && /oráculo|huésped|boda|testigo/.test(c.texto) ? 1 : 0) - (/^(Dejas pasar el tiempo|No preguntas nada)/.test(c.texto) ? 2.5 : 0) }); });
     if (!l.length && P.cronica.length) { const c = P.cronica[0]; l.push({ i: 0, estacion: c.estacion, quien: c.quien, texto: c.texto, tipo: tipoDe(c), pt: 1 }); }
     const elegidas = [];
     for (const e of Array.from(new Set(l.map(x => x.estacion)))) { const m = l.filter(x => x.estacion === e).sort((a, b) => b.pt - a.pt || a.i - b.i)[0]; if (m) elegidas.push(m); }
-    for (const x of l.slice().sort((a, b) => b.pt - a.pt || a.i - b.i)) { if (elegidas.length >= 8) break; if (!elegidas.includes(x)) elegidas.push(x); }
+    let rivales = elegidas.filter(x => x.tipo === 'rival').length;
+    for (const x of l.slice().sort((a, b) => b.pt - a.pt || a.i - b.i)) { if (elegidas.length >= 8) break; if (elegidas.includes(x)) continue;
+      if (x.tipo === 'rival') { if (rivales >= 1) continue; rivales++; } elegidas.push(x); }
     return elegidas.sort((a, b) => a.i - b.i).map(x => ({ estacion: x.estacion, quien: x.quien, texto: x.texto, tipo: x.tipo }));
   }
   // Asuntos aprobados este año, cada uno con lo que deja dibujado en la ciudad.

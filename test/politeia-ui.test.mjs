@@ -119,7 +119,7 @@ try {
   await p.waitForTimeout(300);
   ok(await visible(p, '#pt-fin'), 'se llega a #pt-fin pulsando Pasar (' + n + ' veces)');
   const finTxt = await p.locator('#pt-fin').innerText().catch(() => '');
-  ok(/Fin del año/.test(finTxt) && /La crónica/.test(finTxt) && /Otro año/.test(finTxt) && /Salir/.test(finTxt), 'el final del año trae resultado, crónica y botones');
+  ok(/Fin del año/.test(finTxt) && /La vasija del año/.test(finTxt) && /Otro año/.test(finTxt) && /Salir/.test(finTxt), 'el final del año trae resultado, la vasija (que hace de crónica, PL4b) y botones');
   ok(!/Senado|Partenón|moneda/i.test(await p.locator('#pt-raiz').innerText()), 'sin «Senado», Partenón ni monedas en la pantalla');
   await foto(p, '08-fin');
   await p.click('#pt-otro'); await p.waitForTimeout(200);
@@ -184,6 +184,11 @@ try {
       ok(nj === 5 && (tj.match(/te mira (bien|regular|mal)/g) || []).length === 5, 'PL4 el tribunal enseña cinco jueces con nombre y si te miran bien, regular o mal');
       ok(/te acusa de/.test(await pc.locator('#pt-pergamino').innerText()), 'PL4 el tribunal enseña los cargos');
       await jpg(pc, '04-juicio-jueces');
+      // PL4b: un cargo con el mismo texto que otro se dice una vez con «×2»
+      await pc.evaluate(() => { const P = POLITEIA_UI._estado(), s = P.secretos.find(x => x.id === P.juicio.cargos[0]); const c = JSON.parse(JSON.stringify(s)); c.id = s.id + '-b'; P.secretos.push(c); P.juicio.cargos.push(c.id); });
+      await pc.click('.pt-medallon[data-lugar="tribunal"]'); await pc.waitForTimeout(200); if (!(await visible(pc, '#pt-pergamino'))) { await pc.click('.pt-medallon[data-lugar="tribunal"]'); await pc.waitForTimeout(300); }
+      { const lin = await pc.locator('#pt-pergamino .pt-linea', { hasText: 'te acusa de' }).first().innerText(), m = lin.match(/«[^»]+»/g) || [];
+        ok(/×[2-9]/.test(lin) && new Set(m).size === m.length, 'PL4b el juicio no repite un cargo: lo agrupa con «×n» (' + lin.slice(0, 90) + ')'); }
       const sum0 = Pj.juicio.jueces.reduce((a, j) => a + j.inc, 0);
       await pc.click('#pt-pergamino .pt-accion[data-id="testigo"]'); await pc.waitForTimeout(200);
       ok((await pc.evaluate(() => POLITEIA_UI._estado().juicio.jueces.reduce((a, j) => a + j.inc, 0))) > sum0 && await pc.locator('#pt-pergamino .pt-accion[data-id="testigo"]').count() === 0, 'PL4 el testigo sube jueces y no se repite');
@@ -216,6 +221,12 @@ try {
       let n2 = 0; while (n2 < 300 && !(await visible(pd, '#pt-fin'))) { const s = await estado(pd); if (s.fin) break; await pd.locator('#pt-pasar').click({ timeout: 4000 }); n2++; }
       await pd.waitForTimeout(300);
       ok(await visible(pd, '#pt-fin') && await pd.locator('#pt-fin .pt-banda').count() >= 1 && /La vasija del año/.test(await pd.locator('#pt-fin').innerText()), 'PL4 el final del año trae la vasija del año');
+      { const r = await pd.evaluate(() => { const f = document.querySelector('#pt-fin'), t = f.innerText, c = f.querySelector('.pt-fin-caja');
+          return { orden: t.indexOf('El tribunal') >= 0 && t.indexOf('El tribunal') < t.indexOf('La vasija del año') && (t.indexOf('Lo votado') < 0 || t.indexOf('Lo votado') < t.indexOf('La vasija del año')),
+            cron: f.querySelectorAll('.cronica').length, rep: f.querySelectorAll('.pt-banda.voto, .pt-banda.veredicto, .pt-banda.fin').length, todas: f.querySelectorAll('.pt-banda').length, alto: c.scrollHeight }; });
+        ok(r.orden && r.cron === 0, 'PL4b el pergamino final pone lo votado y el tribunal antes de la vasija, sin crónica aparte');
+        ok(r.rep === 0 || r.rep === r.todas, 'PL4b la vasija del final no repite votaciones ni sentencia (' + r.rep + ' de ' + r.todas + ')');
+        ok(r.alto <= 1500, 'PL4b el pergamino final cabe en menos de dos pantallas (' + r.alto + ' px)'); }
       await jpg(pd, '06-fin-vasija');
       const gv = await pd.evaluate(() => JSON.parse(localStorage.getItem('aqvila-politeia-vasijas-v1') || '[]'));
       ok(gv.length === 1 && gv[0].escenas.length >= 1, 'PL4 la vasija del año se guarda en localStorage (' + gv.length + ')');

@@ -45,14 +45,14 @@
   "fecha": "2026-11-28T17:22:34.095Z"
  },
  "fichas": {
-  "huella": "6cdd54aff0bc48d3",
+  "huella": "6749cd767f7d02a3",
   "ok": true,
-  "fecha": "2026-11-28T17:22:27.534Z"
+  "fecha": "2026-11-28T17:37:42.483Z"
  },
  "mapa": {
-  "huella": "3df96c3daaa29785",
+  "huella": "2c54d691c106b0dc",
   "ok": true,
-  "fecha": "2026-11-28T17:22:27.916Z"
+  "fecha": "2026-11-28T17:37:42.820Z"
  },
  "saber": {
   "huella": "4f096390304bd943",
@@ -375,9 +375,9 @@
   "fecha": "2026-11-25T14:30:58.640Z"
  },
  "aspecto": {
-  "huella": "302733cd840a809c",
+  "huella": "1232f7454215e1b0",
   "ok": true,
-  "fecha": "2026-11-28T17:23:21.359Z"
+  "fecha": "2026-11-28T17:37:42.873Z"
  },
  "liga-mitad": {
   "huella": "78d7368d934d2cc4",
@@ -385,9 +385,9 @@
   "fecha": "2026-11-25T16:04:15.444Z"
  },
  "porcentajes": {
-  "huella": "0f70811fdff1fb16",
+  "huella": "aaaefbfa02663182",
   "ok": true,
-  "fecha": "2026-11-28T17:23:21.702Z"
+  "fecha": "2026-11-28T17:37:42.430Z"
  },
  "area:test/comarca.test.mjs": {
   "huella": "a5a0180c1971455a",
@@ -743,23 +743,23 @@
   ]
  },
  "politeia": {
-  "huella": "45bf5cc4e14961be",
+  "huella": "0aa155fecaa3c515",
   "ok": true,
-  "fecha": "2026-11-28T17:20:36.928Z"
+  "fecha": "2026-11-28T17:37:41.978Z"
  },
  "area:test/politeia.test.mjs": {
-  "huella": "5efec269bdfe18ed",
+  "huella": "216c7d5003a6ebb2",
   "ok": true,
-  "fecha": "2026-11-28T17:17:50.037Z"
+  "fecha": "2026-11-28T17:36:19.576Z"
  },
  "area:test/politeia-ui.test.mjs": {
-  "huella": "c3a18d32885a0092",
+  "huella": "bd48bebaac57a8f2",
   "ok": true,
-  "fecha": "2026-11-28T17:19:12.694Z"
+  "fecha": "2026-11-28T17:37:41.466Z"
  },
  "politeia-ui": {
-  "huella": "c3a18d32885a0092",
+  "huella": "bd48bebaac57a8f2",
   "ok": true,
-  "fecha": "2026-11-28T17:22:02.393Z"
+  "fecha": "2026-11-28T17:39:08.079Z"
  }
 }

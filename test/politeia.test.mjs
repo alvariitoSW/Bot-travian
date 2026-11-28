@@ -275,17 +275,25 @@ ok(malCosto === 0 && pillado > 0, 'PL2 CA3 cada respuesta del duelo cuesta (fama
     }
     ok(probado > 0 && bien && sinHuesped, 'PL4 con huésped y juicio sale «testigo»: sube a dos jueces y solo una vez (' + probado + ' juicios probados)'); }
   // vasija e hitos
-  { let bien = true, minE = 99, maxE = 0, cubre = true, sinRep = true, hitosOk = true, algunHito = 0;
+  { let bien = true, minE = 99, maxE = 0, cubre = true, sinRep = true, hitosOk = true, algunHito = 0, rivOk = true, tuyaOk = true, sinCasi = true;
     for (const bot of [listo, tramposo, pasivo]) for (const s of SEMILLAS) {
       const P = PO.nueva({ semilla: s }); juega(P, bot); const E = PO.escenas(P); minE = Math.min(minE, E.length); maxE = Math.max(maxE, E.length);
       if (new Set(E.map(x => x.texto)).size !== E.length) sinRep = false;
       const est = new Set(P.cronica.map(c => c.estacion)); for (const e of est) if (!E.some(x => x.estacion === e)) cubre = false;
       if (!E.every(x => x.texto && x.tipo && x.quien != null && x.estacion != null)) bien = false;
+      { const solas = new Set(E.filter(x => x.tipo === 'rival' && !E.some(y => y !== x && y.estacion === x.estacion)).map(x => x.estacion));
+        if (E.filter(x => x.tipo === 'rival' && !solas.has(x.estacion)).length > 1) rivOk = false;
+        if (P.cronica.some(c => c.quien === 'tuya' && !/^Llega el /.test(c.texto)) && !E.some(x => x.tipo === 'tuya')) tuyaOk = false;
+        if (P.votos.length && !E.some(x => x.tipo === 'voto')) tuyaOk = false;
+        const k = E.map(x => x.texto.split(/[.:;]/)[0].trim()); if (new Set(k).size !== k.length) sinCasi = false; }
       const H = PO.hitos(P), si = P.votos.filter(v => v.resultado === 'si').map(v => v.asunto).sort();
       if (H.map(h => h.id).sort().join() !== si.join() || !H.every(h => h.cinta && h.texto && h.etiqueta && h.fuente)) hitosOk = false; algunHito += H.length;
     }
     ok(bien && sinRep && minE >= 1 && maxE <= 8 && maxE >= 4, 'PL4 escenas da de ' + minE + ' a ' + maxE + ', sin repetir ni vacías');
     ok(cubre, 'PL4 las escenas cubren cada estación jugada');
+    ok(rivOk, 'PL4b la vasija la manda lo tuyo: como mucho una banda de rival, salvo estación sin otra cosa');
+    ok(tuyaOk, 'PL4b si jugaste algo, la vasija lo cuenta; y si hubo votación, sale');
+    ok(sinCasi, 'PL4b no hay dos bandas que empiecen con la misma frase');
     ok(hitosOk && algunHito > 0, 'PL4 hitos = asuntos con voto «sí», con texto, etiqueta y fuente (' + algunHito + ' en 60 años)'); }
   { const D = DA, malHist = []; for (const k of ['ORACULO', 'HUESPED', 'BODA', 'TESTIGO']) if (!D[k].etiqueta || !D[k].fuente) malHist.push(k);
     for (const k of Object.keys(D.VECINAS)) if (!D.VECINAS[k].etiqueta || !D.VECINAS[k].fuente) malHist.push(k);

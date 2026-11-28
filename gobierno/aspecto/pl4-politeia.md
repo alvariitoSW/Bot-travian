@@ -34,3 +34,4 @@ Una fila por examen. Lo juzga una sesión que **no** construyó la tarea, mirand
 | Fecha | Tarea | Quién juzga | Nota | Cierra | Capturas |
 |---|---|---|---|---|---|
 | 28/11/2026 | PL4 | director de la Mesa (Opus), que no construyó | 7,6 | no | gobierno/capturas-tarea/PL4-01-barra-politeia.jpg gobierno/capturas-tarea/PL4-04-juicio-jueces.jpg gobierno/capturas-tarea/PL4-05-vasija.jpg gobierno/capturas-tarea/PL4-07-ciudad-hito.jpg |
+| 28/11/2026 | PL4b | director de la Mesa (Opus); hizo los arreglos de PL4b, no PL4 | 8,0 | no | gobierno/capturas-tarea/PL4-04-juicio-jueces.jpg gobierno/capturas-tarea/PL4-05-vasija.jpg gobierno/capturas-tarea/PL4-06-fin-vasija.jpg gobierno/capturas-tarea/PL4-07-ciudad-hito.jpg |

@@ -177,9 +177,11 @@
     else if (D.fase === 'tuya') h += '<p class="pt-pend">' + (2 - D.q === 1 ? 'Te queda 1 pregunta' : 'Te quedan 2 preguntas') + ' para ' + casaTxt(P, D.rival) + '.</p>';
     return h;
   }
+  // Dos cargos con el mismo texto se dicen una vez, con «×2» (PL4b).
+  function cuenta(l) { const o = []; for (const t of l) { const u = o.find(x => x.t === t); if (u) u.n++; else o.push({ t, n: 1 }); } return o.map(u => u.n > 1 ? u.t + ' ×' + u.n : u.t); }
   function htmlJuicio() {
     const P = UI.P, J = P.juicio; if (!J) return '';
-    const cargos = J.cargos.map(i => { const s = P.secretos.find(x => x.id === i); return '«' + (s ? s.t : '…') + '»'; }).join(', ');
+    const cargos = cuenta(J.cargos.map(i => { const s = P.secretos.find(x => x.id === i); return '«' + (s ? s.t : '…') + '»'; })).join(', ');
     return '<p class="pt-linea">' + esc(Mayus(casaTxt(P, J.acusador))) + ' te acusa de ' + esc(cargos) + '.</p>'
       + '<b class="pt-sub">Los cinco jueces</b><ul class="pt-jueces">' + J.jueces.map(j => '<li class="' + (j.inc > 0 ? 'amigo' : j.inc < 0 ? 'hostil' : '') + '">' + esc(j.nombre) + '<small>' + (j.inc > 0 ? ' te mira bien' : j.inc < 0 ? ' te mira mal' : ' te mira regular') + '</small></li>').join('') + '</ul>'
       + (P.huesped ? '<p class="pt-linea"><small>Tu huésped de ' + esc(DAT().VECINAS[P.huesped.polis].nombre) + (P.testigo ? ' ya habló por ti.' : ' puede hablar por ti como testigo.') + '</small></p>' : '');
@@ -195,8 +197,10 @@
   }
   // La vasija: el año contado en bandas, una por escena. «v» puede ser un año guardado.
   const ROTULO = { voto: 'Votación', juicio: 'Juicio', veredicto: 'Sentencia', fin: 'Final', tuya: 'Tu casa', rival: 'Rival', ciudad: 'Ciudad' };
-  function htmlVasija(titulo, v) {
-    const E = v ? v.escenas : REG().escenas(UI.P), H = v ? (v.hitos || []) : REG().hitos(UI.P);
+  // «sinRepetir»: en el final, las bandas de votación, sentencia y final ya están escritas arriba y no se repiten.
+  function htmlVasija(titulo, v, sinRepetir) {
+    let E = v ? v.escenas : REG().escenas(UI.P); const H = v ? (v.hitos || []) : REG().hitos(UI.P);
+    if (sinRepetir) { const r = E.filter(x => !/^(voto|veredicto|fin)$/.test(x.tipo)); if (r.length) E = r; }
     return '<div class="pt-vasija-caja"><img class="pt-vasija-img" src="' + RUTA + 'vasija.svg" alt="" width="96" height="120"><b class="pt-perg-titulo">' + esc(titulo) + '</b></div>'
       + '<div class="pt-bandas">' + E.map(x => '<div class="pt-banda ' + esc(x.tipo) + '"><i>' + esc(ESTACION_NOMBRE[Math.min(x.estacion, 3)]) + ' · ' + esc(ROTULO[x.tipo] || '') + '</i><p>' + esc(x.texto) + '</p></div>').join('') + '</div>'
       + (H.length ? '<p class="pt-linea"><small>Dejó en la ciudad: ' + esc(H.map(h => h.cinta).join(', ')) + '.</small></p>' : '');
@@ -242,17 +246,16 @@
   // ---------- Fin del año ----------
   const FIN_TXT = { sigue: 'El año acaba y sigues en Atenas con tu casa en pie.', desterrado: 'Los jueces te condenan y te destierran diez años. Tu casa se queda sin cabeza.', revuelta: 'El pueblo pierde la paciencia y se alza en la ciudad. El año acaba en revuelta.' };
   const VEREDICTO = { limpio: 'Los jueces te absuelven y tu acusador queda en ridículo.', multa: 'Te condenan a una multa.', cargo: 'Te condenan y pierdes el cargo del año.', destierro: 'Te condenan al destierro.', ninguno: 'Nadie te acusó: no hubo juicio.' };
-  function agrupa(l) { const o = []; for (const t of l) { const u = o[o.length - 1]; if (u && u.t === t) u.n++; else o.push({ t, n: 1 }); } return o.map(u => u.n > 1 ? u.t + ' ×' + u.n : u.t); }
   function pintaFin() {
     const P = UI.P, el = UI.q('#pt-fin'); if (!P.fin) { el.hidden = true; return; }
     if (!P.vasijaGuardada) { P.vasijaGuardada = true; guardaVasija(P); guarda(); pintaHitos(); }
     const t = P.casas.tuya, v = P.veredicto;
     let h = '<div class="pt-fin-caja"><b class="pt-perg-titulo">Fin del año</b><p class="pt-resultado">' + esc(FIN_TXT[P.fin.resultado] || P.fin.cronica || 'El año ha terminado.') + '</p>'
-      + '<p class="pt-linea">Plata <b>' + t.plata + '</b> · fama <b>' + t.fama + '</b> · discordia <b>' + P.discordia + '/6</b></p>'
-      + '<b class="pt-sub">La vasija del año</b>' + htmlVasija('El año en una vasija', null);
+      + '<p class="pt-linea">Plata <b>' + t.plata + '</b> · fama <b>' + t.fama + '</b> · discordia <b>' + P.discordia + '/6</b></p>';
+    // PL4b: primero lo votado y el tribunal; luego la vasija, que hace de crónica (ya no hay lista aparte).
     if (P.votos.length) h += '<b class="pt-sub">Lo votado</b><ul class="pt-log">' + P.votos.map(x => { const a = asuntoDe(P, x.asunto); return '<li>«' + esc(a ? a.nombre : x.asunto) + '»: ' + (x.resultado === 'si' ? 'se aprueba' : 'se rechaza') + ' (' + x.piedras.si + ' a ' + x.piedras.no + ' piedras).</li>'; }).join('') + '</ul>';
     h += '<b class="pt-sub">El tribunal</b><p class="pt-linea">' + esc(v ? (VEREDICTO[v.tipo] || '') + (v.de ? ' (' + v.culpables + ' de ' + v.de + ' jueces te hallan culpable)' : '') : 'No llegaste al invierno: no hubo juicio.') + '</p>';
-    h += '<b class="pt-sub">La crónica</b><ul class="pt-log cronica">' + agrupa(P.cronica.slice(-10).map(c => c.texto)).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>'
+    h += '<b class="pt-sub">La vasija del año</b>' + htmlVasija('El año en una vasija', null, true)
       + '<div class="pt-fin-botones"><button type="button" id="pt-otro" class="pt-accion">Otro año</button><button type="button" id="pt-fin-salir" class="pt-cerrar">Salir</button></div></div>';
     el.innerHTML = h; el.hidden = false; el.scrollTop = 0;
     UI.q('#pt-pergamino').hidden = true; alejaCamara();
