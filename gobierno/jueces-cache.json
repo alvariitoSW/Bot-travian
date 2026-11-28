@@ -1,33 +1,33 @@
 {
  "pausas": {
-  "huella": "a3569b5031f808b0",
+  "huella": "7a9f6d1e233790df",
   "ok": true,
-  "fecha": "2026-11-25T21:44:58.162Z"
+  "fecha": "2026-11-28T14:01:29.052Z"
  },
  "encargos": {
-  "huella": "2ec3c1e91421f77b",
+  "huella": "ef28ab151fa0d0b4",
   "ok": true,
-  "fecha": "2026-11-25T21:45:02.416Z"
+  "fecha": "2026-11-28T14:01:33.444Z"
  },
  "movil": {
-  "huella": "8572b6724c696cc0",
+  "huella": "0aba58d7fe51e59c",
   "ok": true,
-  "fecha": "2026-11-25T21:45:07.743Z"
+  "fecha": "2026-11-28T14:01:39.777Z"
  },
  "ciudad": {
-  "huella": "40dbaf57ea98fe39",
+  "huella": "702112ddf083f33f",
   "ok": true,
-  "fecha": "2026-11-25T21:44:49.664Z"
+  "fecha": "2026-11-28T14:01:19.540Z"
  },
  "senado": {
-  "huella": "7f31f98dc5800bea",
+  "huella": "83dded9a2068e246",
   "ok": true,
-  "fecha": "2026-11-25T21:45:17.406Z"
+  "fecha": "2026-11-28T14:01:50.190Z"
  },
  "campo": {
-  "huella": "eb9d2ff6cd04b71a",
+  "huella": "996d167ef4bc735f",
   "ok": true,
-  "fecha": "2026-11-25T21:45:22.910Z"
+  "fecha": "2026-11-28T14:01:56.088Z"
  },
  "guerra": {
   "huella": "60f3b9fc17cbc6a6",
@@ -40,29 +40,29 @@
   "fecha": "2026-11-25T21:28:40.212Z"
  },
  "guerra-juego": {
-  "huella": "bc6d3f91b807024f",
+  "huella": "993f59130b8f0dfa",
   "ok": true,
-  "fecha": "2026-11-25T21:45:29.961Z"
+  "fecha": "2026-11-28T14:02:03.354Z"
  },
  "fichas": {
-  "huella": "36323c9abedf8121",
+  "huella": "f800b9e9d8cbb2d1",
   "ok": true,
-  "fecha": "2026-11-25T21:45:30.008Z"
+  "fecha": "2026-11-28T14:02:03.406Z"
  },
  "mapa": {
-  "huella": "9edf06eb66155d42",
+  "huella": "a9e912a4b7e13ef3",
   "ok": true,
-  "fecha": "2026-11-25T21:45:30.303Z"
+  "fecha": "2026-11-28T14:02:03.687Z"
  },
  "saber": {
-  "huella": "3a5269c863b6787b",
+  "huella": "43e4bd0f6def4d26",
   "ok": true,
-  "fecha": "2026-11-25T21:45:49.020Z"
+  "fecha": "2026-11-28T14:02:25.338Z"
  },
  "sim": {
-  "huella": "3c85e1d65cbffdfc",
+  "huella": "6a5bd4200bfe616b",
   "ok": true,
-  "fecha": "2026-11-25T21:46:20.968Z"
+  "fecha": "2026-11-28T14:03:02.191Z"
  },
  "investigador": {
   "huella": "d36857ff0556723d",
@@ -70,9 +70,9 @@
   "fecha": "2026-11-25T15:56:31.025Z"
  },
  "diplomacia": {
-  "huella": "46541edba23b11d4",
+  "huella": "c9b9220f520b9aac",
   "ok": true,
-  "fecha": "2026-11-25T21:45:54.984Z"
+  "fecha": "2026-11-28T14:02:31.826Z"
  },
  "sonido-ciudad": {
   "huella": "b28121209e4bde0b",
@@ -385,9 +385,9 @@
   "fecha": "2026-11-25T16:04:15.444Z"
  },
  "porcentajes": {
-  "huella": "c258b51de193a5c7",
+  "huella": "1da5d7dbd1b10f84",
   "ok": true,
-  "fecha": "2026-11-25T21:44:50.179Z"
+  "fecha": "2026-11-28T14:01:19.990Z"
  },
  "area:test/comarca.test.mjs": {
   "huella": "a5a0180c1971455a",
