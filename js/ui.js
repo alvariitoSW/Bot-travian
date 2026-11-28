@@ -1119,7 +1119,7 @@ function fichaHtml(c, sd) {
   let ico, nom, sub, que, nv, cuerpo = '', e = null, P = null, ob = null;
   if (sd.k === 'foro') {
     ico = (window.miniEdif && miniEdif('foro', c.b.foro || 1, 'p')) || bIco('foro'); nom = D.BUILD.foro.n; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
-    cuerpo = nivelesHtml(c, 'foro') + '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. ' + (G.polis() ? 'El ágora' : 'El foro') + ' sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (G.comarcaTexto && G.comarcaTexto() ? '<div class="nota">🗺️ ' + esc(G.comarcaTexto()) + '</div>' : '') + (c.owner === 'roma' ? arcaHtml(c) : '');
+    cuerpo = nivelesHtml(c, 'foro') + '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. ' + (G.polis() ? 'El ágora' : 'El foro') + ' sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (G.polis() && window.POLITEIA_UI ? '<button class="btn" data-act="politeia">🏛️ La política de la polis</button>' : '') + (G.comarcaTexto && G.comarcaTexto() ? '<div class="nota">🗺️ ' + esc(G.comarcaTexto()) + '</div>' : '') + (c.owner === 'roma' ? arcaHtml(c) : '');
   } else {
     e = sd.e || null; ob = sd.o || c.obras.find(q => q.eid === e.id) || null; P = Ciudad.EDIF[e ? e.tipo : sd.o.pieza];
     const bid = P.bid, dg = bid === 'templo' ? G.diosDe(c) : null, k = e ? (e.mejora || 0) : 0;
@@ -1900,6 +1900,7 @@ document.addEventListener('click', function (e) {
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
     case 'new': case 'newregion': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'politeia': { if (!window.POLITEIA_UI) break; closeModal && closeModal(); POLITEIA_UI.abrir({ polis: POLITEIA.DATOS.polis[G.polis()] ? G.polis() : 'atenas' }); break; }
     case 'newpolis': { const pf = D.POLIS[v]; if (!pf) break; if (G.hasSave() && !confirm('Ya tienes una partida guardada. Empezar con ' + pf.n + ' la reemplaza. ¿Seguir?')) break; G.newGame(pf.heroe, 'italia', { polis: v, dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false, semilla: UI.semillaPolis }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break; }   // PN2: empezar con una polis griega (sobre el mapa de Italia de momento). PN3: comarca al azar (UI.semillaPolis la fija para las capturas)
     case 'cortaen': case 'cortafun': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
