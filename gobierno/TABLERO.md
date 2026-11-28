@@ -704,7 +704,8 @@ Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pru
   - ✅ PL3b **Botón fijo «Politeia» en la barra de abajo** (usuario «1A») — hecho el 28/11 en `pl4-politeia` (`41e379a`), sin unir.
   - ✅ SB24 **Jueces completos de la v179**: APTO sobre `452099b` (50 comprobaciones, partida de polis 7/7; 0,28 M de 0,5). Parte en `sb24-jueces` (`64453be`). Detalles menores: «Marchas» tapa parte del título en el mapa de Grecia; hueco vacío grande en Imperio. Sin unir: espera la respuesta del usuario.
   - 🔶 PL4 **Tribunal, santuario, puerto y vasija** — hecho el 28/11 en `pl4-politeia` (`41e379a`, v180; 1,93 M de tope 2,0, presupuesto 1,0); pruebas APTO, `--rapido` APTO. **Aspecto 7,6 (vara 8,5)**: arte de relleno y 3 fallos → PL4b.
-  - 🔶 PL4b **Tres arreglos de Politeia**: la vasija se llena de jugadas de rivales, cargo repetido en el juicio, pergamino final largo (0,3 M, tope 0,6; rama `pl4b-politeia`).
+  - ✅ PL4b **Tres arreglos de Politeia** — hechos el 28/11 en `pl4b-politeia` (`5e32279`): vasija con lo tuyo, votos y sentencia (rivales ≤ 1 banda); cargos agrupados; final más corto (943 px). Pruebas APTO. Nota 8,0 puesta por quien arregló (no independiente). **Gasto 0,63 M con tope 0,6: se pasó 0,03 sin parar a avisar** (lo dice su parte).
+  - 🔶 SB25 **Jueces completos de la v180** + examen de aspecto independiente de Politeia, sobre `pl4b-politeia`.
   - ⬜ MU-SB24 **Dos detalles de pantalla (Músculo)**: «Marchas» (`#bmarchas`) tapa el «ΕΛΛΑΣ» pintado en la textura del mapa de Grecia; hueco vacío grande en Imperio (`css/aspecto.css`).
   - ⬜ PL5 **Examen**: lo juega diez minutos quien no lo construyó, y tú en el móvil; si no apetece otro año, se para (0,5 M).
 

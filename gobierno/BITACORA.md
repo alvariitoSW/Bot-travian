@@ -607,6 +607,7 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Politeia: dos regalos al oráculo** (idea de PL4b): (A) dos regalos dan dos secretos distintos [recomendado]; (B) pueden repetirse. Por qué: un regalo repetido que no enseña nada nuevo se siente como dinero tirado.
 - **Politeia: castigo del juicio**: (A) multa si no tienes cargo, pierdes el cargo si lo tienes y destierro si pierdes por mucho [recomendado]; (B) solo multa. Por qué: que el tribunal dé miedo según lo que te juegas.
 - **Politeia: revuelta temprana**: ¿puede una revuelta acabar el año político en verano? (A) Sí, es raro (2 de cada 100 jugando bien) y da miedo [recomendado]; (B) No, solo en otoño o después. Por qué: un año corto puede frustrar, pero da tensión.
 - **Politeia: tu casa**: ¿se llama «Lechuza» por defecto y el jugador puede cambiarle el nombre? (A) Sí [recomendado]; (B) Sin emblema hasta elegirlo.
