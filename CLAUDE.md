@@ -78,7 +78,7 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   `gobierno/estudios/REF-batallas-referencias.md` antes de cerrar; quien diseñe batallas la lee primero y no le pide que repita.
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
-- **Gasto**: sin tope ni corte (usuario 24/11: las sesiones siguen hasta acabar), pero medido con `node gobierno/gasto.mjs` y apuntado en el parte. El director no construye.
+- **Gasto** (usuario 28/11, «vale»): cada tarea declara su presupuesto antes de empezar; su **tope es el doble**. Si va a pasarse, para y avisa al usuario, que decide si sigue. Se mide con `node gobierno/gasto.mjs` y se apunta en el parte. El director no construye.
   **Sin Fable** (usuario, 18/11: «hay que dejar de usar Fable 5.2»): dirige, diseña y construye **Opus**. Excepción (usuario, 25/11, «Fable diseña y construye»): AM1 y AM2 del mapa vivo, con gasto medido. La skill
   `ahorro` revisa los partes y propone recortes.
 - **Objetivos finales** (usuario, 18/11): `gobierno/OBJETIVOS.md` manda sobre el tablero. Léela al empezar y di a qué línea
@@ -91,7 +91,7 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   el juego, usuario 23/11). Cada sesión carga la guía de su área
   (`ministerio-batallas`, `ministerio-combate`, `ministerio-cerebro`, `ministerio-musculo`, `arte-mapas`, `arte`, `sonido`), toca solo sus archivos (`gobierno/areas.json`),
   cierra con `node gobierno/juez-area.mjs <área>` y deja pases, ideas y preguntas en su parte. Tablero y bitácora: solo el
-  vigía. Jueces completos: una vez, en la sesión de subida. Gasto: sin tope fijo para los ministerios, pero medido.
+  vigía. Jueces completos: una vez, en la sesión de subida. Gasto: tope = el doble del presupuesto declarado, con aviso al usuario.
 - **Seis departamentos de batalla** (usuario, 25/11, «Sí, los seis»; `MINISTERIOS.md` §4d): Jugabilidad y mando (`ministerio-batallas`),
   Motor de guerra (`ministerio-combate`), Animación (`ministerio-animacion`), Gráficos (`ministerio-graficos`), Arte de soldados (`arte`)
   y Sonido (`sonido`). Animación y Gráficos: juez de aspecto (`gobierno/juez-aspecto.mjs`, nota ≥ 8,5 y ficha de objetivo). Nada de batalla

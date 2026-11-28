@@ -30,7 +30,7 @@ el gobierno (G1) costó 0,75 M de Fable.
    total por modelo. Si la tarea viene de `gobierno/plan-12.md`, su fila es el presupuesto.
 2. Hacienda (tú mismo, sin agentes): quita el agente que sobra, baja de modelo lo que copia algo ya hecho, parte el
    encargo si pasa de una pieza.
-3. Si el total pasa de **1,5 M**, o de lo que el usuario aprobó, no empieces: díselo.
+3. Declara el presupuesto antes de empezar. El tope es **el doble** (usuario 28/11): si vas a pasarlo, para y avisa al usuario; él decide si sigues.
 4. **Analizar antes de construir**: `node gobierno/analizar.mjs --spec gobierno/specs/<ID>.md --estricto`. Con un CRÍTICO
    (decisión o criterio sin tarea, dudas en una spec aprobada, tope pasado) no se construye: se arregla la spec o se pregunta.
 5. Antes de cada vuelta de arreglos y al cerrar: `node gobierno/gasto.mjs --desde <hora de inicio> --presupuesto N`.

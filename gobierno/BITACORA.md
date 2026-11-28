@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 28/11 (vigía 4): «Vale buscalo 1A. 2A 3- hay que revisarlo 4-vale 5- vale mándamela 6- vale mándamela»: (1) buscar fuentes libres nuevas de armas, armaduras, ánforas, carros, rocas y árboles (AR3); (2) piezas de NVIDIA SimReady para el puesto del mercado, tope de arte a 57 MB (AR3); (3) el método nuevo (SK1) hay que revisarlo con él antes de usarlo; (4) **tope de gasto = el doble del presupuesto, con aviso** (CLAUDE.md §7 y plan-socialista al día); (5) quiere ver la comarca (capturas); (6) arranca la prueba de Politeia (PL1–PL5) y quiere verla.
 - 27/11 (vigía 4): sobre https://huggingface.co/datasets/nvidia/simready-assets: «1B», que el taller de Arte lo revise entero (licencia, inventario útil, prueba de conversión, veredicto) → AR2, solo estudio.
 - 27/11 (vigía 4): sobre https://github.com/github/spec-kit: «Lo probamos mezclar con nuestra forma de trabajo? Una opción a pero algo más mezclado» → SK1 (no instalar; mezclar especificar, aclarar, analizar y converger con el plan socialista; propuesta de reglas para su «sí»).
 - 25/11 ~22:55 (vigía 4): «Si a lo recomendado»: v178 a main (`24609175`) y GP0 abierta ya (diseño de leyes, Asamblea y cargos de la partida griega).
