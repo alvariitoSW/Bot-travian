@@ -1,0 +1,142 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390,user-scalable=no">
+<title>GP1e · Politeia viva: una sola pantalla (maqueta que se mueve)</title><style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:#11151c;font-family:Georgia,serif;color:#1c120c;overscroll-behavior:none}
+#app{width:390px;height:800px;margin:0 auto;position:relative;overflow:hidden;display:flex;flex-direction:column;background:#11151c}
+.top{margin:8px 8px 0;padding:6px 14px;border-radius:20px;background:#1d2533;color:#eee;font-size:14px}.top small{color:#aab;letter-spacing:1px;font-size:10px;margin-left:8px}
+#esc{position:relative;flex:1;margin:8px;border-radius:10px;border:2px solid #1c120c;overflow:hidden;touch-action:none;background:#f3d9a6}
+#sv{position:absolute;left:0;top:0}
+#mundo{transition:transform .8s cubic-bezier(.3,.1,.2,1);transform-origin:0 0}
+#mundo.arr{transition:none}
+.tag rect{fill:#f0dfb8;stroke:#1c120c;stroke-width:1.3}.tag text{font:10px Georgia;fill:#1c120c}
+.lug rect{fill:#1c120c}.lug text{font:bold 11px Georgia;fill:#f0dfb8;letter-spacing:1.5px}
+.anda{animation:anda var(--t,9s) ease-in-out infinite alternate}@keyframes anda{to{transform:translateX(var(--d,40px))}}
+.bota{animation:bota 1.2s ease-in-out infinite alternate}@keyframes bota{to{transform:translateY(-3px)}}
+.mece{animation:mece 3s ease-in-out infinite alternate;transform-origin:120px 440px}@keyframes mece{from{transform:rotate(-1.5deg)}to{transform:rotate(1.5deg)}}
+.ola{animation:ola 2.4s linear infinite}@keyframes ola{to{transform:translateX(-20px)}}
+.humo{animation:humo 3s linear infinite}@keyframes humo{from{opacity:.9;transform:translateY(0)}to{opacity:0;transform:translateY(-22px)}}
+.aviso circle.r{fill:none;stroke:#7a1f1f;stroke-width:3;stroke-dasharray:63;animation:gasta 30s linear infinite;transform:rotate(-90deg);transform-box:fill-box;transform-origin:center}@keyframes gasta{to{stroke-dashoffset:63}}
+#sol{animation:sol 60s linear infinite}@keyframes sol{from{transform:translate(0,40px)}50%{transform:translate(170px,0)}to{transform:translate(340px,40px)}}
+#hud{position:absolute;left:8px;top:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none;font-size:11px}
+#hud div{background:#1c120ccc;color:#f0dfb8;border-radius:12px;padding:4px 10px}
+#vasija{position:absolute;right:8px;bottom:8px;width:46px;height:58px;background:#1c120ccc;border-radius:10px;text-align:center;color:#f0dfb8;font-size:9px;padding-top:3px}
+#ficha{position:absolute;left:8px;right:8px;bottom:8px;background:#f0dfb8f2;border:2px solid #1c120c;border-radius:10px;padding:8px 10px;transform:translateY(160%);transition:transform .5s;font-size:12.5px;line-height:1.3}
+#ficha.v{transform:none}#ficha b.n{font-size:17px;font-variant:small-caps;letter-spacing:.5px;display:block}
+#ficha .ops{display:flex;gap:6px;margin-top:6px}#ficha .ops button{flex:1;font:12px Georgia;background:#1c120c;color:#f0dfb8;border:0;border-radius:8px;padding:9px 4px;min-height:44px}
+#ficha .ops button.p{background:#7a1f1f}#ficha .ops button.g{background:#fff0;color:#1c120c;border:2px solid #1c120c;flex:.6}
+#ilus{position:absolute;inset:0;background:#1c120c;opacity:0;pointer-events:none;transition:opacity .8s;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#f0dfb8;text-align:center;font-size:12px;padding:10px}
+#ilus.v{opacity:1;pointer-events:auto}#ilus button{font:14px Georgia;background:#7a1f1f;color:#f6ecd0;border:0;border-radius:8px;padding:10px 22px;margin-top:10px;min-height:44px}
+.actos{display:flex;gap:4px;margin:0 8px 8px}.actos b{flex:1;text-align:center;font-size:10.5px;font-weight:normal;padding:7px 0;background:#2a2018;color:#e8d8b0;border-radius:6px}.actos b.on{background:#7a1f1f;color:#fff}
+.nav{display:flex;gap:3px;margin:0 8px 8px}.nav b{flex:1;text-align:center;font-size:9.5px;padding:9px 0;background:#2a2018;color:#e8d8b0;border-radius:4px}.nav b.on{outline:2px solid #b03a2a}
+</style></head><body><div id="app">
+<div class="top">🪙 270 &nbsp;🌾 450 &nbsp;🧱 800<small>ATENAS · PRIMAVERA · 594 a.C.</small></div>
+<div id="esc"><svg id="sv" width="374" height="600"><g id="mundo"></g></svg>
+<div id="hud"><div>☀️ mediodía · te quedan 2 pasos</div><div>🔥 discordia 4/6</div></div>
+<div id="vasija">🏺<br>tu vasija<br>crónica</div>
+<div id="ficha"></div>
+<div id="ilus"></div></div>
+<div class="actos"><b class="on">🌱 Agenda</b><b>☀️ Intrigas</b><b>🍂 Debate</b><b>❄️ Cuentas</b></div>
+<div class="nav"><b>CIUDAD</b><b class="on">POLÍTICA</b><b>SABER</b><b>TROPAS</b><b>MAPA</b><b>POLIS</b></div></div>
+<script>
+const K='#1c120c',C='#f0dfb8';
+function fig(b,p,w){w=w||22;const k=p=='no'?'#7a1f1f':K;let s=`<svg class="f" width="${w}" height="${w*1.7}" viewBox="0 0 20 34">`;
+ if(b=='H')s+=`<path d="M17.5 3v29M16.3 4l1.2-3.5L18.7 4z" stroke="${k}" stroke-width="1" fill="${k}"/>`;
+ if(b=='P')s+=`<path d="M17 8v24" stroke="${k}" stroke-width="1.2"/><ellipse cx="17" cy="6.5" rx="1.9" ry="5" fill="${k}"/>`;
+ if(b=='N')s+=`<path d="M17.5 8v24" stroke="${k}" stroke-width="1.3"/><circle cx="17.5" cy="7" r="1.8" fill="${k}"/>`;
+ s+=`<circle cx="10" cy="5" r="3.6" fill="${k}"/><path d="${b=='P'?'M6.5 10h7l1.5 15h-10z':'M6 10h8l2.5 20h-13z'}" fill="${k}"/><path d="M7.5 ${b=='P'?25:30}v${b=='P'?8:3}M12.5 ${b=='P'?25:30}v${b=='P'?8:3}" stroke="${k}" stroke-width="2"/>`;
+ if(p=='si')s+=`<path d="M7.5 12L3 2.5" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(p=='tu')s+=`<path d="M13 12L21 8" stroke="${k}" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(b=='H')s+=`<circle cx="8.5" cy="19" r="5.4" fill="${k}" stroke="${C}" stroke-width="1"/><circle cx="8.5" cy="19" r="1.6" fill="${C}"/>`;
+ if(b=='N')s+=`<path d="M6.3 12.5L15 24M7 4.2h6" stroke="${C}" stroke-width="1.4"/>`;
+ if(b=='M')s+=`<path d="M.8 23c0-2.4 5.4-2.4 5.4 0 0 4-1 7-2.7 10C1.8 30 .8 27 .8 23zM2.3 21h2.4" fill="${k}" stroke="${C}" stroke-width=".8"/>`;
+ return s+'</svg>'}
+
+
+
+function fx(b,p,w,x,y,o){return fig(b,p,w).replace('<svg class="f"',`<svg x="${x}" y="${y}" overflow="visible" ${o?'opacity="'+o+'"':''}`)}
+const G=(x,y,s,h)=>`<g transform="translate(${x} ${y}) scale(${s})">${h}</g>`;
+const TEMPLO=`<path d="M0 22L35 0L70 22zM3 24h64v4H3zM7 30h5v34H7zM20 30h5v34h-5zM33 30h5v34h-5zM46 30h5v34h-5zM59 30h5v34h-5zM-2 64h74v6h-74z" fill="${K}"/><circle cx="35" cy="14" r="3.5" fill="${C}"/>`;
+const TRIP=`<path d="M0 40L8 12M24 40L16 12M12 40V12M0 12h24M6 6c0-7 12-7 12 0z" stroke="${K}" stroke-width="2.4" fill="${K}"/><path d="M12 0c-6-8 6-10 0-20" fill="none" stroke="${K}" stroke-width="1.6" stroke-dasharray="3 3"/>`;
+const FUENTE=(d)=>`<g ${d?'fill="none" stroke-dasharray="4 3"':`fill="${K}"`} stroke="${K}" stroke-width="1.6"><path d="M0 40V12L22 0L44 12V40zM8 40V18h28v22"/><path d="M22 22v10M18 34c0 8 8 8 8 0z"/></g>`;
+const MURO=(w)=>`<path d="M0 40V10h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h8v-6h8v6h${w-96}V40z" fill="${K}"/><path d="M0 22h${w}M0 31h${w}" stroke="#d98a4a" stroke-width="1"/>`;
+const TORRE=`<path d="M0 60V0h6v6h6V0h6v6h6V0h6v60z" fill="${K}"/><rect x="12" y="20" width="6" height="10" fill="#d98a4a"/>`;
+const OLIVO=`<path d="M10 40V20M10 28L4 20M10 26l7-7" stroke="${K}" stroke-width="2.5"/><ellipse cx="10" cy="12" rx="12" ry="11" fill="${K}"/><circle cx="5" cy="9" r="1.3" fill="${C}"/><circle cx="13" cy="14" r="1.3" fill="${C}"/><circle cx="12" cy="6" r="1.3" fill="${C}"/>`;
+const CASA=`<path d="M0 30V12L16 2L32 12V30z" fill="${K}"/><rect x="12" y="16" width="8" height="14" fill="#d98a4a"/>`;
+const STOA=`<path d="M0 6h80v6H0zM4 12h4v26H4zM20 12h4v26h-4zM36 12h4v26h-4zM52 12h4v26h-4zM68 12h4v26h-4zM0 38h80v4H0z" fill="${K}"/>`;
+const NAVE=`<path d="M0 22Q44 38 96 22L108 4L102 24Q50 44 8 30Z" fill="${K}"/><path d="M-10 26L6 24L4 30z" fill="${K}"/><circle cx="12" cy="26" r="2.6" fill="${C}"/><path d="M52 24V-20M34 -16h36" stroke="${K}" stroke-width="2.4"/><path d="M36 -14h32l-3 22H39z" fill="${C}" stroke="${K}" stroke-width="2"/><path d="M26 30l-5 14M38 32l-5 14M50 33l-5 14M62 32l-5 14M74 30l-5 14M86 27l-5 14" stroke="${K}" stroke-width="1.8"/>`;
+const OLAS=(x,y,n)=>`<path d="M${x} ${y}${'q5 -6 10 0t10 0'.repeat(n)}" fill="none" stroke="${K}" stroke-width="2"/>`;
+const CABALLO=`<path d="M10 30Q30 21 52 30Q50 39 30 39Q14 39 10 30z" fill="${K}"/><path d="M45 33Q51 14 62 5L69 10Q60 18 57 35z" fill="${K}"/><path d="M60 5L77 12L75 17L62 13zM58 0l4 6h-5z" fill="${K}"/><path d="M15 34L10 62M21 36l2 26M45 36l-2 26M52 34l7 28M11 30Q0 34 3 54" stroke="${K}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="66" cy="10" r="1.2" fill="${C}"/>`;
+const CARRO=`<path d="M0 0h6v26h34v6H0z" fill="${K}"/><circle cx="16" cy="38" r="14" fill="none" stroke="${K}" stroke-width="3.5"/><path d="M16 24v28M2 38h28M6 28l20 20M26 28L6 48" stroke="${K}" stroke-width="1.6"/><path d="M40 28L96 14" stroke="${K}" stroke-width="2.5"/>`;
+const LECHO=`<path d="M0 0h62v6H0zM3 6v14M59 6v14M0 0c0-10 10-10 12 0" stroke="${K}" stroke-width="2.5" fill="${K}"/>`;
+const CRAT=`<path d="M0 0h30c0 14-6 20-10 24h5v4H5v-4h5C6 20 0 14 0 0z" fill="${K}" stroke="${C}" stroke-width="1"/>`;
+const ESC=(l,c)=>`<circle cx="0" cy="0" r="17" fill="${c||K}" stroke="${C}" stroke-width="2"/><circle cx="0" cy="0" r="13" fill="none" stroke="${C}" stroke-width=".8"/><text x="0" y="6" text-anchor="middle" font-size="17" font-family="Georgia" font-weight="bold" fill="${C}">${l}</text>`;
+
+const W=1300,M='#f6ecd0',T='#b5522b';
+const tag=(x,y,t)=>`<g class="tag"><rect x="${x-t.length*2.9-5}" y="${y}" rx="7" width="${t.length*5.8+10}" height="14"/><text x="${x}" y="${y+10.5}" text-anchor="middle">${t}</text></g>`;
+const lug=(x,y,t)=>`<g class="lug"><rect x="${x-t.length*4.6-8}" y="${y}" rx="3" width="${t.length*9.2+16}" height="18"/><text x="${x}" y="${y+13}" text-anchor="middle">${t}</text></g>`;
+const per=(b,p,x,y,n,w)=>`<g class="bota" style="animation-delay:${(x%7)/5}s">${fx(b,p,w||26,x,y)}</g>${tag(x+13,y+46,n)}`;
+const anda=(b,x,y,d,t,p)=>`<g class="anda" style="--d:${d}px;--t:${t}s">${fx(b,p||'',20,x,y)}</g>`;
+const aviso=(x,y,t)=>`<g class="aviso bota"><circle cx="${x}" cy="${y}" r="12" fill="#f0dfb8" stroke="#1c120c" stroke-width="1.5"/><circle class="r" cx="${x}" cy="${y}" r="10"/><text x="${x}" y="${y+5}" text-anchor="middle" font-size="14">${t}</text></g>`;
+const edif=(x,y,w,h,roof)=>`<path d="M${x-8} ${y}L${x+w/2} ${y-roof}L${x+w+8} ${y}z" fill="${T}" stroke="${K}" stroke-width="2.5"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${M}" stroke="${K}" stroke-width="2.5"/>`;
+const cols=(x,y,w,h,n)=>[...Array(n)].map((_,i)=>`<rect x="${x+i*(w-8)/(n-1)}" y="${y}" width="8" height="${h}" fill="${M}" stroke="${K}" stroke-width="2"/>`).join('');
+let H='';
+/* cielo, monte, acrópolis */
+H+=`<defs><linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6c98a"/><stop offset="1" stop-color="#f7e6c0"/></linearGradient></defs>
+<rect y="-300" width="${W}" height="900" fill="url(#cielo)"/><g id="sol"><circle cx="20" cy="50" r="16" fill="#f0a23c" stroke="#1c120c" stroke-width="1.5"/></g>
+<path d="M0 330Q160 250 330 320T700 250T1040 310T1300 270V600H0z" fill="#c9a66b"/>
+<path d="M430 360Q520 190 640 180H760Q860 190 930 360z" fill="#a8845a" stroke="${K}" stroke-width="2"/>
+${G(628,112,1.4,TEMPLO)}${G(590,150,.9,TRIP)}<g class="humo"><circle cx="601" cy="140" r="4" fill="#1c120c55"/></g>
+${G(540,190,1,OLIVO)}${G(800,196,1,OLIVO)}${G(880,270,1.1,OLIVO)}${G(470,300,1.1,OLIVO)}
+<path d="M690 232Q720 290 660 360" fill="none" stroke="#f7e6c0" stroke-width="7" stroke-dasharray="2 9" stroke-linecap="round"/>
+<rect y="470" width="${W}" height="130" fill="#d98a4a"/><path d="M0 470H${W}" stroke="${K}" stroke-width="3"/>
+<path d="${[...Array(72)].map((_,i)=>`M${i*18+2} 592h12v-10h-7v6h3`).join('')}" fill="none" stroke="${K}" stroke-width="1.6" opacity=".5"/>`;
+/* puerto */
+H+=`<rect x="0" y="440" width="232" height="160" fill="#2f6f73"/><g class="ola"><path d="M0 446${'q5 -6 10 0t10 0'.repeat(14)}" fill="none" stroke="#f6ecd0" stroke-width="2"/><path d="M0 480${'q5 -6 10 0t10 0'.repeat(14)}" fill="none" stroke="#f6ecd088" stroke-width="2"/></g>
+<rect x="225" y="440" width="12" height="160" fill="${K}"/><g class="mece">${G(60,410,1.25,NAVE)}</g>
+<rect x="150" y="462" width="90" height="10" fill="#7a5a30" stroke="${K}" stroke-width="2"/>`;
+/* ágora */
+H+=`${cols(280,360,170,110,6)}<rect x="270" y="346" width="190" height="16" fill="${T}" stroke="${K}" stroke-width="2.5"/>
+<path d="M392 470h44v-18q-22-10-44 0z" fill="${M}" stroke="${K}" stroke-width="2.5"/>
+<g stroke="${K}" stroke-width="1.8" fill="none" stroke-dasharray="5 4"><path d="M486 470v-44l24-16l24 16v44z"/></g>`;
+/* consejo: corte con gradas */
+H+=`${edif(580,330,210,140,54)}<rect x="596" y="346" width="178" height="124" fill="#e9b06e" stroke="${K}" stroke-width="2"/>
+${[0,1,2].map(r=>[...Array(7-r)].map((_,i)=>fx(i%3==2?'M':'N',(i+r)%3==0?'si':'',16,606+r*13+i*23,366+r*26)).join('')).join('')}`;
+/* tribunal */
+H+=`${edif(830,372,140,98,36)}<rect x="846" y="388" width="70" height="48" rx="3" fill="${K}"/>${[...Array(12)].map((_,i)=>`<rect x="${851+(i%4)*16}" y="${393+Math.floor(i/4)*14}" width="12" height="9" rx="2" fill="${[1,6,8].includes(i)?M:'#b9743a'}"/>`).join('')}
+<path d="M934 398h20l-4 18h-12zM936 440h16l-3 14h-10z" fill="${K}"/><path d="M944 416v24" stroke="#2f6f73" stroke-width="2" stroke-dasharray="3 3"/>`;
+/* tu casa */
+H+=`${edif(1040,360,200,110,44)}<rect x="1056" y="376" width="168" height="94" fill="#5a2c18" stroke="${K}" stroke-width="2"/>
+${G(1070,440,1.1,LECHO)}${G(1160,436,1,CRAT)}<rect x="1196" y="388" width="18" height="26" fill="#f0a23c" stroke="${K}" stroke-width="2"/>`;
+/* pueblo que anda */
+H+=anda('P',250,432,90,11)+anda('P',330,434,-50,8,'no')+anda('H',470,432,60,10)+anda('M',180,424,60,13)+anda('P',520,434,-70,12,'no')+anda('N',800,432,-90,14)+anda('H',980,432,50,9)+anda('P',1010,434,-60,10)+anda('M',560,434,40,12)+anda('P',300,436,40,7)+anda('H',1250,432,-40,9)+anda('P',360,430,60,15,'si')+anda('N',700,470,60,12)+anda('P',900,470,-80,13);
+/* 8 con nombre */
+H+=per('M','',176,420,'Enviado de Corinto')+per('M','',256,426,'Eudoro')+per('P','no',340,426,'Demo')+per('H','',424,404,'Nicóstrato')+per('N','no',548,426,'Calescro')+per('N','no',796,404,'Filón')+per('N','',1092,400,'Tu poeta',22)+per('N','tu',1004,426,'Tú');
+/* letreros de lugar y avisos */
+H+=lug(120,360,'PUERTO')+lug(366,322,'ÁGORA')+lug(685,258,'CONSEJO')+lug(900,318,'TRIBUNAL')+lug(1140,298,'TU CASA')+lug(690,92,'SANTUARIO')+tag(510,396,'fuente: en obras')
+ +aviso(210,400,'⛵')+aviso(690,300,'⚖️')+aviso(330,404,'💬')+aviso(1210,330,'🍷');
+/* zonas tocables */
+const L=[
+{id:'puerto',x:0,y:340,w:250,h:260,cx:150,cy:440,s:1.9,n:'El puerto',t:'Un barco de Corinto. Su enviado pide pagar menos en tu puerto y ofrece 20 remeros contra Mégara.',o:['Invitarlo al banquete','Llevarlo al Consejo']},
+{id:'agora',x:250,y:300,w:320,h:300,cx:400,cy:430,s:1.8,n:'El ágora',t:'Demo murmura contra los nobles junto a la fuente a medio hacer. En otoño, aquí se debate.',o:['Escuchar el corrillo','Ensayar el debate ▶'],il:1},
+{id:'consejo',x:570,y:250,w:240,h:350,cx:690,cy:400,s:2.2,n:'El Consejo',t:'Hoy se decide qué llega al pueblo. Los tuyos, 12; los de Filón, 14. Tres asuntos en juego.',o:['Empujar «Fuente pública»','Usar el favor de Eudoro']},
+{id:'tribunal',x:820,y:300,w:170,h:300,cx:900,cy:420,s:2.3,n:'El tribunal',t:'En invierno darás cuentas de tu cargo. Hoy puedes acusar a alguien si tienes su secreto.',o:['Acusar a Filón','Ver mis cuentas']},
+{id:'casa',x:1000,y:280,w:300,h:320,cx:1140,cy:420,s:2,n:'Tu casa',t:'Esta noche puedes dar un banquete: tres invitados, el vino que tú mezcles, y lo que se suelte.',o:['Dar un banquete','Hablar con tu poeta']},
+{id:'santuario',x:560,y:80,w:260,h:170,cx:690,cy:190,s:2.2,n:'El santuario',t:'El oráculo habla a medias. Un trípode de regalo lo inclina… y eso sería un secreto tuyo.',o:['Consultar','Regalar un trípode']}];
+H+=L.map(l=>`<rect data-id="${l.id}" x="${l.x}" y="${l.y}" width="${l.w}" height="${l.h}" fill="#0000"/>`).join('');
+const mundo=document.getElementById('mundo'),esc=document.getElementById('esc'),ficha=document.getElementById('ficha'),ilus=document.getElementById('ilus');
+mundo.innerHTML=H;
+const VW=esc.clientWidth,VH=esc.clientHeight;document.getElementById('sv').setAttribute('width',VW);document.getElementById('sv').setAttribute('height',VH);let cam=540,zoom=null;
+function pinta(){const s=zoom?zoom.s:1,cx=zoom?zoom.cx:cam+VW/2,cy=zoom?zoom.cy-40:600-VH/2;mundo.style.transform=`translate(${VW/2-cx*s}px,${VH/2-cy*s}px) scale(${s})`}
+function entra(l){zoom=l;mundo.classList.remove('arr');pinta();ficha.innerHTML=`<b class="n">${l.n}</b>${l.t}<div class="ops">${l.o.map((o,i)=>`<button class="${i?'':'p'}" data-o="${i}">${o}</button>`).join('')}<button class="g" data-o="x">Alejar</button></div>`;ficha.classList.add('v');document.getElementById('vasija').style.opacity=0}
+function sale(){zoom=null;pinta();ficha.classList.remove('v');document.getElementById('vasija').style.opacity=1}
+ficha.onclick=e=>{const o=e.target.dataset.o;if(o==null)return;if(o=='x')return sale();if(zoom.il&&o=='1')return debate();e.target.textContent='✔ hecho';setTimeout(sale,700)};
+function debate(){ilus.innerHTML=`<svg width="340" height="250" viewBox="0 0 340 250" style="background:#e39a58;border:3px solid #f0dfb8;border-radius:6px">
+<path d="M40 150h50v-18q-25-10-50 0zM250 150h50v-18q-25-10-50 0z" fill="${M}" stroke="${K}" stroke-width="2"/>${fx('N','tu',40,46,64)}${fx('N','no',40,256,64)}
+${[...Array(14)].map((_,i)=>fx('PPHHMN'[i%6],i<8?'si':(i>10?'no':''),20,14+i*22,190)).join('')}</svg>
+<p style="max-width:300px"><b style="font-size:16px">Aquí funde a la ilustración del taller de Arte</b><br>La cámara se acerca al ágora, la pintura cobra detalle y se juega encima: tus argumentos abajo, las piedras cayendo en las urnas.</p><button>Volver a la ciudad</button>`;ilus.classList.add('v');ilus.querySelector('button').onclick=()=>{ilus.classList.remove('v');sale()}}
+let d=null;
+esc.addEventListener('pointerdown',e=>{if(e.target.closest('#ficha,#ilus'))return;d={x:e.clientX,c:cam,m:0,t:e.target};mundo.classList.add('arr')});
+esc.addEventListener('pointermove',e=>{if(!d||zoom)return;d.m=Math.abs(e.clientX-d.x);cam=Math.max(0,Math.min(W-VW,d.c-(e.clientX-d.x)));pinta()});
+esc.addEventListener('pointerup',e=>{if(!d)return;mundo.classList.remove('arr');if(d.m<8){const id=d.t.dataset&&d.t.dataset.id;if(zoom)sale();else if(id)entra(L.find(l=>l.id==id))}d=null});
+document.getElementById('vasija').onclick=()=>{ficha.innerHTML='<b class="n">Tu vasija</b>Aquí se pinta tu vida política, escena a escena, y se lee la crónica de anoche. Gira con el dedo.<div class="ops"><button class="g" data-o="x">Cerrar</button></div>';ficha.classList.add('v');zoom={s:1,cx:cam+VW/2,cy:640-VH/2}};
+pinta();window._p={entra:id=>entra(L.find(l=>l.id==id)),sale,debate,cam:v=>{cam=v;pinta()}};
+</script></body></html>
