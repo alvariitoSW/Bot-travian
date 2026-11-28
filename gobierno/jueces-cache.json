@@ -45,14 +45,14 @@
   "fecha": "2026-11-28T14:16:25.142Z"
  },
  "fichas": {
-  "huella": "ffcf578461f5b23c",
+  "huella": "e316f7d2933c8ca5",
   "ok": true,
-  "fecha": "2026-11-28T14:17:20.158Z"
+  "fecha": "2026-11-28T14:32:20.859Z"
  },
  "mapa": {
-  "huella": "02c09da0f76321c4",
+  "huella": "34d360a0979fee07",
   "ok": true,
-  "fecha": "2026-11-28T14:17:20.400Z"
+  "fecha": "2026-11-28T14:32:22.377Z"
  },
  "saber": {
   "huella": "36dd7127623d7413",
@@ -275,9 +275,9 @@
   "fecha": "2026-11-25T21:40:14.537Z"
  },
  "area:gobierno/arte.mjs": {
-  "huella": "f8022e030e8cbb2e",
+  "huella": "e316f7d2933c8ca5",
   "ok": true,
-  "fecha": "2026-11-28T14:28:10.441Z"
+  "fecha": "2026-11-28T14:32:20.541Z"
  },
  "area:gobierno/fichas.mjs": {
   "huella": "d26f42cb6f5454b6",
@@ -385,9 +385,9 @@
   "fecha": "2026-11-25T16:04:15.444Z"
  },
  "porcentajes": {
-  "huella": "ab12b5ee6b2e2058",
+  "huella": "11f326945505863a",
   "ok": true,
-  "fecha": "2026-11-28T14:17:20.409Z"
+  "fecha": "2026-11-28T14:32:24.488Z"
  },
  "area:test/comarca.test.mjs": {
   "huella": "a5a0180c1971455a",
