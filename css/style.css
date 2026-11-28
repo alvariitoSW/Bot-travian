@@ -1954,3 +1954,8 @@ body.conhojaest #turno { display: none !important; }
 .pagas { font-size: 12px; font-weight: 700; letter-spacing: .02em; margin: 6px 0 2px; color: inherit; opacity: .85; }
 .nota.tarda b, .ds.tarda b { font-weight: 800; }
 #inf.hojaest .he-r small.ord { white-space: normal; color: var(--tinta2); font-size: 11px; }
+
+/* PL3b: con una polis la barra de abajo lleva siete botones (el séptimo, «Politeia»). body.aspecto repite la regla de seis: se iguala su peso */
+#tabs3[data-n="7"], body.aspecto #tabs3[data-n="7"] { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; padding-left: 3px; padding-right: 3px; }
+#tabs3[data-n="7"] button, body.aspecto #tabs3[data-n="7"] button { font-size: 10px; letter-spacing: 0; }
+@media (orientation: landscape) { #tabs3[data-n="7"], body.aspecto #tabs3[data-n="7"] { grid-template-columns: 1fr; grid-template-rows: repeat(7, minmax(40px, 1fr)); } }

@@ -2,3 +2,7 @@ Arte de relleno de la pantalla de política (Politeia): ciudad.svg y vineta-*.sv
 Obra propia de AQVILA, dibujada a mano en SVG para este juego (PL3, 28/11/2026). No procede de ningún otro juego ni de ninguna pintura de referencia.
 Licencia: CC BY-SA 3.0, como el resto del arte del juego. Se puede reutilizar citando a AQVILA y compartiendo con la misma licencia.
 Época: Atenas, 594 a.C.: adobe y teja, pórticos de madera y piedra, acrópolis sin Partenón.
+
+PL4 (28/11/2026): se añaden icono-politeia.svg (botón de la barra), vasija.svg (la vasija del año) y hito-*.svg (lo que se dibuja en la
+ciudad al aprobar un asunto: piedras arrancadas, pozo, jarras de aceite, columna de Salamina, tablas de las clases, banco del tribunal,
+estela de entierros y el que vuelve a casa). Mismo origen y licencia que lo anterior: obra propia de AQVILA, CC BY-SA 3.0.

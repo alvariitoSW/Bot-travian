@@ -4,6 +4,12 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 180, fecha: '28/11/2026', cosas: [
+      'Con una polis, la barra de abajo trae el botón «Politeia»: entras a la política sin pasar por el ágora.',
+      'En el santuario puedes consultar al oráculo de Delfos, que habla a medias, o hacerle un regalo.',
+      'En el puerto acoges a un huésped de Corinto, Egina o Mégara, o concertas una boda entre casas.',
+      'En el tribunal ves a tus cinco jueces y si te miran bien o mal; tu huésped puede hablar por ti.',
+      'Cada año queda contado en una vasija pintada, y lo que apruebas se dibuja en la ciudad.'] },
     { v: 179, fecha: '28/11/2026', cosas: [
       'Con una polis, la ficha del ágora trae «La política de la polis»: la Atenas de Solón pintada de pie, con sus siete lugares.',
       'Tocas un lugar, sube un pergamino con lo que puedes hacer, y «Pasar» siempre a mano hasta el final del año.'] },

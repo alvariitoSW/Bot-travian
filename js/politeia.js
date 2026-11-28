@@ -1,6 +1,7 @@
 /* AQVILA — PL1/PL2 Politeia: reglas del año político (agenda, intrigas, duelo de preguntas, tribunal). Lógica pura (corre en Node), sin pantalla.
    Estado P: solo datos JSON (se puede guardar con JSON.stringify, también a mitad de duelo y de juicio). Azar con semilla en P.rng. Ver gobierno/specs/PL1.md y PL2.md.
    Provisional (PL1): cinco casas tal cual; pistas 0–6; régimen fijo; ostracismo como acción simple; un solo año; rentas de 10 de plata por estación.
+   PL4 (v3): santuario (oráculo, regalo), puerto (huésped, boda), tribunal (testigo), escenas(P) para la vasija e hitos(P). Un P v2 se completa con migra(P).
    Provisional (PL2): duelo de dos preguntas tuyas y una o dos del rival; el rival opuesto se elige por su voto de partida; piedras que mueve cada respuesta
    (en politeia-datos.js); probabilidad de enterarse de un secreto; acusa el rival que más cargos sabe; cinco jueces con inclinación −1..+1;
    veredicto por votos culpables (≤2 limpio; 3 multa o cargo perdido si lo tenías; ≥4 o 3 cargos destierro); un solo orador por año. */
@@ -22,8 +23,8 @@
   function nueva(o) {
     o = o || {}; const polis = o.polis || 'atenas'; const D = DATOS.polis[polis];
     if (!D) throw new Error('Polis desconocida: ' + polis);
-    const P = { v: 2, polis, anio: D.anio, rng: (o.semilla == null ? 1 : o.semilla) | 0, estacion: 0, pasos: 3, casas: {}, personas: [], rivales: [], discordia: 0,
-      agenda: [], debate: [], ventaja: 0, secretos: [], sabidos: [], cargo: null, cronica: [], fin: null, votos: [], extra: {}, conv: {}, cedido: false, cerrando: false, orador: null, duelo: null, juicio: null, veredicto: null };
+    const P = { v: 3, polis, anio: D.anio, rng: (o.semilla == null ? 1 : o.semilla) | 0, estacion: 0, pasos: 3, casas: {}, personas: [], rivales: [], discordia: 0,
+      agenda: [], debate: [], ventaja: 0, secretos: [], sabidos: [], cargo: null, cronica: [], fin: null, votos: [], extra: {}, conv: {}, cedido: false, cerrando: false, orador: null, duelo: null, juicio: null, veredicto: null, oraculo: null, huesped: null, boda: null, testigo: false };
     az(P); az(P);
     for (const c of D.casas) {
       const v = () => 0.8 + 0.4 * az(P);
@@ -61,6 +62,10 @@
       if (paga('espiar')) mk('espiar', ot);
       if (paga('enviado')) mk('enviado');
       if (paga('ofrenda')) mk('ofrenda');
+      if (paga('oraculo') && !P.oraculo) mk('oraculo');
+      if (paga('inclinar')) mk('inclinar');
+      if (paga('huesped') && !P.huesped) mk('huesped', Object.keys(DATOS.VECINAS));
+      if (paga('boda') && !P.boda) mk('boda', ot.filter(c => P.casas[c].trato >= 0));
     } else if (e === 2) {
       if (paga('discurso')) mk('discurso');
       if (paga('orador') && !P.orador) mk('orador', P.personas.filter(x => x.casa === 'tuya').map(x => x.id));
@@ -71,6 +76,7 @@
       if (J) mk('negar');
       if (J && paga('pagar_jueces') && J.pagados < 2 && J.jueces.some(j => j.inc < 1)) mk('pagar_jueces');
       if (J && paga('contraatacar')) mk('contraatacar', objetivosContra(P));
+      if (J && P.huesped && !P.testigo && J.jueces.some(j => j.inc < 1)) mk('testigo');
       if (paga('dar_cuentas')) mk('dar_cuentas');
       if (P.cargo === 'tuya' && paga('ceder_cargo')) mk('ceder_cargo');
       if (P.discordia >= 4 && paga('ostracismo')) mk('ostracismo', ot);
@@ -123,6 +129,27 @@
     enviado(P) { P.casas.tuya.plata += 40; let x = ''; if (P.rivales.includes('delfin')) { P.casas.delfin.trato = clamp(P.casas.delfin.trato - 1, -3, 3); x = ' Al Delfín no le gusta que le pises el puerto.'; }
       return 'Mandas un enviado al puerto y vuelve con plata.' + x; },
     ofrenda(P) { P.ventaja += 1; return 'Haces una ofrenda en el santuario. Los dioses te miran bien.'; },
+    oraculo(P) {
+      const O = DATOS.ORACULO; let cand = P.rivales.filter(c => !P.sabidos.some(x => x.casa === c && !x.sec));
+      if (!cand.length) cand = otras(P).filter(c => !P.sabidos.some(x => x.casa === c && !x.sec));
+      const da = az(P) < O.prob && cand.length;
+      if (da) { const c = elige(P, cand); P.sabidos.push({ casa: c, texto: P.casas[c].grieta, oraculo: true }); P.oraculo = { frase: O.pista[c], casa: c, pista: true }; }
+      else P.oraculo = { frase: elige(P, O.sinPista), casa: null, pista: false };
+      return 'Consultas el oráculo de Delfos. La sacerdotisa dice: «' + P.oraculo.frase + '»' + (da ? ' Entiendes a quién se refiere.' : ''); },
+    inclinar(P) { P.ventaja += 2; secreto(P, 'compró al oráculo'); return 'Haces un regalo al oráculo para que hable a tu favor. Los dioses se dejan querer, pero alguien lo ha visto.'; },
+    huesped(P, v) {
+      const H = DATOS.VECINAS[v], f = H.efecto, t = P.casas.tuya; P.huesped = { polis: v, est: P.estacion }; let x = '';
+      if (f.plata) t.plata += f.plata; if (f.ventaja) P.ventaja += f.ventaja;
+      for (const k of Object.keys(f.trato || {})) P.casas[k].trato = clamp(P.casas[k].trato + f.trato[k], -3, 3);
+      if (f.aprende) for (const c of P.rivales) { const q = aprende(P, c); if (q) { x = ' Te cuenta de ' + cn(P, c) + ': ' + q + '.'; break; } }
+      return 'Acoges en tu casa a un huésped de ' + H.nombre + '. ' + H.texto + x; },
+    boda(P, c) {
+      let m = null; for (const o of otras(P)) if (o !== c && (m === null || P.casas[o].trato > P.casas[m].trato)) m = o;
+      P.casas[c].trato = clamp(P.casas[c].trato + 2, -3, 3); P.boda = { casa: c }; let x = '';
+      if (m) { P.casas[m].trato = clamp(P.casas[m].trato - 1, -3, 3); x = ' ' + Cn(P, m) + ' se siente ofendida.'; }
+      return 'Concertáis una boda con ' + cn(P, c) + '. Los tratos se afianzan.' + x; },
+    testigo(P) { const J = P.juicio; P.testigo = true; const a = J.jueces.filter(j => j.inc < 1).sort((x, y) => x.inc - y.inc).slice(0, 2); a.forEach(j => { j.inc++; });
+      return 'Tu huésped de ' + DATOS.VECINAS[P.huesped.polis].nombre + ' habla ante los jueces en tu favor. ' + a.map(j => j.nombre).join(' y ') + ' te miran mejor.'; },
     discurso(P) { P.ventaja += 1; return 'Das un discurso en la asamblea y la plaza te escucha.'; },
     convencer(P, c) { const p = clamp(0.5 + 0.15 * P.casas[c].trato, 0.1, 0.9);
       if (az(P) < p) { P.conv[c] = true; return 'Convences a ' + cn(P, c) + ' de que vote contigo.'; }
@@ -404,6 +431,30 @@
     return P.agenda.map(a => a.id).join(',') + '|' + P.rivales.slice().sort().join(',') + '|' + P.votos.map(v => v.asunto + ':' + v.resultado + ':' + v.duelo.map(x => x.resp[0]).join('')).join(',') + '|' + (P.veredicto ? P.veredicto.tipo : '');
   }
 
-  const POLITEIA = { nueva, acciones, jugar, pasar, resumen, firma, DATOS };
+  // ---- PL4: guardado antiguo, vasija (escenas del año) e hitos ----
+  // Un P de la versión 2 no trae los campos nuevos: se rellenan. Devuelve el mismo P.
+  function migra(P) { if (P && P.v < 3) { P.v = 3; if (P.oraculo === undefined) P.oraculo = null; if (P.huesped === undefined) P.huesped = null; if (P.boda === undefined) P.boda = null; if (P.testigo === undefined) P.testigo = false; } return P; }
+  // Hasta 8 escenas {estacion, quien, texto, tipo} de la crónica: sin repetir, y al menos una por estación con crónica. Pura (no usa azar).
+  function escenas(P) {
+    const tipoDe = c => /se aprueba|se rechaza/.test(c.texto) ? 'voto' : /absuelven|Condena de|te condenan|destierran/.test(c.texto) ? 'veredicto' : /te acusa ante/.test(c.texto) ? 'juicio'
+      : /^El año acaba|revuelta|^Los jueces te condenan/.test(c.texto) ? 'fin' : c.quien === 'tuya' ? 'tuya' : c.quien === 'ciudad' || c.quien === 'pueblo' ? 'ciudad' : 'rival';
+    const PESO = { fin: 6, veredicto: 6, voto: 5, juicio: 5, tuya: 3, rival: 2, ciudad: 1 };
+    const vistos = new Set(), l = [];
+    P.cronica.forEach((c, i) => { if (vistos.has(c.texto) || /^Llega el /.test(c.texto)) return; vistos.add(c.texto); const tipo = tipoDe(c); l.push({ i, estacion: c.estacion, quien: c.quien, texto: c.texto, tipo, pt: PESO[tipo] + (tipo === 'tuya' && /oráculo|huésped|boda|testigo/.test(c.texto) ? 1 : 0) - (/^(Dejas pasar el tiempo|No preguntas nada)/.test(c.texto) ? 2.5 : 0) }); });
+    if (!l.length && P.cronica.length) { const c = P.cronica[0]; l.push({ i: 0, estacion: c.estacion, quien: c.quien, texto: c.texto, tipo: tipoDe(c), pt: 1 }); }
+    const elegidas = [];
+    for (const e of Array.from(new Set(l.map(x => x.estacion)))) { const m = l.filter(x => x.estacion === e).sort((a, b) => b.pt - a.pt || a.i - b.i)[0]; if (m) elegidas.push(m); }
+    for (const x of l.slice().sort((a, b) => b.pt - a.pt || a.i - b.i)) { if (elegidas.length >= 8) break; if (!elegidas.includes(x)) elegidas.push(x); }
+    return elegidas.sort((a, b) => a.i - b.i).map(x => ({ estacion: x.estacion, quien: x.quien, texto: x.texto, tipo: x.tipo }));
+  }
+  // Asuntos aprobados este año, cada uno con lo que deja dibujado en la ciudad.
+  function hitos(P) {
+    const out = [];
+    for (const v of P.votos) { if (v.resultado !== 'si') continue; const a = asunto(P, v.asunto); if (!a || !a.hito || out.some(h => h.id === a.id)) continue;
+      out.push({ id: a.id, asunto: a.nombre, cinta: a.hito.cinta, texto: a.hito.texto, etiqueta: a.hito.etiqueta, fuente: a.hito.fuente }); }
+    return out;
+  }
+
+  const POLITEIA = { nueva, acciones, jugar, pasar, resumen, firma, escenas, hitos, migra, DATOS };
   if (typeof module !== 'undefined' && module.exports) module.exports = POLITEIA; else root.POLITEIA = POLITEIA;
 })(typeof self !== 'undefined' ? self : globalThis);

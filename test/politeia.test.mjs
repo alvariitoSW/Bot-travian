@@ -231,6 +231,77 @@ ok(malCosto === 0 && pillado > 0, 'PL2 CA3 cada respuesta del duelo cuesta (fama
   ok(distintas, 'PL2 CA6 en cada semilla, listo y tramposo dejan crónicas distintas');
 }
 
+// ---- PL4: santuario, puerto, tribunal, vasija e hitos ----
+{
+  const verano = sem => { const P = PO.nueva({ semilla: sem }); let n = 0; while (!P.fin && P.estacion < 1 && n++ < 20) PO.pasar(P); P.casas.tuya.plata = 300; P.casas.tuya.fama = 5; P.pasos = 3; return P; };
+  const P0 = verano(3); const ids = PO.acciones(P0).map(a => a.id);
+  ok(P0.v === 3 && ['oraculo', 'inclinar', 'huesped', 'boda', 'ofrenda', 'enviado'].every(x => ids.includes(x)), 'PL4 en verano salen oráculo, regalo, huésped y boda (' + ids.join(',') + ')');
+  ok(!PO.acciones(PO.nueva({ semilla: 3 })).some(a => ['oraculo', 'inclinar', 'huesped', 'boda'].includes(a.id)), 'PL4 en primavera no están');
+  // oráculo: una vez al año; a veces añade a sabidos; siempre dice una frase
+  let con = 0, sin = 0, frases = true, una = true;
+  for (const s of SEMILLAS) {
+    const P = verano(s), n0 = P.sabidos.length; const r = PO.jugar(P, 'oraculo');
+    if (!r.ok || !P.oraculo || !P.oraculo.frase || !/«/.test(r.texto)) frases = false;
+    if (P.sabidos.length > n0) { con++; if (!P.sabidos.some(x => x.oraculo)) frases = false; } else sin++;
+    if (PO.acciones(P).some(a => a.id === 'oraculo')) una = false;
+  }
+  ok(frases && una && con > 0 && sin > 0, 'PL4 el oráculo se consulta una vez al año, dice su frase y a veces (' + con + ' de 20) añade a lo que sabes');
+  { const P = verano(3); PO.jugar(P, 'inclinar'); ok(P.ventaja === 2 && P.secretos.some(x => x.de === 'tuya' && x.t === 'compró al oráculo') && P.casas.tuya.plata === 270, 'PL4 el regalo al oráculo da +2 de ventaja y deja un secreto tuyo'); }
+  // huésped y boda
+  { const P = verano(3), a = PO.acciones(P).find(x => x.id === 'huesped');
+    ok(a && ['corinto', 'egina', 'megara'].every(x => a.objetivos.includes(x)), 'PL4 el huésped ofrece Corinto, Egina y Mégara');
+    const f0 = P.casas.tuya.fama; const r = PO.jugar(P, 'huesped', 'corinto');
+    ok(r.ok && P.huesped.polis === 'corinto' && P.casas.tuya.fama === f0 - 1 && !PO.acciones(P).some(x => x.id === 'huesped'), 'PL4 el huésped queda en P.huesped y solo uno al año'); }
+  { const efectos = new Set(); const foto = P => JSON.stringify([P.casas.tuya.plata, P.ventaja, Object.values(P.casas).map(c => c.trato), P.sabidos.length]);
+    for (const v of ['corinto', 'egina', 'megara']) { const P = verano(5), t0 = foto(P); PO.jugar(P, 'huesped', v); efectos.add(foto(P)); ok(foto(P) !== t0, 'PL4 el huésped de ' + v + ' cambia algo'); }
+    ok(efectos.size === 3, 'PL4 cada huésped tiene un efecto distinto'); }
+  { const P = verano(3), a = PO.acciones(P).find(x => x.id === 'boda'); let c = a && a.objetivos[0];
+    if (!c) { P.casas.caballo.trato = 0; c = 'caballo'; }
+    const antes = {}; for (const i of Object.keys(P.casas)) antes[i] = P.casas[i].trato; const pl = P.casas.tuya.plata;
+    const r = PO.jugar(P, 'boda', c); const bajan = Object.keys(P.casas).filter(i => i !== 'tuya' && i !== c && P.casas[i].trato < antes[i]);
+    ok(r.ok && P.casas[c].trato === Math.min(3, antes[c] + 2) && P.casas.tuya.plata === pl - 30 && P.boda.casa === c && bajan.length <= 1 && !PO.acciones(P).some(x => x.id === 'boda'), 'PL4 la boda sube +2 el trato con ' + c + ', ofende a otra casa y es una al año'); }
+  { const P = verano(3); ok(PO.acciones(P).find(x => x.id === 'boda').objetivos.every(c => P.casas[c].trato >= 0), 'PL4 la boda solo se ofrece a casas con trato ≥ 0'); }
+  // testigo
+  { let probado = 0, bien = true, sinHuesped = true;
+    for (const s of SEMILLAS) {
+      const P = verano(s); PO.jugar(P, 'huesped', 'egina'); const P2 = JSON.parse(JSON.stringify(P)); P2.huesped = null;
+      for (const Q of [P, P2]) { let n = 0; while (!Q.fin && !Q.juicio && n++ < 60) { const m = tramposo(Q); const r = m ? PO.jugar(Q, m[0], m[1]) : PO.pasar(Q); if (!r.ok) PO.pasar(Q); } }
+      if (P.juicio) {
+        if (P2.juicio && PO.acciones(P2).some(a => a.id === 'testigo')) sinHuesped = false;
+        const t = PO.acciones(P).find(a => a.id === 'testigo'); if (!t) { if (P.juicio.jueces.some(j => j.inc < 1)) bien = false; continue; }
+        const suma = P.juicio.jueces.reduce((a, j) => a + j.inc, 0); const r = PO.jugar(P, 'testigo'); const suma2 = P.juicio.jueces.reduce((a, j) => a + j.inc, 0);
+        if (!r.ok || suma2 <= suma || suma2 > suma + 2 || PO.acciones(P).some(a => a.id === 'testigo')) bien = false; probado++;
+      }
+    }
+    ok(probado > 0 && bien && sinHuesped, 'PL4 con huésped y juicio sale «testigo»: sube a dos jueces y solo una vez (' + probado + ' juicios probados)'); }
+  // vasija e hitos
+  { let bien = true, minE = 99, maxE = 0, cubre = true, sinRep = true, hitosOk = true, algunHito = 0;
+    for (const bot of [listo, tramposo, pasivo]) for (const s of SEMILLAS) {
+      const P = PO.nueva({ semilla: s }); juega(P, bot); const E = PO.escenas(P); minE = Math.min(minE, E.length); maxE = Math.max(maxE, E.length);
+      if (new Set(E.map(x => x.texto)).size !== E.length) sinRep = false;
+      const est = new Set(P.cronica.map(c => c.estacion)); for (const e of est) if (!E.some(x => x.estacion === e)) cubre = false;
+      if (!E.every(x => x.texto && x.tipo && x.quien != null && x.estacion != null)) bien = false;
+      const H = PO.hitos(P), si = P.votos.filter(v => v.resultado === 'si').map(v => v.asunto).sort();
+      if (H.map(h => h.id).sort().join() !== si.join() || !H.every(h => h.cinta && h.texto && h.etiqueta && h.fuente)) hitosOk = false; algunHito += H.length;
+    }
+    ok(bien && sinRep && minE >= 1 && maxE <= 8 && maxE >= 4, 'PL4 escenas da de ' + minE + ' a ' + maxE + ', sin repetir ni vacías');
+    ok(cubre, 'PL4 las escenas cubren cada estación jugada');
+    ok(hitosOk && algunHito > 0, 'PL4 hitos = asuntos con voto «sí», con texto, etiqueta y fuente (' + algunHito + ' en 60 años)'); }
+  { const D = DA, malHist = []; for (const k of ['ORACULO', 'HUESPED', 'BODA', 'TESTIGO']) if (!D[k].etiqueta || !D[k].fuente) malHist.push(k);
+    for (const k of Object.keys(D.VECINAS)) if (!D.VECINAS[k].etiqueta || !D.VECINAS[k].fuente) malHist.push(k);
+    for (const a of D.polis.atenas.asuntos) if (!a.hito || !a.hito.etiqueta || !a.hito.fuente || !a.hito.texto) malHist.push(a.id);
+    ok(!malHist.length, 'PL4 cada pieza nueva lleva etiqueta y fuente ' + malHist.join(','));
+    ok(!/Senado|Parten[oó]n|moneda/i.test(JSON.stringify([D.ORACULO, D.HUESPED, D.VECINAS, D.BODA, D.TESTIGO, D.HITOS])), 'PL4 sin Senado, Partenón ni moneda en lo nuevo'); }
+  // un guardado v2 (sin los campos nuevos) sigue jugando un año entero
+  { let bien = 0;
+    for (const s of SEMILLAS) { const P = PO.nueva({ semilla: s }); P.v = 2; delete P.oraculo; delete P.huesped; delete P.boda; delete P.testigo;
+      const f = FALLOS; juega(P, listo); if (P.fin && f === FALLOS && PO.escenas(P).length >= 1) bien++; PO.hitos(P); }
+    const P = PO.nueva({ semilla: 2 }); P.v = 2; delete P.huesped; PO.migra(P);
+    ok(bien === 20 && P.v === 3 && P.huesped === null && P.oraculo === null && P.testigo === false, 'PL4 un P v2 (sin campos nuevos) juega el año entero y migra a v3 (' + bien + ' de 20)'); }
+  { const A = verano(9), B = verano(9); PO.jugar(A, 'oraculo'); PO.jugar(B, 'oraculo'); ok(JSON.stringify(A) === JSON.stringify(B), 'PL4 el oráculo es determinista con la misma semilla'); }
+  ok(!/Math\.random/.test(fs.readFileSync(new URL('../js/politeia.js', import.meta.url), 'utf8')), 'PL4 politeia.js no usa Math.random');
+}
+
 // Crónicas de muestra, para leerlas
 for (const s of [1, 2]) {
   const P = PO.nueva({ polis: 'atenas', semilla: s }); juega(P, listo);

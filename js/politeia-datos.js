@@ -17,7 +17,8 @@
       pagar_jueces: { plata: 30 }, espiar: { plata: 15 }, orador: { plata: 15 }, preguntar: { plata: 5 }, contraatacar: { plata: 15 },
       // verdad, callar, mentir y negar no cuestan plata ni fama al darlas: su precio está en lo que provocan (ver DUELO y JUICIO)
       verdad: {}, callar: {}, mentir: {}, negar: {},
-      dar_cuentas: { fama: 1 }, ceder_cargo: { fama: 1 }, ostracismo: { fama: 1 }
+      dar_cuentas: { fama: 1 }, ceder_cargo: { fama: 1 }, ostracismo: { fama: 1 },
+      oraculo: { plata: 10 }, inclinar: { plata: 30 }, huesped: { fama: 1 }, boda: { plata: 30 }, testigo: {}
     },
     ACCIONES: {
       hablar: 'Hablar en el Consejo', favor: 'Pedir un favor', pagar: 'Pagar apoyo',
@@ -25,11 +26,13 @@
       discurso: 'Dar un discurso', convencer: 'Convencer a una casa', comprar: 'Comprar piedras de voto',
       pagar_jueces: 'Pagar a los jueces', dar_cuentas: 'Dar cuentas', ceder_cargo: 'Ceder el cargo', ostracismo: 'Pedir el ostracismo',
       espiar: 'Espiar a una casa', orador: 'Subir a un orador de tu casa', preguntar: 'Hacer una pregunta', verdad: 'Decir la verdad', callar: 'Callar', mentir: 'Mentir',
-      negar: 'Negar los cargos', contraatacar: 'Contraatacar con un secreto del acusador'
+      negar: 'Negar los cargos', contraatacar: 'Contraatacar con un secreto del acusador',
+      oraculo: 'Consultar el oráculo', inclinar: 'Hacer un regalo al oráculo', huesped: 'Acoger a un huésped', boda: 'Concertar una boda', testigo: 'Llamar a tu huésped como testigo'
     },
     LUGARES: { hablar: 'Consejo', favor: 'Consejo', pagar: 'Consejo', banquete: 'casa', rumor: 'ágora', enviado: 'puerto', ofrenda: 'santuario',
       discurso: 'asamblea', convencer: 'asamblea', comprar: 'asamblea', pagar_jueces: 'tribunal', dar_cuentas: 'tribunal', ceder_cargo: 'tribunal', ostracismo: 'ágora',
-      espiar: 'ágora', orador: 'asamblea', preguntar: 'asamblea', verdad: 'asamblea', callar: 'asamblea', mentir: 'asamblea', negar: 'tribunal', contraatacar: 'tribunal' },
+      espiar: 'ágora', orador: 'asamblea', preguntar: 'asamblea', verdad: 'asamblea', callar: 'asamblea', mentir: 'asamblea', negar: 'tribunal', contraatacar: 'tribunal',
+      oraculo: 'santuario', inclinar: 'santuario', huesped: 'puerto', boda: 'puerto', testigo: 'tribunal' },
     // Acciones que no son de la época tal cual
     // Duelo de preguntas (otoño). Efecto visto desde quien RESPONDE: fama (suya), mio (piedras suyas), suyo (piedras del que pregunta).
     // «pr» = el que pregunta tiene prueba (un secreto o grieta que sabe); «aire» = pregunta sin prueba. «sale» = el secreto sale a la luz.
@@ -47,6 +50,43 @@
       multa: 40, acusa: { astuto: 0.9, ambicioso: 0.6, piadoso: 0.4, rico: 0.4 },
       etiqueta: 'licencia de juego',
       fuente: 'Heliea y apelación al pueblo: Arist., Const. Aten. 9 (de Solón). Jueces sorteados con inclinación, multa y destierro por sentencia: licencia de juego'
+    },
+    // PL4 · Santuario. El oráculo es el de Delfos (Solón lo consultó: Plut., Solón 14); mandar a consultarlo desde el santuario de la ciudad es licencia de juego.
+    // PROVISIONAL (PL4): 50 % de pista, el texto de cada frase, el regalo (+2 de ventaja y un secreto) y los costes.
+    ORACULO: {
+      prob: 0.5, etiqueta: 'licencia de juego',
+      fuente: 'Oráculo de Delfos: Plutarco, Solón 14 (Solón lo consulta). Que se «mande consultar» desde el santuario de la ciudad: licencia de juego',
+      pista: {
+        caballo: 'Una sombra vieja duerme bajo el techo del Caballo, y los dioses no la han olvidado.',
+        delfin: 'Quien navega con deuda ajena paga cuando menos lo espera.',
+        carnero: 'En la casa del monte, la que sabe leer manda más que el que firma.',
+        gallo: 'El juramento atado con sangre pesa más que la lanza que lo hizo.'
+      },
+      sinPista: ['El dios habla de lluvias y de cosechas, y de lo demás calla.', 'Dice: «Mira a tus pies antes de mirar a lo lejos». Nada más.', 'La sacerdotisa murmura palabras que nadie entiende y te despide.']
+    },
+    // PL4 · Puerto. Huéspedes (proxenía, ya hacia el 600 a.C.: epitafio de Ménecrates, Corcira → «probable»). Polis vecinas en 594 a.C.
+    // PROVISIONAL (PL4): el efecto de cada huésped (plata, ventaja, saber) y a quién enfada.
+    HUESPED: { etiqueta: 'probable', fuente: 'Proxenía hacia 600 a.C.: epitafio de Ménecrates, Corcira (Tod, GHI 1, siglo VII–VI). Aquí, un huésped por año: licencia de juego' },
+    VECINAS: {
+      corinto: { nombre: 'Corinto', frase: 'Corinto, la del istmo', efecto: { plata: 30, trato: { delfin: -1 } }, texto: 'Un mercader de Corinto te trae plata y negocios. Al Delfín no le gusta tener un competidor en la costa.',
+        etiqueta: 'histórico', fuente: 'Corinto bajo el tirano Periandro (hacia 627–585 a.C.): Heródoto 5.92; Aristóteles, Política 1313a' },
+      egina: { nombre: 'Egina', frase: 'Egina, la rival del mar', efecto: { ventaja: 1, trato: { caballo: -1 } }, texto: 'Un hombre de Egina cuenta en tu mesa lo que se dice de Atenas, y la plaza te escucha más. A la casa del Caballo no le hace gracia.',
+        etiqueta: 'probable', fuente: 'Egina, potencia naval rival de Atenas (Heródoto 5.82–89, la enemistad es algo posterior); aquí, licencia de juego en 594' },
+      megara: { nombre: 'Mégara', frase: 'Mégara, en guerra por Salamina', efecto: { aprende: true, trato: { gallo: -1 } }, texto: 'Un megarense, entre dos guerras, te cuenta cosas de tus rivales. Los hoplitas del Gallo lo miran con rabia.',
+        etiqueta: 'histórico', fuente: 'Guerra por Salamina entre Atenas y Mégara: Plutarco, Solón 8–10; Heródoto 1.59' }
+    },
+    BODA: { etiqueta: 'probable', fuente: 'Bodas entre casas nobles como alianza: Heródoto 6.126–131 (la boda de Agarista, algo posterior); aquí, licencia de juego en 594' },
+    TESTIGO: { etiqueta: 'licencia de juego', fuente: 'Un huésped (próxenos) como testigo ante los jueces: licencia de juego; los testigos en juicio, Arist., Const. Aten. 9' },
+    // PL4 · Hitos: lo que queda dibujado en la ciudad cuando se aprueba un asunto. «cinta» = el nombre corto de la cinta. Se unen a cada asunto más abajo.
+    HITOS: {
+      deudas: { cinta: 'Piedras arrancadas', texto: 'Se arrancan las piedras de hipoteca (horoi) de los campos: la tierra vuelve a ser libre.', etiqueta: 'histórico', fuente: 'Solón, fr. 36; Aristóteles, Const. Aten. 12' },
+      esclavitud: { cinta: 'Vuelven a casa', texto: 'Vuelven a Atenas los que habían sido vendidos fuera por deudas.', etiqueta: 'histórico', fuente: 'Solón, fr. 36; Aristóteles, Const. Aten. 6' },
+      salamina: { cinta: 'Salamina', texto: 'Una columna recuerda la isla de Salamina, recuperada a Mégara.', etiqueta: 'licencia de juego', fuente: 'Plutarco, Solón 8–10: Solón la recupera antes de su arcontado; aquí se levanta en 594' },
+      aceite: { cinta: 'Jarras de aceite', texto: 'En el muelle se alinean las jarras de aceite: es lo único que se puede vender fuera.', etiqueta: 'histórico', fuente: 'Plutarco, Solón 24' },
+      pozos: { cinta: 'Pozo público', texto: 'Se abre un pozo público: nadie tiene que comprar agua.', etiqueta: 'histórico', fuente: 'Plutarco, Solón 23' },
+      censo: { cinta: 'Cuatro clases', texto: 'Una tabla pinta las cuatro clases de ciudadanos, según lo que da su tierra.', etiqueta: 'histórico', fuente: 'Aristóteles, Const. Aten. 7' },
+      apelacion: { cinta: 'Tribunal del pueblo', texto: 'Cualquiera puede apelar ante el tribunal del pueblo: se levanta un banco para los jueces.', etiqueta: 'histórico', fuente: 'Aristóteles, Const. Aten. 9' },
+      entierros: { cinta: 'Entierros sobrios', texto: 'Una tumba sencilla marca la nueva ley contra el lujo en los entierros.', etiqueta: 'histórico', fuente: 'Plutarco, Solón 21' }
     },
     HISTORIA: { ostracismo: { etiqueta: 'licencia de juego', fuente: 'Lo introduce Clístenes hacia 508 a.C. (Arist., Const. Aten. 22); aquí, adelantado para poder jugar' } },
     polis: {
@@ -107,5 +147,6 @@
       }
     }
   };
+  for (const pl of Object.keys(DATOS.polis)) for (const a of DATOS.polis[pl].asuntos) if (DATOS.HITOS[a.id]) a.hito = DATOS.HITOS[a.id];
   if (typeof module !== 'undefined') module.exports = DATOS; else root.POLITEIA_DATOS = DATOS;
 })(typeof self !== 'undefined' ? self : globalThis);

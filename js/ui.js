@@ -414,7 +414,7 @@ function setTxt(id, v) { const e = $(id); if (e && e.dataset.k !== v) { e.datase
 /* MN1: barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio). Sin modos: cada pestaña marca su botón */
 const BARRA_DE = { city: 'ciudad', senado: 'senado', saber: 'saber', army: 'tropas', map: 'mapa', imperio: 'imperio', hero: 'imperio' };
 function hudDock() {
-  musicaPantalla();
+  musicaPantalla(); barraPolis();
   const s = S(); if (!s || G.fundando()) return; cityOk(); const nm = s.marches.filter(m => m.owner === 'roma').length;
   const t3 = UI.tab === 'city' && UI.cityList && UI.cityV ? '' : (BARRA_DE[UI.tab] || '');
   document.querySelectorAll('#tabs3 button').forEach(b => { const on = b.dataset.v === t3; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab; $('app').toggleAttribute('data-sala', UI.tab === 'senado' && (UI.senT || 'hoy') === 'hoy' && !!G.senadoSala());   // MN2: solo en la pestaña «Hoy se vota»   // SN2: en la sala, Votar y Dejar pasar van abajo y «Pasar estación» sube a la tira
@@ -1034,9 +1034,16 @@ function mismoModal(id, pz, nueva) {
   document.addEventListener('pointerup', fin); document.addEventListener('pointercancel', fin);
   document.addEventListener('click', e => { if (UI.swipeT && Date.now() - UI.swipeT < 400 && e.target.closest('.imp-fila')) { e.stopPropagation(); e.preventDefault(); UI.swipeT = 0; } }, true);
 })();
+// PL3b: en una partida de polis la barra lleva un séptimo botón «Politeia» (abre la política de la polis); en una romana no hay botón ni hueco
+function barraPolis() {
+  const b = $('tabs3'); if (!b) return; const hay = !!(G.polis() && window.POLITEIA_UI), esta = !!b.querySelector('[data-act="politeia"]');
+  if (hay && !esta) b.insertAdjacentHTML('beforeend', '<button data-act="politeia" data-v="politeia" title="Politeia" aria-label="Politeia"><i><img src="assets/politeia/icono-politeia.svg" alt=""></i><span>Politeia</span></button>');
+  else if (!hay && esta) b.querySelector('[data-act="politeia"]').remove();
+  b.dataset.n = hay ? '7' : '6';
+}
 function buildTabs() {
   const ICO_SAB = svgIco('<path d="M6 4h11a2 2 0 0 1 0 4H6M6 4a2 2 0 0 0 0 4v12h11a2 2 0 0 0 0-4H8M9 11h6M9 14h4"/>');
-  $('tabs3').innerHTML = [['ciudad', 'nav-ciudad', 'Ciudad'], ['senado', 'nav-senado', 'Senado'], ['saber', 'nav-saber', 'Saber'], ['tropas', 'nav-tropas', 'Tropas'], ['mapa', 'nav-mapa', 'Mapa'], ['imperio', 'nav-imperio', 'Imperio']].map(t => '<button data-act="barra" data-v="' + t[0] + '" title="' + t[2] + '" aria-label="' + t[2] + '"><i><img src="assets/iconos/' + t[1] + '.svg" alt=""></i><span>' + t[2] + '</span></button>').join('');
+  $('tabs3').innerHTML = [['ciudad', 'nav-ciudad', 'Ciudad'], ['senado', 'nav-senado', 'Senado'], ['saber', 'nav-saber', 'Saber'], ['tropas', 'nav-tropas', 'Tropas'], ['mapa', 'nav-mapa', 'Mapa'], ['imperio', 'nav-imperio', 'Imperio']].map(t => '<button data-act="barra" data-v="' + t[0] + '" title="' + t[2] + '" aria-label="' + t[2] + '"><i><img src="assets/iconos/' + t[1] + '.svg" alt=""></i><span>' + t[2] + '</span></button>').join(''); barraPolis();
   $('bpest').innerHTML = [['yo', 'Lo hago yo'], ['encargar', 'Encargar'], ['gobernador', 'Gobernador']].map((t, i) => '<button role="tab" data-act="bpest" data-v="' + t[0] + '"' + (i && !(t[0] === 'gobernador' && window.GOBERNADOR && window.GobernadorUI) ? ' class="off" aria-disabled="true"' : i ? '' : ' class="on" aria-selected="true"') + '>' + t[1] + '</button>').join('');   // MN1: «Encargar» (CE8) y «Gobernador» (MN3), aún huecos
 }
 /* ---------- consejo y piezas (CN4): el consejo habla de piezas, no de niveles de edificio ---------- */

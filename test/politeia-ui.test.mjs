@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const AQUI = path.dirname(fileURLToPath(import.meta.url)), RAIZ = path.resolve(AQUI, '..');
-const CAP = process.argv.includes('--capturas'), DIR_CAP = path.join(RAIZ, 'gobierno/capturas/pl3');
+const CAP = process.argv.includes('--capturas'), DIR_CAP = path.join(RAIZ, 'gobierno/capturas/pl3'), DIR_PL4 = path.join(RAIZ, 'gobierno/capturas-tarea');
 const SEMILLA = 4242, T0 = Date.now();
 const fallos = [], ok = (c, t) => { if (!c) fallos.push(t); console.log((c ? 'bien  ' : 'MAL   ') + t); };
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.glb': 'model/gltf-binary', '.mp3': 'audio/mpeg', '.webmanifest': 'application/manifest+json' };
@@ -127,6 +127,143 @@ try {
   await p.click('#pt-salir'); await p.waitForTimeout(100);
   ok(await p.locator('#pt-raiz').count() === 0, '«Salir» quita la pantalla');
   ok(errores.length === 0, 'sin errores de consola en la pantalla (' + errores.slice(0, 3).join(' / ') + ')');
+
+  // ---------- 1b. PL4: santuario, puerto, tribunal, vasija, hitos, guardado v2 ----------
+  const jpg = async (pg, n) => { if (CAP) { fs.mkdirSync(DIR_PL4, { recursive: true }); await pg.screenshot({ path: path.join(DIR_PL4, 'PL4-' + n + '.jpg'), type: 'jpeg', quality: 70 }); } };
+  const abre = async (pg, P) => { await pg.evaluate(P0 => { try { localStorage.removeItem('aqvila-politeia-vasijas-v1'); localStorage.setItem('aqvila-politeia-v1', JSON.stringify(P0)); } catch (e) {} POLITEIA_UI.abrir({ polis: 'atenas' }); }, P); await pg.waitForTimeout(300); };
+  const jugarAccion = async (pg, lugar, id, obj) => {   // abre el lugar, pulsa la acción y (si hace falta) el objetivo
+    if (await visible(pg, '#pt-pergamino')) await pg.click('#pt-pergamino .pt-cerrar[data-x="cerrar"]');
+    await pg.click('.pt-medallon[data-lugar="' + lugar + '"]'); await pg.waitForTimeout(450);
+    const b = pg.locator('#pt-pergamino .pt-accion[data-id="' + id + '"]'); if (!(await b.count())) return false;
+    await b.click(); await pg.waitForTimeout(100);
+    if (obj) { const o = pg.locator('.pt-objetivo[data-o="' + obj + '"]'); if (!(await o.count())) return false; await o.click(); await pg.waitForTimeout(150); }
+    return true;
+  };
+  const veranoJS = () => { const P = POLITEIA.nueva({ polis: 'atenas', semilla: 4242 }); let n = 0; while (!P.fin && P.estacion < 1 && n++ < 9) POLITEIA.pasar(P); P.casas.tuya.plata = 300; P.casas.tuya.fama = 5; return P; };
+  {
+    const pa = await pagina(); await pa.goto(URL0 + '/__pt.html');
+    const Pv = await pa.evaluate(veranoJS); await abre(pa, Pv);
+    // santuario: oráculo (dice su frase), regalo y ofrenda
+    ok(await jugarAccion(pa, 'santuario', 'oraculo'), 'PL4 el santuario ofrece «Consultar el oráculo»');
+    let txt = await pa.locator('#pt-pergamino').innerText();
+    ok(await pa.locator('.pt-oraculo').count() === 1 && /«[^»]{10,}»/.test(txt), 'PL4 el oráculo dice su frase entre comillas');
+    await jpg(pa, '02-santuario-oraculo');
+    ok(await jugarAccion(pa, 'santuario', 'inclinar'), 'PL4 el santuario ofrece «Hacer un regalo al oráculo»');
+    ok((await pa.evaluate(() => POLITEIA_UI._estado().secretos.some(s => s.t === 'compró al oráculo'))), 'PL4 el regalo deja el secreto «compró al oráculo»');
+    ok(await pa.locator('#pt-pergamino .pt-accion[data-id="oraculo"]').count() === 0, 'PL4 el oráculo solo una vez al año');
+    ok(await jugarAccion(pa, 'santuario', 'ofrenda'), 'PL4 la ofrenda del santuario sigue jugable');
+    await pa.close();
+    // puerto: huésped con objetivo en frase llana, boda con objetivo, enviado
+    const pb = await pagina(); await pb.goto(URL0 + '/__pt.html'); await abre(pb, await pb.evaluate(veranoJS));
+    await pb.click('.pt-medallon[data-lugar="puerto"]'); await pb.waitForTimeout(450);
+    await jpg(pb, '03-puerto');
+    await pb.click('#pt-pergamino .pt-accion[data-id="huesped"]'); await pb.waitForTimeout(100);
+    const fr = await pb.locator('.pt-objetivo').allInnerTexts();
+    ok(fr.length === 3 && /Corinto, la del istmo/.test(fr.join('|')) && /Egina/.test(fr.join('|')) && /Mégara/.test(fr.join('|')), 'PL4 el huésped ofrece las tres polis en frases llanas (' + fr.join(' | ') + ')');
+    await pb.locator('.pt-objetivo[data-o="corinto"]').click(); await pb.waitForTimeout(150);
+    ok(await pb.evaluate(() => POLITEIA_UI._estado().huesped.polis === 'corinto'), 'PL4 el huésped de Corinto queda en la partida');
+    await pb.click('#pt-pergamino .pt-accion[data-id="boda"]'); await pb.waitForTimeout(100);
+    const fb = await pb.locator('.pt-objetivo').allInnerTexts();
+    ok(fb.length > 0 && fb.every(f => /^Una boda con la casa del /.test(f)), 'PL4 la boda ofrece casas con frase llana (' + fb.slice(0, 2).join(' | ') + ')');
+    await pb.locator('.pt-objetivo').first().click(); await pb.waitForTimeout(150);
+    ok(await pb.evaluate(() => !!POLITEIA_UI._estado().boda), 'PL4 la boda se concierta');
+    await pb.close();
+    // tribunal con juicio: jueces con nombre y cómo te miran, y el testigo
+    const pc = await pagina(); await pc.goto(URL0 + '/__pt.html');
+    const Pj = await pc.evaluate(() => {
+      for (let s = 1; s < 80; s++) {
+        const P = POLITEIA.nueva({ polis: 'atenas', semilla: s }); let n = 0; while (!P.fin && P.estacion < 1 && n++ < 9) POLITEIA.pasar(P);
+        P.casas.tuya.plata = 300; P.casas.tuya.fama = 5; POLITEIA.jugar(P, 'huesped', 'egina'); POLITEIA.jugar(P, 'inclinar'); POLITEIA.jugar(P, 'inclinar');
+        n = 0; while (!P.fin && !P.juicio && n++ < 40) POLITEIA.pasar(P);
+        if (P.juicio && P.estacion === 3 && P.juicio.jueces.filter(j => j.inc < 1).length >= 2) return P;
+      } return null; });
+    ok(!!Pj, 'PL4 hay una partida con juicio y huésped para probar el tribunal');
+    if (Pj) {
+      await abre(pc, Pj); await pc.click('.pt-medallon[data-lugar="tribunal"]'); await pc.waitForTimeout(450);
+      const nj = await pc.locator('.pt-jueces li').count(), tj = await pc.locator('.pt-jueces').innerText();
+      ok(nj === 5 && (tj.match(/te mira (bien|regular|mal)/g) || []).length === 5, 'PL4 el tribunal enseña cinco jueces con nombre y si te miran bien, regular o mal');
+      ok(/te acusa de/.test(await pc.locator('#pt-pergamino').innerText()), 'PL4 el tribunal enseña los cargos');
+      await jpg(pc, '04-juicio-jueces');
+      const sum0 = Pj.juicio.jueces.reduce((a, j) => a + j.inc, 0);
+      await pc.click('#pt-pergamino .pt-accion[data-id="testigo"]'); await pc.waitForTimeout(200);
+      ok((await pc.evaluate(() => POLITEIA_UI._estado().juicio.jueces.reduce((a, j) => a + j.inc, 0))) > sum0 && await pc.locator('#pt-pergamino .pt-accion[data-id="testigo"]').count() === 0, 'PL4 el testigo sube jueces y no se repite');
+    }
+    await pc.close();
+    // hito: un asunto aprobado se dibuja en la ciudad y al tocarlo dice su texto
+    const pd = await pagina(); await pd.goto(URL0 + '/__pt.html');
+    const Ph = await pd.evaluate(() => {
+      for (let s = 1; s < 80; s++) { const P = POLITEIA.nueva({ polis: 'atenas', semilla: s }); let n = 0; while (!P.fin && P.estacion < 3 && n++ < 40) POLITEIA.pasar(P); if (!P.fin && POLITEIA.hitos(P).length >= 1) return P; } return null; });
+    ok(!!Ph, 'PL4 hay una partida con un asunto aprobado para probar el hito');
+    if (Ph) {
+      await abre(pd, Ph); const hs = await pd.evaluate(() => POLITEIA.hitos(POLITEIA_UI._estado()));
+      ok(await pd.locator('.pt-hito').count() === hs.length && hs.length >= 1, 'PL4 cada asunto aprobado aparece dibujado en la ciudad (' + hs.map(h => h.cinta).join(', ') + ')');
+      ok((await pd.locator('.pt-hito-cinta').allInnerTexts()).join('|') === hs.map(h => h.cinta).join('|'), 'PL4 cada hito lleva una cinta con su nombre');
+      const imgOk = await pd.evaluate(() => Promise.all([...document.querySelectorAll('.pt-hito img')].map(i => i.complete ? i.naturalWidth > 0 : new Promise(r => { i.onload = () => r(true); i.onerror = () => r(false); }))));
+      ok(imgOk.every(Boolean), 'PL4 los dibujos de los hitos cargan');
+      const y = await pd.evaluate(() => { const b = document.querySelector('.pt-hito'); return parseFloat(b.style.top); });
+      await pd.evaluate(yy => { document.querySelector('#pt-scroll').scrollTop = Math.max(0, yy - 280); }, y); await pd.waitForTimeout(400);
+      await pd.locator('.pt-hito').first().click(); await pd.waitForTimeout(250);
+      ok((await pd.locator('#pt-cinta').innerText()).includes(hs[0].texto), 'PL4 tocar un hito dice su texto');
+      await jpg(pd, '07-ciudad-hito');
+      // la vasija se abre con escenas en bandas y la vasija del año
+      await pd.click('#pt-vasija'); await pd.waitForTimeout(250);
+      const nb = await pd.locator('#pt-vas .pt-banda').count();
+      ok(await visible(pd, '#pt-vas') && nb >= 1 && nb <= 8 && await pd.locator('#pt-vas .pt-vasija-img').count() === 1, 'PL4 la vasija se abre con su dibujo y escenas en bandas (' + nb + ')');
+      await jpg(pd, '05-vasija');
+      await pd.click('#pt-vas [data-x="cerrar-vasija"]'); await pd.waitForTimeout(100);
+      ok(!(await visible(pd, '#pt-vas')), 'PL4 la vasija se cierra');
+      // hasta el final: la vasija del año sale en el pergamino final, y el año se guarda
+      let n2 = 0; while (n2 < 300 && !(await visible(pd, '#pt-fin'))) { const s = await estado(pd); if (s.fin) break; await pd.locator('#pt-pasar').click({ timeout: 4000 }); n2++; }
+      await pd.waitForTimeout(300);
+      ok(await visible(pd, '#pt-fin') && await pd.locator('#pt-fin .pt-banda').count() >= 1 && /La vasija del año/.test(await pd.locator('#pt-fin').innerText()), 'PL4 el final del año trae la vasija del año');
+      await jpg(pd, '06-fin-vasija');
+      const gv = await pd.evaluate(() => JSON.parse(localStorage.getItem('aqvila-politeia-vasijas-v1') || '[]'));
+      ok(gv.length === 1 && gv[0].escenas.length >= 1, 'PL4 la vasija del año se guarda en localStorage (' + gv.length + ')');
+      await pd.click('#pt-otro'); await pd.waitForTimeout(300);
+      const guardados = gv[0].hitos.filter(h => ['deudas', 'esclavitud', 'salamina', 'aceite', 'pozos', 'censo', 'apelacion', 'entierros'].includes(h.id)).length;
+      ok(await pd.locator('.pt-hito.viejo').count() === guardados, 'PL4 en el año nuevo siguen dibujados los hitos guardados (' + guardados + ')');
+      await pd.click('#pt-vasija'); await pd.waitForTimeout(200);
+      ok(await pd.locator('#pt-vas .pt-mini').count() === 1, 'PL4 la vasija enseña las de años pasados en fila pequeña');
+      await pd.locator('#pt-vas .pt-mini').first().click(); await pd.waitForTimeout(150);
+      ok(await pd.locator('#pt-vas .pt-banda').count() >= 1, 'PL4 se puede mirar una vasija pasada');
+    }
+    await pd.close();
+    // guardado v2: sin los campos nuevos, la pantalla lo carga y se juega
+    const pe = await pagina(); await pe.goto(URL0 + '/__pt.html');
+    const v2 = await pe.evaluate(() => { const P = POLITEIA.nueva({ polis: 'atenas', semilla: 77 }); P.v = 2; delete P.oraculo; delete P.huesped; delete P.boda; delete P.testigo; return P; });
+    await abre(pe, v2); await pe.evaluate(() => { const l = []; for (let i = 0; i < 12; i++) l.push({ n: i + 1, escenas: [{ estacion: 0, quien: 'ciudad', texto: 'x' + i, tipo: 'ciudad' }], hitos: [] }); localStorage.setItem('aqvila-politeia-vasijas-v1', JSON.stringify(l)); });
+    ok(await visible(pe, '#pt-raiz') && await pe.evaluate(() => { const P = POLITEIA_UI._estado(); return P.v === 3 && P.huesped === null && P.testigo === false; }), 'PL4 un guardado v2 carga y se migra a v3');
+    let m = 0; while (m++ < 40 && !(await pe.evaluate(() => POLITEIA_UI._estado().fin))) await pe.locator('#pt-pasar').click({ timeout: 4000 }).catch(() => {});
+    ok(await visible(pe, '#pt-fin'), 'PL4 el año del guardado v2 se juega hasta el final');
+    ok((await pe.evaluate(() => JSON.parse(localStorage.getItem('aqvila-politeia-vasijas-v1')).length)) === 10, 'PL4 se guardan como mucho 10 vasijas');
+    await pe.close();
+  }
+
+  // PL3b: la barra de abajo. Partida de polis: botón «Politeia» que abre la política. Partida romana: ni botón ni hueco.
+  const menu = async pg => { await pg.goto(URL0 + '/index.html', { waitUntil: 'load' }); await pg.waitForSelector('#menu .pn-carta [data-pn="nueva"]', { timeout: 30000 }); await pg.waitForTimeout(1200); };
+  const cierraModal = pg => pg.evaluate(() => { const m = document.getElementById('modal'); if (m) m.hidden = true; const h = document.getElementById('popsheet'); if (h) h.hidden = true; });
+  {
+    const pg = await pagina(); pg.on('dialog', d => d.accept()); await menu(pg);
+    await pg.evaluate(() => { UI.semillaPolis = 7; });
+    await pg.click('#menu .pn-carta [data-pn="nueva"]'); await pg.waitForTimeout(400);
+    await pg.click('#menu [data-pnpolis="atenas"]'); await pg.waitForTimeout(300);
+    await pg.click('#menu [data-act="newpolis"]'); await pg.waitForTimeout(5000); await cierraModal(pg);
+    const bt = pg.locator('#tabs3 [data-act="politeia"]');
+    ok(await bt.count() === 1 && await bt.isVisible(), 'PL3b partida de polis: el botón «Politeia» está en la barra de abajo');
+    const geo = await pg.evaluate(() => { const bs = [...document.querySelectorAll('#tabs3 button')], b = document.querySelector('#tabs3 [data-act="politeia"]'); return { n: bs.length, w: innerWidth, ok: bs.every(x => { const r = x.getBoundingClientRect(), s = x.querySelector('span'); return r.left >= 0 && r.right <= innerWidth + 0.5 && s.scrollWidth <= s.clientWidth + 1 && s.getBoundingClientRect().right <= r.right + 0.5; }), txt: b.innerText.trim() }; });
+    ok(geo.n === 7 && geo.ok && /^politeia$/i.test(geo.txt), 'PL3b la barra tiene 7 botones y caben a 390 px sin cortar el texto (' + JSON.stringify(geo) + ')');
+    await jpg(pg, '01-barra-politeia');
+    await bt.click(); await pg.waitForTimeout(500);
+    ok(await visible(pg, '#pt-raiz') && await visible(pg, '#pt-pasar'), 'PL3b el botón de la barra abre Politeia');
+    await pg.click('#pt-salir'); await pg.waitForTimeout(200);
+    ok(await pg.locator('#pt-raiz').count() === 0 && await bt.count() === 1, 'PL3b al salir de Politeia se vuelve al juego con el botón en la barra');
+    await pg.close();
+    const pr = await pagina(); pr.on('dialog', d => d.accept()); await menu(pr);
+    await pr.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'new'; document.body.appendChild(b); b.click(); b.remove(); }); await pr.waitForTimeout(5000); await cierraModal(pr);
+    const rom = await pr.evaluate(() => ({ n: document.querySelectorAll('#tabs3 button').length, p: document.querySelectorAll('#tabs3 [data-act="politeia"]').length, d: document.getElementById('tabs3').dataset.n, polis: Game.polis() }));
+    ok(rom.polis === null && rom.p === 0 && rom.n === 6 && rom.d === '6', 'PL3b partida romana: no hay botón «Politeia» ni hueco (' + rom.n + ' botones)');
+    await pr.close();
+  }
 
   // ---------- 2. El juego entero ----------
   const errAntes = errores.length;

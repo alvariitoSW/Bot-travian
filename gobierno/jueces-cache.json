@@ -1,68 +1,68 @@
 {
  "pausas": {
-  "huella": "d5a27a3d7cbb055f",
+  "huella": "3ee446f1579141a6",
   "ok": true,
-  "fecha": "2026-11-28T14:36:20.095Z"
+  "fecha": "2026-11-28T17:22:11.645Z"
  },
  "encargos": {
-  "huella": "e11f2403e28e8742",
+  "huella": "77abf92e9c629ef4",
   "ok": true,
-  "fecha": "2026-11-28T14:36:35.232Z"
+  "fecha": "2026-11-28T17:22:16.005Z"
  },
  "movil": {
-  "huella": "57738f7e1643b6a9",
+  "huella": "27045249bbf6311c",
   "ok": true,
-  "fecha": "2026-11-28T14:36:52.089Z"
+  "fecha": "2026-11-28T17:22:22.023Z"
  },
  "ciudad": {
-  "huella": "8631403e08dec301",
+  "huella": "8c7e62b20ef77439",
   "ok": true,
-  "fecha": "2026-11-28T14:35:52.163Z"
+  "fecha": "2026-11-28T17:20:29.140Z"
  },
  "senado": {
-  "huella": "563c8e3795d6821f",
+  "huella": "b19ee4b6b5f9f5e5",
   "ok": true,
-  "fecha": "2026-11-28T14:37:18.707Z"
+  "fecha": "2026-11-28T17:22:26.523Z"
  },
  "campo": {
-  "huella": "fc27cbf33a9e64ea",
+  "huella": "ac7a70b1482b3a19",
   "ok": true,
-  "fecha": "2026-11-28T14:37:38.516Z"
+  "fecha": "2026-11-28T17:22:27.479Z"
  },
  "guerra": {
-  "huella": "26ff32e64a18ecfb",
+  "huella": "d3b8cd3867dbfd6b",
   "ok": true,
-  "fecha": "2026-11-28T14:37:39.019Z"
+  "fecha": "2026-11-28T17:22:26.776Z"
  },
  "simulador": {
-  "huella": "bd7a62d04c4d2d9e",
+  "huella": "12e8bbb9d78ca554",
   "ok": true,
-  "fecha": "2026-11-28T14:35:59.309Z"
+  "fecha": "2026-11-28T17:20:36.686Z"
  },
  "guerra-juego": {
-  "huella": "1944d35066f7befe",
+  "huella": "17644f21bcefdaca",
   "ok": true,
-  "fecha": "2026-11-28T14:37:57.588Z"
+  "fecha": "2026-11-28T17:22:34.095Z"
  },
  "fichas": {
-  "huella": "e316f7d2933c8ca5",
+  "huella": "6cdd54aff0bc48d3",
   "ok": true,
-  "fecha": "2026-11-28T14:37:57.997Z"
+  "fecha": "2026-11-28T17:22:27.534Z"
  },
  "mapa": {
-  "huella": "34d360a0979fee07",
+  "huella": "3df96c3daaa29785",
   "ok": true,
-  "fecha": "2026-11-28T14:37:59.636Z"
+  "fecha": "2026-11-28T17:22:27.916Z"
  },
  "saber": {
-  "huella": "36dd7127623d7413",
+  "huella": "4f096390304bd943",
   "ok": true,
-  "fecha": "2026-11-28T14:38:39.840Z"
+  "fecha": "2026-11-28T17:22:47.005Z"
  },
  "sim": {
-  "huella": "d4ac430695ecc402",
+  "huella": "e637208d4a50d835",
   "ok": true,
-  "fecha": "2026-11-28T14:39:29.402Z"
+  "fecha": "2026-11-28T17:22:15.998Z"
  },
  "investigador": {
   "huella": "d36857ff0556723d",
@@ -70,14 +70,14 @@
   "fecha": "2026-11-25T15:56:31.025Z"
  },
  "diplomacia": {
-  "huella": "a34d6f35840f76af",
+  "huella": "80551963c3ea6a7e",
   "ok": true,
-  "fecha": "2026-11-28T14:38:55.255Z"
+  "fecha": "2026-11-28T17:22:40.312Z"
  },
  "sonido-ciudad": {
-  "huella": "0df155e0a1ef1c73",
+  "huella": "2d29ed5aa28319c1",
   "ok": true,
-  "fecha": "2026-11-28T14:38:55.340Z"
+  "fecha": "2026-11-28T17:22:40.377Z"
  },
  "ajustes": {
   "huella": "8dccbf67aba158ca",
@@ -275,9 +275,9 @@
   "fecha": "2026-11-25T21:40:14.537Z"
  },
  "area:gobierno/arte.mjs": {
-  "huella": "ab704b34943a73bf",
+  "huella": "6cdd54aff0bc48d3",
   "ok": true,
-  "fecha": "2026-11-28T16:59:29.180Z"
+  "fecha": "2026-11-28T17:19:12.888Z"
  },
  "area:gobierno/fichas.mjs": {
   "huella": "d26f42cb6f5454b6",
@@ -375,9 +375,9 @@
   "fecha": "2026-11-25T14:30:58.640Z"
  },
  "aspecto": {
-  "huella": "1705a06f6b9a21fb",
+  "huella": "302733cd840a809c",
   "ok": true,
-  "fecha": "2026-11-28T14:38:55.441Z"
+  "fecha": "2026-11-28T17:23:21.359Z"
  },
  "liga-mitad": {
   "huella": "78d7368d934d2cc4",
@@ -385,9 +385,9 @@
   "fecha": "2026-11-25T16:04:15.444Z"
  },
  "porcentajes": {
-  "huella": "11f326945505863a",
+  "huella": "0f70811fdff1fb16",
   "ok": true,
-  "fecha": "2026-11-28T14:36:00.830Z"
+  "fecha": "2026-11-28T17:23:21.702Z"
  },
  "area:test/comarca.test.mjs": {
   "huella": "a5a0180c1971455a",
@@ -743,18 +743,23 @@
   ]
  },
  "politeia": {
-  "huella": "26a626db107ac077",
+  "huella": "45bf5cc4e14961be",
   "ok": true,
-  "fecha": "2026-11-28T14:35:59.623Z"
+  "fecha": "2026-11-28T17:20:36.928Z"
  },
  "area:test/politeia.test.mjs": {
-  "huella": "cfc844f10dafa2dd",
+  "huella": "5efec269bdfe18ed",
   "ok": true,
-  "fecha": "2026-11-28T14:28:09.764Z"
+  "fecha": "2026-11-28T17:17:50.037Z"
  },
  "area:test/politeia-ui.test.mjs": {
-  "huella": "8469b1ac2eea49f2",
+  "huella": "c3a18d32885a0092",
   "ok": true,
-  "fecha": "2026-11-28T16:59:28.311Z"
+  "fecha": "2026-11-28T17:19:12.694Z"
+ },
+ "politeia-ui": {
+  "huella": "c3a18d32885a0092",
+  "ok": true,
+  "fecha": "2026-11-28T17:22:02.393Z"
  }
 }

@@ -3,18 +3,20 @@
    Provisional: solo hay Atenas (594 a.C.). Guardado en localStorage['aqvila-politeia-v1'] = P. Ver gobierno/specs/PL3.md. */
 (function (root) {
   'use strict';
-  const GUARDA = 'aqvila-politeia-v1', RUTA = 'assets/politeia/';
+  const GUARDA = 'aqvila-politeia-v1', VASIJAS = 'aqvila-politeia-vasijas-v1', RUTA = 'assets/politeia/';
   const MUNDO = { w: 390, h: 1500 };
   // Lugares: posición del medallón en la ciudad (px del dibujo), nombre y qué se hace allí
   const LUGARES = [
-    { id: 'santuario', n: 'Santuario', x: 195, y: 306, que: 'Las ofrendas a los dioses ganan voluntades y calman a la gente.' },
+    { id: 'santuario', n: 'Santuario', x: 195, y: 306, que: 'Las ofrendas ganan voluntades. El oráculo habla a medias, y hay quien le hace regalos.' },
     { id: 'asamblea', n: 'Asamblea', x: 292, y: 540, que: 'El pueblo vota en la colina. Aquí se habla, se compra apoyo y se pregunta.' },
     { id: 'consejo', n: 'Consejo', x: 96, y: 636, que: 'Aquí se decide qué asuntos llegan al pueblo. Empuja los que te convienen.' },
     { id: 'tribunal', n: 'Tribunal', x: 296, y: 826, que: 'Los jueces del pueblo. Aquí se rinden cuentas y se defiende tu nombre.' },
     { id: 'agora', n: 'Ágora', x: 150, y: 952, que: 'La plaza: se murmura, se escucha y se espía a las casas.' },
     { id: 'casa', n: 'Tu casa', x: 290, y: 1160, que: 'Tu mesa y tus invitados. Un banquete gana amigos y suelta lenguas.' },
-    { id: 'puerto', n: 'Puerto', x: 130, y: 1318, que: 'Llegan barcos y noticias. Un enviado trae favores de fuera.' }
+    { id: 'puerto', n: 'Puerto', x: 130, y: 1318, que: 'Llegan barcos y noticias. Enviados, huéspedes de otras polis y bodas que atan casas.' }
   ];
+  // Dónde se dibuja cada hito en la ciudad (px del dibujo, centro)
+  const HITO_POS = { deudas: [64, 420], esclavitud: [330, 690], salamina: [58, 1236], aceite: [236, 1392], pozos: [212, 1058], censo: [62, 536], apelacion: [200, 880], entierros: [338, 1010] };
   const ESTACION_INICIO = ['consejo', 'casa', 'asamblea', 'tribunal'];
   const ESTACION_NOMBRE = ['Primavera', 'Verano', 'Otoño', 'Invierno'];
   const ACTO = ['La agenda', 'Las intrigas', 'El debate', 'Las cuentas'];
@@ -48,6 +50,8 @@
     obj = String(obj);
     if (obj.indexOf('>') > 0) { const p = obj.split('>'); const a = asuntoDe(P, p[1]); return 'Pedir a ' + casaTxt(P, p[0]) + ' su apoyo en «' + (a ? a.nombre : p[1]) + '»'; }
     if (/:[+-]$/.test(obj)) { const a = asuntoDe(P, obj.slice(0, -2)); return '«' + (a ? a.nombre : obj) + '» — ' + (obj.slice(-1) === '+' ? 'a favor' : 'en contra'); }
+    if (DAT().VECINAS[obj]) return DAT().VECINAS[obj].frase;
+    if (accion === 'boda' && P.casas[obj]) return 'Una boda con ' + casaTxt(P, obj);
     if (obj === 'aire') return 'Una pregunta al aire (sin prueba)';
     const rival = P.duelo ? P.duelo.rival : (P.juicio ? P.juicio.acusador : null);
     if (obj === 'grieta') return 'Su grieta: ' + (rival ? P.casas[rival].grieta : 'un punto débil');
@@ -76,8 +80,15 @@
   // ---------- Guardado ----------
   function guarda() { try { root.localStorage.setItem(GUARDA, JSON.stringify(UI.P)); } catch (e) { /* se juega igual */ } }
   function carga(polis) {
-    try { const s = root.localStorage.getItem(GUARDA); if (!s) return null; const P = JSON.parse(s); if (P && P.v && !P.fin && P.polis === polis && P.casas && P.agenda) return P; } catch (e) { /* nada */ }
+    try { const s = root.localStorage.getItem(GUARDA); if (!s) return null; const P = JSON.parse(s); if (P && P.v && !P.fin && P.polis === polis && P.casas && P.agenda) return REG().migra(P); } catch (e) { /* nada */ }
     return null;
+  }
+
+  // Vasijas de años pasados (provisional): máx. 10, cada una con sus escenas y hitos
+  function leeVasijas() { try { const l = JSON.parse(root.localStorage.getItem(VASIJAS) || '[]'); return Array.isArray(l) ? l.filter(v => v && Array.isArray(v.escenas)) : []; } catch (e) { return []; } }
+  function guardaVasija(P) {
+    try { const l = leeVasijas(); l.push({ anio: P.anio, n: l.length ? (l[l.length - 1].n || 0) + 1 : 1, resultado: P.fin ? P.fin.resultado : '', escenas: REG().escenas(P), hitos: REG().hitos(P) }); while (l.length > 10) l.shift();
+      root.localStorage.setItem(VASIJAS, JSON.stringify(l)); } catch (e) { /* se juega igual */ }
   }
 
   // ---------- Pantalla ----------
@@ -90,14 +101,14 @@
   const humo = (x, y, d) => '<span class="pt-humo" style="left:' + x + 'px;top:' + y + 'px;animation-delay:' + d + 's"></span>';
   function construye() {
     const d = root.document, el = d.createElement('div'); el.id = 'pt-raiz'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'La política de la polis');
-    el.innerHTML = '<div id="pt-cifras"><div id="pt-cifras-txt"></div><button type="button" id="pt-salir">Salir</button></div>'
+    el.innerHTML = '<div id="pt-cifras"><div id="pt-cifras-txt"></div><button type="button" id="pt-vasija">Vasija</button><button type="button" id="pt-salir">Salir</button></div>'
       + '<div id="pt-escena"><div id="pt-scroll"><div id="pt-mundo" style="height:' + MUNDO.h + 'px"><img id="pt-fondo" src="' + RUTA + 'ciudad.svg" alt="La ciudad" width="' + MUNDO.w + '" height="' + MUNDO.h + '" draggable="false">'
-      + nube(70, 70, -10, 90) + nube(150, 95, -55, 70) + nube(40, 120, -90, 110)
+      + '<div id="pt-hitos"></div>' + nube(70, 70, -10, 90) + nube(150, 95, -55, 70) + nube(40, 120, -90, 110)
       + humo(264, 232, 0) + humo(300, 1186, -1.5) + humo(60, 790, -.8)
       + figura('pt-anda', 90, 910, 70, 11, '#1c120c') + figura('pt-anda', 230, 1012, -90, 14, '#7a1f1f') + figura('pt-anda', 60, 1100, 120, 18, '#1c120c')
       + '<span class="pt-brilla" style="top:1262px"></span><span class="pt-brilla b2" style="top:1400px"></span>'
       + medallones() + '</div><div id="pt-mar"></div></div>'
-      + '<div id="pt-cinta" hidden></div><div id="pt-pergamino" hidden></div><div id="pt-fin" hidden></div></div>'
+      + '<div id="pt-cinta" hidden></div><div id="pt-pergamino" hidden></div><div id="pt-vas" hidden></div><div id="pt-fin" hidden></div></div>'
       + '<button type="button" id="pt-pasar"></button>';
     return el;
   }
@@ -107,6 +118,15 @@
     let marcas = ''; for (let i = 0; i < 6; i++) marcas += '<i class="' + (i < P.discordia ? 'on' : '') + '"></i>';
     UI.q('#pt-cifras-txt').innerHTML = '<b>Atenas · ' + (-P.anio) + ' a.C.</b> · ' + ESTACION_NOMBRE[e]
       + '<br><span>pasos <b>' + P.pasos + '</b> · plata <b>' + t.plata + '</b> · fama <b>' + t.fama + '</b></span> <span class="pt-disc" title="Discordia ' + P.discordia + ' de 6">discordia ' + marcas + '</span>';
+  }
+  // Hitos: lo aprobado este año y lo guardado de otros años, dibujado en su sitio con una cinta con su nombre
+  function pintaHitos() {
+    const P = UI.P, vistos = {}, l = [];
+    for (const h of REG().hitos(P)) { vistos[h.id] = 1; l.push(Object.assign({ viejo: false }, h)); }
+    for (const v of leeVasijas()) for (const h of (v.hitos || [])) if (!vistos[h.id]) { vistos[h.id] = 1; l.push(Object.assign({ viejo: true }, h)); }
+    UI.hitos = l;
+    UI.q('#pt-hitos').innerHTML = l.filter(h => HITO_POS[h.id]).map(h => '<button type="button" class="pt-hito' + (h.viejo ? ' viejo' : '') + '" data-hito="' + h.id + '" style="left:' + (HITO_POS[h.id][0] / MUNDO.w * 100).toFixed(2) + '%;top:' + HITO_POS[h.id][1] + 'px" aria-label="' + esc(h.cinta) + '">'
+      + '<img src="' + RUTA + 'hito-' + h.id + '.svg" alt="" width="52" height="52" draggable="false"><span class="pt-hito-cinta">' + esc(h.cinta) + '</span></button>').join('');
   }
   function accionesPorLugar() {
     const m = {}; for (const l of LUGARES) m[l.id] = [];
@@ -141,7 +161,7 @@
   function abrirLugar(id) { UI.lugar = id; UI.paso = null; UI.msg = UI.msg && UI.msgLugar === id ? UI.msg : ''; enfoca(id, true); pintaPergamino(); pintaMedallones(); }
   function cerrarLugar() { if (UI.P.duelo) { UI.msg = ''; } UI.lugar = null; UI.paso = null; alejaCamara(); pintaPergamino(); pintaMedallones(); }
   function cabecera(titulo, extra) { return '<div class="pt-perg-cab"><b class="pt-perg-titulo">' + esc(titulo) + '</b>' + (extra || '') + '<button type="button" class="pt-cerrar" data-x="cerrar">Cerrar</button></div>'; }
-  const AYUDA = { hablar: 'elige un asunto', favor: 'elige una casa y un asunto', pagar: 'elige un asunto', banquete: 'elige una casa', rumor: 'elige una casa', espiar: 'elige una casa', convencer: 'elige una casa', ostracismo: 'elige una casa', orador: 'elige a quién sube', preguntar: 'elige qué preguntar', contraatacar: 'elige un secreto' };
+  const AYUDA = { hablar: 'elige un asunto', favor: 'elige una casa y un asunto', pagar: 'elige un asunto', banquete: 'elige una casa', rumor: 'elige una casa', espiar: 'elige una casa', convencer: 'elige una casa', ostracismo: 'elige una casa', orador: 'elige a quién sube', preguntar: 'elige qué preguntar', contraatacar: 'elige un secreto', huesped: 'elige de qué polis viene', boda: 'elige una casa' };
   function botonAccion(a, pend) {
     const sub = a.objetivos ? (AYUDA[a.id] || 'elige una opción') : fraseCoste(a.coste);
     return '<button type="button" class="pt-accion" data-id="' + a.id + '"><span class="pt-a-n">' + esc(a.nombre) + '</span><span class="pt-a-c">' + esc(a.objetivos ? fraseCoste(a.coste) + ' · ' + sub : sub) + '</span></button>';
@@ -161,7 +181,36 @@
     const P = UI.P, J = P.juicio; if (!J) return '';
     const cargos = J.cargos.map(i => { const s = P.secretos.find(x => x.id === i); return '«' + (s ? s.t : '…') + '»'; }).join(', ');
     return '<p class="pt-linea">' + esc(Mayus(casaTxt(P, J.acusador))) + ' te acusa de ' + esc(cargos) + '.</p>'
-      + '<ul class="pt-jueces">' + J.jueces.map(j => '<li class="' + (j.inc > 0 ? 'amigo' : j.inc < 0 ? 'hostil' : '') + '">' + esc(j.nombre) + '<small>' + (j.inc > 0 ? ' te favorece' : j.inc < 0 ? ' te es hostil' : ' sin inclinar') + '</small></li>').join('') + '</ul>';
+      + '<b class="pt-sub">Los cinco jueces</b><ul class="pt-jueces">' + J.jueces.map(j => '<li class="' + (j.inc > 0 ? 'amigo' : j.inc < 0 ? 'hostil' : '') + '">' + esc(j.nombre) + '<small>' + (j.inc > 0 ? ' te mira bien' : j.inc < 0 ? ' te mira mal' : ' te mira regular') + '</small></li>').join('') + '</ul>'
+      + (P.huesped ? '<p class="pt-linea"><small>Tu huésped de ' + esc(DAT().VECINAS[P.huesped.polis].nombre) + (P.testigo ? ' ya habló por ti.' : ' puede hablar por ti como testigo.') + '</small></p>' : '');
+  }
+  function htmlSantuario() {
+    const P = UI.P; return P.oraculo ? '<blockquote class="pt-oraculo">«' + esc(P.oraculo.frase) + '»<small>El oráculo de Delfos, este año' + (P.oraculo.pista ? ' · te dice algo de ' + casaTxt(P, P.oraculo.casa) : ' · sin pista') + '</small></blockquote>' : '';
+  }
+  function htmlPuerto() {
+    const P = UI.P, t = [];
+    if (P.huesped) t.push('Tu huésped viene de ' + DAT().VECINAS[P.huesped.polis].nombre + '.');
+    if (P.boda) t.push('Hay boda concertada con ' + casaTxt(P, P.boda.casa) + '.');
+    return t.length ? '<p class="pt-linea"><small>' + esc(t.join(' ')) + '</small></p>' : '';
+  }
+  // La vasija: el año contado en bandas, una por escena. «v» puede ser un año guardado.
+  const ROTULO = { voto: 'Votación', juicio: 'Juicio', veredicto: 'Sentencia', fin: 'Final', tuya: 'Tu casa', rival: 'Rival', ciudad: 'Ciudad' };
+  function htmlVasija(titulo, v) {
+    const E = v ? v.escenas : REG().escenas(UI.P), H = v ? (v.hitos || []) : REG().hitos(UI.P);
+    return '<div class="pt-vasija-caja"><img class="pt-vasija-img" src="' + RUTA + 'vasija.svg" alt="" width="96" height="120"><b class="pt-perg-titulo">' + esc(titulo) + '</b></div>'
+      + '<div class="pt-bandas">' + E.map(x => '<div class="pt-banda ' + esc(x.tipo) + '"><i>' + esc(ESTACION_NOMBRE[Math.min(x.estacion, 3)]) + ' · ' + esc(ROTULO[x.tipo] || '') + '</i><p>' + esc(x.texto) + '</p></div>').join('') + '</div>'
+      + (H.length ? '<p class="pt-linea"><small>Dejó en la ciudad: ' + esc(H.map(h => h.cinta).join(', ')) + '.</small></p>' : '');
+  }
+  function htmlVasijasPasadas() {
+    const l = leeVasijas(); if (!l.length) return '';
+    return '<b class="pt-sub">Vasijas de otros años</b><div class="pt-fila-vasijas">' + l.map((v, i) => '<button type="button" class="pt-mini' + (UI.vasPas === i ? ' sel' : '') + '" data-pas="' + i + '" aria-label="Vasija ' + (v.n || i + 1) + '"><img src="' + RUTA + 'vasija.svg" alt="" width="30" height="38"><span>' + (v.n || i + 1) + '</span></button>').join('') + '</div>';
+  }
+  function pintaVasija() {
+    const el = UI.q('#pt-vas'); if (!UI.vasOn) { el.hidden = true; return; }
+    const pas = UI.vasPas != null ? leeVasijas()[UI.vasPas] : null;
+    el.innerHTML = '<div class="pt-fin-caja"><div class="pt-perg-cab">' + '<b class="pt-perg-titulo">La vasija</b><button type="button" class="pt-cerrar" data-x="cerrar-vasija">Cerrar</button></div>'
+      + htmlVasija(pas ? 'Un año pasado (' + (pas.n || '') + ')' : 'La vasija de este año', pas) + htmlVasijasPasadas() + '</div>';
+    el.hidden = false; el.scrollTop = 0;
   }
   function pintaPergamino() {
     const P = UI.P, pg = UI.q('#pt-pergamino');
@@ -180,8 +229,10 @@
       if (duelo) h += htmlDuelo(); else {
         h += cabecera(l.n) + '<div class="pt-perg-vineta"><img src="' + RUTA + 'vineta-' + id + '.svg" alt="" width="200" height="120"><p class="pt-linea">' + esc(l.que) + '</p></div>';
         if (id === 'tribunal') h += htmlJuicio();
+        if (id === 'santuario') h += htmlSantuario();
+        if (id === 'puerto') h += htmlPuerto();
       }
-      if (UI.msg && UI.msgLugar === id) h += '<p class="pt-resultado">' + esc(UI.msg) + '</p>';
+      if (UI.msg && UI.msgLugar === id && !(id === 'santuario' && P.oraculo && /^Consultas el oráculo/.test(UI.msg))) h += '<p class="pt-resultado">' + esc(UI.msg) + '</p>';
       if (lista.length) h += '<div class="pt-lista">' + lista.map(a => botonAccion(a)).join('') + '</div>';
       else if (!duelo) h += '<p class="pt-vacio">Aquí no hay nada que hacer en esta estación.</p>';
     }
@@ -194,9 +245,11 @@
   function agrupa(l) { const o = []; for (const t of l) { const u = o[o.length - 1]; if (u && u.t === t) u.n++; else o.push({ t, n: 1 }); } return o.map(u => u.n > 1 ? u.t + ' ×' + u.n : u.t); }
   function pintaFin() {
     const P = UI.P, el = UI.q('#pt-fin'); if (!P.fin) { el.hidden = true; return; }
+    if (!P.vasijaGuardada) { P.vasijaGuardada = true; guardaVasija(P); guarda(); pintaHitos(); }
     const t = P.casas.tuya, v = P.veredicto;
     let h = '<div class="pt-fin-caja"><b class="pt-perg-titulo">Fin del año</b><p class="pt-resultado">' + esc(FIN_TXT[P.fin.resultado] || P.fin.cronica || 'El año ha terminado.') + '</p>'
-      + '<p class="pt-linea">Plata <b>' + t.plata + '</b> · fama <b>' + t.fama + '</b> · discordia <b>' + P.discordia + '/6</b></p>';
+      + '<p class="pt-linea">Plata <b>' + t.plata + '</b> · fama <b>' + t.fama + '</b> · discordia <b>' + P.discordia + '/6</b></p>'
+      + '<b class="pt-sub">La vasija del año</b>' + htmlVasija('El año en una vasija', null);
     if (P.votos.length) h += '<b class="pt-sub">Lo votado</b><ul class="pt-log">' + P.votos.map(x => { const a = asuntoDe(P, x.asunto); return '<li>«' + esc(a ? a.nombre : x.asunto) + '»: ' + (x.resultado === 'si' ? 'se aprueba' : 'se rechaza') + ' (' + x.piedras.si + ' a ' + x.piedras.no + ' piedras).</li>'; }).join('') + '</ul>';
     h += '<b class="pt-sub">El tribunal</b><p class="pt-linea">' + esc(v ? (VEREDICTO[v.tipo] || '') + (v.de ? ' (' + v.culpables + ' de ' + v.de + ' jueces te hallan culpable)' : '') : 'No llegaste al invierno: no hubo juicio.') + '</p>';
     h += '<b class="pt-sub">La crónica</b><ul class="pt-log cronica">' + agrupa(P.cronica.slice(-10).map(c => c.texto)).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>'
@@ -206,14 +259,14 @@
   }
 
   // ---------- Acciones ----------
-  function cinta(txt) {
+  function cinta(txt, ms) {
     const c = UI.q('#pt-cinta'); if (!txt) { c.hidden = true; return; }
     c.textContent = txt; c.hidden = false; c.classList.remove('sube'); void c.offsetWidth; c.classList.add('sube');
-    clearTimeout(UI.tcinta); UI.tcinta = setTimeout(() => { if (UI) c.hidden = true; }, 3200);
+    clearTimeout(UI.tcinta); UI.tcinta = setTimeout(() => { if (UI) c.hidden = true; }, ms || 3200);
   }
   // Tras cualquier cambio: guardar, repintar y abrir solo el debate o el juicio cuando toque
   function despues(estAntes) {
-    const P = UI.P; guarda(); pintaCifras(); UI.acc = accionesPorLugar();
+    const P = UI.P; guarda(); pintaCifras(); pintaHitos(); UI.acc = accionesPorLugar();
     if (P.fin) { UI.lugar = null; pintaMedallones(); pintaPasar(); pintaFin(); return; }
     if (P.duelo) { if (UI.lugar !== 'asamblea') { UI.msg = ''; UI.paso = null; UI.lugar = 'asamblea'; enfoca('asamblea', true); } }
     else if (P.estacion !== estAntes) {
@@ -241,13 +294,17 @@
   function nuevoAnio() {
     const sem = (Math.floor(Math.random() * 1e6) + 1) | 0;
     UI.P = REG().nueva({ polis: UI.polis, semilla: sem }); UI.lugar = null; UI.paso = null; UI.msg = ''; UI.estabaDuelo = false;
-    UI.q('#pt-fin').hidden = true; alejaCamara(); guarda(); pintaCifras(); pintaMedallones(); pintaPasar(); pintaPergamino();
+    UI.q('#pt-fin').hidden = true; UI.vasOn = false; UI.vasPas = null; pintaVasija(); alejaCamara(); guarda(); pintaCifras(); pintaHitos(); pintaMedallones(); pintaPasar(); pintaPergamino();
     enfoca(ESTACION_INICIO[0], false);
   }
   function clic(e) {
     const t = e.target.closest('button'); if (!t) return;
     if (t.id === 'pt-salir' || t.id === 'pt-fin-salir') return cerrar();
     if (t.id === 'pt-pasar') return pasa();
+    if (t.id === 'pt-vasija') { UI.vasOn = true; UI.vasPas = null; return pintaVasija(); }
+    if (t.getAttribute('data-x') === 'cerrar-vasija') { UI.vasOn = false; return pintaVasija(); }
+    if (t.hasAttribute('data-pas')) { UI.vasPas = +t.getAttribute('data-pas'); return pintaVasija(); }
+    if (t.classList.contains('pt-hito')) { const h = (UI.hitos || []).find(x => x.id === t.getAttribute('data-hito')); if (h) cinta(h.cinta + ': ' + h.texto, 7000); return; }
     if (t.id === 'pt-otro') return nuevoAnio();
     if (t.classList.contains('pt-medallon')) { const id = t.getAttribute('data-lugar'); return UI.lugar === id ? cerrarLugar() : abrirLugar(id); }
     if (t.getAttribute('data-x') === 'cerrar') return cerrarLugar();
@@ -266,9 +323,9 @@
     const d = root.document, polis = op.polis || 'atenas';
     const P = carga(polis) || root.POLITEIA.nueva({ polis, semilla: op.semilla == null ? (Math.floor(Math.random() * 1e6) + 1) : op.semilla });
     const el = construye(); d.body.appendChild(el);
-    UI = { el, P, polis, alSalir: op.alSalir, lugar: null, paso: null, msg: '', msgLugar: null, acc: {}, estabaDuelo: !!P.duelo, juicioVisto: false, q: s => el.querySelector(s) };
+    UI = { el, P, polis, alSalir: op.alSalir, lugar: null, paso: null, msg: '', msgLugar: null, acc: {}, hitos: [], vasOn: false, vasPas: null, estabaDuelo: !!P.duelo, juicioVisto: false, q: s => el.querySelector(s) };
     el.addEventListener('click', clic);
-    pintaCifras(); UI.acc = accionesPorLugar(); pintaMedallones(); pintaPasar(); pintaFin();
+    pintaCifras(); pintaHitos(); UI.acc = accionesPorLugar(); pintaMedallones(); pintaPasar(); pintaFin();
     if (P.duelo) { UI.lugar = 'asamblea'; enfoca('asamblea', true); pintaPergamino(); pintaMedallones(); }
     else if (!P.fin) enfoca(ESTACION_INICIO[Math.min(P.estacion, 3)], false);
     guarda();
