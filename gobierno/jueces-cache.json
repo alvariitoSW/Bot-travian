@@ -2,67 +2,67 @@
  "pausas": {
   "huella": "3ee446f1579141a6",
   "ok": true,
-  "fecha": "2026-11-28T17:22:11.645Z"
+  "fecha": "2026-11-28T17:45:17.949Z"
  },
  "encargos": {
   "huella": "77abf92e9c629ef4",
   "ok": true,
-  "fecha": "2026-11-28T17:22:16.005Z"
+  "fecha": "2026-11-28T17:45:21.413Z"
  },
  "movil": {
   "huella": "27045249bbf6311c",
   "ok": true,
-  "fecha": "2026-11-28T17:22:22.023Z"
+  "fecha": "2026-11-28T17:45:34.351Z"
  },
  "ciudad": {
   "huella": "8c7e62b20ef77439",
   "ok": true,
-  "fecha": "2026-11-28T17:20:29.140Z"
+  "fecha": "2026-11-28T17:42:23.584Z"
  },
  "senado": {
   "huella": "b19ee4b6b5f9f5e5",
   "ok": true,
-  "fecha": "2026-11-28T17:22:26.523Z"
+  "fecha": "2026-11-28T17:45:39.542Z"
  },
  "campo": {
   "huella": "ac7a70b1482b3a19",
   "ok": true,
-  "fecha": "2026-11-28T17:22:27.479Z"
+  "fecha": "2026-11-28T17:45:42.006Z"
  },
  "guerra": {
   "huella": "d3b8cd3867dbfd6b",
   "ok": true,
-  "fecha": "2026-11-28T17:22:26.776Z"
+  "fecha": "2026-11-28T17:45:39.882Z"
  },
  "simulador": {
   "huella": "12e8bbb9d78ca554",
   "ok": true,
-  "fecha": "2026-11-28T17:20:36.686Z"
+  "fecha": "2026-11-28T17:42:31.644Z"
  },
  "guerra-juego": {
   "huella": "17644f21bcefdaca",
   "ok": true,
-  "fecha": "2026-11-28T17:22:34.095Z"
+  "fecha": "2026-11-28T17:45:50.136Z"
  },
  "fichas": {
-  "huella": "6749cd767f7d02a3",
+  "huella": "2151f9572bcd8a6a",
   "ok": true,
-  "fecha": "2026-11-28T17:37:42.483Z"
+  "fecha": "2026-11-28T17:45:42.218Z"
  },
  "mapa": {
-  "huella": "2c54d691c106b0dc",
+  "huella": "fe3fa59fcc882ad3",
   "ok": true,
-  "fecha": "2026-11-28T17:37:42.820Z"
+  "fecha": "2026-11-28T17:45:42.822Z"
  },
  "saber": {
   "huella": "4f096390304bd943",
   "ok": true,
-  "fecha": "2026-11-28T17:22:47.005Z"
+  "fecha": "2026-11-28T17:46:10.026Z"
  },
  "sim": {
   "huella": "e637208d4a50d835",
   "ok": true,
-  "fecha": "2026-11-28T17:22:15.998Z"
+  "fecha": "2026-11-28T17:45:13.791Z"
  },
  "investigador": {
   "huella": "d36857ff0556723d",
@@ -72,12 +72,12 @@
  "diplomacia": {
   "huella": "80551963c3ea6a7e",
   "ok": true,
-  "fecha": "2026-11-28T17:22:40.312Z"
+  "fecha": "2026-11-28T17:46:00.412Z"
  },
  "sonido-ciudad": {
   "huella": "2d29ed5aa28319c1",
   "ok": true,
-  "fecha": "2026-11-28T17:22:40.377Z"
+  "fecha": "2026-11-28T17:46:00.596Z"
  },
  "ajustes": {
   "huella": "8dccbf67aba158ca",
@@ -85,14 +85,14 @@
   "fecha": "2026-11-25T16:12:12.650Z"
  },
  "guerra-jugada": {
-  "huella": "e316f7d2933c8ca5",
+  "huella": "2151f9572bcd8a6a",
   "ok": true,
-  "fecha": "2026-11-28T14:42:06.160Z"
+  "fecha": "2026-11-28T17:47:58.252Z"
  },
  "navegador": {
-  "huella": "ac6b2f93bb573b52",
+  "huella": "12a0ed624072843d",
   "ok": true,
-  "fecha": "2026-11-28T14:44:03.684Z"
+  "fecha": "2026-11-28T17:49:49.633Z"
  },
  "area:test/guerra.test.mjs": {
   "huella": "87ae1c6c6ee021ba",
@@ -375,9 +375,9 @@
   "fecha": "2026-11-25T14:30:58.640Z"
  },
  "aspecto": {
-  "huella": "1232f7454215e1b0",
+  "huella": "b5595e95930041d5",
   "ok": true,
-  "fecha": "2026-11-28T17:37:42.873Z"
+  "fecha": "2026-11-28T17:46:00.729Z"
  },
  "liga-mitad": {
   "huella": "78d7368d934d2cc4",
@@ -385,9 +385,9 @@
   "fecha": "2026-11-25T16:04:15.444Z"
  },
  "porcentajes": {
-  "huella": "aaaefbfa02663182",
+  "huella": "8c817dd46fa3423a",
   "ok": true,
-  "fecha": "2026-11-28T17:37:42.430Z"
+  "fecha": "2026-11-28T17:44:53.279Z"
  },
  "area:test/comarca.test.mjs": {
   "huella": "a5a0180c1971455a",
@@ -395,9 +395,9 @@
   "fecha": "2026-11-25T21:39:02.459Z"
  },
  "polis": {
-  "huella": "256818531d642804",
+  "huella": "c9c09903af9476b9",
   "ok": true,
-  "fecha": "2026-11-28T14:37:17.878Z",
+  "fecha": "2026-11-28T17:43:53.052Z",
   "archivos": [
    "assets/edificios-griegos/curia.glb",
    "assets/edificios-griegos/templo.glb",
@@ -430,6 +430,7 @@
    "assets/personajes/artesano.glb",
    "assets/personajes/plebeya.glb",
    "assets/personajes/plebeyo.glb",
+   "assets/politeia/icono-politeia.svg",
    "assets/sonido/aclamacion1.mp3",
    "assets/sonido/caida1.mp3",
    "assets/sonido/caida2.mp3",
@@ -743,9 +744,9 @@
   ]
  },
  "politeia": {
-  "huella": "0aa155fecaa3c515",
+  "huella": "b2bee5e38cb734eb",
   "ok": true,
-  "fecha": "2026-11-28T17:37:41.978Z"
+  "fecha": "2026-11-28T17:42:31.943Z"
  },
  "area:test/politeia.test.mjs": {
   "huella": "216c7d5003a6ebb2",
@@ -758,8 +759,8 @@
   "fecha": "2026-11-28T17:37:41.466Z"
  },
  "politeia-ui": {
-  "huella": "bd48bebaac57a8f2",
+  "huella": "6d09725e538cbca8",
   "ok": true,
-  "fecha": "2026-11-28T17:39:08.079Z"
+  "fecha": "2026-11-28T17:44:51.979Z"
  }
 }
