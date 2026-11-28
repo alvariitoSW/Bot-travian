@@ -700,7 +700,8 @@ Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pru
 ## Carril 2.0 · Politeia (POLITEIA.md, aprobado por el usuario el 26/11; prueba P0 arrancada el 28/11, «vale»)
   - ✅ PL1 **Un año jugable en reglas con bots** — hecha el 28/11 (unida; 6/6 criterios, `test/politeia.test.mjs` 22/22, rápidos APTO; 1,30 M sobre 1,2: opus 0,63 · sonnet 0,67). Área `polis` y guía `mesa-polis` dadas de alta; juez en la lógica de la subida.
   - ✅ PL2 **Secretos, duelo de preguntas, piedras y tribunal mínimo** — hecha el 28/11 (unida; spec `gobierno/specs/PL2.md` 7/7; `politeia.test` 40 bien; 400 semillas sin atascos; 1,35 M de 1,2): listo gana 20/22 debates, pasivo 13/7, tramposo 16/5 con 18 juicios y 5 destierros; crónicas distintas 20/20.
-  - 🔶 PL3 **La ciudad de pie con arte de relleno**: Consejo, casa y ágora jugables (presupuesto 1,3 M, tope 2,6 M; rama `pl3-politeia-ciudad`).
+  - 🔶 PL3 **La ciudad de pie con arte de relleno** — construida el 28/11 en `pl3-politeia-ciudad` (`452099b`, caché v179; 2,02 M de 1,3, bajo el tope): 7 lugares, pergamino, Pasar siempre visible, debate, juicio y final de año; entrada desde la ficha del ágora en una partida de polis; pruebas APTO. **Aspecto 7,5 (vara 8,5)**: arte de relleno, lo que falta pintar va al taller de Arte. Sin unir: SB24 la comprueba antes (la web aún se publica desde la rama del juego).
+  - 🔶 SB24 **Jueces completos de la v179** sobre `pl3-politeia-ciudad`.
   - ⬜ PL4 **Tribunal, santuario y puerto; la vasija con la crónica** (0,8 M).
   - ⬜ PL5 **Examen**: lo juega diez minutos quien no lo construyó, y tú en el móvil; si no apetece otro año, se para (0,5 M).
 
