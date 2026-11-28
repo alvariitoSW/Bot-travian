@@ -607,7 +607,6 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
-- **Politeia: cómo se entra**: hoy desde la ficha del ágora en tu partida griega. (A) Además un botón fijo «Politeia» en la barra de abajo [recomendado]; (B) solo por el ágora. Por qué: se encuentra sin buscar.
 - **Politeia: castigo del juicio**: (A) multa si no tienes cargo, pierdes el cargo si lo tienes y destierro si pierdes por mucho [recomendado]; (B) solo multa. Por qué: que el tribunal dé miedo según lo que te juegas.
 - **Politeia: revuelta temprana**: ¿puede una revuelta acabar el año político en verano? (A) Sí, es raro (2 de cada 100 jugando bien) y da miedo [recomendado]; (B) No, solo en otoño o después. Por qué: un año corto puede frustrar, pero da tensión.
 - **Politeia: tu casa**: ¿se llama «Lechuza» por defecto y el jugador puede cambiarle el nombre? (A) Sí [recomendado]; (B) Sin emblema hasta elegirlo.
@@ -674,3 +673,4 @@ Cola, por cadenas (cada una sube a `main` con jueces completos APTO; nunca dos s
 - **Caché sin conexión**: cada archivo nuevo que importe el juego (también los de `gobierno/maquetas/`) va en `FILES` de `sw.js` y se sube la versión; si no, sin red no carga (pasó en `main` v157, arreglado por SB4). `test/sw-archivos.test.mjs` lo vigila en la rama; falta pasarlo en `juez-area.mjs` y `jueces.mjs` (pase para la próxima sesión de gobierno «de paso»).
 - **Trampa al volver a publicar una maqueta** (17/11): el service worker guarda lo que carga y lo sirve de su caché (ignora `?v=`): sube la versión de la caché o pruébalo en una ventana privada.
 - `gobierno/cuadro.json` → `sesiones` está atrasado (lista FA2, MIN5, AL11, SB2 y LP7b, ya cerradas): el vigía lo pone al día al publicar.
+- 28/11 · Usuario «1A 2A»: Politeia tendrá además un botón fijo en la barra de abajo (PL3b); la v179 se sube ya con arte de relleno para probarla.

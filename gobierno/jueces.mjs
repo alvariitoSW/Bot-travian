@@ -80,6 +80,7 @@ const bienMal = (r, n) => { const lineas = (r.stdout || '').split('\n').filter(l
 const ultima = r => (((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '').slice(0, 200);
 const LOGICA = [
   { id: 'politeia', nombre: 'Politeia (año político, sin pantalla)', f: 'test/politeia.test.mjs', t: 60000, lee: bienMal },   // PL1, 28/11
+  { id: 'politeia-ui', nombre: 'Politeia de pie (pantalla de la plaza)', f: 'test/politeia-ui.test.mjs', t: 180000, lee: bienMal },   // PL3, 28/11
   { id: 'sim', nombre: 'Pruebas de lógica (sin los bots de partida entera: van a la liga)', f: 'test/sim.test.js', t: 5400000, env: { SIM_SIN_BOTS: '1' }, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
   { id: 'sim-liga', nombre: 'Liga · pruebas de lógica con los bots de partida entera', f: 'test/sim.test.js', t: 5400000, liga: true, lee: r => ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ').slice(0, 400) },
   // CM6: los % del cuadro y del menú del juego; también depende del tablero y de los .md que la memoria no sigue sola

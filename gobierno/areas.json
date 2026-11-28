@@ -654,14 +654,19 @@
         "gobierno/specs/PL*.md",
         "gobierno/historia/PL*.md",
         "gobierno/estudios/POLITEIA.md",
-        "gobierno/estudios/gp1/"
+        "gobierno/estudios/gp1/",
+        "js/politeia-ui*.js",
+        "css/politeia*.css",
+        "assets/politeia/"
       ],
       "taller": [],
       "juez": {
         "logica": [
           "test/politeia.test.mjs"
         ],
-        "navegador": [],
+        "navegador": [
+          "test/politeia-ui.test.mjs"
+        ],
         "si_toca_arte": [
           "gobierno/arte.mjs"
         ],
