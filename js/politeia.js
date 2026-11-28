@@ -63,7 +63,7 @@
     } else {
       if (paga('pagar_jueces') && P.secretos.length) mk('pagar_jueces');
       if (paga('dar_cuentas')) mk('dar_cuentas');
-      if (P.cargo === 'tuya') mk('ceder_cargo');
+      if (P.cargo === 'tuya' && paga('ceder_cargo')) mk('ceder_cargo');
       if (P.discordia >= 4 && paga('ostracismo')) mk('ostracismo', ot);
     }
     return out;
@@ -117,7 +117,8 @@
     if (!a) return { ok: false, texto: 'Esa acción no está disponible ahora.' };
     if (a.objetivos && !a.objetivos.includes(obj)) return { ok: false, texto: 'Falta elegir un objetivo válido.' };
     const t = P.casas.tuya; t.plata -= a.coste.plata || 0; t.fama -= a.coste.fama || 0;
-    const texto = EJEC[id](P, obj); nota(P, 'tuya', texto);
+    const texto = EJEC[id](P, obj);
+    if (P.fin) P.cronica.splice(P.cronica.length - 1, 0, { estacion: P.estacion, quien: 'tuya', texto }); else nota(P, 'tuya', texto);
     P.pasos--; if (!P.fin && P.pasos <= 0) cierra(P);
     return { ok: true, texto };
   }
@@ -131,37 +132,47 @@
   }
 
   // Los rivales juegan solos, según su carácter.
-  function juegaRival(P, id) {
+  // Devuelve una clave de lo que hizo; la segunda jugada de la estación no repite la clave de la primera.
+  function juegaRival(P, id, prev) {
     const c = P.casas[id], e = P.estacion, n = Cn(P, id);
     if (e === 0) {
-      const dep = P.agenda.filter(a => { const A = asunto(P, a.id); return A.pro.includes(id) || A.contra.includes(id); });
-      const a = elige(P, dep.length ? dep : P.agenda), A = asunto(P, a.id);
-      const d = A.contra.includes(id) ? -1 : 1;
+      let a, A, d, k;
+      for (let i = 0; i < 12; i++) {
+        const dep = i < 6 ? P.agenda.filter(x => { const B = asunto(P, x.id); return B.pro.includes(id) || B.contra.includes(id); }) : [];
+        a = elige(P, dep.length ? dep : P.agenda); A = asunto(P, a.id); d = A.contra.includes(id) ? -1 : 1; if (i >= 6 && az(P) < 0.5) d = -d;
+        k = a.id + d; if (k !== prev) break;
+      }
       if (c.caracter === 'rico' && c.plata >= 30 && az(P) < 0.5) { c.plata -= 30; a.pista = clamp(a.pista + 2 * d, 0, 6); a.emp[id] = (a.emp[id] || 0) + 2; nota(P, id, n + ' reparte plata para ' + (d > 0 ? 'apoyar' : 'frenar') + ' «' + A.nombre + '».'); }
       else { a.pista = clamp(a.pista + d, 0, 6); a.emp[id] = (a.emp[id] || 0) + (c.caracter === 'ambicioso' ? 2 : 1); nota(P, id, n + (d > 0 ? ' empuja ' : ' frena ') + '«' + A.nombre + '» en el Consejo.'); }
+      return k;
     } else if (e === 1) {
-      let acc = { astuto: 'rumor', ambicioso: 'rumor', rico: 'banquete', piadoso: 'ofrenda' }[c.caracter];
-      if (az(P) < 0.3) acc = elige(P, ['rumor', 'banquete', 'enviado', 'ofrenda']);
-      if ((acc === 'banquete' && c.plata < 25) || (acc === 'ofrenda' && c.plata < 20)) acc = 'enviado';
-      const obj = az(P) < 0.5 ? 'tuya' : elige(P, otras(P).filter(x => x !== id)), k = P.casas[obj];
+      let acc, obj, k;
+      for (let i = 0; i < 20; i++) {
+        acc = { astuto: 'rumor', ambicioso: 'rumor', rico: 'banquete', piadoso: 'ofrenda' }[c.caracter];
+        if (i > 0 || az(P) < 0.3) acc = elige(P, ['rumor', 'banquete', 'enviado', 'ofrenda']);
+        if ((acc === 'banquete' && c.plata < 25) || (acc === 'ofrenda' && c.plata < 20)) acc = 'enviado';
+        obj = az(P) < 0.5 ? 'tuya' : elige(P, otras(P).filter(x => x !== id));
+        k = acc === 'enviado' || acc === 'ofrenda' ? acc : acc + obj; if (k !== prev) break;
+      }
+      const o = P.casas[obj];
       if (acc === 'rumor') {
-        k.influencia = Math.max(1, k.influencia - 1);
+        o.influencia = Math.max(1, o.influencia - 1);
         if (az(P) < 0.35) { if (obj === 'tuya') c.trato = clamp(c.trato - 2, -3, 3); nota(P, id, n + ' suelta un rumor contra ' + cn(P, obj) + ' y se nota quién fue.'); subeDisc(P, 1); }
         else nota(P, id, n + ' suelta un rumor contra ' + cn(P, obj) + '.');
       } else if (acc === 'banquete') { c.plata -= 25; if (obj === 'tuya') c.trato = clamp(c.trato + 1, -3, 3); nota(P, id, n + ' da un banquete para ' + cn(P, obj) + '.'); }
       else if (acc === 'ofrenda') { c.plata -= 20; P.extra[id] = (P.extra[id] || 0) + 1; nota(P, id, n + ' hace una ofrenda en el santuario.'); }
       else { c.plata += 40; nota(P, id, n + ' manda un barco al puerto y gana plata.'); }
+      return k;
     } else if (e === 2) {
-      if ((c.caracter === 'rico' || az(P) < 0.2) && c.plata >= 40) { c.plata -= 40; P.extra[id] = (P.extra[id] || 0) + 3; nota(P, id, n + ' compra piedras de voto.'); }
-      else { P.extra[id] = (P.extra[id] || 0) + 1; nota(P, id, n + ' habla a la asamblea.'); }
-    } else {
-      if (c.caracter === 'rico' && c.plata >= 30) { c.plata -= 30; c.fama += 1; nota(P, id, n + ' paga a los jueces.'); }
-      else { c.fama += 1; nota(P, id, n + ' da cuentas y gana buen nombre.'); }
+      if (prev !== 'comprar' && (c.caracter === 'rico' || az(P) < 0.2) && c.plata >= 40) { c.plata -= 40; P.extra[id] = (P.extra[id] || 0) + 3; nota(P, id, n + ' compra piedras de voto.'); return 'comprar'; }
+      P.extra[id] = (P.extra[id] || 0) + 1; nota(P, id, n + (prev === 'habla' ? ' insiste ante la asamblea.' : ' habla a la asamblea.')); return 'habla';
     }
+    if (prev !== 'pagar' && c.caracter === 'rico' && c.plata >= 30) { c.plata -= 30; c.fama += 1; nota(P, id, n + ' paga a los jueces.'); return 'pagar'; }
+    c.fama += 1; nota(P, id, n + (prev === 'cuentas' ? ' vuelve a dar cuentas.' : ' da cuentas y gana buen nombre.')); return 'cuentas';
   }
 
   function cierra(P) {
-    for (const r of P.rivales) { juegaRival(P, r); juegaRival(P, r); if (P.fin) return; }
+    for (const r of P.rivales) { const k = juegaRival(P, r, null); if (P.fin) return; juegaRival(P, r, k); if (P.fin) return; }
     P.cerrando = true;
     const e = P.estacion;
     if (e === 0) resuelveAgenda(P); else if (e === 2) resuelveDebate(P); else if (e === 3) resuelveCuentas(P);
@@ -208,7 +219,7 @@
       P.votos.push({ asunto: d.id, resultado: res, perjudicadas: perj, presentador: d.presentador });
       nota(P, 'ciudad', '«' + A.nombre + '» ' + (res === 'si' ? 'se aprueba' : 'se rechaza') + ' (' + lados.si + ' a ' + lados.no + '). Sale perdiendo ' + perj.map(i => cn(P, i)).join(' y ') + '.');
       subeDisc(P, ef.discordia || 0); if (P.fin) return;
-      if (res !== A.pueblo) { nota(P, 'pueblo', 'El pueblo no consigue lo que quería y murmura.'); subeDisc(P, 1); if (P.fin) return; }
+      if (res !== A.pueblo) { nota(P, 'pueblo', 'El pueblo no consigue lo que quería con «' + A.nombre + '» y murmura.'); subeDisc(P, 1); if (P.fin) return; }
     }
     P.ventaja = 0; P.extra = {};
   }
@@ -217,9 +228,9 @@
     const t = P.casas.tuya, astutos = P.rivales.filter(r => P.casas[r].caracter === 'astuto').length; let fuera = 0;
     for (const s of P.secretos) {
       if (az(P) < clamp(s.p + 0.1 * astutos, 0, 1)) {
-        fuera++;
-        if (t.plata >= 40) { t.plata -= 40; nota(P, 'ciudad', 'Sale a la luz que ' + s.t + '. Pagas una multa de 40.'); }
-        else { t.fama -= 2; nota(P, 'ciudad', 'Sale a la luz que ' + s.t + '. No puedes pagar y pierdes buen nombre.'); }
+        fuera++; const ord = ['Primero', 'Después', 'Luego', 'Además', 'Y también'][Math.min(fuera - 1, 4)] + ' sale a la luz que ';
+        if (t.plata >= 40) { t.plata -= 40; nota(P, 'ciudad', ord + s.t + '. Pagas una multa de 40.'); }
+        else { t.fama -= 2; nota(P, 'ciudad', ord + s.t + '. No puedes pagar y pierdes buen nombre.'); }
       }
     }
     P.secretos = [];

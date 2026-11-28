@@ -12,7 +12,7 @@
       hablar: { fama: 1 }, favor: { favor: 1 }, pagar: { plata: 30 },
       banquete: { plata: 25 }, rumor: { fama: 1 }, enviado: { fama: 1 }, ofrenda: { plata: 20 },
       discurso: { fama: 1 }, convencer: { plata: 20 }, comprar: { plata: 40 },
-      pagar_jueces: { plata: 30 }, dar_cuentas: { fama: 1 }, ceder_cargo: {}, ostracismo: { fama: 1 }
+      pagar_jueces: { plata: 30 }, dar_cuentas: { fama: 1 }, ceder_cargo: { fama: 1 }, ostracismo: { fama: 1 }
     },
     ACCIONES: {
       hablar: 'Hablar en el Consejo', favor: 'Pedir un favor', pagar: 'Pagar apoyo',
@@ -22,6 +22,8 @@
     },
     LUGARES: { hablar: 'Consejo', favor: 'Consejo', pagar: 'Consejo', banquete: 'casa', rumor: 'ágora', enviado: 'puerto', ofrenda: 'santuario',
       discurso: 'asamblea', convencer: 'asamblea', comprar: 'asamblea', pagar_jueces: 'tribunal', dar_cuentas: 'tribunal', ceder_cargo: 'tribunal', ostracismo: 'ágora' },
+    // Acciones que no son de la época tal cual
+    HISTORIA: { ostracismo: { etiqueta: 'licencia de juego', fuente: 'Lo introduce Clístenes hacia 508 a.C. (Arist., Const. Aten. 22); aquí, adelantado para poder jugar' } },
     polis: {
       atenas: {
         nombre: 'Atenas', anio: -594, etiqueta: 'histórico', fuente: 'Aristóteles, Const. Aten. 5–12 (Solón, arconte en 594/3)',
@@ -58,7 +60,7 @@
             etiqueta: 'histórico', fuente: 'Aristóteles, Const. Aten. 6; Plutarco, Solón 15' },
           { id: 'salamina', nombre: 'Recuperar Salamina de Mégara', pista: 3, pro: ['gallo', 'caballo'], contra: ['delfin'], pueblo: 'si',
             efectos: { si: { plata: -20, fama: 2, trato: { gallo: 1 }, perjudica: ['delfin'] }, no: { fama: -1, trato: { gallo: -1 }, perjudica: ['gallo'] } },
-            etiqueta: 'histórico', fuente: 'Plutarco, Solón 8–9' },
+            etiqueta: 'licencia de juego', fuente: 'Plutarco, Solón 8–10: Solón la recupera antes de su arcontado; aquí se juega en 594' },
           { id: 'aceite', nombre: 'Solo se exporta aceite', pista: 3, pro: ['caballo'], contra: ['delfin', 'carnero'], pueblo: 'no',
             efectos: { si: { plata: 20, trato: { caballo: 1 }, perjudica: ['delfin'] }, no: { trato: { delfin: 1 }, perjudica: ['caballo'] } },
             etiqueta: 'histórico', fuente: 'Plutarco, Solón 24' },

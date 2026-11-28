@@ -4,6 +4,7 @@ import fs from 'node:fs';
 const require = createRequire(import.meta.url);
 const PO = require('../js/politeia.js'); const DA = require('../js/politeia-datos.js');
 let mal = 0; const ok = (c, t) => { if (!c) mal++; console.log((c ? 'bien  ' : 'MAL   ') + t); };
+let FALLOS = 0;
 const SEMILLAS = Array.from({ length: 20 }, (_, i) => i + 1);
 
 // Tres bots: cada uno mira solo P y devuelve [id, objetivo] o null (pasar).
@@ -30,7 +31,7 @@ function juega(P, bot, cada, tope) {
   while (!P.fin && n < 60 && (tope == null || n < tope)) {
     if (cada) cada(P); const est = P.estacion;
     const m = bot(P); let r = m ? PO.jugar(P, m[0], m[1]) : PO.pasar(P);
-    if (!r.ok) r = PO.pasar(P);
+    if (!r.ok) { if (m) FALLOS++; r = PO.pasar(P); }
     pasosPorEst[est]++; n++;
   }
   return { pasosPorEst, n };
@@ -68,11 +69,11 @@ function juega(P, bot, cada, tope) {
   ok(riv, 'CA2 en cada partida 2 de las 4 casas son rivales');
   ok(juegan && tuvieron > 0, 'CA2 cada rival juega en cada estación (' + tuvieron + ' comprobaciones)');
 }
-// CA3 — todo cuesta, alguien sale perjudicado, nada negativo
+// CA3 — todo cuesta (sin contar el paso), alguien sale perjudicado, nada negativo
 {
   let costes = true, perj = true, neg = true, disc = true, votos = 0, acc = 0; const vistas = new Set();
   const vigila = P => {
-    for (const a of PO.acciones(P)) { acc++; vistas.add(a.id); if (!Object.values(a.coste).some(v => v > 0)) costes = false; }
+    for (const a of PO.acciones(P)) { acc++; vistas.add(a.id); if (!Object.entries(a.coste).some(([k, v]) => k !== 'pasos' && v > 0)) costes = false; }
     for (const c of Object.values(P.casas)) if (c.plata < 0 || c.influencia < 0) neg = false;
     if (P.discordia < 0 || P.discordia > 6) disc = false;
   };
@@ -84,6 +85,15 @@ function juega(P, bot, cada, tope) {
   ok(perj && votos > 0, 'CA3 todo asunto votado perjudica a alguna casa (' + votos + ' votos)');
   ok(neg, 'CA3 plata e influencia nunca negativas');
   ok(disc, 'CA3 discordia siempre entre 0 y 6');
+  ok(FALLOS === 0, 'CA3 toda acción ofrecida por acciones() se puede jugar (fallos: ' + FALLOS + ')');
+  let rep = true, trasFin = true;
+  for (const bot of [listo, pasivo, tramposo]) for (const s of SEMILLAS) {
+    const P = PO.nueva({ polis: 'atenas', semilla: s }); juega(P, bot);
+    const vistos = new Set(); for (const c of P.cronica) { if (c.quien === 'tuya') continue; const k = c.estacion + c.texto; if (vistos.has(k)) rep = false; vistos.add(k); }
+    if (P.fin && P.fin.resultado !== 'sigue') { const u = P.cronica[P.cronica.length - 1]; if (u.quien !== 'ciudad' || P.fin.cronica.indexOf(u.texto) < 0) trasFin = false; }
+  }
+  ok(rep, 'CA3 ninguna línea de la crónica (rivales y ciudad) se repite en la misma estación');
+  ok(trasFin, 'CA3 tras revuelta o destierro no hay líneas después de la última');
   const asu = DA.polis.atenas.asuntos;
   ok(asu.length === 8 && asu.every(a => a.etiqueta && a.fuente && a.efectos.si.perjudica.length && a.efectos.no.perjudica.length), 'CA3 8 asuntos con etiqueta, fuente y perjudicados');
 }

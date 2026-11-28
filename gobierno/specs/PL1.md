@@ -1,6 +1,6 @@
 # Especificación · PL1 Politeia: reglas del año político (Node, sin pantalla)
 
-**Estado**: en obra
+**Estado**: cerrada
 **Sirve a**: OBJETIVOS.md, órgano Cerebro: «gestionar una ciudad con sus intrigas políticas» y el camino de la política (PLAN-2.0 M4, que absorbe Politeia).
 **Área**: polis (propuesta; hasta el alta del vigía, solo archivos nuevos)
 **Rama**: pl1-politeia-reglas
@@ -110,6 +110,8 @@ ostracismo solo como pregunta; sin herederos; un solo año (sin «otro año»); 
 | Vuelta | M gastados | CA cumplidos | Qué falta |
 |---|---|---|---|
 | 0 | 0,15 | 0/6 | construir |
+| 1 | 0,95 | 6/6 | 5 fallos del revisor (coste falso, errores ocultos, historia, fin) |
+| 2 | 1,30 | 6/6 | nada |
 
 ## Referencias
 `gobierno/estudios/POLITEIA.md` (§0, §3, §5, §6, §14) · `gobierno/partes/2026-11-25-GP1-menus.md` · `gobierno/estudios/REF-politeia-arte.md` · `js/diplomacia.js` (patrón UMD).
