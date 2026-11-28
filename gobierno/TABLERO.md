@@ -693,5 +693,14 @@ Cada paso: ficha de objetivo → construir en todas las escenas a la vez → pru
   - ⬜ BT3 **Paso 3 · Una batalla entera**: batalla grande con soldados visibles, bloques prietos, aros, estandartes; Ásculo con la falange de «Falange a pie» y resultado a la campaña; un motor de golpes a pie (CB3) para todas.
 
 ## Gobierno · método
-  - ✅ SK1 **Método mezclado (spec-kit + plan socialista)** — hecha el 27/11 (`91cca762`, unida; 1,39 M): `gobierno/METODO.md`, plantilla `gobierno/plantillas/especificacion.md`, comprobador `gobierno/analizar.mjs` (0,06 s), en prueba hasta el «sí» del usuario. Primer análisis: 3 críticos (MN4a, MD1, CD7 sin tarea), 5 altos, 17 medios, 23 bajos.
+  - 🔶 SK1 **Método mezclado (spec-kit + plan socialista)** — hecha el 27/11 (`91cca762`, unida; 1,39 M): `gobierno/METODO.md`, plantilla `gobierno/plantillas/especificacion.md`, comprobador `gobierno/analizar.mjs` (0,06 s), en prueba; **el usuario quiere revisarlo** antes de usarlo (28/11). Primer análisis: 3 críticos (MN4a, MD1, CD7 sin tarea), 5 altos, 17 medios, 23 bajos.
   - ✅ AR2 **Revisar NVIDIA SimReady** — hecha el 27/11 (solo estudio, unida; ~0,8 M): CC BY 4.0 limpia (compatible con 0 A.D., crédito a NVIDIA); de 2.919 piezas sirven ~60 (ollas de barro, cestas, panes, fruta, queso, sardina, madera); sin árboles, rocas, animales, ánforas, barriles ni sacos; USD→GLB con Blender: 800 triángulos, 43–75 KB por pieza. Bloqueo: el arte pesa 55,6 de 56 MB. Pregunta al usuario.
+  - 🔶 AR3 **Fuentes libres nuevas** (armas, armaduras, ánforas, carros, rocas, árboles, animales) **y puesto del mercado con NVIDIA** (tope de arte 57 MB; presupuesto 2 M, tope 4 M; rama `ar3-fuentes`).
+
+## Carril 2.0 · Politeia (POLITEIA.md, aprobado por el usuario el 26/11; prueba P0 arrancada el 28/11, «vale»)
+  - 🔶 PL1 **Un año jugable en reglas con bots** (cuatro actos, cinco casas, dos rivales; solo Node; presupuesto 1,2 M, tope 2,4 M; rama `pl1-politeia-reglas`).
+  - ⬜ PL2 **Secretos, duelo de preguntas, piedras y tribunal mínimo** (reglas; 1,2 M).
+  - ⬜ PL3 **La ciudad de pie con arte de relleno**: Consejo, casa y ágora jugables (1,3 M).
+  - ⬜ PL4 **Tribunal, santuario y puerto; la vasija con la crónica** (0,8 M).
+  - ⬜ PL5 **Examen**: lo juega diez minutos quien no lo construyó, y tú en el móvil; si no apetece otro año, se para (0,5 M).
+
