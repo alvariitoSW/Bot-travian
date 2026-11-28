@@ -69,7 +69,7 @@
     } else {
       const J = P.juicio;
       if (J) mk('negar');
-      if (J && paga('pagar_jueces') && J.pagados < 2) mk('pagar_jueces');
+      if (J && paga('pagar_jueces') && J.pagados < 2 && J.jueces.some(j => j.inc < 1)) mk('pagar_jueces');
       if (J && paga('contraatacar')) mk('contraatacar', objetivosContra(P));
       if (paga('dar_cuentas')) mk('dar_cuentas');
       if (P.cargo === 'tuya' && paga('ceder_cargo')) mk('ceder_cargo');
@@ -129,7 +129,7 @@
       return cn(P, c) + ' no se deja convencer.'; },
     comprar(P) { P.ventaja += 3; secreto(P, 'compró piedras de voto'); return 'Compras piedras de voto. Alguien las contó.'; },
     pagar_jueces(P) { const J = P.juicio; J.pagados++;
-      const ord = J.jueces.slice().sort((a, b) => a.inc - b.inc)[0]; ord.inc = 1; ord.comprado = true;
+      const ord = J.jueces.slice().sort((a, b) => a.inc - b.inc)[0]; ord.inc = 1;
       const s = secreto(P, 'pagó a los jueces'); let x = '';
       if (s.sabe.includes(J.acusador) && !J.cargos.includes(s.id)) { J.cargos.push(s.id); x = ' Pero el acusador se entera y lo añade a los cargos.'; }
       return 'Pagas a ' + ord.nombre + ' para que mire hacia otro lado.' + x; },
@@ -369,7 +369,7 @@
       if (!mejor || c.length > mejor.c.length) mejor = { r, c };
     }
     if (!mejor) { nota(P, 'ciudad', 'Nadie te acusa de nada. No habrá juicio este invierno.'); return; }
-    const jueces = baraja(P, J.nombres).slice(0, J.jueces).map((n, k) => ({ id: 'j' + (k + 1), nombre: n, inc: ent(P, 3) - 1, comprado: false }));
+    const jueces = baraja(P, J.nombres).slice(0, J.jueces).map((n, k) => ({ id: 'j' + (k + 1), nombre: n, inc: ent(P, 3) - 1 }));
     P.juicio = { acusador: mejor.r, cargos: mejor.c.map(s => s.id), jueces, negado: false, pagados: 0, cuentas: 0, contra: 0 };
     nota(P, mejor.r, Cn(P, mejor.r) + ' te acusa ante el tribunal de ' + mejor.c.map(s => '«' + s.t + '»').join(', ') + '.');
   }
