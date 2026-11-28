@@ -141,8 +141,9 @@
   function abrirLugar(id) { UI.lugar = id; UI.paso = null; UI.msg = UI.msg && UI.msgLugar === id ? UI.msg : ''; enfoca(id, true); pintaPergamino(); pintaMedallones(); }
   function cerrarLugar() { if (UI.P.duelo) { UI.msg = ''; } UI.lugar = null; UI.paso = null; alejaCamara(); pintaPergamino(); pintaMedallones(); }
   function cabecera(titulo, extra) { return '<div class="pt-perg-cab"><b class="pt-perg-titulo">' + esc(titulo) + '</b>' + (extra || '') + '<button type="button" class="pt-cerrar" data-x="cerrar">Cerrar</button></div>'; }
+  const AYUDA = { hablar: 'elige un asunto', favor: 'elige una casa y un asunto', pagar: 'elige un asunto', banquete: 'elige una casa', rumor: 'elige una casa', espiar: 'elige una casa', convencer: 'elige una casa', ostracismo: 'elige una casa', orador: 'elige a quién sube', preguntar: 'elige qué preguntar', contraatacar: 'elige un secreto' };
   function botonAccion(a, pend) {
-    const sub = a.objetivos ? 'elige a quién o qué' : fraseCoste(a.coste);
+    const sub = a.objetivos ? (AYUDA[a.id] || 'elige una opción') : fraseCoste(a.coste);
     return '<button type="button" class="pt-accion" data-id="' + a.id + '"><span class="pt-a-n">' + esc(a.nombre) + '</span><span class="pt-a-c">' + esc(a.objetivos ? fraseCoste(a.coste) + ' · ' + sub : sub) + '</span></button>';
   }
   function htmlDuelo() {
@@ -172,7 +173,7 @@
     let h = '';
     if (UI.paso) {
       const a = UI.paso;
-      h = cabecera(a.nombre, '') + '<p class="pt-linea">' + (a.id === 'preguntar' ? '¿Con qué prueba preguntas? ' : '¿A quién o a qué? ') + '<small>' + esc(fraseCoste(a.coste)) + '</small></p>'
+      h = cabecera(a.nombre, '') + '<p class="pt-linea">' + (a.id === 'preguntar' ? '¿Con qué prueba preguntas? ' : a.id === 'contraatacar' ? '¿Con qué secreto? ' : '¿A quién o a qué? ') + '<small>' + esc(fraseCoste(a.coste)) + '</small></p>'
         + '<div class="pt-lista">' + a.objetivos.map(o => '<button type="button" class="pt-objetivo" data-o="' + esc(o) + '">' + esc(fraseObjetivo(P, a.id, o)) + '</button>').join('') + '</div>'
         + '<button type="button" class="pt-atras" data-x="atras">Elegir otra cosa</button>';
     } else {
@@ -190,6 +191,7 @@
   // ---------- Fin del año ----------
   const FIN_TXT = { sigue: 'El año acaba y sigues en Atenas con tu casa en pie.', desterrado: 'Los jueces te condenan y te destierran diez años. Tu casa se queda sin cabeza.', revuelta: 'El pueblo pierde la paciencia y se alza en la ciudad. El año acaba en revuelta.' };
   const VEREDICTO = { limpio: 'Los jueces te absuelven y tu acusador queda en ridículo.', multa: 'Te condenan a una multa.', cargo: 'Te condenan y pierdes el cargo del año.', destierro: 'Te condenan al destierro.', ninguno: 'Nadie te acusó: no hubo juicio.' };
+  function agrupa(l) { const o = []; for (const t of l) { const u = o[o.length - 1]; if (u && u.t === t) u.n++; else o.push({ t, n: 1 }); } return o.map(u => u.n > 1 ? u.t + ' ×' + u.n : u.t); }
   function pintaFin() {
     const P = UI.P, el = UI.q('#pt-fin'); if (!P.fin) { el.hidden = true; return; }
     const t = P.casas.tuya, v = P.veredicto;
@@ -197,7 +199,7 @@
       + '<p class="pt-linea">Plata <b>' + t.plata + '</b> · fama <b>' + t.fama + '</b> · discordia <b>' + P.discordia + '/6</b></p>';
     if (P.votos.length) h += '<b class="pt-sub">Lo votado</b><ul class="pt-log">' + P.votos.map(x => { const a = asuntoDe(P, x.asunto); return '<li>«' + esc(a ? a.nombre : x.asunto) + '»: ' + (x.resultado === 'si' ? 'se aprueba' : 'se rechaza') + ' (' + x.piedras.si + ' a ' + x.piedras.no + ' piedras).</li>'; }).join('') + '</ul>';
     h += '<b class="pt-sub">El tribunal</b><p class="pt-linea">' + esc(v ? (VEREDICTO[v.tipo] || '') + (v.de ? ' (' + v.culpables + ' de ' + v.de + ' jueces te hallan culpable)' : '') : 'No llegaste al invierno: no hubo juicio.') + '</p>';
-    h += '<b class="pt-sub">La crónica</b><ul class="pt-log cronica">' + P.cronica.slice(-10).map(c => '<li>' + esc(c.texto) + '</li>').join('') + '</ul>'
+    h += '<b class="pt-sub">La crónica</b><ul class="pt-log cronica">' + agrupa(P.cronica.slice(-10).map(c => c.texto)).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>'
       + '<div class="pt-fin-botones"><button type="button" id="pt-otro" class="pt-accion">Otro año</button><button type="button" id="pt-fin-salir" class="pt-cerrar">Salir</button></div></div>';
     el.innerHTML = h; el.hidden = false; el.scrollTop = 0;
     UI.q('#pt-pergamino').hidden = true; alejaCamara();

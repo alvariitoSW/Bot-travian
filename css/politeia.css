@@ -21,9 +21,9 @@
 .pt-med-nombre { display: block; margin-top: 2px; padding: 1px 6px; border-radius: 8px; background: #1c120ccc; color: #d9c9a0; font-size: 12px; font-weight: bold; letter-spacing: .3px; }
 .pt-med-n { position: absolute; right: -5px; top: -5px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 10px; background: #7a1f1f; color: #fff; font: bold 12px/20px Georgia, serif; font-style: normal; }
 .pt-med-n:empty { display: none; }
-.pt-medallon.hay .pt-med-disco { background: #7a1f1f; border-color: #f0dfb8; color: #f6ecd0; animation: pt-late 1.6s ease-in-out infinite; }
+.pt-medallon.hay .pt-med-disco { background: #7a1f1f; border-color: #f0dfb8; color: #f6ecd0; box-shadow: 0 0 0 4px #f0a23c88, 0 2px 4px #0006; animation: pt-late 1.6s ease-in-out infinite; }
 .pt-medallon.hay .pt-med-nombre { background: #f0dfb8; color: #1c120c; }
-.pt-medallon.activo .pt-med-disco { border-color: #f0a23c; box-shadow: 0 0 0 3px #f0a23c88; }
+.pt-medallon.activo .pt-med-disco { border-color: #f0a23c; }
 @keyframes pt-late { 50% { transform: scale(1.1); } }
 /* vida de la ciudad */
 .pt-nube { position: absolute; left: -120px; pointer-events: none; animation: pt-nube var(--t, 90s) linear infinite; will-change: transform; }
@@ -80,3 +80,5 @@
 #pt-pasar { flex: none; width: 100%; min-height: 56px; margin: 0; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border: 0; border-top: 3px solid #b08a5c; background: #7a1f1f; color: #f6ecd0; font-size: 18px; font-weight: bold; letter-spacing: .4px; }
 #pt-pasar:active { background: #5d1717; }
 @media (prefers-reduced-motion: reduce) { #pt-raiz *, #pt-raiz *::before { animation: none !important; transition: none !important; } }
+
+.btn[data-act="politeia"] { min-height: 44px; }
