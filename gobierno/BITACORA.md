@@ -8,6 +8,12 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 28/11 (vigía 4): «Vale buscalo 1A. 2A 3- hay que revisarlo 4-vale 5- vale mándamela 6- vale mándamela»: (1) buscar fuentes libres nuevas de armas, armaduras, ánforas, carros, rocas y árboles (AR3); (2) piezas de NVIDIA SimReady para el puesto del mercado, tope de arte a 57 MB (AR3); (3) el método nuevo (SK1) hay que revisarlo con él antes de usarlo; (4) **tope de gasto = el doble del presupuesto, con aviso** (CLAUDE.md §7 y plan-socialista al día); (5) quiere ver la comarca (capturas); (6) arranca la prueba de Politeia (PL1–PL5) y quiere verla.
+- 27/11 (vigía 4): sobre https://huggingface.co/datasets/nvidia/simready-assets: «1B», que el taller de Arte lo revise entero (licencia, inventario útil, prueba de conversión, veredicto) → AR2, solo estudio.
+- 27/11 (vigía 4): sobre https://github.com/github/spec-kit: «Lo probamos mezclar con nuestra forma de trabajo? Una opción a pero algo más mezclado» → SK1 (no instalar; mezclar especificar, aclarar, analizar y converger con el plan socialista; propuesta de reglas para su «sí»).
+- 25/11 ~22:55 (vigía 4): «Si a lo recomendado»: v178 a main (`24609175`) y GP0 abierta ya (diseño de leyes, Asamblea y cargos de la partida griega).
+- 25/11 (chat de PN3e): «lo de las leyes habría que repensarlo en otra sesión para ajustar los parlamentos y los gobiernos en cada nueva partida, y reusar lo que hay pero mejorarlo, o crear un departamento específico para este juego que piense Opus y lo haga Haiku o Sonnet, y sea simple, barato, sencillo, rápido y divertido». Hoy, con polis, la Asamblea vota leyes romanas («Guerra a Tarento», «Vía Flaminia») y la pestaña Senado tiene Edil, Pretor y Cónsul. Pendiente de cuándo abrirlo.
+- 25/11 ~22:30 (vigía 4): Calcis con su mina de hierro (165–710 hombres a los 15 años): «A», se deja así; es su ventaja y su historia (la polis fácil para empezar).
 - 25/11 ~22:00 (vigía 4): «Si a lo recomendado»: (1) hierro en Grecia: veta de hierro en Calcis y la lección del arranque enseña a comprar hierro (PN3e); (2) la v177 no se sube sola: sube junto con el arreglo del hierro.
 - 25/11 ~21:40 (vigía 4): «Si a todo lo recomendado»: (1) v176 copiada a main (`8db92c60`); (2) quiere no tener que aprobar cada copia a main cuando los jueces den APTO entero (la protección automática de la sesión sigue pidiendo su «sí» en cada copia; se le pregunta en una línea); (3) la partida de polis entra en la revisión completa (JG3); (4) cada polis con su bien especial (PN3d).
 - 25/11 ~19:15 (vigía 4): «Sí, a lo recomendado»: (1) copiar la v175 a main (hecho, `992b09cf`); (2) el mapa de la partida de polis abre más lejos para ver las 8 polis (PN3c); (3) el juego se publica solo desde la versión revisada (`main`): el usuario cambia en GitHub → Settings → Pages la rama de origen a `main`; desde entonces lo que llega al móvil es lo que sube el vigía tras los jueces.
@@ -601,6 +607,10 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Politeia: castigo del juicio**: (A) multa si no tienes cargo, pierdes el cargo si lo tienes y destierro si pierdes por mucho [recomendado]; (B) solo multa. Por qué: que el tribunal dé miedo según lo que te juegas.
+- **Politeia: revuelta temprana**: ¿puede una revuelta acabar el año político en verano? (A) Sí, es raro (2 de cada 100 jugando bien) y da miedo [recomendado]; (B) No, solo en otoño o después. Por qué: un año corto puede frustrar, pero da tensión.
+- **Politeia: tu casa**: ¿se llama «Lechuza» por defecto y el jugador puede cambiarle el nombre? (A) Sí [recomendado]; (B) Sin emblema hasta elegirlo.
+- **Armas y árboles nuevos (AR3)**: (A) armas griegas de gamekorp (CC0) y pino y ciprés de OpenGameArt [recomendado]; (B) además animales, carro y rocas de Quaternius, aunque se vean de juguete. Por qué: es lo único libre que encaja con el estilo.
 
 
 ## Propuestas por aprobar

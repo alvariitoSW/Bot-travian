@@ -79,6 +79,8 @@ movimientos de Quaternius (CC0 1.0); escudos y armas los pone el juego por códi
 
 El **templo** y el **bouleuterion** de las ciudades griegas (`assets/edificios-griegos/`) y los **personajes de las clases sociales** (`assets/personajes/`) parten de modelos que el usuario generó con Meshy (plan de pago), con licencia **[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)**; se aligeraron con `tools/aligerar_edificios_griegos.mjs` y `tools/aligerar_personajes.mjs`.
 
+Las **ollas, la cesta, los panes, la fruta, el queso, el pescado y la estera del mercado** (`assets/mercado/`) son de **NVIDIA Corporation, [SimReady Assets](https://huggingface.co/datasets/nvidia/simready-assets)**, con licencia **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**; se redujeron, se juntaron en un atlas y se convirtieron a glTF con `tools/blender/mercado_simready.py` (detalle en `assets/mercado/LICENSE.txt`). NVIDIA no patrocina el juego.
+
 El sonido grabado de las batallas (`assets/sonido`, 36 sonidos) es todo **[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)**: de OpenGameArt (rubberduck, Kenney, artisticdude) y de Freesound (marchelonia, ale-batec, salemaudio, joelcarrsound, WelvynZPorterSamples, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia). Cada archivo con su fuente en `assets/sonido/LICENSE.txt`; `tools/sonido-fuentes.sh` y `tools/sonido.py` lo rehacen.
 
 La letra de los títulos es **Cinzel**, de The Cinzel Project Authors, con licencia **[SIL OFL 1.1](https://openfontlicense.org)**

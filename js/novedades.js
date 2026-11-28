@@ -4,6 +4,9 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 179, fecha: '28/11/2026', cosas: [
+      'Con una polis, la ficha del ágora trae «La política de la polis»: la Atenas de Solón pintada de pie, con sus siete lugares.',
+      'Tocas un lugar, sube un pergamino con lo que puedes hacer, y «Pasar» siempre a mano hasta el final del año.'] },
     { v: 178, fecha: '25/11/2026', cosas: [
       'Calcis tiene veta de hierro: sus Minas de Eubea ya lo producen.',
       'Con una polis, la primera lección te enseña a comprar hierro en el mercado para tus hoplitas.',

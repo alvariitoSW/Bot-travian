@@ -134,7 +134,8 @@
         "test/es3-combinada.test.mjs",
         "test/es4-asculo.test.mjs",
         "test/registro-lleva.test.mjs",
-        "js/tropas.js"
+        "js/tropas.js",
+        "gobierno/maquetas/a-pie/juez-bt1.mjs"
       ],
       "taller": [],
       "juez": {
@@ -354,7 +355,8 @@
         "tools/resolve_units.py",
         "gobierno/entornos/batallas-taller.sh",
         "gobierno/entornos/batallas-taller.md",
-        "gobierno/maquetas/soldado-*/"
+        "gobierno/maquetas/soldado-*/",
+        "assets/mercado/"
       ],
       "taller": [],
       "juez": {
@@ -441,7 +443,8 @@
         "test/fu1-testudo.test.mjs",
         "js/combate-tropas.js",
         "test/combate-bloque.test.mjs",
-        "gobierno/captura-cb3.mjs"
+        "gobierno/captura-cb3.mjs",
+        "test/combate-atraviesa.test.mjs"
       ],
       "taller": [],
       "da_a": {
@@ -590,7 +593,9 @@
         "gobierno/maquetas/a-pie/campo.js",
         "gobierno/maquetas/falange/campo.js",
         "gobierno/captura-graficos*.mjs",
-        "gobierno/aspecto/graficos*"
+        "gobierno/aspecto/graficos*",
+        "test/graficos-bt1.mjs",
+        "gobierno/aspecto/BT1.md"
       ],
       "taller": [],
       "da_a": {
@@ -637,6 +642,31 @@
       },
       "guia": "gobierno/estudios/SUP1-diseno.md",
       "objetivo": "SUP1-diseno.md: ficha de objetivo y aspecto ≥ 8,5; SUP2 pone su juez de lógica y de navegador."
+    },
+    "polis": {
+      "nombre": "Mesa de la Polis: Politeia, el juego de política de las polis griegas",
+      "en_vigor": true,
+      "guia": ".claude/skills/mesa-polis/SKILL.md",
+      "objetivo": "POLITEIA.md §0: la política de tu polis es un juego en sí; dos partidas de la misma polis cuentan historias distintas.",
+      "propios": [
+        "js/politeia*.js",
+        "test/politeia*.mjs",
+        "gobierno/specs/PL*.md",
+        "gobierno/historia/PL*.md",
+        "gobierno/estudios/POLITEIA.md",
+        "gobierno/estudios/gp1/"
+      ],
+      "taller": [],
+      "juez": {
+        "logica": [
+          "test/politeia.test.mjs"
+        ],
+        "navegador": [],
+        "si_toca_arte": [
+          "gobierno/arte.mjs"
+        ],
+        "al_subir": []
+      }
     }
   }
 }
