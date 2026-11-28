@@ -355,7 +355,8 @@
         "tools/resolve_units.py",
         "gobierno/entornos/batallas-taller.sh",
         "gobierno/entornos/batallas-taller.md",
-        "gobierno/maquetas/soldado-*/"
+        "gobierno/maquetas/soldado-*/",
+        "assets/mercado/"
       ],
       "taller": [],
       "juez": {
